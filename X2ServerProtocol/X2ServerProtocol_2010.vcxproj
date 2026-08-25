@@ -1,0 +1,1647 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="CN_BETA|Win32">
+      <Configuration>CN_BETA</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="CN_INTERNAL|Win32">
+      <Configuration>CN_INTERNAL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="CN_SERVICE|Win32">
+      <Configuration>CN_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_CN|Win32">
+      <Configuration>Debug_CN</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_EU|Win32">
+      <Configuration>Debug_EU</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DE_INTERNAL|Win32">
+      <Configuration>DE_INTERNAL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DE_SERVICE|Win32">
+      <Configuration>DE_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DE_TEST|Win32">
+      <Configuration>DE_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="EN_INTERNAL|Win32">
+      <Configuration>EN_INTERNAL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="EN_SERVICE|Win32">
+      <Configuration>EN_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="EN_TEST|Win32">
+      <Configuration>EN_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ES_INTERNAL|Win32">
+      <Configuration>ES_INTERNAL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ES_SERVICE|Win32">
+      <Configuration>ES_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ES_TEST|Win32">
+      <Configuration>ES_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="FR_INTERNAL|Win32">
+      <Configuration>FR_INTERNAL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="FR_SERVICE|Win32">
+      <Configuration>FR_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="FR_TEST|Win32">
+      <Configuration>FR_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="HK_SERVICE|Win32">
+      <Configuration>HK_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="HK_TEST|Win32">
+      <Configuration>HK_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ID_INTERNAL|Win32">
+      <Configuration>ID_INTERNAL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ID_OPEN_TEST|Win32">
+      <Configuration>ID_OPEN_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ID_SERVICE|Win32">
+      <Configuration>ID_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="INT_TEST|Win32">
+      <Configuration>INT_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="IT_INTERNAL|Win32">
+      <Configuration>IT_INTERNAL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="IT_SERVICE|Win32">
+      <Configuration>IT_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="IT_TEST|Win32">
+      <Configuration>IT_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="KR_OPENTEST|Win32">
+      <Configuration>KR_OPENTEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="KR_QA_TEST|Win32">
+      <Configuration>KR_QA_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="KR_SERVICE|Win32">
+      <Configuration>KR_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="KR_TEST_SERVICE|Win32">
+      <Configuration>KR_TEST_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="KR_TEST|Win32">
+      <Configuration>KR_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="PL_INTERNAL|Win32">
+      <Configuration>PL_INTERNAL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="PL_SERVICE|Win32">
+      <Configuration>PL_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="PL_TEST|Win32">
+      <Configuration>PL_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="TW_SERVICE|Win32">
+      <Configuration>TW_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="TW_TEST|Win32">
+      <Configuration>TW_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="US_OPEN_TEST|Win32">
+      <Configuration>US_OPEN_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="US_SERVICE|Win32">
+      <Configuration>US_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="US_TEST|Win32">
+      <Configuration>US_TEST</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="X2TOOL|Win32">
+      <Configuration>X2TOOL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>X2ServerProtocol</ProjectName>
+    <ProjectGuid>{48BD8842-25A2-4559-926E-C209E839C77B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='KR_TEST_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='HK_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='HK_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='KR_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='KR_OPENTEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='KR_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='US_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='US_OPEN_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='KR_QA_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TW_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TW_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ID_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ID_OPEN_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ID_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DE_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='IT_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PL_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FR_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ES_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EN_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CN_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DE_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PL_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='IT_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FR_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ES_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EN_SERVICE|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CN_BETA|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DE_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PL_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='IT_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FR_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ES_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EN_TEST|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='X2TOOL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_CN|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_EU|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='KR_TEST_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='HK_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='HK_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='KR_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='KR_OPENTEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='KR_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='US_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='US_OPEN_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='KR_QA_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='TW_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='TW_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ID_INTERNAL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ID_OPEN_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ID_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DE_INTERNAL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='IT_INTERNAL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='PL_INTERNAL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='FR_INTERNAL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ES_INTERNAL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='EN_INTERNAL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CN_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DE_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='PL_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='IT_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='FR_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ES_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='EN_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CN_BETA|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DE_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='PL_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='IT_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='FR_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ES_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='EN_TEST|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='X2TOOL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_CN|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_EU|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_CN|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_EU|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_CN|Win32'">Debug\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_EU|Win32'">Debug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ID_INTERNAL|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ID_OPEN_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ID_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='DE_INTERNAL|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='IT_INTERNAL|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='PL_INTERNAL|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='FR_INTERNAL|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ES_INTERNAL|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='EN_INTERNAL|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='CN_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='DE_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='PL_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='IT_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='FR_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ES_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='EN_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='CN_BETA|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='DE_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='PL_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='IT_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='FR_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ES_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='EN_TEST|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ID_INTERNAL|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ID_OPEN_TEST|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ID_SERVICE|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='DE_INTERNAL|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='IT_INTERNAL|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='PL_INTERNAL|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='FR_INTERNAL|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ES_INTERNAL|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='EN_INTERNAL|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='CN_SERVICE|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='DE_SERVICE|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='PL_SERVICE|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='IT_SERVICE|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='FR_SERVICE|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ES_SERVICE|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='EN_SERVICE|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='CN_BETA|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='DE_TEST|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='PL_TEST|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='IT_TEST|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='FR_TEST|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ES_TEST|Win32'">Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='EN_TEST|Win32'">Release\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='X2TOOL|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='X2TOOL|Win32'">Release\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='TW_TEST|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='TW_TEST|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='TW_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='TW_SERVICE|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='KR_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='US_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='US_OPEN_TEST|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='KR_QA_TEST|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='KR_TEST|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='US_TEST|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='US_OPEN_TEST|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='KR_QA_TEST|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='KR_OPENTEST|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='KR_OPENTEST|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='KR_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='KR_SERVICE|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='HK_TEST|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='HK_TEST|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='HK_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='HK_SERVICE|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='KR_TEST_SERVICE|Win32'">..\X2Lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='KR_TEST_SERVICE|Win32'">$(Configuration)\</IntDir>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug_CN|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug_EU|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug_CN|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug_EU|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)D</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug_CN|Win32'">$(ProjectName)D</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug_EU|Win32'">$(ProjectName)D</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='ID_INTERNAL|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='ID_OPEN_TEST|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='ID_SERVICE|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='DE_INTERNAL|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='IT_INTERNAL|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='PL_INTERNAL|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='FR_INTERNAL|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='ES_INTERNAL|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='EN_INTERNAL|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='CN_SERVICE|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='DE_SERVICE|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='PL_SERVICE|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='IT_SERVICE|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='FR_SERVICE|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='ES_SERVICE|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='EN_SERVICE|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='CN_BETA|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='DE_TEST|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='PL_TEST|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='IT_TEST|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='FR_TEST|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='ES_TEST|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='EN_TEST|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='X2TOOL|Win32'">$(ProjectName)</TargetName>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='ID_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='ID_OPEN_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='ID_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='DE_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='IT_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='PL_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='FR_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='ES_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='EN_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='CN_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='DE_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='PL_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='IT_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='FR_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='ES_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='EN_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='CN_BETA|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='DE_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='PL_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='IT_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='FR_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='ES_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='EN_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='ID_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='ID_OPEN_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='ID_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='DE_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='IT_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='PL_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='FR_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='ES_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='EN_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='CN_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='DE_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='PL_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='IT_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='FR_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='ES_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='EN_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='CN_BETA|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='DE_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='PL_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='IT_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='FR_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='ES_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='EN_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='X2TOOL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='X2TOOL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='HK_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='HK_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='KR_OPENTEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='KR_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='KR_TEST_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='KR_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='US_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='US_OPEN_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='KR_QA_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='TW_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='TW_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;..\KOGGamePerformanceCheck\include;..\XTRAP\Client;..\Steamworks;$(IncludePath);..\Common;.\</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='HK_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='HK_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='KR_OPENTEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='KR_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='KR_TEST_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='KR_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='US_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='US_OPEN_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='KR_QA_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='TW_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='TW_TEST|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;..\KOGGamePerformanceCheck\libs;..\XTRAP\Client;..\Steamworks\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocolD.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocolD.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_CN|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocolD.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocolD.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_EU|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocolD.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocolD.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ID_INTERNAL|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ID_OPEN_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ID_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DE_INTERNAL|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='IT_INTERNAL|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PL_INTERNAL|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='FR_INTERNAL|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ES_INTERNAL|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EN_INTERNAL|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CN_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DE_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PL_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='IT_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='FR_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ES_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EN_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CN_BETA|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DE_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PL_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='IT_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='FR_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ES_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EN_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='X2TOOL|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>X2TOOL;WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TW_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TW_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='KR_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='US_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='US_OPEN_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='KR_QA_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='KR_OPENTEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='KR_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='HK_TEST|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='HK_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='KR_TEST_SERVICE|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./FSM;./Socket;../KncWX2Server/Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)X2ServerProtocol.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)X2ServerProtocol.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="KncException.h" />
+    <ClInclude Include="KncSend.h" />
+    <ClInclude Include="KncSmartPtr.h" />
+    <ClInclude Include="KncUidType.h" />
+    <ClInclude Include="..\KncWX2Server\Common\NetError_def.h" />
+    <ClInclude Include="SimObject.h" />
+    <ClInclude Include="ThreadManager.h" />
+    <ClInclude Include="Socket\CircularQueue.h" />
+    <ClInclude Include="Socket\IOCP.h" />
+    <ClInclude Include="Socket\IOThread.h" />
+    <ClInclude Include="Socket\NetCommon.h" />
+    <ClInclude Include="Socket\Overlapped.h" />
+    <ClInclude Include="Socket\Session.h" />
+    <ClInclude Include="Socket\SocketObject.h" />
+    <ClInclude Include="ActorProxy.h" />
+    <ClInclude Include="Performer.h" />
+    <ClInclude Include="Event.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="UserProxy.h" />
+    <ClInclude Include="TRUser.h" />
+    <ClInclude Include="Odbc.h" />
+    <ClInclude Include="X2ServerProtocol.h" />
+    <ClInclude Include="X2ServerProtocolLib.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SimObject.cpp" />
+    <ClCompile Include="ThreadManager.cpp" />
+    <ClCompile Include="Socket\CircularQueue.cpp" />
+    <ClCompile Include="Socket\IOCP.cpp" />
+    <ClCompile Include="Socket\IOThread.cpp" />
+    <ClCompile Include="Socket\NetCommon.cpp" />
+    <ClCompile Include="Socket\Session.cpp" />
+    <ClCompile Include="Socket\SocketObject.cpp" />
+    <ClCompile Include="ActorProxy.cpp" />
+    <ClCompile Include="Performer.cpp" />
+    <ClCompile Include="Event.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_CN|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_EU|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='HK_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='HK_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='KR_OPENTEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='KR_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='KR_TEST_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='KR_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='US_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='US_OPEN_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='KR_QA_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ID_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ID_OPEN_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ID_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DE_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='IT_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PL_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='FR_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ES_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EN_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='CN_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DE_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PL_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='IT_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='FR_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ES_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EN_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='CN_BETA|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DE_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='PL_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='IT_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='FR_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ES_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EN_TEST|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='X2TOOL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='TW_SERVICE|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='TW_TEST|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="UserProxy.cpp" />
+    <ClCompile Include="TRUser.cpp" />
+    <ClCompile Include="Odbc.cpp" />
+    <ClCompile Include="X2ServerProtocol.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

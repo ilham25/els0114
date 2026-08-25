@@ -1,0 +1,64 @@
+# ============================================================================
+# Allowlist form: ignore everything at the repo root, then re-admit the scope.
+#
+# This is deliberate and load-bearing for performance. `/*` stops git from
+# ever descending into Libs/ (~60k files, 4.4 GB) and ipch/ (420 MB), so
+# those files are never even stat'd. An extension blocklist would force a
+# full 124k-file walk on every `git status`.
+#
+# To widen scope later, add one more `!/Dirname/` line below.
+# ============================================================================
+/*
+!/.gitattributes
+!/.gitignore
+!/CLAUDE.md
+!/MODS.md
+!/X2/
+!/X2Lib/
+!/KTDXLIB/
+!/X2ServerProtocol/
+!/KncWX2Server/
+!/luaLib/
+!/libxml/
+!/X2Project_2010.sln
+!/X2Project_2003.sln
+
+# ---- build output directories, at any depth inside the scope --------------
+# Release_*/ covers Release_US, Release_EU, Release_CN (1016 .obj in Release_US
+# alone); US_SERVICE/ and US_TEST/ cover another 882.
+US_SERVICE/
+US_TEST/
+Release/
+Release_*/
+Debug/
+Debug_*/
+KR_TEST_Server_EXE/
+obj/
+bin/
+
+# ---- build + IDE artifacts ------------------------------------------------
+# *.lib also excludes the in-scope vendored .lib inputs (NexonModuleD.lib,
+# libxml_mt.lib, unicows.lib). Intentional -- they stay on disk untracked,
+# so the build is unaffected; they just get no history.
+*.obj
+*.pch
+*.ipch
+*.pdb
+*.ilk
+*.idb
+*.exp
+*.map
+*.res
+*.tlog
+*.lastbuildstate
+*.exe
+*.dll
+*.lib
+*.sdf
+*.ncb
+*.suo
+*.opensdf
+*.user
+*.aps
+*.bak
+*.log

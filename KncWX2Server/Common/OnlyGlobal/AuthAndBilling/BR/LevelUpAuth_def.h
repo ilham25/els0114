@@ -1,0 +1,3 @@
+_ENUM( LU_AUTH )
+
+_ENUM( LU_NUM )

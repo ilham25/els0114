@@ -1,0 +1,11 @@
+# Store every file byte-for-byte verbatim.
+#
+# Two reasons specific to this tree:
+#   1. Source comments and identifiers are CP949/ANSI Korean, not UTF-8.
+#      Byte-verbatim storage is the only way to leave those bytes alone.
+#   2. Everything is CRLF from VS2003/VS2010. Any autocrlf guess would
+#      produce a whole-file diff on every file in the repo.
+#
+# Do NOT add working-tree-encoding here to make Korean diffs readable --
+# it rewrites file bytes on checkout. Mojibake in `git diff` is cosmetic.
+* -text

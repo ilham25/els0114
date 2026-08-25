@@ -1,0 +1,1168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
+    </Filter>
+    <Filter Include="DXUT">
+      <UniqueIdentifier>{b8488b4c-2ca6-4af0-bab8-d64e9d2e9754}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib">
+      <UniqueIdentifier>{2e4f5325-180a-4bb8-a7c2-fd40ff34d516}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tinyXML">
+      <UniqueIdentifier>{e97d159b-77bc-4a8e-a4ae-64da5b4e2ab6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FMOD">
+      <UniqueIdentifier>{dbcfa97c-1f6c-4237-9f76-647713787546}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CxImage">
+      <UniqueIdentifier>{2cb0c5d0-b84f-42b0-9c14-ec42ca4666fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libxml">
+      <UniqueIdentifier>{bf86734d-7281-4fd2-8f6a-2058b6463fc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\OnlyGlobal">
+      <UniqueIdentifier>{adbfc3c9-de56-40f8-abf7-876b1967742a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Browser.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CRC_32.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="debug.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KBrowserWrapper.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KFileSerializer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KFileVerifier.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KGCMassFileBufferManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KGCMassFileManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KHangulPPWSelector.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KHelpSystem.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KPCHWebBrowser.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KProtectRefTable.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KSuperAssert.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGCamera.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGDeviceFont.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGDynamicTexture.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGEffectStateManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGFontManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGFrustum.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGGlow.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGGrayScale.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGLensFlare.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGLineMap.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGMatrix.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGMotionBlur.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGObject.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGParticleSystem.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGPicChar.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGPlanShadow.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGSkyDome.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGSlashTrace.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGStateManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGTargetArrow.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIButton.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUICheckBox.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIComboBox.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIControl.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIControlList.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIDialog.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIDialogHandle.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIDialogManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIEditBox.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIIMEEditBox.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIItem.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIListBox.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIListControl.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUINavigation.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIRadioButton.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIScrollBar.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUISlider.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUISlot.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIStatic.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGUIUniBuffer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGXMeshPlayer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGXRenderer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGXSkinAfterImage.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGXSkinAnim.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDIDevice.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDIManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDNDP.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDNManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDNPacket.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDNTransfer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDNUDP.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDSManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDSMP3Play.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXAnimationController.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXApp.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXCollision.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDevice.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDeviceBaseTexture.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDeviceHolder.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDeviceManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDeviceRenderTargetTexture.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDeviceSound.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDeviceTexture.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDeviceXET.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDeviceXMesh.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXDeviceXSkinMesh.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXEnumToLua.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXLog.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXRandomNumbers.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXRecyclingArray.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXSimpleHandleInterface.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXStage.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXStringLoader.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXStringTable.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXThread.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDXTimer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KVersionControl.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MinMax.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="usewinhoard.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Dxut\DXUT.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="Dxut\DXUTenum.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="Dxut\DXUTgui.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="Dxut\DXUTMesh.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="Dxut\DXUTmisc.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="Dxut\DXUTSettingsDlg.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinyxml.cpp">
+      <Filter>tinyXML</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinyxmlerror.cpp">
+      <Filter>tinyXML</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinyxmlparser.cpp">
+      <Filter>tinyXML</Filter>
+    </ClCompile>
+    <ClCompile Include="KSystemTimer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDIDeviceWinKey.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGDynamicVBManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KExceptionSafeUtil.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KSmartNull.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGPostEffect.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="KTDGFreeTypeFont.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Always.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="AlwaysButConditionally.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="AntiHackingString.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="boost_kog_extension.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CrashRpt.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CRC_32.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CSLock.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="debug.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="delegate.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="delegate_list.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="delegate_template.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InHouse1.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InHouse2.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InHouse3.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InHouse4.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InHouse5.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InHouseEtc.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KBrowserWrapper.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KDynamicSingleton.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KFileSerializer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KFileVerifier.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KGCMassFileBufferManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KGCMassFileManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KHandle.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KHandleArray.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KHangulPPWSelector.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KHelpSystem.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KJohnObjMan.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KJohnThread.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KncFirewall.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KPCHWebBrowser.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KProtectedType.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KProtectRefTable.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KStringUtil.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KSuperAssert.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGCamera.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGDeviceFont.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGDynamicTexture.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGEffectStateManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGFontManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGFontVertex.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGFrustum.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGGlow.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGGrayScale.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGLensFlare.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGLineMap.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGMatrix.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGMotionBlur.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGObject.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGParticleSystem.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGPicChar.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGPlanShadow.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGSkyDome.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGSlashTrace.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGStateManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGTargetArrow.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIButton.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIComboBox.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIControl.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIControlList.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIDialog.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIDialogHandle.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIDialogManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIEditBox.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIIMEEditBox.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIItem.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIListBox.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIListControl.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUINavigation.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIRadioButton.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIScrollBar.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUISlider.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUISlot.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGUIStatic.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGXMeshPlayer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGXRenderer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGXSkinAfterImage.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGXSkinAnim.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDIDevice.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDIManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDNDP.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDNManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDNPacket.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDNTransfer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDNUDP.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDSManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDSMP3Play.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDX.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXAnimationController.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXApp.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXCollision.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXCommonFunc.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDevice.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDeviceBaseTexture.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDeviceHolder.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDeviceManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDeviceRenderTargetTexture.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDeviceSound.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDeviceTexture.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDeviceXET.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDeviceXMesh.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXDeviceXSkinMesh.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXEnumToLua.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXErrorDefine.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXLog.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXRandomNumbers.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXRecyclingArray.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXSimpleHandleInterface.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXStage.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXStringLoader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXStringTable.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXThread.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDXTimer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KVersionControl.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MinMax.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def1.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def2.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def3.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def4.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def5.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="vld.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="zconf.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Dxut\DXUT.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="Dxut\DXUTenum.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="Dxut\DXUTgui.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="Dxut\DXUTMesh.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="Dxut\DXUTmisc.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="Dxut\DXUTSettingsDlg.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml\tinyxml.h">
+      <Filter>tinyXML</Filter>
+    </ClInclude>
+    <ClInclude Include="FMOD\inc\fmod.h">
+      <Filter>FMOD</Filter>
+    </ClInclude>
+    <ClInclude Include="FMOD\inc\fmod.hpp">
+      <Filter>FMOD</Filter>
+    </ClInclude>
+    <ClInclude Include="FMOD\inc\fmod_codec.h">
+      <Filter>FMOD</Filter>
+    </ClInclude>
+    <ClInclude Include="FMOD\inc\fmod_dsp.h">
+      <Filter>FMOD</Filter>
+    </ClInclude>
+    <ClInclude Include="FMOD\inc\fmod_errors.h">
+      <Filter>FMOD</Filter>
+    </ClInclude>
+    <ClInclude Include="FMOD\inc\fmod_output.h">
+      <Filter>FMOD</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\xfile.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximabmp.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximacfg.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximadef.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximage.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximagif.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximaico.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximaiter.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximajas.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximajbg.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximajpg.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximamng.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximapcx.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximapng.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximaraw.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximaska.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximatga.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximath.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximatif.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximawbmp.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\ximawmf.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\xiofile.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CXImage\xmemfile.h">
+      <Filter>CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\c14n.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\catalog.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\chvalid.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\debugXML.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\dict.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\DOCBparser.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\encoding.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\entities.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\globals.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\hash.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\HTMLparser.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\HTMLtree.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\list.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\nanoftp.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\nanohttp.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\parser.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\parserInternals.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\pattern.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\relaxng.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\SAX.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\SAX2.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\schemasInternals.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\schematron.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\threads.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\tree.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\uri.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\valid.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xinclude.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xlink.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlautomata.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlerror.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlexports.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlIO.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlmemory.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlmodule.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlreader.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlregexp.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlsave.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlschemas.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlschemastypes.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlstring.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlunicode.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlversion.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xmlwriter.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xpath.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xpathInternals.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="libxml\libxml\xpointer.h">
+      <Filter>libxml</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDIDeviceWinKey.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KSystemTimer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="NTCheckHeap.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def6.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def7.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGDynamicVBManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KExceptionSafeUtil.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KObserverPtr.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KSmartNull.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGPostEffect.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def8.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumToString.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def9.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InHouse6.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlyGlobal\Always_ID.h">
+      <Filter>헤더 파일\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlyGlobal\Always_JP.h">
+      <Filter>헤더 파일\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlyGlobal\Always_TH.h">
+      <Filter>헤더 파일\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlyGlobal\Always_TWHK.h">
+      <Filter>헤더 파일\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlyGlobal\Always_US.h">
+      <Filter>헤더 파일\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlyGlobal\Always_BR.h">
+      <Filter>헤더 파일\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlyGlobal\Always_CN.h">
+      <Filter>헤더 파일\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlyGlobal\Always_Global.h">
+      <Filter>헤더 파일\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlyGlobal\Always_EU.h">
+      <Filter>헤더 파일\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="KTDGFreeTypeFont.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\XTRAP\Client\Xtrap_C_Interface.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def10.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID_def11.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="FMOD\lib\fmodex_vc.lib">
+      <Filter>FMOD</Filter>
+    </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuildStep Include="KTDGUICheckBox.h">
+      <Filter>헤더 파일</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="KTDGUIUniBuffer.h">
+      <Filter>헤더 파일</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="vldapi.h">
+      <Filter>헤더 파일</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="CrashRpt.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="CxImage.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="cximageD.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="cximaged.pdb">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="jpeg.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="jpegD.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="jpegd.pdb">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="libxml_mt.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="libxml_mtd.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="luaLib.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="luaLibD.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="lualibd.pdb">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="Profiler.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="ProfilerD.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="profilerd.pdb">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="unicows.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="vld.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="vldmt.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="vldmtdll.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="winhoard.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="zlib.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="zlibd.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="zlibstat.lib">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="zlibwapi.dll">
+      <Filter>Lib</Filter>
+    </CustomBuildStep>
+  </ItemGroup>
+</Project>
