@@ -2428,6 +2428,13 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 #define SERV_IRUHADEV_BUFF_DURATION_TEXT
 //////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-27
+// Description: All 6 equipped consumable quick slots are open by default, no cash ticket required
+#define SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+//////////////////////////////////////////////////////////////////////////
+
 
 //�ؿ��� ���� ������
 #define CLIENT_GLOBAL_COMMON

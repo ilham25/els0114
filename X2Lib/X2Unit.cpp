@@ -102,7 +102,13 @@ void CX2Unit::Init()
 #endif SERV_NEW_UNIT_TRADE_LIMIT
 
 #ifdef	SERV_EXPAND_QUICK_SLOT
+//{{ Iruha : 2026-08-27 // All 6 consumable quick slots open by default
+#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+	m_bExpandQuickSlot = true;
+#else
 	m_bExpandQuickSlot = false;
+#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+//}}
 #endif  SERV_EXPAND_QUICK_SLOT
 
 	SetSumOfItemLevel( 0 );

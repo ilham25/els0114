@@ -1796,6 +1796,17 @@ CX2SlotItem* CX2UIQuickSlot::GetEmptyslot()
 #ifdef	SERV_EXPAND_QUICK_SLOT
 void	CX2UIQuickSlot::SetExpandQuickSlot( int iMaxNumOfSlot )
 {
+//{{ Iruha : 2026-08-27 // All 6 consumable quick slots open by default; skip the 3/6 clamp entirely
+#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+#ifdef SERV_NEW_DEFENCE_DUNGEON	// 적용날짜: 2013-03-26
+	if( true == GetIsSummonCardSlot() )		/// 소환 카드 슬롯은 4칸으로 설정핝다.
+		iMaxNumOfSlot = _CONST_QUICK_SLOT_::MAX_CARD_SLOT_NUM;
+	else
+		iMaxNumOfSlot = 6;
+#else // SERV_NEW_DEFENCE_DUNGEON
+	iMaxNumOfSlot = 6;
+#endif // SERV_NEW_DEFENCE_DUNGEON
+#else // SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
 #ifdef SERV_NEW_DEFENCE_DUNGEON	// 적용날짜: 2013-03-26
 	if( true == GetIsSummonCardSlot() )		/// 소환 카드 슬롯은 4칸으로 설정핝다.
 		iMaxNumOfSlot = _CONST_QUICK_SLOT_::MAX_CARD_SLOT_NUM;
@@ -1810,6 +1821,9 @@ void	CX2UIQuickSlot::SetExpandQuickSlot( int iMaxNumOfSlot )
 	{
 		iMaxNumOfSlot = 6;
 	}
+
+#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+//}}
 
 	CKTDGUIStatic* pStatic_Black = (CKTDGUIStatic*) m_pDLGQuickSlot->GetControl( L"Slot_Black" );
 

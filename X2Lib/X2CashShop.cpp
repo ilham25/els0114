@@ -8305,6 +8305,10 @@ void CX2CashShop::SetOpenCheckAuthority( OUT string& strURL_, OUT RECT& rcWebPag
 #ifdef	SERV_EXPAND_QUICK_SLOT
 bool CX2CashShop::GetCahBuyExpandQuickSlotItem( int itemID )
 {
+//{{ Iruha : 2026-08-27 // Quick slots are always full now; never let the now-pointless expansion ticket show in the shop
+#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+	return false;
+#else
 	if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( EXPAND_QUICK_SLOT_ITEM_ID, true ) != NULL )
 	{
 		return false;
@@ -8317,6 +8321,8 @@ bool CX2CashShop::GetCahBuyExpandQuickSlotItem( int itemID )
 	}
 
 	return true;
+#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+//}}
 }
 #endif  SERV_EXPAND_QUICK_SLOT
 CX2CashShop::CashShopSlot::CashShopSlot( CX2Slot::SLOT_TYPE cashShopSlotType, int slotIndex )

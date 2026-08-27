@@ -143,6 +143,14 @@ bool KInventory::Init( IN const std::map< int, int >& mapSlotSize,
 		}
 #endif SERV_PET_SYSTEM
 		//}}
+		//{{ Iruha : 2026-08-27 // Category 11 is always exactly 6; ignore any legacy +3 purchase row
+#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+		else if( iCategory == CXSLInventory::ST_E_QUICK_SLOT )
+		{
+			iSlotSize = 6;
+		}
+#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+		//}}
 
         if( iSlotSize > 0 )
         {
@@ -517,7 +525,13 @@ int KInventory::GetBaseSlotSize( IN const int iCategory ) const
     case CXSLInventory::ST_E_SKILL:
         return CXSLUnit::NSSI_END;
     case CXSLInventory::ST_E_QUICK_SLOT:
-		return 3;   
+		//{{ Iruha : 2026-08-27 // All 6 consumable quick slots open by default
+#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+		return 6;
+#else
+		return 3;
+#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+		//}}
 	case CXSLInventory::ST_AVARTA:
 		//{{ 2012. 12. 14	허상형 ( Merged by 박세훈 )	인벤토리 개편 테스트
 #ifdef SERV_REFORM_INVENTORY_TEST
