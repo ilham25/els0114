@@ -361,9 +361,15 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 			{
 				if ( CX2UISkillTreeNew::STST_SELECT_SKILL_LEFT == iIndexInTier )	/// ���� ��ų�̸�, ���� ���� ǥ��
 				{
+//{{ Iruha : 2026-08-27 // SKILLTREE_NO_LOCK removes the choice restriction, so the "AbleChoice" indicator no longer applies
+#ifdef SERV_IRUHADEV_SKILLTREE_NO_LOCK
+					ShowSlotPicture( false, pSlot, STSAPT_SELECT );
+#else
 					ShowSlotPicture( true, pSlot, STSAPT_SELECT );
 
 					pDLGUISkillTree->ChangeSequence( pSlot, true );		/// 2������ ���� ���� �ֻ����� ����
+#endif SERV_IRUHADEV_SKILLTREE_NO_LOCK
+//}}
 				}
 				else	/// ������ ��ų�̸�, ���� ���� ���� ( ���ʿ��� ����� ���̴�. )
 					ShowSlotPicture( false, pSlot, STSAPT_SELECT );
