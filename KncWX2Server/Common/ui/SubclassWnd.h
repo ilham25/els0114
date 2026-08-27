@@ -89,6 +89,17 @@ private:
 			thunk.lda_a0 = 0x22100000 | LOWORD(pThis);
 			thunk.jmp = 0x6bfc0000;
 #endif
+			//{{ Iruha : 2026-08-27 // VS2010 port: this thunk is self-modifying code -- it
+			// writes a MOV+JMP machine-code sequence directly into `thunk` (a plain data
+			// member of an object living on the heap or stack) and later jumps into it.
+			// VC7.1-era Windows (and the DEP=OptIn default this code shipped under) didn't
+			// enforce non-executable data pages here; on a modern Windows install DEP is
+			// AlwaysOn by default, so executing unmarked data memory is a hard 0xC0000005.
+			// VirtualProtect makes the thunk's own page(s) executable before it's ever run.
+			DWORD dwOldProtect = 0;
+			::VirtualProtect( &thunk, sizeof(thunk), PAGE_EXECUTE_READWRITE, &dwOldProtect );
+			//}}
+
 			// write block from data cache and
 			//  flush from instruction cache
 			FlushInstructionCache(GetCurrentProcess(), &thunk, sizeof(thunk));

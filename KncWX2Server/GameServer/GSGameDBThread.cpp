@@ -7,7 +7,7 @@
 #include "GSGameDBThread.h"
 #include "GameServer.h"
 #include "NetError.h"
-#include "Inventory.h"      // ÀåÂø ¾ÆÀÌÅÛ ¾ò¾î¿Ã ¶§ InventoryCategory ÇÊ¿ä.
+#include "Inventory.h"      // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ InventoryCategory ï¿½Ê¿ï¿½.
 #include "StatTable.h"
 #include "ExpTable.h"
 #include "X2Data/XSLItem.h"
@@ -15,7 +15,7 @@
 #include "TutorialManager.h"
 #include "X2Data/XSLAttribEnchantItem.h"
 #include "X2Data/XSLUnit.h"
-//{{ 2013. 05. 15	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+//{{ 2013. 05. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	#include "X2Data/XSLSocketItem.h"
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
@@ -70,7 +70,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
     switch( spEvent_->m_usEventID )
     {    
         CASE( DBE_UPDATE_UNIT_INFO_REQ );
-		//{{ 2012. 03. 27	¹Ú¼¼ÈÆ	¾Æ¸®¿¤ÀÇ º¹±Í ¿ë»ç´ÔÀ» À§ÇÑ ¼±¹°! ( º¹±Í À¯Àú Ç¥½Ã )
+		//{{ 2012. 03. 27	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK
 		_CASE( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, KDBE_GET_SECOND_SECURITY_INFO_REQ_FOR_GameDB );
 #else
@@ -78,7 +78,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 #endif SERV_EVENT_RETURN_USER_MARK
 		//}}
 
-	   //{{ 2011. 08. 09  ±è¹Î¼º (2011.08.11) Æ¯Á¤ÀÏ ÀÌÈÄ »ý¼ºÇÑ °èÁ¤¿¡ ´ëÇÏ¿© ½Å±ÔÄÉ¸¯ÅÍ »ý¼º ½Ã ¾ÆÀÌÅÛ Áö±Þ ÀÌº¥Æ®
+	   //{{ 2011. 08. 09  ï¿½ï¿½Î¼ï¿½ (2011.08.11) Æ¯ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Å±ï¿½ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_NEW_CREATE_CHAR_EVENT
 	   CASE( DBE_GAME_CREATE_UNIT_REQ );
 #else
@@ -86,7 +86,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 #endif SERV_NEW_CREATE_CHAR_EVENT
 	   //}}
        _CASE( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ );
-	   //{{ 2012.02.20 Á¶È¿Áø	Ä³¸¯ÅÍ »èÁ¦ ÇÁ·Î¼¼½º º¯°æ (»èÁ¦ ´ë±â ±â°£ µµÀÔ)
+	   //{{ 2012.02.20 ï¿½ï¿½È¿ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_UNIT_WAIT_DELETE
 	   _CASE( DBE_GAME_FINAL_DELETE_UNIT_REQ, KEGS_FINAL_DELETE_UNIT_REQ );
 	   _CASE( DBE_GAME_RESTORE_UNIT_REQ, KEGS_RESTORE_UNIT_REQ );
@@ -94,7 +94,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 	   //}}
 
        _CASE( DBE_GAME_SELECT_UNIT_REQ, KEGS_SELECT_UNIT_REQ );
-		//{{ 2009. 5. 28  ÃÖÀ°»ç	Ã¤³ÎÀÌµ¿
+		//{{ 2009. 5. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ï¿½Ìµï¿½
 		CASE( DBE_CHANNEL_CHANGE_GAME_SELECT_UNIT_REQ );
 		//}}
 
@@ -107,7 +107,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_QUEST_COMPLETE_REQ );
 		CASE( DBE_INSERT_SKILL_REQ );
 
-		//{{ 2012. 03. 23	¹Ú¼¼ÈÆ	°ü¸®ÀÚ¿ë Ä¡Æ®Å° ¿À·ù ¼öÁ¤
+		//{{ 2012. 03. 23	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ Ä¡Æ®Å° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_FIX_THE_ADMIN_CHEAT
 		_CASE( DBE_ADMIN_INIT_SKILL_TREE_REQ, KDBE_INIT_SKILL_TREE_REQ );
 #else
@@ -118,7 +118,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
        _CASE( DBE_SEARCH_UNIT_REQ, std::wstring );
 	   _CASE( DBE_KNM_REQUEST_NEW_FRIEND_INFO_REQ, std::wstring );
 	    CASE( DBE_INSERT_TRADE_ITEM_REQ );
-		//{{ 2009. 2. 10  ÃÖÀ°»ç	°³ÀÎ°Å·¡ ¹ö±× ¿¹¹æ
+		//{{ 2009. 2. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Î°Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		CASE( DBE_INSERT_TRADE_ITEM_BY_SERVER_NOT );
 		//}}
        _CASE( DBE_INSERT_PURCHASED_CASH_ITEM_REQ, KDBE_INSERT_ITEM_REQ );
@@ -132,14 +132,14 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_NEW_BLACKLIST_USER_REQ );
 		CASE( DBE_DEL_BLACKLIST_USER_REQ );
 
-		//{{ 2009. 9. 22  ÃÖÀ°»ç	ÀüÁ÷Ä³½¬		
+		//{{ 2009. 9. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½		
 		CASE( DBE_CHANGE_UNIT_CLASS_REQ );
 		//}}
 
 		CASE( DBE_INSERT_BUY_PERSONAL_SHOP_ITEM_REQ );
 
         CASE( DBE_ENCHANT_ITEM_REQ );
-		//{{ 2008. 12. 21  ÃÖÀ°»ç	°­È­ º¹±¸
+		//{{ 2008. 12. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½
 		CASE( DBE_RESTORE_ITEM_REQ );
 		//}}
 		CASE( DBE_RESOLVE_ITEM_REQ );
@@ -152,7 +152,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_PREPARE_INSERT_LETTER_TO_POST_REQ );
 		CASE( DBE_INSERT_LETTER_TO_POST_REQ );
 		
-		//{{ 2008. 9. 18  ÃÖÀ°»ç	¿ìÆíÇÔ
+		//{{ 2008. 9. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		CASE( DBE_GET_POST_LETTER_LIST_REQ );
 		CASE( DBE_READ_LETTER_NOT );
 		CASE( DBE_GET_ITEM_FROM_LETTER_REQ );
@@ -165,7 +165,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_RESET_SKILL_REQ );
         CASE( DBE_EXPAND_INVENTORY_SLOT_REQ );
 		CASE( DBE_EXPAND_SKILL_SLOT_REQ );
-		//{{ 2008. 12. 14  ÃÖÀ°»ç	Ä³¸¯ÅÍ ½½·Ô È®Àå
+		//{{ 2008. 12. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 		CASE( DBE_EXPAND_CHAR_SLOT_REQ );
 		//}}
 		
@@ -174,40 +174,40 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_UPDATE_INVENTORY_ITEM_POS_NOT );
 		CASE( DBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ );
 
-		//{{ 2008. 9. 3  ÃÖÀ°»ç		¼Ó¼º°­È­
+		//{{ 2008. 9. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ó¼ï¿½ï¿½ï¿½È­
 		CASE( DBE_ATTRIB_ENCHANT_ITEM_REQ );
 		CASE( DBE_IDENTIFY_ITEM_REQ );
 		//}}
 
-		//{{ 2008. 9. 26  ÃÖÀ°»ç	¿ìÃ¼±¹ ºí·¢¸®½ºÆ®
+		//{{ 2008. 9. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		CASE( DBE_NEW_POST_BLACK_LIST_REQ );
 		CASE( DBE_DEL_POST_BLACK_LIST_REQ );
 		//}}
 
-		//{{ 2008. 10. 7  ÃÖÀ°»ç	Å¸ÀÌÆ²
+		//{{ 2008. 10. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å¸ï¿½ï¿½Æ²
 		CASE( DBE_INSERT_TITLE_REQ );
 		//}}
 
-		//{{ 2008. 12. 25  ÃÖÀ°»ç	ºÎ¿©
+		//{{ 2008. 12. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î¿ï¿½
 		CASE( DBE_ENCHANT_ATTACH_ITEM_REQ );
 		//}}
 
-		//{{ 2008. 11. 18  ÃÖÀ°»ç	¾ÆÀÌÅÛ ±³È¯
+		//{{ 2008. 11. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 		CASE( DBE_ITEM_EXCHANGE_REQ );
 		//}}
 
-		//{{ 2009. 4. 8  ÃÖÀ°»ç		´Ð³×ÀÓ º¯°æ
+		//{{ 2009. 4. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ð³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		CASE( DBE_DELETE_NICK_NAME_REQ );
 		//}}
 
 		CASE( DBE_INSERT_CASH_SKILL_POINT_REQ );
 		CASE( DBE_EXPIRE_CASH_SKILL_POINT_REQ );
 
-		//{{ 2009. 8. 4  ÃÖÀ°»ç		ºÀÀÎ ½ºÅ³
+		//{{ 2009. 8. 4  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
 		CASE( DBE_UNSEAL_SKILL_REQ );
 		//}}
 
-		//{{ 2009. 5. 11  ÃÖÀ°»ç	½Ç½Ã°£ ¾ÆÀÌÅÛ
+		//{{ 2009. 5. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		CASE( DBE_GET_ITEM_INSERT_TO_INVENTORY_REQ );
 		CASE( DBE_GET_TEMP_ITEM_REQ );
 		//}}
@@ -224,20 +224,20 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
         CASE( DBE_DELETE_FRIEND_GROUP_REQ );
         CASE( DBE_FRIEND_MESSAGE_NOT );
 
-		//{{ 2009. 7. 29  ÃÖÀ°»ç	item set cheat
+		//{{ 2009. 7. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	item set cheat
 		CASE( DBE_ADMIN_GET_ITEM_SET_NOT );
 		//}}
 
-		//{{ 2009. 8. 27  ÃÖÀ°»ç	ºÀÀÎ
+		//{{ 2009. 8. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½
 		CASE( DBE_SEAL_ITEM_REQ );
 		CASE( DBE_UNSEAL_ITEM_REQ );
 		//}}
 
 		//////////////////////////////////////////////////////////////////////////		
-		//{{ 2009. 9. 22  ÃÖÀ°»ç	±æµå
+		//{{ 2009. 9. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 		
-		//{{ 2012. 02. 22	¹Ú¼¼ÈÆ	±æµå ÀÌ¸§ º¯°æ±Ç
+		//{{ 2012. 02. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GUILD_CHANGE_NAME
 #else
 		CASE( DBE_CREATE_GUILD_REQ );
@@ -255,7 +255,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_DISBAND_GUILD_REQ );
 		CASE( DBE_EXPAND_GUILD_MAX_MEMBER_REQ );
 
-		//{{ 2009. 10. 27  ÃÖÀ°»ç	±æµå·¹º§
+		//{{ 2009. 10. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å·¹ï¿½ï¿½
 		CASE( DBE_UPDATE_GUILD_EXP_REQ );	   
 		//}}
 
@@ -264,7 +264,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		//////////////////////////////////////////////////////////////////////////
 
 		//////////////////////////////////////////////////////////////////////////
-		//{{ 2009. 11. 24  ÃÖÀ°»ç	±æµå½ºÅ³
+		//{{ 2009. 11. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 #ifdef GUILD_SKILL_TEST
 
 		CASE( DBE_RESET_GUILD_SKILL_REQ );
@@ -274,38 +274,38 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		//}}
 		//////////////////////////////////////////////////////////////////////////
 
-		//{{ 2009. 12. 8  ÃÖÀ°»ç	Å©¸®½º¸¶½ºÀÌº¥Æ®
+		//{{ 2009. 12. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½Æ®
 		CASE( DBE_CHECK_TIME_EVENT_COMPLETE_REQ );
 		//}}
 
 #ifdef SERV_GLOBAL_BILLING
-		//{{ Çã»óÇü : [2010/8/19/] //	¼±¹° ±â´É °³Æí
+		//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/8/19/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		CASE( DBE_GET_NICKNAME_BY_UNITUID_REQ );
-		//}} Çã»óÇü : [2010/8/19/] //	¼±¹° ±â´É °³Æí
+		//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/8/19/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif // SERV_GLOBAL_BILLING
 
-		//{{ 2010. 01. 11  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+		//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 		CASE( DBE_GET_RECOMMEND_USER_LIST_REQ );
 		//}}
 
-		//{{ 2010. 02. 23  ÃÖÀ°»ç	À¥ Æ÷ÀÎÆ® ÀÌº¥Æ®
+		//{{ 2010. 02. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ìºï¿½Æ®
 #ifdef SERV_WEB_POINT_EVENT
 		CASE( DBE_ATTENDANCE_CHECK_REQ );
 	   _CASE( DBE_INCREASE_WEB_POINT_LOG_NOT, KDBE_INCREASE_WEB_POINT_ACK );	   
 #endif SERV_WEB_POINT_EVENT
 		//}}		
-		//{{ 2010. 03. 22  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+		//{{ 2010. 03. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
 		CASE( DBE_EXPAND_SKILL_NOTE_PAGE_REQ );
 		CASE( DBE_REG_SKILL_NOTE_MEMO_REQ );
 #endif SERV_SKILL_NOTE
 		//}}
-		//{{ 2010. 7. 30 ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+		//{{ 2010. 7. 30 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 		CASE( DBE_CREATE_PET_REQ );
 		CASE( DBE_SUMMON_PET_REQ );
 
-		//{{ 2012. 02. 22	¹Ú¼¼ÈÆ	Æê ÀÌ¸§ º¯°æ±Ç
+		//{{ 2012. 02. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_CHANGE_NAME
 		CASE( DBE_CHANGE_PET_NAME_REQ );
 #endif SERV_PET_CHANGE_NAME
@@ -314,24 +314,24 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 #endif SERV_PET_SYSTEM
 		//}}
 
-		//{{ 2010. 8. 16	ÃÖÀ°»ç	±â°£ ¸®¼Â ¾ÆÀÌÅÛ ÀÌº¥Æ®
+		//{{ 2010. 8. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_RESET_PERIOD_EVENT
 		CASE( DBE_RESET_PERIOD_ITEM_REQ );
 #endif SERV_RESET_PERIOD_EVENT
 		//}}
-		//{{ 2011. 01. 04	ÃÖÀ°»ç	¼Ó¼º ºÎÀû
+		//{{ 2011. 01. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ATTRIBUTE_CHARM
 		CASE( DBE_ATTRIB_ATTACH_ITEM_REQ );
 #endif SERV_ATTRIBUTE_CHARM
 		//}}
-		//{{ 2011. 04. 14	ÃÖÀ°»ç	´ë¸® »óÀÎ
+		//{{ 2011. 04. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 		CASE( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ );
 		CASE( DBE_PREPARE_REG_PSHOP_AGENCY_ITEM_REQ );
 		CASE( DBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_REQ );
 #endif SERV_PSHOP_AGENCY
 		//}}
-		//{{ ÁöÇå - ÀºÇà °³Æí Äù½ºÆ®, Ä³½¬ ÀÛ¾÷ 
+		//{{ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®, Ä³ï¿½ï¿½ ï¿½Û¾ï¿½ 
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 		CASE( DBE_SHARING_BACK_OPEN_REQ);
 #endif
@@ -357,82 +357,82 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_INSERT_ADVERTISEMENT_EVENT_INFO_NOT );
 #endif SERV_ADVERTISEMENT_EVENT
 
-		//{{ 2011. 08. 03	ÃÖÀ°»ç	´ëÀü °­Á¦ Á¾·á¿¡ ´ëÇÑ ¿¹¿ÜÃ³¸®
+		//{{ 2011. 08. 03	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½á¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 #ifdef SERV_CLIENT_QUIT_PVP_BUG_PLAY_FIX
 		CASE( DBE_QUIT_USER_PVP_RESULT_UPDATE_NOT );
 #endif SERV_CLIENT_QUIT_PVP_BUG_PLAY_FIX
 		//}}
-		//{{ 2011. 06. 22    ±è¹Î¼º    ÀÌÅ» ¹æÁö ¸ðµ¨ - NEXON ¼¼¼Ç ½Ã½ºÅÛ ¼öÁ¤
+		//{{ 2011. 06. 22    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ - NEXON ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEXON_SESSION_PROTOCOL
 		CASE( DBE_RETAINING_SELECT_REWARD_REQ );
 #endif SERV_NEXON_SESSION_PROTOCOL
 		//}} 
-		//{{ 2011. 10. 14	ÃÖÀ°»ç	¾ÆÀÌÅÛ »ç¿ë DB ¾÷µ¥ÀÌÆ® ¼öÁ¤
+		//{{ 2011. 10. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_USE_ITEM_DB_UPDATE_FIX
 		CASE( DBE_USE_ITEM_IN_INVENTORY_REQ );
 #endif SERV_USE_ITEM_DB_UPDATE_FIX
 		//}}
-		//{{ 2011. 11. 21  ±è¹Î¼º	ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ
+		//{{ 2011. 11. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_UNIT_CLASS_CHANGE_ITEM
 		CASE( DBE_BUY_UNIT_CLASS_CHANGE_REQ );
 #endif SERV_UNIT_CLASS_CHANGE_ITEM
 		//}}
-		//{{ 2012. 04. 30	¹Ú¼¼ÈÆ	ÇöÀÚÀÇ ÁÖ¹®¼­ Á¢¼Ó ÀÌº¥Æ® ( ¿ìÆíÇÔ Áßº¹ Ã¼Å© )
+		//{{ 2012. 04. 30	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ Ã¼Å© )
 #ifdef SERV_SCROLL_OF_SAGE_CHECK_THE_LETTER_BOX
 		_CASE( DBE_UPDATE_EVENT_TIME_NOT, KDBE_UPDATE_EVENT_TIME_REQ );
 #endif SERV_SCROLL_OF_SAGE_CHECK_THE_LETTER_BOX
 		//}}
-		//{{ 2012. 05. 08	±è¹Î¼º       °³ÀÎ °Å·¡ ·ÎÁ÷ º¯°æ
+		//{{ 2012. 05. 08	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_LOGIC_CHANGE_TRADE
 		CASE( DBE_TRADE_COMPLETE_REQ );
 #endif SERV_TRADE_LOGIC_CHANGE_TRADE
 		//}}
-		//{{ 2012. 05. 30	ÃÖÀ°»ç	±×³ë½Ã½º ±â°£ Ä¡Æ®
+		//{{ 2012. 05. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½×³ï¿½Ã½ï¿½ ï¿½â°£ Ä¡Æ®
 #ifdef SERV_CASH_SKILL_POINT_DATE_CHANGE
 		CASE( DBE_ADMIN_CASH_SKILL_POINT_DATE_CHANGE_REQ );
 #endif SERV_CASH_SKILL_POINT_DATE_CHANGE
 		//}}
-		//{{ 2012. 07. 25	¹Ú¼¼ÈÆ	ÇØ´ç Ä³¸¯ÅÍÀÇ ¸ðµç ½ºÅ³À» ´Ù Âï´Â Ä¡Æ®
+		//{{ 2012. 07. 25	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä¡Æ®
 #ifdef SERV_ADMIN_CHEAT_GET_ALL_SKILL
 		CASE( DBE_ADMIN_CHEAT_GET_ALL_SKILL_REQ );
 #endif SERV_ADMIN_CHEAT_GET_ALL_SKILL
 		//}}
 
-		//{{ ¿ìÆí ED °Å·¡½Ã ED µ¿±âÈ­ - ±è¹Î¼º
+		//{{ ï¿½ï¿½ï¿½ï¿½ ED ï¿½Å·ï¿½ï¿½ï¿½ ED ï¿½ï¿½ï¿½ï¿½È­ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SEND_LETTER_BEFOR_ED_SYNC
 		CASE( DBE_SYNC_ED_REQ );
 #endif SERV_SEND_LETTER_BEFOR_ED_SYNC
 		//}}
 
-		//{{ 2012. 08. 14	¹Ú¼¼ÈÆ	´ëÃµ»çÀÇ ÁÖÈ­ ÀÌº¥Æ® °¡ÀÌµå ¹®±¸ Ãâ·Â
+		//{{ 2012. 08. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
 		CASE_NOPARAM( DBE_CHECK_THE_ARCHUANGEL_S_COIN_EVENT_LETTER_REQ );
 #endif SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
 		//}}
 
-		//{{ 2012. 08. 21	¹Ú¼¼ÈÆ	¿ìÆí ·ÎÁ÷ º¯°æ
+		//{{ 2012. 08. 21	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_LOGIC_CHANGE_LETTER
 		CASE( DBE_GET_ITEM_FROM_LETTER_ARRANGE_REQ );
 #endif SERV_TRADE_LOGIC_CHANGE_LETTER
 		//}}
 
-		//{{ 2012 ´ëÀü ½ÃÁð2 Àü¾ß ·±Äª ÀÌº¥Æ®	- ±è¹Î¼º
+		//{{ 2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Äª ï¿½Ìºï¿½Æ®	- ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_2012_PVP_SEASON2_EVENT
 		CASE( DBE_PVP_WIN_EVENT_CHECK_REQ );
 #endif SERV_2012_PVP_SEASON2_EVENT
 		//}}
-		//{{ 2012. 12. 14  °èÁ¤ ¹Ì¼Ç ½Ã½ºÅÛ ( °èÁ¤´ÜÀ§ Äù½ºÆ® ) - ±è¹Î¼º
+		//{{ 2012. 12. 14  ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 		_CASE( DBE_NEW_ACCOUNT_QUEST_GAME_DB_REQ, KDBE_NEW_QUEST_REQ );
 		_CASE( DBE_ACCOUNT_QUEST_COMPLETE_GAME_DB_REQ, KDBE_ACCOUNT_QUEST_COMPLETE_ACK );
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 		//}}
-		//{{ 2012. 12. 24	¹Ú¼¼ÈÆ	Æê ¿ÀÅä ·çÆÃ ±â´É Ãß°¡
+		//{{ 2012. 12. 24	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_PET_AUTO_LOOTING
 		CASE( DBE_PET_AUTO_LOOTING_NOT );
 #endif SERV_PET_AUTO_LOOTING
 		//}}
-		//{{ 2011.05.04   ÀÓ±Ô¼ö ¾Æ¹ÙÅ¸ ÇÕ¼º ½Ã½ºÅÛ
+		//{{ 2011.05.04   ï¿½Ó±Ô¼ï¿½ ï¿½Æ¹ï¿½Å¸ ï¿½Õ¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_SYNTHESIS_AVATAR
 		CASE( DBE_OPEN_SYNTHESIS_ITEM_REQ );
 #endif SERV_SYNTHESIS_AVATAR
@@ -442,14 +442,14 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_CHANGE_PET_ID_REQ );
 #endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 
-		//{{ 2013. 3. 11	¹Ú¼¼ÈÆ	 ·ÎÄÃ ·©Å· ½Ã½ºÅÛ
+		//{{ 2013. 3. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 		CASE( DBE_GAME_LOCAL_RANKING_USER_INFO_READ_REQ );
 		CASE( DBE_GAME_LOCAL_RANKING_UNIT_INFO_READ_FOR_INQUIRY_REQ );
 		CASE( DBE_GAME_LOCAL_RANKING_UNIT_INFO_READ_FOR_INCREASE_REQ );
 #endif SERV_LOCAL_RANKING_SYSTEM
 		//}}
-		//{{ 2013. 03. 21	 ÃßÃµÀÎ ½Ã½ºÅÛ °³Æí - ±è¹Î¼º
+		//{{ 2013. 03. 21	 ï¿½ï¿½Ãµï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RECOMMEND_LIST_EVENT
 		CASE( DBE_RECOMMEND_USER_GET_NEXON_SN_REQ );
 #endif SERV_RECOMMEND_LIST_EVENT
@@ -457,7 +457,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 #ifdef SERV_ADD_WARP_BUTTON
 		CASE( DBE_INSERT_WARP_VIP_REQ );
 #endif // SERV_ADD_WARP_BUTTON
-		//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+		//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 		_CASE( DBE_COUPLE_PROPOSE_USER_FIND_REQ, KEGS_COUPLE_PROPOSE_REQ );
 		CASE( DBE_COUPLE_MAKING_SUCCESS_REQ );
@@ -475,13 +475,13 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_RELEASE_PET_REQ );
 #endif SERV_PERIOD_PET
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 		CASE( DBE_GET_RIDING_PET_LIST_REQ );
 		CASE( DBE_CREATE_RIDING_PET_REQ );
 		CASE( DBE_RELEASE_RIDING_PET_REQ );
 #endif	// SERV_RIDING_PET_SYSTM
 
-		//{{ 2013. 05. 15	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+		//{{ 2013. 05. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		CASE( DBE_ITEM_EVALUATE_REQ );
 		CASE( DBE_RESTORE_ITEM_EVALUATE_REQ );
@@ -489,17 +489,17 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 		//}}
 
-#ifdef SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT// ÀÛ¾÷³¯Â¥: 2013-05-13	// ¹Ú¼¼ÈÆ
+#ifdef SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-13	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		CASE( DBE_SEND_LOVE_LETTER_EVENT_REQ );
 #endif // SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT
 
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 		CASE( DBE_ADMIN_CHANGE_UNIT_CLASS_REQ );
 		CASE( DBE_ADMIN_AUTO_GET_ALL_SKILL_REQ );
 		CASE( DBE_ADMIN_GET_SKILL_REQ );
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
-#ifdef SERV_JUMPING_CHARACTER// ÀÛ¾÷³¯Â¥: 2013-07-10	// ¹Ú¼¼ÈÆ
+#ifdef SERV_JUMPING_CHARACTER// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-10	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		CASE( DBE_JUMPING_CHARACTER_UPDATE_REQ );
 #endif // SERV_JUMPING_CHARACTER
 #ifdef SERV_RECRUIT_EVENT_BASE
@@ -523,7 +523,7 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 
 
     default:
-        START_LOG( cerr, L"ÀÌº¥Æ® ÇÚµé·¯°¡ Á¤ÀÇµÇÁö ¾Ê¾ÒÀ½. " << spEvent_->GetIDStr() );
+        START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½. " << spEvent_->GetIDStr() );
     }
 
 	//////////////////////////////////////////////////////////////////////////
@@ -533,8 +533,8 @@ void KGSGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 	//////////////////////////////////////////////////////////////////////////
 }
 
-//{{ 2009. 5. 28  ÃÖÀ°»ç	Ã¤³ÎÀÌµ¿
-//{{ 2012. 12. 10  Ä³¸¯ÅÍ ¼±ÅÃ ÆÐÅ¶ ºÐÇÒ - ±è¹Î¼º
+//{{ 2009. 5. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ï¿½Ìµï¿½
+//{{ 2012. 12. 10  Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SELECT_UNIT_PACKET_DIVISION
 bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS_SELECT_UNIT_REQ& kReq, OUT KDBE_SELECT_UNIT_ACK& kAck )
 #else
@@ -545,29 +545,29 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	kAck.m_kUnitInfo.Init();
 	kAck.m_iOK = NetError::ERR_ODBC_01;
 	std::map< UidType, KInventoryItemInfo >::iterator mit;
-	//{{ 2010. 8. 2	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 8. 2	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 	std::map< UidType, UidType > mapPetItemList;
 #endif SERV_PET_SYSTEM
 	//}}
 
-	//{{ 2011.10.18     ±è¹Î¼º    ÄªÈ£ Áßº¹ ÁøÇà(¿Ï·á,¼öÇà) ¿¹¿Ü Ã³¸®
+	//{{ 2011.10.18     ï¿½ï¿½Î¼ï¿½    ÄªÈ£ ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Ï·ï¿½,ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 #ifdef SERV_TITLE_DUPLICATE_PROCESS_REVISION
 	std::vector< KTitleInfo >::iterator vitTitle;
 #endif SERV_TITLE_DUPLICATE_PROCESS_REVISION
 	//}}
-	//{{ Çã»óÇü : [2010/8/31/] //	ºÎÈ°¼® Åë°è ºÐ¸® ÀÛ¾÷
+	//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/8/31/] //	ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½ ï¿½Û¾ï¿½
 #ifdef SERV_SELECT_UNIT_NEW
 	KELOG_UPDATE_STONE_NOT kResNot;
 #endif	//	SERV_SELECT_UNIT_NEW
-	//}} Çã»óÇü : [2010/8/31/] //	ºÎÈ°¼® Åë°è ºÐ¸® ÀÛ¾÷
+	//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/8/31/] //	ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½ ï¿½Û¾ï¿½
 
 #ifdef SERV_ADD_WARP_BUTTON
 	std::wstring wstrVipEndDate;
 	std::wstring wstrVipRegDate;
 #endif // SERV_ADD_WARP_BUTTON
 
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	std::vector< UidType > vecWeddingItem;
 #endif SERV_RELATIONSHIP_SYSTEM
@@ -575,8 +575,8 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 	int iOK = NetError::ERR_ODBC_01;
 
-	// ÄÉ¸¯ÅÍ ·Î±×ÀÎ Á¤º¸ Ã¼Å©
-	//{{ 2012. 09. 26	ÃÖÀ°»ç		¿ìÆí º¹»ç ¹ö±× ¼öÁ¤
+	// ï¿½É¸ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
+	//{{ 2012. 09. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_POST_COPY_BUG_FIX
 	DO_QUERY( L"exec dbo.gup_select_unit_new", L"%d, %d", % kReq.m_iUnitUID % iUserUID );
 #else
@@ -585,9 +585,9 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//}}	
 	if( m_kODBC.BeginFetch() )
 	{
-		//{{ 2011. 01. 18	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+		//{{ 2011. 01. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_CHAR_LOG
-		//{{ 2011. 03. 22	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ã¹ Á¢¼Ó ·Î±×
+		//{{ 2011. 03. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DAILY_CHAR_FIRST_SELECT
 #ifdef SERV_SELECT_UNIT_NEW
 		FETCH_DATA( iOK
@@ -615,7 +615,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_05;
 
-		START_LOG( cerr, L"gup_select_unit È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"gup_select_unit È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -625,7 +625,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 	if( iOK != NetError::NET_OK )
 	{
-		//{{ 2012. 09. 26	ÃÖÀ°»ç		¿ìÆí º¹»ç ¹ö±× ¼öÁ¤
+		//{{ 2012. 09. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_POST_COPY_BUG_FIX
 		switch( iOK )
 		{
@@ -637,7 +637,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif SERV_POST_COPY_BUG_FIX
 		//}}		
 
-		START_LOG( cerr, L"gup_select_unit È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"gup_select_unit È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( NetError::GetErrStr( kAck.m_iOK ) )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -645,19 +645,19 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		return false;
 	}
 
-	//{{ Çã»óÇü : [2010/8/31/] //	ºÎÈ°¼® Åë°è ºÐ¸® ÀÛ¾÷
+	//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/8/31/] //	ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½ ï¿½Û¾ï¿½
 #ifdef SERV_SELECT_UNIT_NEW
-	// Ä³¸¯ÅÍ ·Î±×ÀÎ Á¤º¸ Ã¼Å©°¡ ¿Ï·áµÇ¸é Log DB¿¡ ºÎÈ°¼® ¸®ÇÊ ¼ýÀÚ ÀúÀå(±âÁØÄ¡º¸´Ù º¸À¯·®ÀÌ ÀûÀ» °æ¿ì¸¸ ÀúÀå)
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ï·ï¿½Ç¸ï¿½ Log DBï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¸¸ ï¿½ï¿½ï¿½ï¿½)
 	if( kResNot.m_iQuantity < kResNot.m_iSupplyCnt )
 	{
-		// ÁöÇå : ¼öÁ¤ - ¿Ö ·Î±×ÀÎ ¼­¹ö·Î º¸³»°íÀÖÁö? ·Î±×ÀÎ µðºñ·Î º¸³»µµ·Ï ¼öÁ¤
+		// ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½? ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		SendToLogDB( ELOG_UPDATE_STONE_NOT, kResNot );
 	}
 #endif	//	SERV_SELECT_UNIT_NEW
-	//}} Çã»óÇü : [2010/8/31/] //	ºÎÈ°¼® Åë°è ºÐ¸® ÀÛ¾÷
+	//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/8/31/] //	ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½ ï¿½Û¾ï¿½
 
 	//////////////////////////////////////////////////////////////////////////	
-	//{{ 2009. 10. 28  ÃÖÀ°»ç	ÈÞ¸éÀ¯Àú ÀÌº¥Æ®
+	//{{ 2009. 10. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_COMEBACK_EVENT
 
 	DO_QUERY( L"exec dbo.gup_select_event_unit", L"%d, %d", % iUserUID % kReq.m_iUnitUID );
@@ -669,28 +669,28 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÈÞ¸é À¯Àú ÀÌº¥Æ® º¸»ó È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iUserUID )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
 
-		// È£Ãâ ½ÇÆÐÇÏ´õ¶óµµ Ä³¸¯ÅÍ ¼±ÅÃÀº µÇ°Ô ÇÏÀÚ!
+		// È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	}
 
 #endif SERV_COMEBACK_EVENT
 	//}}
 	//////////////////////////////////////////////////////////////////////////
 
-	// Ä³¸¯ÅÍ Á¤º¸¸¦ ¾ò´Â´Ù.
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
 	DO_QUERY( L"exec dbo.gup_get_unit_info_by_unituid", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
-		//{{ 2012. 06. 11	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 06. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		int iMapIDDummy = 0;
 #endif SERV_BATTLE_FIELD_SYSTEM
 		//}}
-		//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+		//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 		FETCH_DATA( kAck.m_kUnitInfo.m_nUnitUID
 			>> kAck.m_kUnitInfo.m_cUnitClass
@@ -742,7 +742,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_00;
 
-		START_LOG( cerr, L"gup_get_unit_info_by_unituid È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"gup_get_unit_info_by_unituid È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -750,7 +750,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		return false;
 	}
 
-#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT// ÀÛ¾÷³¯Â¥: 2013-06-25	// ¹Ú¼¼ÈÆ
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-25	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	if( CXSLUnit::GetUnitClassToUnitType( static_cast<CXSLUnit::UNIT_CLASS>( kAck.m_kUnitInfo.m_cUnitClass ) ) == CXSLUnit::UT_ELESIS )
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_01;
@@ -759,9 +759,9 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif // SERV_ELISIS_PREVIOUS_SIS_EVENT
 
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2012. 02. 02	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-	// Ä³¸¯ÅÍÀÇ ¸¶Áö¸· À§Ä¡ Á¤º¸ °¡Á®¿À±â!
+	// Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	DO_QUERY( L"exec dbo.P_GUnitLastPosition_GET", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -775,7 +775,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_05;
 
-		START_LOG( cerr, L"P_GUnitLastPosition_GET È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"P_GUnitLastPosition_GET È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( NetError::GetErrStr( kAck.m_iOK ) )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -783,8 +783,8 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		return false;
 	}
 
-	// Ä³¸¯ÅÍÀÇ ¸¶Áö¸· ÇÃ·¹ÀÌ »óÅÂ°ª °¡Á®¿À±â!
-	// ÇØ´ç Ä³¸¯ÅÍÀÇ ¸¶Áö¸· ÇÃ·¹ÀÌ »óÅÂ°ª ÀúÀå!
+	// Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+	// ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	DO_QUERY( L"exec dbo.P_GUnitPlayInfo_SEL", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -818,21 +818,21 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 		m_kODBC.EndFetch();
 
-		// ÀúÀå!
+		// ï¿½ï¿½ï¿½ï¿½!
 		kAck.m_kGamePlayStatus.Set( kInfo );
 	}
 	else
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_05;
 
-		START_LOG( cerr, L"P_GUnitPlayInfo_SEL È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"P_GUnitPlayInfo_SEL È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
 		return false;
 	}
 
-	// Äð Å¸ÀÓ Á¤º¸ ¾ò±â!
+	// ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½!
 	if( kAck.m_kGamePlayStatus.IsEmpty() == false )
 	{
 		DO_QUERY( L"exec dbo.P_GCoolTime_SEL", L"%d", % kReq.m_iUnitUID );
@@ -860,7 +860,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 				}
 				break;
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 			case KGamePlayStatus::CTT_RIDING_PET_COOL_TIME:
 				{
 					kAck.m_kGamePlayStatus.AddRidingPetCoolTime( iSlotID, iCoolTime );
@@ -870,7 +870,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 			default:
 				{
-					START_LOG( cerr, L"Á¤ÀÇµÇÁö ¾ÊÀº ÄðÅ¸ÀÓ Å¸ÀÔÀÔ´Ï´Ù!" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 						<< BUILD_LOG( kReq.m_iUnitUID )
 						<< BUILD_LOG( iCoolTimeType )
 						<< END_LOG;
@@ -883,11 +883,11 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//}}
 	//////////////////////////////////////////////////////////////////////////	
 
-	//{{ 2011. 07. 22	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
-	// ´ëÀü Á¤º¸ ¹Þ¾Æ¿À±â!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½!
 	
-	//{{ 2012. 06. 25	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 06. 25	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	DO_QUERY( L"exec dbo.P_GUnitPVP_Season2_GET", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
@@ -911,7 +911,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_05;
 
-		START_LOG( cerr, L"P_GUnitPVP_Season2_GET È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"P_GUnitPVP_Season2_GET È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -937,7 +937,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_05;
 
-		START_LOG( cerr, L"gup_get_unitpvp_info È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"gup_get_unitpvp_info È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -950,9 +950,9 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//}}
 
 	//////////////////////////////////////////////////////////////////////////	
-	//{{ 2011. 09. 23	ÃÖÀ°»ç	·Î±×¿ÀÇÁ »óÅÂ EDÃ¼Å©
+	//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±×¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EDÃ¼Å©
 #ifdef SERV_LOGOUT_ED_CHECK
-	// EDÃ¼Å© Á¤º¸ ¹Þ¾Æ¿À±â!
+	// EDÃ¼Å© ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½!
 	DO_QUERY( L"exec dbo.gup_get_unit_lastpoint", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -963,7 +963,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_05;
 
-		START_LOG( cerr, L"gup_get_unit_lastpoint È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"gup_get_unit_lastpoint È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -974,7 +974,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//}}
 	//////////////////////////////////////////////////////////////////////////	
 
-	// ´øÀü Å¬¸®¾î Á¤º¸¸¦ ¾ò´Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
 	DO_QUERY( L"exec dbo.gup_get_dungeon_clear", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -986,12 +986,12 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 			>> kInfo.m_cMaxTotalRank
 			>> kInfo.m_wstrClearTime );
 
-		// Ä³¸¯ÅÍ UID, ´øÀü ID°¡ PK ÀÌ¹Ç·Î ÇÑ Ä³¸¯ÅÍ¿¡ ´ëÇÑ ´øÀü ID´Â ¸ðµÎ ´Ù¸£°Ô ÀúÀåµÇ¾î ÀÖ´Ù.
-		// µû¶ó¼­ map¿¡ insert ÇÒ ¶§ Å° Áßº¹ ¿©ºÎ °Ë»ç¸¦ ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+		// Ä³ï¿½ï¿½ï¿½ï¿½ UID, ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ PK ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½.
+		// ï¿½ï¿½ï¿½ï¿½ mapï¿½ï¿½ insert ï¿½ï¿½ ï¿½ï¿½ Å° ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 		kAck.m_kUnitInfo.m_mapDungeonClear.insert( std::make_pair( kInfo.m_iDungeonID, kInfo ) );
 	}
 
-	// ÈÆ·Ã¼Ò Å¬¸®¾î Á¤º¸¸¦ ¾ò´Â´Ù.	
+	// ï¿½Æ·Ã¼ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.	
 	DO_QUERY( L"exec dbo.gup_get_tc_clear", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -1001,8 +1001,8 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		FETCH_DATA( kInfo.m_iTCID
 			>> kInfo.m_wstrClearTime );
 
-		// Ä³¸¯ÅÍ UID, ÈÆ·Ã¼Ò ID°¡ PK ÀÌ¹Ç·Î ÇÑ Ä³¸¯ÅÍ¿¡ ´ëÇÑ ´øÀü ID´Â ¸ðµÎ ´Ù¸£°Ô ÀúÀåµÇ¾î ÀÖ´Ù.
-		// µû¶ó¼­ map¿¡ insert ÇÒ ¶§ Å° Áßº¹ ¿©ºÎ °Ë»ç¸¦ ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+		// Ä³ï¿½ï¿½ï¿½ï¿½ UID, ï¿½Æ·Ã¼ï¿½ IDï¿½ï¿½ PK ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½.
+		// ï¿½ï¿½ï¿½ï¿½ mapï¿½ï¿½ insert ï¿½ï¿½ ï¿½ï¿½ Å° ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 		kAck.m_kUnitInfo.m_mapTCClear.insert( std::make_pair( kInfo.m_iTCID, kInfo ) );
 	}
 
@@ -1017,25 +1017,25 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 			>> kInfo.m_iPlayTimes
 			>> kInfo.m_iClearTimes );
 
-		// Ä³¸¯ÅÍ UID, ´øÀü ID°¡ PK ÀÌ¹Ç·Î ÇÑ Ä³¸¯ÅÍ¿¡ ´ëÇÑ ´øÀü ID´Â ¸ðµÎ ´Ù¸£°Ô ÀúÀåµÇ¾î ÀÖ´Ù.
-		// µû¶ó¼­ map¿¡ insert ÇÒ ¶§ Å° Áßº¹ ¿©ºÎ °Ë»ç¸¦ ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+		// Ä³ï¿½ï¿½ï¿½ï¿½ UID, ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ PK ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½.
+		// ï¿½ï¿½ï¿½ï¿½ mapï¿½ï¿½ insert ï¿½ï¿½ ï¿½ï¿½ Å° ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 		kAck.m_kUnitInfo.m_mapDungeonPlay.insert( std::make_pair( kInfo.m_iDungeonID, kInfo ) );
 	}
 #endif SERV_LIMITED_DUNGEON_PLAY_TIMES
 
 	//////////////////////////////////////////////////////////////////////////	
-	//{{ 2010. 9. 29	ÃÖÀ°»ç	¾ÆÀÌÅÛ Á¤º¸ ¸®ÆÑÅä¸µ
+	//{{ 2010. 9. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ä¸µ
 #ifdef SERV_GET_INVENTORY_REFAC
 	//////////////////////////////////////////////////////////////////////////	
 	if( Query_GetInventory( kReq.m_iUnitUID, kAck.m_mapInventorySlotSize, kAck.m_mapItem, kAck.m_mapPetItem ) == false )
 	{
-		START_LOG( cerr, L"ÀÎº¥Åä¸® Á¤º¸ ¾ò±â ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
 
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_05;
 
-		START_LOG( cerr, L"Query_GetInventory() È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"Query_GetInventory() È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -1046,7 +1046,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//////////////////////////////////////////////////////////////////////////	
 #else
 	//////////////////////////////////////////////////////////////////////////	
-	// ÀÎº¥Åä¸® »çÀÌÁî¸¦ ¾ò´Â´Ù.
+	// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½î¸¦ ï¿½ï¿½Â´ï¿½.
 //	DO_QUERY( L"exec dbo.gup_get_inventory_size", L"%d", % kReq.m_iUnitUID );
 //	while( m_kODBC.Fetch() )
 //	{
@@ -1056,13 +1056,13 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //		FETCH_DATA( iCategoty
 //			>> iNumSlot );
 //
-//		// Ä³¸¯ÅÍ UID, Ä«Å×°í¸® ID°¡ PKÀÌ¹Ç·Î ÇÑ Ä³¸¯ÅÍ¿¡ ´ëÇÑ Ä«Å×°í¸® ID´Â ¸ðµÎ ´Ù¸£°Ô ÀúÀåµÇ¾î ÀÖ´Ù.
-//		// µû¶ó¼­ map¿¡ insert ÇÒ ¶§ Å° Áßº¹ ¿©ºÎ °Ë»ç¸¦ ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+//		// Ä³ï¿½ï¿½ï¿½ï¿½ UID, Ä«ï¿½×°ï¿½ï¿½ï¿½ IDï¿½ï¿½ PKï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½.
+//		// ï¿½ï¿½ï¿½ï¿½ mapï¿½ï¿½ insert ï¿½ï¿½ ï¿½ï¿½ Å° ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 //		kAck.m_mapInventorySlotSize.insert( std::make_pair( iCategoty, iNumSlot ) );
 //	}
 //
 //	//////////////////////////////////////////////////////////////////////////	
-//	//{{ 2010. 8. 2	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//	//{{ 2010. 8. 2	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_PET_SYSTEM
 //	DO_QUERY( L"exec dbo.gup_get_item_list_pet", L"%d", % kReq.m_iUnitUID );
 //	while( m_kODBC.Fetch() )
@@ -1081,7 +1081,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //		}
 //		else
 //		{
-//			START_LOG( cerr, L"Áßº¹µÇ´Â ItemUID°¡ ÀÖ½À´Ï´Ù. ÀÖÀ» ¼ö ¾ø´Â ¿¡·¯!" )
+//			START_LOG( cerr, L"ï¿½ßºï¿½ï¿½Ç´ï¿½ ItemUIDï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOG( iItemUID )
 //				<< BUILD_LOG( iPetUID )
 //				<< END_LOG;
@@ -1090,12 +1090,12 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //#endif SERV_PET_SYSTEM
 //	//}}
 //
-//	// º¸À¯ ¾ÆÀÌÅÛÀ» ¾ò´Â´Ù.	
+//	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.	
 //	DO_QUERY( L"exec dbo.gup_get_item_list", L"%d", % kReq.m_iUnitUID );
 //	while( m_kODBC.Fetch() )
 //	{
 //		int iEnchantLevel = 0;
-//		//{{ 2011. 07. 25    ±è¹Î¼º    ¾ÆÀÌÅÛ ¿É¼ÇID µ¥ÀÌÅÍ »çÀÌÁî Áõ°¡
+//		//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_ITEM_OPTION_DATA_SIZE
 //		int arrSocketOption[4] = {0,0,0,0};
 //#else
@@ -1119,11 +1119,11 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //			>> kInventoryItemInfo.m_cSlotCategory
 //				>> kInventoryItemInfo.m_cSlotID );
 //
-//			//{{ 2008. 2. 20  ÃÖÀ°»ç  °­È­
+//			//{{ 2008. 2. 20  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½È­
 //			kInventoryItemInfo.m_kItemInfo.m_cEnchantLevel = static_cast<char>(iEnchantLevel);
 //			//}}
 //
-//			//{{ 2008. 3. 7  ÃÖÀ°»ç  ¼ÒÄÏ
+//			//{{ 2008. 3. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½
 //			int iCheckIdx;
 //			for( iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
 //			{
@@ -1137,16 +1137,16 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //			}
 //			//}}
 //
-//			//{{ 2010. 8. 2	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//			//{{ 2010. 8. 2	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_PET_SYSTEM
-//			// Æê Ä«Å×°í¸®ÀÌ¸é µû·Î ´ãÀÚ!
+//			// ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //			if( kInventoryItemInfo.m_cSlotCategory == CXSLInventory::ST_PET )
 //			{
 //				std::map< UidType, UidType >::const_iterator mitPet;
 //				mitPet = mapPetItemList.find( kInventoryItemInfo.m_iItemUID );
 //				if( mitPet == mapPetItemList.end() )
 //				{
-//					START_LOG( cerr, L"Æê ¾ÆÀÌÅÛ Á¤º¸¿¡¼­ ÇØ´ç ¾ÆÀÌÅÛÀ» Ã£Áö ¸øÇß´Ù! ÀÏ¾î³ª¸é ¾ÈµÇ´Â ¿¡·¯!" )
+//					START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ï¿½ß´ï¿½! ï¿½Ï¾î³ªï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //						<< BUILD_LOG( kReq.m_iUnitUID )
 //						<< BUILD_LOG( kInventoryItemInfo.m_iItemUID )
 //						<< END_LOG;
@@ -1168,15 +1168,15 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //					mitPetItem->second.insert( std::make_pair( kInventoryItemInfo.m_iItemUID, kInventoryItemInfo ) );
 //				}
 //			}
-//			// Æê Ä«Å×°í¸® ¾Æ´Ñ°ÍµéÀº ÀÏ¹Ý ÀÎº¥Åä¸®·Î!
+//			// ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ ï¿½Æ´Ñ°Íµï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½!
 //			else
 //			{
-//				// ¾ÆÀÌÅÛ UID°¡ PKÀÌ¹Ç·Î map¿¡ insert ÇÒ ¶§ Å° Áßº¹ ¿©ºÎ °Ë»ç¸¦ ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+//				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UIDï¿½ï¿½ PKï¿½Ì¹Ç·ï¿½ mapï¿½ï¿½ insert ï¿½ï¿½ ï¿½ï¿½ Å° ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 //				kAck.m_mapItem.insert( std::make_pair( kInventoryItemInfo.m_iItemUID, kInventoryItemInfo ) );
 //
-//				//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+//				//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 //#ifdef SERV_RELATIONSHIP_SYSTEM
-//				// Ã»Ã¸Àå, °áÈ¥ ¿¹¾à±Ç
+//				// Ã»Ã¸ï¿½ï¿½, ï¿½ï¿½È¥ ï¿½ï¿½ï¿½ï¿½ï¿½
 //				if( kInventoryItemInfo.m_kItemInfo.m_iItemID == CXSLItem::SI_WEDDING_INVITATION_ITEM || kInventoryItemInfo.m_kItemInfo.m_iItemID == CXSLItem::SI_WEDDING_RESERVATION_ITEM )
 //				{
 //					vecWeddingItem.push_back( kInventoryItemInfo.m_iItemUID );
@@ -1185,14 +1185,14 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //					//}
 //			}
 //#else 
-//			// ¾ÆÀÌÅÛ UID°¡ PKÀÌ¹Ç·Î map¿¡ insert ÇÒ ¶§ Å° Áßº¹ ¿©ºÎ °Ë»ç¸¦ ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+//			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UIDï¿½ï¿½ PKï¿½Ì¹Ç·ï¿½ mapï¿½ï¿½ insert ï¿½ï¿½ ï¿½ï¿½ Å° ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 //			kAck.m_mapItem.insert( std::make_pair( kInventoryItemInfo.m_iItemUID, kInventoryItemInfo ) );
 //#endif SERV_PET_SYSTEM
 //			//}}
 //	}
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// ¼Ó¼º °­È­ ¾ò±â
+//	// ï¿½Ó¼ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½
 //	DO_QUERY( L"exec dbo.gup_get_attribute", L"%d", % kReq.m_iUnitUID );
 //	while( m_kODBC.Fetch() )
 //	{
@@ -1208,7 +1208,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //		mitAtt = kAck.m_mapItem.find( iItemUID );
 //		if( mitAtt == kAck.m_mapItem.end() )
 //		{
-//			//{{ 2010. 8. 2	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//			//{{ 2010. 8. 2	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_PET_SYSTEM
 //			bool bFindItem = false;
 //			std::map< UidType, std::map< UidType, KInventoryItemInfo > >::iterator mitPetItem;
@@ -1224,7 +1224,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //
 //			if( bFindItem == false )
 //			{
-//				START_LOG( cerr, L"¾ÆÀÌÅÛ ¸®½ºÆ®´Â ¹Þ¾Ò´Âµ¥ ÇØ´ç ¼Ó¼ºÀº ÀÖÀ¸¸é¼­ itemuid´Â ¾ø³×?" )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Þ¾Ò´Âµï¿½ ï¿½Ø´ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ itemuidï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 //					<< BUILD_LOG( iItemUID )
 //					<< BUILD_LOG( iAttribEnchantSlotNo )
 //					<< BUILD_LOG( iAttribEnchantID )
@@ -1232,7 +1232,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //				continue;
 //			}
 //#else
-//			START_LOG( cerr, L"¾ÆÀÌÅÛ ¸®½ºÆ®´Â ¹Þ¾Ò´Âµ¥ ÇØ´ç ¼Ó¼ºÀº ÀÖÀ¸¸é¼­ itemuid´Â ¾ø³×?" )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Þ¾Ò´Âµï¿½ ï¿½Ø´ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ itemuidï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 //				<< BUILD_LOG( iItemUID )
 //				<< BUILD_LOG( iAttribEnchantSlotNo )
 //				<< BUILD_LOG( iAttribEnchantID )
@@ -1242,7 +1242,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //			//}}
 //		}
 //
-//		// ¼Ó¼º °­È­
+//		// ï¿½Ó¼ï¿½ ï¿½ï¿½È­
 //		switch( iAttribEnchantSlotNo )
 //		{
 //		case CXSLAttribEnchantItem::ESI_SLOT_1:
@@ -1258,7 +1258,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //			break;
 //
 //		default:
-//			START_LOG( cerr, L"¼Ó¼º °­È­ ½½·Ô ³Ñ¹ö°¡ ÀÌ»óÇÕ´Ï´Ù." )
+//			START_LOG( cerr, L"ï¿½Ó¼ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 //				<< BUILD_LOG( iItemUID )
 //				<< BUILD_LOG( iAttribEnchantSlotNo )
 //				<< BUILD_LOG( iAttribEnchantID )
@@ -1268,8 +1268,8 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //	}
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// ¹ÐºÀ Á¤º¸ ¾ò±â
-//	//{{ 2009. 8. 28  ÃÖÀ°»ç	¹ÐºÀ
+//	// ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+//	//{{ 2009. 8. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ðºï¿½
 //	DO_QUERY( L"exec dbo.gup_get_item_list_seal", L"%d", % kReq.m_iUnitUID );
 //	while( m_kODBC.Fetch() )
 //	{
@@ -1283,7 +1283,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //		mitSeal = kAck.m_mapItem.find( iItemUID );
 //		if( mitSeal == kAck.m_mapItem.end() )
 //		{
-//			//{{ 2010. 8. 2	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//			//{{ 2010. 8. 2	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_PET_SYSTEM
 //			bool bFindItem = false;
 //			std::map< UidType, std::map< UidType, KInventoryItemInfo > >::iterator mitPetItem;
@@ -1299,14 +1299,14 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //
 //			if( bFindItem == false )
 //			{
-//				START_LOG( cerr, L"¾ÆÀÌÅÛ ¸®½ºÆ®´Â ¹Þ¾Ò´Âµ¥ ÇØ´ç ¹ÐºÀÁ¤º¸ ÀÖÀ¸¸é¼­ itemuid´Â ¾ø³×?" )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Þ¾Ò´Âµï¿½ ï¿½Ø´ï¿½ ï¿½Ðºï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ itemuidï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 //					<< BUILD_LOG( iItemUID )
 //					<< BUILD_LOGc( ucSealData )
 //					<< END_LOG;
 //				continue;
 //			}
 //#else
-//			START_LOG( cerr, L"¾ÆÀÌÅÛ ¸®½ºÆ®´Â ¹Þ¾Ò´Âµ¥ ÇØ´ç ¹ÐºÀÁ¤º¸ ÀÖÀ¸¸é¼­ itemuid´Â ¾ø³×?" )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Þ¾Ò´Âµï¿½ ï¿½Ø´ï¿½ ï¿½Ðºï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ itemuidï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 //				<< BUILD_LOG( iItemUID )
 //				<< BUILD_LOGc( ucSealData )
 //				<< END_LOG;
@@ -1315,7 +1315,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 //			//}}			
 //		}
 //
-//		// ¹ÐºÀ Á¤º¸ ¾÷µ¥ÀÌÆ®
+//		// ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 //		mitSeal->second.m_kItemInfo.m_ucSealData = ucSealData;
 //	}
 	//}}
@@ -1325,13 +1325,13 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//}}	
 
 	//////////////////////////////////////////////////////////////////////////	
-	// ÀåÂø ¾ÆÀÌÅÛ Á¤º¸¸¦ ¼¼ÆÃÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	for( mit = kAck.m_mapItem.begin(); mit != kAck.m_mapItem.end(); ++mit )
 	{
 		if( mit->second.m_cSlotCategory == CXSLInventory::ST_E_EQUIP )
 		{
 			std::map< int, KInventoryItemInfo >::iterator mit2;
-			//{{ 2011. 12. 15	ÃÖÀ°»ç	ÀÎº¥Åä¸® ½½·ÔIDÅ©±â ´Ã¸®±â
+			//{{ 2011. 12. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½IDÅ©ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½
 #ifdef SERV_EXPAND_SLOT_ID_DATA_SIZE
 			mit2 = kAck.m_kUnitInfo.m_mapEquippedItem.find( mit->second.m_sSlotID );
 #else
@@ -1340,9 +1340,9 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 			//}}
 			if( mit2 != kAck.m_kUnitInfo.m_mapEquippedItem.end() )
 			{
-				START_LOG( cerr, L"ÀåÂø ½½·ÔÀÌ Áßº¹µÊ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( mit->second.m_iItemUID )
-					//{{ 2011. 12. 15	ÃÖÀ°»ç	ÀÎº¥Åä¸® ½½·ÔIDÅ©±â ´Ã¸®±â
+					//{{ 2011. 12. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½IDÅ©ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½
 #ifdef SERV_EXPAND_SLOT_ID_DATA_SIZE
 					<< BUILD_LOG( mit->second.m_sSlotID )
 #else
@@ -1352,7 +1352,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 					<< BUILD_LOG( mit->second.m_kItemInfo.m_iItemID )
 					<< END_LOG;
 			}
-			//{{ 2011. 12. 15	ÃÖÀ°»ç	ÀÎº¥Åä¸® ½½·ÔIDÅ©±â ´Ã¸®±â
+			//{{ 2011. 12. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½IDÅ©ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½
 #ifdef SERV_EXPAND_SLOT_ID_DATA_SIZE
 			kAck.m_kUnitInfo.m_mapEquippedItem.insert( std::make_pair( mit->second.m_sSlotID, mit->second) );
 #else
@@ -1363,7 +1363,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 
 	//////////////////////////////////////////////////////////////////////////	
-	// ºÎÈ°¼® ¹Þ¾Æ¿À±â.
+	// ï¿½ï¿½È°ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½.
 	DO_QUERY( L"exec dbo.gup_get_resurrection_stone", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1375,7 +1375,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_03;
 
-		START_LOG( cerr, L"gup_get_resurrection_stone È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"gup_get_resurrection_stone È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -1383,7 +1383,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		return false;
 	}
 
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦ ºÎÈ°¼®
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 #ifdef AP_RESTONE
 
 	DO_QUERY( L"exec dbo.gup_get_resurrection_stone_autopay", L"%d", % kReq.m_iUnitUID );
@@ -1399,7 +1399,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::ERR_SELECT_UNIT_03;
 
-		START_LOG( cerr, L"gup_get_resurrection_stone_autopay È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"gup_get_resurrection_stone_autopay È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -1411,7 +1411,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//}}
 
 #ifdef SERV_NEW_YEAR_EVENT_2014
-	// ÆäÄ¡ ½ÇÆÐ ¶§¸¦ ´ëºñÇÏ¿© º¸»óÀ» ¸ø ¹Þ´Â ÇöÀç ·¹º§·Î ¼ÂÆÃÇØ µÓ´Ï´Ù.
+	// ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó´Ï´ï¿½.
 	kAck.m_kUnitInfo.m_ucOldYearMissionRewardedLevel = kAck.m_kUnitInfo.m_ucLevel;
 
 	if( kReq.m_setCodeEventScriptID.find( CEI_OLD_YEAR_EVENT_2013 ) != kReq.m_setCodeEventScriptID.end() )
@@ -1434,16 +1434,16 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 				);
 			m_kODBC.EndFetch();
 		}
-		// °èÁ¤¿¡ ¹Ì¼ÇÀ» ¼ö¶ôÇÑ ´Ù¸¥ Ä³¸¯ÅÍ°¡ ÀÖÀ¸¸é -1·Î ¼ÂÆÃ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( iNewYearEventUnitUID != 0 && iNewYearEventUnitUID != kReq.m_iUnitUID )
 			kAck.m_kUnitInfo.m_iNewYearMissionStepID = -1;
 	}
 #endif SERV_NEW_YEAR_EVENT_2014
 
 	//////////////////////////////////////////////////////////////////////////
-	//QUEST ¸ñ·Ï ¹Þ¾Æ¿À±â
+	//QUEST ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 
-	//ÁøÇàÁß Äù½ºÆ®
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 	DO_QUERY( L"exec dbo.gup_get_quest_list", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -1464,10 +1464,10 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_vecQuest.push_back( kQuest );
 	}
 
-	//{{ 2010. 04. 02  ÃÖÀ°»ç	ÀÏÀÏÄù½ºÆ®
+	//{{ 2010. 04. 02  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_DAILY_QUEST
 
-	//¿Ï·á Äù½ºÆ®(¹Ýº¹ X)
+	//ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®(ï¿½Ýºï¿½ X)
 	{
 		CTime tCompleteDate;
 		std::wstring wstrCompleteDate;
@@ -1481,14 +1481,14 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 			FETCH_DATA( kInfo.m_iQuestID
 				>> wstrCompleteDate );
 
-			// ¿Ï·á ³¯Â¥ º¯È¯
+			// ï¿½Ï·ï¿½ ï¿½ï¿½Â¥ ï¿½ï¿½È¯
 			LIF( KncUtil::ConvertStringToCTime( wstrCompleteDate, tCompleteDate ) );
 			kInfo.m_tCompleteDate = tCompleteDate.GetTime();
 
 			kAck.m_vecCompletQuest.push_back( kInfo );
 		}
 
-		//¿Ï·á Äù½ºÆ®(¹Ýº¹ O)
+		//ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®(ï¿½Ýºï¿½ O)
 		DO_QUERY( L"exec dbo.gup_get_quest_Repeat_complete_list", L"%d", % kReq.m_iUnitUID );
 		while( m_kODBC.Fetch() )
 		{
@@ -1498,7 +1498,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 			FETCH_DATA( kInfo.m_iQuestID
 				>> wstrCompleteDate );
 
-			// ¿Ï·á ³¯Â¥ º¯È¯
+			// ï¿½Ï·ï¿½ ï¿½ï¿½Â¥ ï¿½ï¿½È¯
 			LIF( KncUtil::ConvertStringToCTime( wstrCompleteDate, tCompleteDate ) );
 			kInfo.m_tCompleteDate = tCompleteDate.GetTime();
 
@@ -1508,7 +1508,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 #else
 
-	//¿Ï·á Äù½ºÆ®(¹Ýº¹ X)
+	//ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®(ï¿½Ýºï¿½ X)
 	DO_QUERY( L"exec dbo.gup_get_quest_complete_list", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -1519,7 +1519,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_vecCompletQuest.push_back( iQuestID );
 	}
 
-	//¿Ï·á Äù½ºÆ®(¹Ýº¹ O)
+	//ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®(ï¿½Ýºï¿½ O)
 	DO_QUERY( L"exec dbo.gup_get_quest_Repeat_complete_list", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -1534,9 +1534,9 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//}}
 
 	//////////////////////////////////////////////////////////////////////////
-	//TITLE MISSION ¸ñ·Ï ¹Þ¾Æ¿À±â
+	//TITLE MISSION ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 
-	// º¸À¯ÁßÀÎ Å¸ÀÌÆ²
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ²
 	bool bResetTitle = false;
 	bool bIsEquippedTitle = false;
 	
@@ -1553,7 +1553,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 		if( bIsEquippedTitle )
 		{
-			//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+			//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 			if( kAck.m_kUnitInfo.m_iTitleID != 0 )
 #else
@@ -1561,9 +1561,9 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif SERV_TITLE_DATA_SIZE
 			//}}			
 			{
-				START_LOG( cerr, L"ÀåÂøÁßÀÎ ÄªÈ£°¡ ¶Ç ÀÖ³×?" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ÄªÈ£ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö³ï¿½?" )
 					<< BUILD_LOG( kReq.m_iUnitUID )
-					//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+					//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 					<< BUILD_LOG( kAck.m_kUnitInfo.m_iTitleID )
 #else
@@ -1577,7 +1577,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 				continue;
 			}
 
-			//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+			//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 			kAck.m_kUnitInfo.m_iTitleID = kTitle.m_iTitleID;
 #else
@@ -1587,10 +1587,10 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		}
 	}
 
-	// Áßº¹ ÀåÂøµÈ Å¸ÀÌÆ²Àº ÀåÂøÇØÁ¦	
+	// ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	
 	if( bResetTitle )
 	{
-		// ¸ðµÎ ÀåÂøÇØÁ¦
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_update_title_hang", L"%d, %d, %d", % kReq.m_iUnitUID % 0 % 0 );
 		if( m_kODBC.BeginFetch() )
 		{
@@ -1600,13 +1600,13 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ÄªÈ£ ÀåÂø ÇØÁ¦ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< END_LOG;
 		}
 
-		//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+		//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 		DO_QUERY( L"exec dbo.gup_update_title_hang", L"%d, %d, %d", % kReq.m_iUnitUID % 0 % kAck.m_kUnitInfo.m_iTitleID );
 #else
@@ -1621,10 +1621,10 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ÄªÈ£ ÀåÂø ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
-				//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+				//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 				<< BUILD_LOG( kAck.m_kUnitInfo.m_iTitleID )
 #else
@@ -1635,13 +1635,13 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		}
 	}
 
-	// ÁøÇàÁß ¹Ì¼Ç
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
 	DO_QUERY( L"exec dbo.gup_get_title_mission_list", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
 		KMissionInstance	kMission;
 		KSubMissionInstance	kSub[5];
-		kMission.m_vecSubMissionInstance.reserve( 5 ); // ¹Ì¸® »çÀÌÁî ÁÖ±â
+		kMission.m_vecSubMissionInstance.reserve( 5 ); // ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½
 
 		FETCH_DATA( kMission.m_iID
 			>> kSub[0].m_sClearData
@@ -1651,7 +1651,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 			>> kSub[4].m_sClearData
 			);
 
-		//{{ 2011.10.18     ±è¹Î¼º    ÄªÈ£ Áßº¹ ÁøÇà(¿Ï·á,¼öÇà) ¿¹¿Ü Ã³¸®
+		//{{ 2011.10.18     ï¿½ï¿½Î¼ï¿½    ÄªÈ£ ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Ï·ï¿½,ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 #ifdef SERV_TITLE_DUPLICATE_PROCESS_REVISION
 		bool bRet = false;
 		KTitleInfo kTitle;
@@ -1667,7 +1667,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		}
 		if( bRet == true )
 		{
-			START_LOG( clog, L"º¸À¯ÁßÀÎµ¥ ÁøÇà ÇÏ·Á´Â Å¸ÀÌÆ² ¹Ì¼ÇÀÌ ÀÖ´Ù!" )
+			START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½!" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kTitle.m_iTitleID )
 				<< BUILD_LOG( kMission.m_iID );
@@ -1684,7 +1684,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// Ä³½Ã½ºÅ³ Æ÷ÀÎÆ® °ü·Ã Á¤º¸ ¹Þ¾Æ¿À±â
+	// Ä³ï¿½Ã½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_cash_skill_point_info", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1702,7 +1702,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 	else
 	{
-		START_LOG( cerr, L"Ä³½Ã½ºÅ³Æ÷ÀÎÆ® Á¤º¸ ¾ò¾î¿À±â ½ÇÆÐ·Î ±âº»°ªÀ» ³Ö¾îÁÜ." )
+		START_LOG( cerr, L"Ä³ï¿½Ã½ï¿½Å³ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð·ï¿½ ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
 
@@ -1711,7 +1711,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_kUnitInfo.m_wstrCSPointEndDate = L"2000-01-01 00:00:00";
 	}
 
-	// ºÀÀÎÇØÁ¦µÈ ½ºÅ³¸ñ·Ï ¹Þ¾Æ¿À±â
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_unsealed_skill_info", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -1722,7 +1722,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_vecSkillUnsealed.push_back( iSkillID );
 	}
 
-	//SKILL LIST ¹Þ¾Æ¿À±â
+	//SKILL LIST ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_skill_list_new", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -1738,7 +1738,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_vecSkillAcquired.push_back( KUserSkillData( iSkillID, cSkillLevel, cSkillCSPoint ) );
 	}
 
-	//SKILL SLOT ¹Þ¾Æ¿À±â
+	//SKILL SLOT ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_skill_slot_new", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1754,7 +1754,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		//kPacket.m_iOK = NetError::ERR_SELECT_UNIT_02;
 		//goto end_proc;
-		//½ºÅ³½½·ÔÀÌ Ãß°¡µÇ´Â °Å¶ó¼­ ÇöÀç ¸¸µé¾îÁ® ÀÖ´Â Ä³¸¯´õµéÁß ½½·ÔÀÌ ¾øÀ¸¸é ¸¸µé¾îÁÜ
+		//ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ç´ï¿½ ï¿½Å¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_insert_skill_slot_new", L"%d, %d, %d, %d, %d",
 			% kReq.m_iUnitUID
 			% (int)0
@@ -1773,14 +1773,14 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 		if( iOK != 0 )
 		{ 
-			START_LOG( cerr, L"±âÁ¸¿¡ ÀÖ´ø Ä³¸¯ÅÍÀÇ ½ºÅ³ ½½·Ô µ¥ÀÌÅÍ »ý¼º½ÇÆÐ" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< END_LOG;
 
 			return false;
 		}
 
-		START_LOG( clog, L"========= ±âÁ¸ Ä³¸¯ÅÍ ½ºÅ³½½·ÔÀÌ ¾ø¾î »õ·Î »ý¼º ¼º°ø ===========" )
+		START_LOG( clog, L"========= ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===========" )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			;
 
@@ -1790,7 +1790,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill[3].Init();
 	}
 
-	//SKILL SLOT B ¹Þ¾Æ¿À±â
+	//SKILL SLOT B ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_skill_slot2_new", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1805,7 +1805,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 	else
 	{
-		START_LOG( cerr, L"½ºÅ³ ½½·Ô Á¤º¸ ¾ò¾î¿À±â ½ÇÆÐ·Î ±âº» ÃÊ±â°ª ³Ö¾îÁÜ." )
+		START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð·ï¿½ ï¿½âº» ï¿½Ê±â°ª ï¿½Ö¾ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
 
@@ -1816,10 +1816,10 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate = L"2000-01-01 00:00:00";
 	}
 
-	//{{ 2010. 03. 27  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+	//{{ 2010. 03. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
 
-	// ±â¼úÀÇ ³ëÆ® ÃÖ´ë ÆäÀÌÁö ¼ö ¾ò±â
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_notecnt", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1828,14 +1828,14 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 	else
 	{
-		START_LOG( clog, L"±â¼úÀÇ ³ëÆ® ½ºÅ³ ½½·Ô Á¤º¸°¡ ¾ø½À´Ï´Ù. ¾÷µ¥ÀÌÆ® µÈÀûÀÌ ¾ø´Âµí.." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Âµï¿½.." )
 			<< BUILD_LOG( kReq.m_iUnitUID );
 
-		// 0À¸·Î ÃÊ±âÈ­
+		// 0ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 		kAck.m_cSkillNoteMaxPageNum = 0;
 	}
 
-	// ±â¼úÀÇ ³ëÆ® ¹Þ¾Æ¿À±â
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_note", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -1852,8 +1852,8 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif SERV_SKILL_NOTE
 	//}}
 
-	//COMMUNITY OPTION ¹Þ¾Æ¿À±â
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//COMMUNITY OPTION ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	DO_QUERY( L"exec dbo.P_GDenyOption_SEL", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
@@ -1889,7 +1889,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::ERR_COMMUNITY_OPT_02;
 
-		START_LOG( cerr, L"gup_get_community_opt_unituid È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"gup_get_community_opt_unituid È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
@@ -1897,8 +1897,8 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		return false;
 	}
 
-	//{{ 2008. 1. 31  ÃÖÀ°»ç  
-	//BLACK LIST ¹Þ¾Æ¿À±â
+	//{{ 2008. 1. 31  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  
+	//BLACK LIST ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_select_blacklist", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -1912,7 +1912,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 	//}}
 
-	//080405.hoons. »çÁ¦¸®½ºÆ® ¹Þ¾Æ¿À±â.
+	//080405.hoons. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½.
 	int iTutorialFlag = -1;
 	if( kAck.m_kUnitInfo.m_ucLevel <= KTutorialManager::UNIT_LEVEL_STUDENT_MAX )
 		iTutorialFlag = 0;
@@ -1920,7 +1920,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		iTutorialFlag = 1;
 
 #ifndef SERV_NO_DISCIPLE
-	if( iTutorialFlag != -1 ) // Á¦ÀÚ ÀÌ°Å³ª, ½º½ÂÀÇ Á¶°Ç¿¡¸¸ È£ÃâÇÏµµ·Ï...11~19 ·¹º§ Ä³¸¯ÅÍ´Â È£Ãâ ÇÊ¿ä¼º X // ±è¹Î¼º // 2013-07-05
+	if( iTutorialFlag != -1 ) // ï¿½ï¿½ï¿½ï¿½ ï¿½Ì°Å³ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½...11~19 ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í´ï¿½ È£ï¿½ï¿½ ï¿½Ê¿ä¼º X // ï¿½ï¿½Î¼ï¿½ // 2013-07-05
 	{
 		DO_QUERY( L"exec dbo.gup_get_tutor", L"%d, %d", % iTutorialFlag % kReq.m_iUnitUID );
 		while( m_kODBC.Fetch() )
@@ -1937,7 +1937,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 #endif
 
-	// Á¢¼Ó ½Ã°£ ÀÌº¥Æ® Á¤º¸ ¾ò±â : SPÀÌ¸§Àº 30minÀ¸·Î µÇ¾îÀÖÁö¸¸ ½ÇÁ¦·Î´Â Á¢¼Ó ½Ã°£ ÀÌº¥Æ® Á¤º¸ÀÔ´Ï´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ : SPï¿½Ì¸ï¿½ï¿½ï¿½ 30minï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
 	DO_QUERY( L"exec dbo.gup_select_30min", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -1952,13 +1952,13 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//}}
 
 #ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
-	// ½Å±Ô À¯Àú³Ä
+	// ï¿½Å±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GEvent_CombackUser_CHK",  L"%d, %d", % iUserUID % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kAck.m_iNewUnitE );
 
-		//START_LOG(clog2, L"±è¼®±Ù_±âÁ¸Ä³¸¯ÅÍ Á¢¼Ó ÀÌº¥Æ®. m_bNewUnit °ªÀº ½Å±Ô À¯Àú³Ä?? °á°ú!")
+		//START_LOG(clog2, L"ï¿½è¼®ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®. m_bNewUnit ï¿½ï¿½ï¿½ï¿½ ï¿½Å±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?? ï¿½ï¿½ï¿½!")
 		//	<< BUILD_LOG( iUserUID)
 		//	<< BUILD_LOG( kReq.m_iUnitUID )
 		//	<< BUILD_LOG( kAck.m_iNewUnitE)
@@ -1994,7 +1994,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 		kAck.m_vecRecruiterUnitInfo.push_back( kInfo );
 
-		START_LOG( clog, L"ÃßÃµÀÎ ¸ñ·Ï È¹µæ ¿Ï·á" )
+		START_LOG( clog, L"ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½Ï·ï¿½" )
 			<< BUILD_LOG( kInfo.m_iUnitUID )
 			<< BUILD_LOG( kInfo.m_ucLevel )
 			<< BUILD_LOG( kInfo.m_cUnitClass )
@@ -2014,7 +2014,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 		kAck.m_vecRecruitUnitInfo.push_back( kInfo );
 
-		START_LOG( clog, L"ÇÇÃßÃµÀÎ ¸ñ·Ï È¹µæ ¿Ï·á" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½Ï·ï¿½" )
 			<< BUILD_LOG( kInfo.m_iUnitUID )
 			<< BUILD_LOG( kInfo.m_ucLevel )
 			<< BUILD_LOG( kInfo.m_cUnitClass )
@@ -2031,13 +2031,13 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 		m_kODBC.EndFetch();
 
-		START_LOG( clog, L"P_CustomEvent_CHK sp ½ÇÇà °á°ú" )
+		START_LOG( clog, L"P_CustomEvent_CHK sp ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kAck.m_iCustomEventID )
 			<< END_LOG;
 	}
 	else
 	{
-		START_LOG( clog, L"P_CustomEvent_CHK sp È£Ãâ ½ÇÆÐ!" )
+		START_LOG( clog, L"P_CustomEvent_CHK sp È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
 		kAck.m_iCustomEventID = 0;
@@ -2069,11 +2069,11 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 #endif //SERV_CHINA_SPIRIT_EVENT
 
-	//{{ 2012. 04. 11	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+	//{{ 2012. 04. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 #else
 		//////////////////////////////////////////////////////////////////////////	
-		//{{ 2010. 06. 11  ÃÖÀ°»ç	°èÁ¤´ÜÀ§ Á¢¼Ó½Ã°£ ÀÌº¥Æ®
+		//{{ 2010. 06. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 	#ifdef SERV_ACC_TIME_EVENT
 
 		DO_QUERY( L"exec dbo.gup_select_event_account_nor", L"%d", % iUserUID );
@@ -2094,7 +2094,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	//}}
 
 	//////////////////////////////////////////////////////////////////////////	
-	//{{ 2009. 12. 7  ÃÖÀ°»ç	´©Àû½Ã°£ÀÌº¥Æ®
+	//{{ 2009. 12. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½Ìºï¿½Æ®
 #ifdef CUMULATIVE_TIME_EVENT
 
 	DO_QUERY( L"exec dbo.gup_get_remaintime", L"%d", % kReq.m_iUnitUID );
@@ -2110,7 +2110,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 
 	//////////////////////////////////////////////////////////////////////////	
-	//{{ 2010. 06. 11  ÃÖÀ°»ç	°èÁ¤´ÜÀ§ Á¢¼Ó½Ã°£ ÀÌº¥Æ®
+	//{{ 2010. 06. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_ACC_TIME_EVENT
 
 	DO_QUERY( L"exec dbo.gup_select_event_account_acc", L"%d", % iUserUID );
@@ -2134,7 +2134,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 
 #ifdef SERV_GLOBAL_FRIEND
-	// Ä£±¸ ¸ñ·Ï ¾ò¾î ¿À±â
+	// Ä£ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_friend_get_list", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2149,7 +2149,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_kMessengerInfo.m_mapFriendInfo.insert( std::make_pair( kFriendInfo.m_iUnitUID, kFriendInfo ) );
 	}
 
-	// Ä£±¸ ±×·ì ¾ò¾î¿À±â
+	// Ä£ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_friend_get_group_list", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2162,7 +2162,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_kMessengerInfo.m_mapGroup.insert( std::make_pair( cGroup, wstrGroupName ) );
 	}
 
-	// Ä£±¸ ¸Þ¼¼Áö ¾ò¾î¿À±â
+	// Ä£ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_friend_get_message", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2179,7 +2179,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif //SERV_GLOBAL_FRIEND
 
 
-	//{{ 2009. 7. 7  ÃÖÀ°»ç		·©Å·°³Æí
+	//{{ 2009. 7. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_rank_myrecord", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2194,7 +2194,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 			>> wstrRegDate
 			);
 
-		// RegDate º¯È¯
+		// RegDate ï¿½ï¿½È¯
 		KncUtil::ConvertStringToCTime( wstrRegDate, tRegDate );
 		kInfo.m_tRegDate = tRegDate.GetTime();
 		kInfo.m_iUnitUID = kReq.m_iUnitUID;
@@ -2204,10 +2204,10 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 	//}}
 
-	//{{ 2009. 9. 25  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 9. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 
-	// ±æµå Á¤º¸ ¾ò±â
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_my_guild_info", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -2219,7 +2219,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		kAck.m_iOK = NetError::NET_OK;
 	}
 	
-	// ±æµå¿ø µî±Þ ¹× ¸í¿¹ Æ÷ÀÎÆ® Á¤º¸ ¾ò±â
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	if( kAck.m_kUnitInfo.m_kUserGuildInfo.m_iGuildUID > 0 )
 	{
 		DO_QUERY( L"exec dbo.gup_get_guild_member_grade", L"%d", % kReq.m_iUnitUID );
@@ -2235,7 +2235,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		if( kAck.m_kUnitInfo.m_kUserGuildInfo.m_ucMemberShipGrade == -1  ||  
 			kAck.m_kUnitInfo.m_kUserGuildInfo.m_iHonorPoint == -1 )
 		{
-			START_LOG( cerr, L"±æµå¿ø µî±Þ ¹× ¸í¿¹ Æ÷ÀÎÆ® Á¤º¸ ¾ò±â ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< END_LOG;
 
@@ -2247,12 +2247,12 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif GUILD_TEST
 	//}}
 
-	//{{ 2010. 7. 21  ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 7. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 
 	kAck.m_iSummonedPetUID = 0;
 
-	// Æê Á¤º¸ ¾ò±â!
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½!
 	DO_QUERY( L"exec dbo.gup_get_pet_list", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2260,7 +2260,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		KPetInfo kInfo;
 
 #ifdef SERV_PERIOD_PET
-		// SERV_PET_AUTO_LOOTING, SERV_PETID_DATA_TYPE_CHANGE ÄÑÁø °Í ±âÁØÀ¸·Î ÇÏ³ª¸¸ Á¦ÀÛ
+		// SERV_PET_AUTO_LOOTING, SERV_PETID_DATA_TYPE_CHANGE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		FETCH_DATA( kInfo.m_iPetUID
 			>> kInfo.m_iPetID
 			>> kInfo.m_wstrPetName
@@ -2279,7 +2279,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 			);
 #else SERV_PERIOD_PET
 
-		//{{ 2012. 12. 24	¹Ú¼¼ÈÆ	Æê ¿ÀÅä ·çÆÃ ±â´É Ãß°¡
+		//{{ 2012. 12. 24	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_PET_AUTO_LOOTING
 #ifdef SERV_PETID_DATA_TYPE_CHANGE //2013.07.02
 		FETCH_DATA( kInfo.m_iPetUID
@@ -2338,7 +2338,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		{
 			if( kAck.m_iSummonedPetUID != 0 )
 			{
-				START_LOG( cerr, L"¾ù? ¼ÒÈ¯µÈ ÆêÀÌ ¶ÇÀÖ³×!? ÀÖÀ»¼ö ¾ø´Â ¿¡·¯!" )
+				START_LOG( cerr, L"ï¿½ï¿½? ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ö³ï¿½!? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( kReq.m_iUnitUID )
 					<< BUILD_LOG( kAck.m_iSummonedPetUID )
 					<< BUILD_LOG( kInfo.m_iPetUID )
@@ -2351,7 +2351,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 				KncUtil::ConvertStringToCTime( kInfo.m_wstrDestroyDate, tDestroyDate ) == true &&
 				tDestroyDate <= CTime::GetCurrentTime() )
 			{
-				// ¸¸·á°¡ µÈ ÆêÀÌ¶ó¸é ¼±ÅÃÇÏÁö ¾Ê½À´Ï´Ù.
+				// ï¿½ï¿½ï¿½á°¡ ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
 				kAck.m_iSummonedPetUID = 0;
 			}
 			else
@@ -2365,9 +2365,9 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif SERV_PET_SYSTEM
 	//}}
 
-	//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+	//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
-	// Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸ ¾ò±â!
+	// Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½!
 	DO_QUERY( L"exec dbo.gup_get_Character_Count", L"%d", % kReq.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2383,9 +2383,9 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif SERV_CHAR_LOG
 	//}}
 
-	//{{ 2011. 04. 18	ÃÖÀ°»ç	´ë¸® »óÀÎ
+	//{{ 2011. 04. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
-	// ´ë¸® »óÀÎ Á¤º¸ ¾ò±â
+	// ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_PShop_info_UnitUID", L"%d", % kReq.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -2403,9 +2403,9 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif SERV_PSHOP_AGENCY
 	//}}
 
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
-	// Çì´Ï¸£ º¸»ó ¹ÞÀº È½¼ö ¾ò±â (SP ³»ºÎ¿¡¼­ 1ÀÏ È½¼ö ÃÊ±âÈ­)
+	// ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ ï¿½ï¿½ï¿½ (SP ï¿½ï¿½ï¿½Î¿ï¿½ï¿½ï¿½ 1ï¿½ï¿½ È½ï¿½ï¿½ ï¿½Ê±ï¿½È­)
 	{
 		CTime tNow = CTime::GetCurrentTime();
 		std::wstring wstrNow = tNow.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
@@ -2426,7 +2426,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 	case NetError::NET_OK:
 		{
-			START_LOG( clog, L"Çì´Ï¸£ º¸»ó È½¼ö ¾ò±â ¼º°ø" )
+			START_LOG( clog, L"ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kAck.m_PacketHenirRewardCount.m_iNormal )
 				<< BUILD_LOG( kAck.m_PacketHenirRewardCount.m_iPremium )
@@ -2434,7 +2434,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		}break;
 	case -1:
 		{
-			START_LOG( cerr, L"Çì´Ï¸£ º¸»ó È½¼ö ¾ò±â ½ÇÆÐ - GUnit¿¡ ¾ø´Â À¯´Ö or »èÁ¦µÈ À¯´Ö" )
+			START_LOG( cerr, L"ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - GUnitï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ or ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kAck.m_PacketHenirRewardCount.m_iNormal )
@@ -2445,7 +2445,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		}break;
 	case -2:
 		{
-			START_LOG( cerr, L"Çì´Ï¸£ º¸»ó È½¼ö ÃÊ±âÈ­ ½ÇÆÐ - ÃÊ±âÈ­ ¾÷µ¥ÀÌÆ® ½ÇÆÐ" )
+			START_LOG( cerr, L"ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kAck.m_PacketHenirRewardCount.m_iNormal )
@@ -2456,7 +2456,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		}break;
 	case -3:
 		{
-			START_LOG( cerr, L"Çì´Ï¸£ º¸»ó È½¼ö ¾ò±â ½ÇÆÐ - Çì´Ï¸£ Å×ÀÌºí¿¡ µ¥ÀÌÅÍ°¡ ¾ø°Å³ª ¿©·¯°³" )
+			START_LOG( cerr, L"ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kAck.m_PacketHenirRewardCount.m_iNormal )
@@ -2467,7 +2467,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		}break;
 	default:
 		{
-			START_LOG( cerr, L"Çì´Ï¸£ º¸»ó È½¼ö ¾ò±â ½ÇÆÐ - ÀÌ»óÇÑ ÀÌÀ¯?!" )
+			START_LOG( cerr, L"ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kAck.m_PacketHenirRewardCount.m_iNormal )
@@ -2480,7 +2480,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 #endif SERV_NEW_HENIR_TEST
 	//}}
 
-	//{{ 2012 ´ëÀü ½ÃÁð2 Àü¾ß ·±Äª ÀÌº¥Æ®	- ±è¹Î¼º
+	//{{ 2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Äª ï¿½Ìºï¿½Æ®	- ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_2012_PVP_SEASON2_EVENT
 	if( kAck.m_iOK == NetError::NET_OK )
 	{
@@ -2499,7 +2499,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 
 #ifdef SERV_ADD_WARP_BUTTON
 	//////////////////////////////////////////////////////////////////////////
-	// ÄÚº¸ ÀÍ½ºÇÁ·¹½º VIP Æ¼ÄÏ ±¸¸Å Á¤º¸
+	// ï¿½Úºï¿½ ï¿½Í½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ VIP Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	int iPeriod = 0;
 
 	DO_QUERY( L"exec dbo.P_GVIPTicket_SEL", L"%d", % kReq.m_iUnitUID );
@@ -2517,7 +2517,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 		else
 			kAck.m_kUnitInfo.m_trWarpVipEndData = 0LL;
 
-		START_LOG( clog, L"[TEST] VIP Á¤º¸ Àß °¡Á®¿Ô´ÂÁö Ã¼Å©" )
+		START_LOG( clog, L"[TEST] VIP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ Ã¼Å©" )
 			<< BUILD_LOG( wstrVipEndDate.c_str() )
 			<< BUILD_LOG( wstrVipRegDate.c_str() )
 			<< BUILD_LOG( iPeriod )
@@ -2525,7 +2525,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 	else
 	{
-		START_LOG( clog, L"ÄÚº¸ ÀÍ½ºÇÁ·¹½º VIP Á¤º¸ °¡Á®¿À±â ½ÇÆÐ!! VIP ±¸¸Å ÇÑ ÀûÀÌ ¾ø´Â À¯Àú´Ù." )
+		START_LOG( clog, L"ï¿½Úºï¿½ ï¿½Í½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ VIP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!! VIP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
 
@@ -2533,14 +2533,14 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 #endif // SERV_ADD_WARP_BUTTON
 
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	if( kAck.m_iOK == NetError::NET_OK )
 	{
 		std::wstring wstrWeddingDate;
 		std::wstring wstrLastRewardDate;
 
-		// ÀÎ¿¬ °ü·Ã Á¤º¸¸¦ DB ¿¡¼­ ¹Þ¾Æ¿Í¾ß ÇÑ´Ù.
+		// ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿Í¾ï¿½ ï¿½Ñ´ï¿½.
 		DO_QUERY( L"exec dbo.P_GCouple_Info_SEL", L"%d", % kReq.m_iUnitUID );
 		if( m_kODBC.BeginFetch() )
 		{
@@ -2591,7 +2591,7 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	{
 		kAck.m_iOK = NetError::NET_OK;
 
-		START_LOG( clog, L"P_GEventTradeCount_GET È£Ãâ ½ÇÆÐ! ½ÇÆÐ ÇÏ¸é ¾ÈµÇ´Âµ¥??" )
+		START_LOG( clog, L"P_GEventTradeCount_GET È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ÈµÇ´Âµï¿½??" )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
 	}	
@@ -2615,14 +2615,14 @@ bool KGSGameDBThread::Query_SelectUnit( IN const UidType iUserUID, IN const KEGS
 	}
 
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-	// Ä³¸¯ÅÍ ¼±ÅÃ ¼º°ø!
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	kAck.m_iOK = NetError::NET_OK;
 	return true;
 
 end_proc:
 	kAck.m_iOK = NetError::ERR_SELECT_UNIT_05;
 
-	START_LOG( cerr, L"ÄÉ¸¯ÅÍ Á¤º¸ ¾ò¾î¿À´Â °úÁ¤ ½ÇÆÐ!" )
+	START_LOG( cerr, L"ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( kAck.m_iOK )
 		<< BUILD_LOG( kReq.m_iUnitUID )
 		<< END_LOG;
@@ -2631,7 +2631,7 @@ end_proc:
 }
 //}}
 
-//{{ 2010. 9. 29	ÃÖÀ°»ç	¾ÆÀÌÅÛ Á¤º¸ ¸®ÆÑÅä¸µ
+//{{ 2010. 9. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ä¸µ
 #ifdef SERV_GET_INVENTORY_REFAC
 
 bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID, 
@@ -2646,11 +2646,11 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 
 	typedef std::pair< int, int >	KAttribInfo;
 
-	std::map< UidType, UidType >	mapPetItemList;	 // Æê ¾ÆÀÌÅÛ Á¤º¸
-	std::map< UidType, u_char >		mapSealItemList; // ¹ÐºÀ ¾ÆÀÌÅÛ Á¤º¸	
-	std::map< UidType, std::vector< KAttribInfo > > mapAttribItemList; // ¼Ó¼º ¾ÆÀÌÅÛ Á¤º¸
+	std::map< UidType, UidType >	mapPetItemList;	 // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	std::map< UidType, u_char >		mapSealItemList; // ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½	
+	std::map< UidType, std::vector< KAttribInfo > > mapAttribItemList; // ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	std::map< UidType, std::vector< KAttribInfo > >::iterator mitAttrib;
-	//{{ 2013. 05. 24	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+	//{{ 2013. 05. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	std::map< UidType, std::vector< int > > mapRandomSocketList;
 	std::map< UidType, std::vector< int > >::iterator mitRS;
@@ -2658,7 +2658,7 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 	//}}
 
 	//////////////////////////////////////////////////////////////////////////	
-	// ÀÎº¥Åä¸® »çÀÌÁî¸¦ ¾ò´Â´Ù.
+	// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½î¸¦ ï¿½ï¿½Â´ï¿½.
 	DO_QUERY( L"exec dbo.gup_get_inventory_size", L"%d", % iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2668,13 +2668,13 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 		FETCH_DATA( iCategoty
 			>> iNumSlot );
 
-		// Ä³¸¯ÅÍ UID, Ä«Å×°í¸® ID°¡ PKÀÌ¹Ç·Î ÇÑ Ä³¸¯ÅÍ¿¡ ´ëÇÑ Ä«Å×°í¸® ID´Â ¸ðµÎ ´Ù¸£°Ô ÀúÀåµÇ¾î ÀÖ´Ù.
-		// µû¶ó¼­ map¿¡ insert ÇÒ ¶§ Å° Áßº¹ ¿©ºÎ °Ë»ç¸¦ ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+		// Ä³ï¿½ï¿½ï¿½ï¿½ UID, Ä«ï¿½×°ï¿½ï¿½ï¿½ IDï¿½ï¿½ PKï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½.
+		// ï¿½ï¿½ï¿½ï¿½ mapï¿½ï¿½ insert ï¿½ï¿½ ï¿½ï¿½ Å° ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 		mapInventorySlotSizeResult.insert( std::make_pair( iCategoty, iNumSlot ) );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// Æê ¾ÆÀÌÅÛ Á¤º¸ ¾ò±â
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_item_list_pet", L"%d", % iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2685,7 +2685,7 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 			>> iPetUID );
 
 		std::map< UidType, UidType >::iterator mitPet;
-		//{{ 2012. 12. 17	ÃÖÀ°»ç	iItemUID¸¦ iPetUID·Î Àß¸ø ³ÖÀº°ÍÀ» ¼öÁ¤ÇÔ.
+		//{{ 2012. 12. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	iItemUIDï¿½ï¿½ iPetUIDï¿½ï¿½ ï¿½ß¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		mitPet = mapPetItemList.find( iItemUID );
 		//}}
 		if( mitPet == mapPetItemList.end() )
@@ -2694,7 +2694,7 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 		}
 		else
 		{
-			START_LOG( cerr, L"Áßº¹µÇ´Â ItemUID°¡ ÀÖ½À´Ï´Ù. ÀÖÀ» ¼ö ¾ø´Â ¿¡·¯!" )
+			START_LOG( cerr, L"ï¿½ßºï¿½ï¿½Ç´ï¿½ ItemUIDï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iItemUID )
 				<< BUILD_LOG( iPetUID )
 				<< END_LOG;
@@ -2702,7 +2702,7 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¼Ó¼º °­È­ Á¤º¸ ¾ò±â
+	// ï¿½Ó¼ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_attribute", L"%d", % iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2730,8 +2730,8 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¹ÐºÀ Á¤º¸ ¾ò±â
-	//{{ 2009. 8. 28  ÃÖÀ°»ç	¹ÐºÀ
+	// ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	//{{ 2009. 8. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ðºï¿½
 	DO_QUERY( L"exec dbo.gup_get_item_list_seal", L"%d", % iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2745,9 +2745,9 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 	}
 	//}}
 
-	//{{ 2013. 05. 24	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+	//{{ 2013. 05. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-	// ·£´ý ¼ÒÄÏ Á¤º¸ ¾ò±â
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GItemSocket_Random_SEL", L"%d", % iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -2762,12 +2762,17 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 			>> arrRandomSocketOption[4]
 			);
 
-		// 2-1. ·£´ý ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ®
-		for( int iCheckIdx = CXSLSocketItem::RSC_MAX - 1; iCheckIdx >= 0; --iCheckIdx )
+		// 2-1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+		//{{ Iruha : 2026-08-27 // VS2010 port: iCheckIdx is used after the loop, which VC7.1's
+		// non-conformant /Zc:forScope- tolerated; VC10 requires the loop variable to outlive
+		// the loop, so it's hoisted here.
+		int iCheckIdx;
+		for( iCheckIdx = CXSLSocketItem::RSC_MAX - 1; iCheckIdx >= 0; --iCheckIdx )
 		{
 			if( arrRandomSocketOption[iCheckIdx] != 0 )
 				break;
 		}
+		//}}
 
 		std::vector< int > vecRandomSocket;
 		for( int iIdx = 0; iIdx <= iCheckIdx; ++iIdx )
@@ -2775,20 +2780,20 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 			vecRandomSocket.push_back( arrRandomSocketOption[iIdx] );
 		}
 
-		// itemuid°ªÀº Áßº¹µÇÁö ¾Ê´Â°ÍÀ» db¿¡¼­ º¸ÀåÇØ¾ßÇÑ´Ù.
+		// itemuidï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â°ï¿½ï¿½ï¿½ dbï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ñ´ï¿½.
 		mapRandomSocketList.insert( std::make_pair( iItemUID, vecRandomSocket ) );
 	}
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 	//}}
 
 	//////////////////////////////////////////////////////////////////////////	
-	// º¸À¯ ¾ÆÀÌÅÛÀ» ¾ò´Â´Ù.	
-	//{{ 2013. 05. 21	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.	
+	//{{ 2013. 05. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_item_list", L"%d", % iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
 		int iEnchantLevel = 0;
-		//{{ 2011. 07. 25    ±è¹Î¼º    ¾ÆÀÌÅÛ ¿É¼ÇID µ¥ÀÌÅÍ »çÀÌÁî Áõ°¡
+		//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_ITEM_OPTION_DATA_SIZE
 		int arrSocketOption[4] = {0,0,0,0};
 //#else
@@ -2798,9 +2803,9 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 		
 		KInventoryItemInfo kInventoryItemInfo;
 
-			//{{ 2011. 12. 15	ÃÖÀ°»ç	ÀÎº¥Åä¸® ½½·ÔIDÅ©±â ´Ã¸®±â
+			//{{ 2011. 12. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½IDÅ©ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½
 //#ifdef SERV_EXPAND_SLOT_ID_DATA_SIZE
-		//{{ 2013. 05. 21	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+		//{{ 2013. 05. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		FETCH_DATA( kInventoryItemInfo.m_iItemUID
 			>> kInventoryItemInfo.m_kItemInfo.m_iItemID
 			>> kInventoryItemInfo.m_kItemInfo.m_cUsageType
@@ -2833,24 +2838,29 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 //#endif SERV_EXPAND_SLOT_ID_DATA_SIZE
 			//}}
 
-		// 1. °­È­ Á¤º¸ ¾÷µ¥ÀÌÆ®
+		// 1. ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		kInventoryItemInfo.m_kItemInfo.m_cEnchantLevel = static_cast<char>(iEnchantLevel);
 
-		// 2. ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ®
-		for( int iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
+		// 2. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+		//{{ Iruha : 2026-08-27 // VS2010 port: iCheckIdx is used after the loop, which VC7.1's
+		// non-conformant /Zc:forScope- tolerated; VC10 requires the loop variable to outlive
+		// the loop, so it's hoisted here.
+		int iCheckIdx;
+		for( iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
 		{
 			if( arrSocketOption[iCheckIdx] != 0 )
 				break;
 		}
+		//}}
 
 		for( int iIdx = 0; iIdx <= iCheckIdx; ++iIdx )
 		{
 			kInventoryItemInfo.m_kItemInfo.m_vecItemSocket.push_back( arrSocketOption[iIdx] );
 		}
 
-		//{{ 2013. 05. 21	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+		//{{ 2013. 05. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-		// 2-1. ·£´ý ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ®
+		// 2-1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		std::map< UidType, std::vector< int > >::const_iterator mitCRS;
 		mitCRS = mapRandomSocketList.find( kInventoryItemInfo.m_iItemUID );
 		if( mitCRS != mapRandomSocketList.end() )
@@ -2860,7 +2870,7 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 		//}}
 
-		// 3. ¹ÐºÀ Á¤º¸ ¾÷µ¥ÀÌÆ®
+		// 3. ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		std::map< UidType, u_char >::const_iterator mitSeal;
 		mitSeal = mapSealItemList.find( kInventoryItemInfo.m_iItemUID );
 		if( mitSeal != mapSealItemList.end() )
@@ -2868,13 +2878,13 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 			kInventoryItemInfo.m_kItemInfo.m_ucSealData = mitSeal->second;
 		}
 
-		// 4. ¼Ó¼º Á¤º¸ ¾÷µ¥ÀÌÆ®
+		// 4. ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		mitAttrib = mapAttribItemList.find( kInventoryItemInfo.m_iItemUID );
 		if( mitAttrib != mapAttribItemList.end() )
 		{
 			BOOST_TEST_FOREACH( const KAttribInfo&, kAttribInfo, mitAttrib->second )
 			{
-				// ¼Ó¼º °­È­
+				// ï¿½Ó¼ï¿½ ï¿½ï¿½È­
 				switch( kAttribInfo.first )
 				{
 				case CXSLAttribEnchantItem::ESI_SLOT_1:
@@ -2890,7 +2900,7 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 					break;
 
 				default:
-					START_LOG( cerr, L"¼Ó¼º °­È­ ½½·Ô ³Ñ¹ö°¡ ÀÌ»óÇÕ´Ï´Ù." )
+					START_LOG( cerr, L"ï¿½Ó¼ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 						<< BUILD_LOG( kInventoryItemInfo.m_iItemUID )
 						<< BUILD_LOG( kAttribInfo.first )
 						<< BUILD_LOG( kAttribInfo.second )
@@ -2901,14 +2911,14 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 		}
 		
 		//////////////////////////////////////////////////////////////////////////		
-		// Æê Ä«Å×°í¸®ÀÌ¸é µû·Î ´ãÀÚ!
+		// ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		if( kInventoryItemInfo.m_cSlotCategory == CXSLInventory::ST_PET )
 		{
 			std::map< UidType, UidType >::const_iterator mitPet;
 			mitPet = mapPetItemList.find( kInventoryItemInfo.m_iItemUID );
 			if( mitPet == mapPetItemList.end() )
 			{
-				START_LOG( cerr, L"Æê ¾ÆÀÌÅÛ Á¤º¸¿¡¼­ ÇØ´ç ¾ÆÀÌÅÛÀ» Ã£Áö ¸øÇß´Ù! ÀÏ¾î³ª¸é ¾ÈµÇ´Â ¿¡·¯!" )
+				START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ï¿½ß´ï¿½! ï¿½Ï¾î³ªï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( iUnitUID )
 					<< BUILD_LOG( kInventoryItemInfo.m_iItemUID )
 					<< END_LOG;
@@ -2931,10 +2941,10 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 			}
 		}
 		//////////////////////////////////////////////////////////////////////////		
-		// Æê Ä«Å×°í¸® ¾Æ´Ñ°ÍµéÀº ÀÏ¹Ý ÀÎº¥Åä¸®·Î!
+		// ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ ï¿½Æ´Ñ°Íµï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½!
 		else
 		{
-			// ¾ÆÀÌÅÛ UID°¡ PKÀÌ¹Ç·Î map¿¡ insert ÇÒ ¶§ Å° Áßº¹ ¿©ºÎ °Ë»ç¸¦ ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UIDï¿½ï¿½ PKï¿½Ì¹Ç·ï¿½ mapï¿½ï¿½ insert ï¿½ï¿½ ï¿½ï¿½ Å° ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 			mapItemResult.insert( std::make_pair( kInventoryItemInfo.m_iItemUID, kInventoryItemInfo ) );
 		}
 	}
@@ -2942,7 +2952,7 @@ bool KGSGameDBThread::Query_GetInventory( IN const UidType iUnitUID,
 	return true;
 
 end_proc:
-	START_LOG( cerr, L"Ä³¸¯ÅÍ ÀÎº¥Åä¸® ¾ò±â ½ÇÆÐ!" )
+	START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( iUnitUID )
 		<< END_LOG;
     return false;
@@ -2951,7 +2961,7 @@ end_proc:
 #endif SERV_GET_INVENTORY_REFAC
 //}}
 
-//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GET_ITEM_REASON
 //////////////////////////////////////////////////////////////////////////
@@ -2960,7 +2970,7 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 {
 	if( SEnum::IsValidGetItemReason( eGetItemReason ) == false )
 	{
-		START_LOG( cerr, L"À¯È¿ÇÏÁö¾ÊÀº ¾ÆÀÌÅÛ »ý¼º »çÀ¯ÀÔ´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 			<< BUILD_LOG( eGetItemReason )
 			<< BUILD_LOG( iUnitUID )
 			<< BUILD_LOG( vecItemInfo.size() )
@@ -2969,14 +2979,14 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 
 	BOOST_TEST_FOREACH( const KItemInfo&, kNewItemInfo, vecItemInfo )
 	{
-		KItemInfo kNewItemInfoResult = kNewItemInfo; // º¹»çº» »ý¼º
+		KItemInfo kNewItemInfoResult = kNewItemInfo; // ï¿½ï¿½ï¿½çº» ï¿½ï¿½ï¿½ï¿½
 
 		//////////////////////////////////////////////////////////////////////////
-		// ¾ÆÀÌÅÛ »ý¼º
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		UidType iItemUID = 0;
 		int iOK = NetError::ERR_ODBC_01;
 
-		//{{ 2011. 08. 31	ÃÖÀ°»ç	¾ÆÀÌÅÛ »ý¼º »çÀ¯
+		//{{ 2011. 08. 31	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_REASON_DB_LOG
 		DO_QUERY( L"exec dbo.gup_insert_item", L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
 			% iUnitUID
@@ -3018,7 +3028,7 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"¾ÆÀÌÅÛ »ðÀÔ ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( iUnitUID )
 				<< BUILD_LOG( kNewItemInfo.m_iItemID )
@@ -3035,13 +3045,13 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 		}
 
 		//////////////////////////////////////////////////////////////////////////		
-		//{{ 2009. 8. 27  ÃÖÀ°»ç	¹ÐºÀ
+		//{{ 2009. 8. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ðºï¿½
 		if( kNewItemInfo.m_ucSealData > 0 )
 		{
-			//{{ 2009. 9. 2  ÃÖÀ°»ç		¹ÐºÀ
+			//{{ 2009. 9. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ðºï¿½
 			if( kNewItemInfoResult.IsSealedItem()  &&  bUnSeal )
 			{
-				kNewItemInfoResult.UnsealItem(); // ¹ÐºÀ ÇØÁ¦
+				kNewItemInfoResult.UnsealItem(); // ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½
 			}
 			//}}
 
@@ -3055,7 +3065,7 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"¹ÐºÀ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( iItemUID )
 					<< BUILD_LOGc( kNewItemInfoResult.m_ucSealData )
@@ -3066,12 +3076,12 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 		//}}
 
 		//////////////////////////////////////////////////////////////////////////		
-		// ¼ÒÄÏ Á¤º¸°¡ Á¸ÀçÇÑ´Ù¸é ¿ª½Ã DB¿¡ insertÇÏÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ insertï¿½ï¿½ï¿½ï¿½!
 		if( kNewItemInfo.m_vecItemSocket.empty() == false )
 		{
 			bool bSocketExist = false;
-			int arrSocketInfo[4] = {0,0,0,0}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í
-			//{{ 2011. 07. 25    ±è¹Î¼º    ¾ÆÀÌÅÛ ¿É¼ÇID µ¥ÀÌÅÍ »çÀÌÁî Áõ°¡
+			int arrSocketInfo[4] = {0,0,0,0}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
+			//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ITEM_OPTION_DATA_SIZE
 			std::vector< int >::const_iterator vitSocket = kNewItemInfo.m_vecItemSocket.begin();
 #else
@@ -3110,7 +3120,7 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 
 				if( iOK != NetError::NET_OK )
 				{
-					START_LOG( cerr, L"¾ÆÀÌÅÛ ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 						<< BUILD_LOG( iOK )
 						<< BUILD_LOG( iUnitUID )
 						<< BUILD_LOG( iItemUID )
@@ -3123,14 +3133,14 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 			}
 		}
 
-		//{{ 2013. 05. 21	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+		//{{ 2013. 05. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		//////////////////////////////////////////////////////////////////////////		
-		// ·£´ý ¼ÒÄÏ Á¤º¸°¡ Á¸ÀçÇÑ´Ù¸é ¿ª½Ã DB¿¡ insertÇÏÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ insertï¿½ï¿½ï¿½ï¿½!
 		if( kNewItemInfo.m_vecRandomSocket.empty() == false )
 		{
 			bool bSocketExist = false;
-			int arrSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í
+			int arrSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
 			
 			std::vector< int >::const_iterator vitSocket = kNewItemInfo.m_vecRandomSocket.begin();
 			for( int iIdx = 0; iIdx < CXSLSocketItem::RSC_MAX; ++iIdx )
@@ -3166,7 +3176,7 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 
 				if( iOK != NetError::NET_OK )
 				{
-					START_LOG( cerr, L"·£´ý ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 						<< BUILD_LOG( iOK )
 						<< BUILD_LOG( iUnitUID )
 						<< BUILD_LOG( iItemUID )
@@ -3182,7 +3192,7 @@ bool KGSGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 		//}}
 
-		// »ý¼ºµÇ´Â ¾ÆÀÌÅÛ Á¤º¸¸¦ ¸ðµÎ DB¿¡ insertÇÏ¿´À¸¹Ç·Î ÄÁÅ×ÀÌ³Ê¿¡µµ ³ÖÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DBï¿½ï¿½ insertï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		mapInsertedItemInfo.insert( std::make_pair( iItemUID, kNewItemInfoResult ) );
 	}
 
@@ -3203,15 +3213,15 @@ end_proc:
 //	{
 //		UidType iItemUID;
 //		KItemInfo kItemInfo = *vit;
-//		//{{ 2009. 9. 2  ÃÖÀ°»ç		¹ÐºÀ
+//		//{{ 2009. 9. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ðºï¿½
 //		if( kItemInfo.IsSealedItem()  &&  bUnSeal )
 //		{
-//			kItemInfo.m_ucSealData -= 100; // ¹ÐºÀ ÇØÁ¦
+//			kItemInfo.m_ucSealData -= 100; // ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½
 //		}
 //		//}}
 //
 //		//////////////////////////////////////////////////////////////////////////
-//		// ¾ÆÀÌÅÛ »ý¼º
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //		int iOK = NetError::ERR_ODBC_01;
 //
 //		DO_QUERY( L"exec dbo.gup_insert_item", L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
@@ -3224,7 +3234,7 @@ end_proc:
 //			% static_cast<int>(vit->m_cEnchantLevel) 
 //			% static_cast<int>(vit->m_kAttribEnchantInfo.m_cAttribEnchant0 ) 
 //			% static_cast<int>(vit->m_kAttribEnchantInfo.m_cAttribEnchant1 )
-//			//{{ 2009. 11. 9  ÃÖÀ°»ç	Æ®¸®ÇÃ¼Ó¼º
+//			//{{ 2009. 11. 9  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ®ï¿½ï¿½ï¿½Ã¼Ó¼ï¿½
 //			% static_cast<int>(vit->m_kAttribEnchantInfo.m_cAttribEnchant2 )
 //			//}}
 //			);
@@ -3240,12 +3250,12 @@ end_proc:
 //
 //		if( iOK == NetError::NET_OK )
 //		{
-//			// ¾ÆÀÌÅÛ UID ´Â À¯ÀÏÇÏ¹Ç·Î Áßº¹ °Ë»ç ¾øÀÌ map¿¡ key·Î ³ÖÀ» ¼ö ÀÖ´Ù.
+//			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¹Ç·ï¿½ ï¿½ßºï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ mapï¿½ï¿½ keyï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½.
 //			mapInsertedItemInfo.insert( std::make_pair( iItemUID, kItemInfo ) );
 //		}
 //		else
 //		{
-//			START_LOG( cerr, L"¾ÆÀÌÅÛ »ðÀÔ ½ÇÆÐ." )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( iUnitUID )
 //				<< BUILD_LOG( vit->m_iItemID )
@@ -3256,7 +3266,7 @@ end_proc:
 //				<< BUILD_LOGc( vit->m_cEnchantLevel )
 //				<< BUILD_LOGc( vit->m_kAttribEnchantInfo.m_cAttribEnchant0 )
 //				<< BUILD_LOGc( vit->m_kAttribEnchantInfo.m_cAttribEnchant1 )
-//				//{{ 2009. 11. 9  ÃÖÀ°»ç	Æ®¸®ÇÃ¼Ó¼º
+//				//{{ 2009. 11. 9  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ®ï¿½ï¿½ï¿½Ã¼Ó¼ï¿½
 //				<< BUILD_LOGc( vit->m_kAttribEnchantInfo.m_cAttribEnchant2 )
 //				//}}
 //				<< END_LOG;
@@ -3264,7 +3274,7 @@ end_proc:
 //		}
 //
 //		//////////////////////////////////////////////////////////////////////////		
-//		//{{ 2009. 8. 27  ÃÖÀ°»ç	¹ÐºÀ
+//		//{{ 2009. 8. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ðºï¿½
 //		if( vit->m_ucSealData > 0 )
 //		{
 //			DO_QUERY( L"exec dbo.gup_update_item_seal", L"%d, %d", % iItemUID % static_cast<int>(kItemInfo.m_ucSealData) );
@@ -3277,7 +3287,7 @@ end_proc:
 //
 //			if( iOK != NetError::NET_OK )
 //			{
-//				START_LOG( cerr, L"¹ÐºÀ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//				START_LOG( cerr, L"ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //					<< BUILD_LOG( iOK )
 //					<< BUILD_LOG( iItemUID )
 //					<< BUILD_LOGc( kItemInfo.m_ucSealData )
@@ -3287,12 +3297,12 @@ end_proc:
 //		//}}
 //
 //		//////////////////////////////////////////////////////////////////////////		
-//		// ¼ÒÄÏÀÌ ºñ¾îÀÖÀ¸¸é ´ÙÀ½ ¾ÆÀÌÅÛÀ¸·Î..
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
 //		if( vit->m_vecItemSocket.empty() )
 //			continue;
 //
 //		bool bSocketExist = false;
-//		int arrSocketInfo[4] = {0,0,0,0}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í
+//		int arrSocketInfo[4] = {0,0,0,0}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
 //		std::vector< short >::const_iterator vitSocket = vit->m_vecItemSocket.begin();
 //		for( int iIdx = 0; iIdx < 4; ++iIdx )
 //		{
@@ -3326,7 +3336,7 @@ end_proc:
 //
 //			if( iOK != NetError::NET_OK )
 //			{
-//				START_LOG( cerr, L"¾ÆÀÌÅÛ ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //					<< BUILD_LOG( iOK )
 //					<< BUILD_LOG( iUnitUID )
 //					<< BUILD_LOG( iItemUID )
@@ -3352,22 +3362,22 @@ end_proc:
 
 void KGSGameDBThread::Query_UpdateSealItem( IN const std::set< int >& setSealItem, IN OUT std::map< UidType, KItemInfo >& mapInsertedItemInfo )
 {
-	// ¹ÐºÀ ¾ÆÀÌÅÛ ¸®½ºÆ®°¡ ¾øÀ¸¸é ¾Æ¹« Ã³¸® ¾ÈÇÔ
+	// ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( setSealItem.empty() )
 		return;
 
 	std::map< UidType, KItemInfo >::iterator mit;
 	for( mit = mapInsertedItemInfo.begin(); mit != mapInsertedItemInfo.end(); ++mit )
 	{
-		// ¹ÐºÀ ´ë»óÀÎÁö °Ë»ç
+		// ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 		if( setSealItem.find( mit->second.m_iItemID ) == setSealItem.end() )
 			continue;
 
-		// ±â°£Á¦ ¾ÆÀÌÅÛÀÌ¸é ºÀÀÎ ¾ÈÇÔ
+		// ï¿½â°£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( mit->second.m_sPeriod > 0 )
 			continue;
 
-		// ¹ÐºÀÃ³¸®ÇÑ´Ù!
+		// ï¿½Ðºï¿½Ã³ï¿½ï¿½ï¿½Ñ´ï¿½!
 		mit->second.m_ucSealData = 100;
 
 		int iOK = NetError::ERR_ODBC_01;
@@ -3382,13 +3392,13 @@ void KGSGameDBThread::Query_UpdateSealItem( IN const std::set< int >& setSealIte
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ºÀÀÎ DB ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( mit->first )
 				<< BUILD_LOGc( mit->second.m_ucSealData )
 				<< END_LOG;
 
-			// ¹ÐºÀ DB¾÷µ¥ÀÌÆ® ½ÇÆÐÇßÀ¸¸é ·Ñ¹é
+			// ï¿½Ðºï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½
 			mit->second.m_ucSealData = 0;
 		}
 	}
@@ -3419,7 +3429,7 @@ void KGSGameDBThread::Query_UpdateDungeonClear( UidType iUnitUID, std::map< int,
 
         if( iOK != NetError::NET_OK )
         {
-            START_LOG( cerr, L"´øÀü Å¬¸®¾î Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+            START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
                 << BUILD_LOG( iOK )
                 << END_LOG;
 
@@ -3464,7 +3474,7 @@ void KGSGameDBThread::Query_UpdateDungeonPlay( IN UidType iUnitUID, IN std::map<
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"´øÀü ÇÃ·¹ÀÌ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( mitDungeonPlayInfo->second.m_iDungeonID )
 				<< BUILD_LOG( mitDungeonPlayInfo->second.m_iPlayTimes )
@@ -3504,7 +3514,7 @@ void KGSGameDBThread::Query_UpdateTCClear( UidType iUnitUID, std::map< int, KTCC
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ÈÆ·Ã¼Ò Å¬¸®¾î Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½Æ·Ã¼ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( iOK )
 				<< END_LOG;
 
@@ -3527,7 +3537,7 @@ end_proc:
 
 bool KGSGameDBThread::Query_UpdateItemQuantity( UidType iUnitUID, std::map< UidType, int >& mapUpdated, std::map< UidType, int >& mapFailed, bool& bUpdateFailed )
 {
-	//{{ 2009. 11. 17  ÃÖÀ°»ç	DBÄõ¸®½ÇÆÐ	
+	//{{ 2009. 11. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	
 	bool bQuerySuccess = true;
 	//}}
 	bUpdateFailed = false;
@@ -3545,7 +3555,7 @@ bool KGSGameDBThread::Query_UpdateItemQuantity( UidType iUnitUID, std::map< UidT
 			% mit->second
 			);
 
-// 		START_LOG( cerr, L"¾÷µ¥ÀÌÆ® ³»¿ë È®ÀÎÇÏÀÚ" )
+// 		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" )
 // 			<< BUILD_LOG( iUnitUID )
 // 			<< BUILD_LOG( mit->first  )
 // 			<< BUILD_LOG( mit->second  )
@@ -3558,17 +3568,17 @@ bool KGSGameDBThread::Query_UpdateItemQuantity( UidType iUnitUID, std::map< UidT
 
             if( iOK != NetError::NET_OK )
             {
-                START_LOG( cerr, L"¾ÆÀÌÅÛ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+                START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
                     << BUILD_LOG( iOK )
 					<< BUILD_LOG( iUnitUID )
 					<< BUILD_LOG( mit->first )
 					<< BUILD_LOG( mit->second )
                     << END_LOG;
 
-				//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¹ö±×ÇÑ¹ø Àâ¾Æº¸ÀÚ~!
+				//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ ï¿½ï¿½Æºï¿½ï¿½ï¿½~!
 				if( iOK == -5 )
 				{
-					START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ¹ö±× ¹ß»ý!" )
+					START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½!" )
 						<< BUILD_LOG( iOK )
 						<< BUILD_LOG( iUnitUID )
 						<< BUILD_LOG( mit->first )
@@ -3581,13 +3591,13 @@ bool KGSGameDBThread::Query_UpdateItemQuantity( UidType iUnitUID, std::map< UidT
         }
         else
         {
-            START_LOG( cerr, L"¾ÆÀÌÅÛ ¼ö·® ¾÷µ¥ÀÌÆ®Áß BeginFetch ½ÇÆÐ." );
+            START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
         }
 
 end_proc:
         if( iOK != NetError::NET_OK  &&  iOK != -5 )
         {
-			//{{ 2009. 11. 17  ÃÖÀ°»ç	DBÄõ¸®½ÇÆÐ
+			//{{ 2009. 11. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			bQuerySuccess = false;
 			//}}
 
@@ -3601,7 +3611,7 @@ end_proc:
 
 bool KGSGameDBThread::Query_UpdateItemEndurance( IN UidType iUnitUID, IN std::map< UidType, int >& mapUpdated, OUT std::map< UidType, int >& mapFailed )
 {
-	//{{ 2009. 11. 17  ÃÖÀ°»ç	DBÄõ¸®½ÇÆÐ
+	//{{ 2009. 11. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	bool bQuerySuccess = true;
 	//}}
 
@@ -3626,7 +3636,7 @@ bool KGSGameDBThread::Query_UpdateItemEndurance( IN UidType iUnitUID, IN std::ma
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"¾ÆÀÌÅÛ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( iUnitUID )
 					<< BUILD_LOG( mit->first )
@@ -3636,13 +3646,13 @@ bool KGSGameDBThread::Query_UpdateItemEndurance( IN UidType iUnitUID, IN std::ma
 		}
 		else
 		{
-			START_LOG( cerr, L"¾ÆÀÌÅÛ ³»±¸µµ ¾÷µ¥ÀÌÆ®Áß BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			//{{ 2009. 11. 17  ÃÖÀ°»ç	DBÄõ¸®½ÇÆÐ
+			//{{ 2009. 11. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			bQuerySuccess = false;
 			//}}
 
@@ -3671,14 +3681,14 @@ end_proc:
 //
 //			if( iOK != NetError::NET_OK )
 //			{
-//				START_LOG( cerr, L"¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //					<< BUILD_LOG( iOK )
 //					<< END_LOG;
 //			}
 //		}
 //		else
 //		{
-//			START_LOG( cerr, L"¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ®Áß BeginFetch ½ÇÆÐ." );
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 //		}
 //
 //end_proc:
@@ -3686,8 +3696,8 @@ end_proc:
 //		{
 //			mapFailed.insert( std::make_pair( mit->first, mit->second ) );
 //
-//			//{{ 2008. 7. 8  ÃÖÀ°»ç  ÀÎº¥ Ä«Å×°í¸® ¹ö±× Ã£±â
-//			START_LOG( cerr, L"ÀÎº¥ ¹ö±×ÀÏ±î?!" )
+//			//{{ 2008. 7. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Îºï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
+//			START_LOG( cerr, L"ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½?!" )
 //				<< BUILD_LOG( bFinal );
 //			//}}	
 //		}
@@ -3695,7 +3705,7 @@ end_proc:
 //	}
 //}
 
-//{{ 2010. 8. 3	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//{{ 2010. 8. 3	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 
 void KGSGameDBThread::Query_UpdateItemPosition( IN UidType iUnitUID, IN std::map< UidType, KItemPosition >& mapUpdated, OUT std::map< UidType, KItemPosition >& mapFailed )
@@ -3707,7 +3717,7 @@ void KGSGameDBThread::Query_UpdateItemPosition( IN UidType iUnitUID, IN std::map
 	{
 		int iOK = NetError::ERR_ODBC_01;
 
-		// Æê ÀÎº¥Åä¸®¿Í °ü·ÃÀÌ ÀÖ´Â º¯°æÀÎÁö Ã¼Å©!
+		// ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 		if( mit->second.m_iPetUID == KItemPosition::IPE_INVALID_PET_UID )
 		{
 			DO_QUERY( L"exec dbo.gup_update_item_position", L"%d, %d, %d",
@@ -3734,7 +3744,7 @@ void KGSGameDBThread::Query_UpdateItemPosition( IN UidType iUnitUID, IN std::map
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( iUnitUID )
 					<< BUILD_LOG( mit->first )
@@ -3746,7 +3756,7 @@ void KGSGameDBThread::Query_UpdateItemPosition( IN UidType iUnitUID, IN std::map
 		}
 		else
 		{
-			START_LOG( cerr, L"¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ®Áß BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 
 end_proc:
@@ -3778,14 +3788,14 @@ void KGSGameDBThread::Query_UpdateItemPosition( IN UidType iUnitUID, IN std::map
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( iOK )
 					<< END_LOG;
 			}
 		}
 		else
 		{
-			START_LOG( cerr, L"¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ®Áß BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 
 end_proc:
@@ -3800,7 +3810,7 @@ end_proc:
 #endif SERV_PET_SYSTEM
 //}}
 
-//{{ 2009. 12. 15  ÃÖÀ°»ç	¾ÆÀÌÅÛ »èÁ¦»çÀ¯
+//{{ 2009. 12. 15  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void KGSGameDBThread::Query_DeleteItem( IN std::vector< KDeletedItemInfo >& vecDeleted, OUT std::vector< KDeletedItemInfo >& vecFailed )
 {
     vecFailed.clear();
@@ -3812,7 +3822,7 @@ void KGSGameDBThread::Query_DeleteItem( IN std::vector< KDeletedItemInfo >& vecD
 
 		DO_QUERY( L"exec dbo.gup_delete_item", L"%d, %d", % vit->m_iItemUID % (int)vit->m_ucDeleteReason );
         
-// 		START_LOG( cerr, L"»èÁ¦ ³»¿ë È®ÀÎÇÏÀÚ" )
+// 		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" )
 // 			<< BUILD_LOG( vit->m_iItemUID )
 // 			<< END_LOG;
 
@@ -3823,7 +3833,7 @@ void KGSGameDBThread::Query_DeleteItem( IN std::vector< KDeletedItemInfo >& vecD
 
             if( iOK != NetError::NET_OK )
             {
-                START_LOG( cerr, L"¾ÆÀÌÅÛ »èÁ¦ ½ÇÆÐ." )
+                START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
                     << BUILD_LOG( iOK )
 					<< BUILD_LOG( vit->m_iItemUID )
 					<< BUILD_LOGc( vit->m_ucDeleteReason )
@@ -3832,7 +3842,7 @@ void KGSGameDBThread::Query_DeleteItem( IN std::vector< KDeletedItemInfo >& vecD
         }
         else
         {
-            START_LOG( cerr, L"¾ÆÀÌÅÛ »èÁ¦ Áß BeginFetch ½ÇÆÐ." );
+            START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
         }
 end_proc:
         if( iOK != NetError::NET_OK )
@@ -3844,7 +3854,7 @@ end_proc:
 }
 //}}
 
-//{{ 2009. 10. 28  ÃÖÀ°»ç	±æµå·¹º§
+//{{ 2009. 10. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å·¹ï¿½ï¿½
 bool KGSGameDBThread::Query_GetGuildMemberGrade( IN UidType iUnitUID, OUT u_char& ucGuildMemberGrade )
 {
 	ucGuildMemberGrade = 0;
@@ -3862,7 +3872,7 @@ bool KGSGameDBThread::Query_GetGuildMemberGrade( IN UidType iUnitUID, OUT u_char
 
 	if( ucGuildMemberGrade == -1 )
 	{
-		START_LOG( cwarn, L"±æµå¿ø µî±Þ Á¤º¸°¡ Á¸ÀçÇÏÁö ¾ÊÀ½." )
+		START_LOG( cwarn, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iUnitUID )
 			<< END_LOG;
 
@@ -3877,7 +3887,7 @@ end_proc:
 //}}
 
 #ifdef GIANT_RESURRECTION_CASHSTONE
-//{{ //2011.12.19 lygan_Á¶¼º¿í // Áß±¹¿¡ Ä³½¬¼¥¿¡¼­ ±¸ÀÔµÇ´Â ºÎÈ°¼® ÀÜÁ¸°ü·Ã ÀÛ¾÷(Àç¹« ½É»ç¿ë)
+//{{ //2011.12.19 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½ß±ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÔµÇ´ï¿½ ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ç¹« ï¿½É»ï¿½ï¿½)
 int KGSGameDBThread::Query_UpdateResurrection_stone( IN const UidType iUnitUID, IN const int iNumResurrectionStone, OUT int& iACKNumResurrectionStone)
 {
 	int iOK = NetError::ERR_ODBC_01;
@@ -3895,7 +3905,7 @@ int KGSGameDBThread::Query_UpdateResurrection_stone( IN const UidType iUnitUID, 
 	}
 	else
 	{
-		START_LOG( cerr, L"ºÎÈ°¼® ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iOK )
 			<< END_LOG;
 		goto end_proc;
@@ -3910,7 +3920,7 @@ end_proc:
 //}}
 #endif //GIANT_RESURRECTION_CASHSTONE
 
-//{{ 2012. 10. 23	ÃÖÀ°»ç		DB¾÷µ¥ÀÌÆ® ÄÚµå ¸®ÆÑÅä¸µ
+//{{ 2012. 10. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ä¸µ
 #ifdef SERV_DB_UPDATE_UNIT_INFO_REFACTORING
 bool KGSGameDBThread::Query_UpdateUnitInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq, OUT KDBE_UPDATE_UNIT_INFO_ACK& kAck )
 {
@@ -3918,7 +3928,7 @@ bool KGSGameDBThread::Query_UpdateUnitInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& 
 
 	int iDummpMapID = 0;
 
-	//{{ 2011. 10. 26	ÃÖÀ°»ç	DBÇØÅ· Æ®·¦
+	//{{ 2011. 10. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	DBï¿½ï¿½Å· Æ®ï¿½ï¿½
 #ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
 	DO_QUERY( L"exec dbo.gup_update_ui_5", L"%d, %d, %d, %d, %d, %d, %d, %d",
 		% kReq.m_iUnitUID
@@ -3931,7 +3941,7 @@ bool KGSGameDBThread::Query_UpdateUnitInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& 
 		% kReq.m_bIsSpiritUpdated
 		);
 #else
-	//{{ 2011. 07. 22	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//#ifdef SERV_PVP_NEW_SYSTEM
 	DO_QUERY( L"exec dbo.gup_update_unit_info", L"%d, %d, %d, %d, %d, %d, %d, %d",
 		% kReq.m_iUnitUID
@@ -3989,7 +3999,7 @@ end_proc:
 	{
 		kAck.m_iEXP = 0;
 		kAck.m_iED = 0;
-		//{{ 2011. 07. 22	ÃÖÀ°»ç	´ëÀü °³Æí
+		//{{ 2011. 07. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 #else
 		kAck.m_iVSPoint = 0;
@@ -4000,7 +4010,7 @@ end_proc:
 	}
 	else
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ ±âº» Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< BUILD_LOG( kReq.m_iEXP )
@@ -4019,10 +4029,10 @@ bool KGSGameDBThread::Query_UpdatePvpInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& k
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-	//{{ 2011. 07. 22	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 
-	//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	DO_QUERY( L"exec dbo.P_GUnitPVP_Season2_UPT",
 		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
@@ -4071,7 +4081,7 @@ end_proc:
 		kAck.m_iAPoint = 0;
 		kAck.m_iWin = 0;
 		kAck.m_iLose = 0;
-		//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+		//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 		kAck.m_fKFactor = 0.f;
 #endif SERV_2012_PVP_SEASON2
@@ -4080,9 +4090,9 @@ end_proc:
 	}
 	else
 	{
-		START_LOG( cerr, L"À¯´Ö ´ëÀü Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iOK )
-			//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+			//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< BUILD_LOG( kReq.m_iOfficialMatchCnt )
@@ -4108,10 +4118,10 @@ bool KGSGameDBThread::Query_UpdatePvpInfo( IN const KDBE_QUIT_USER_PVP_RESULT_UP
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-	//{{ 2011. 07. 22	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 
-	//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	DO_QUERY( L"exec dbo.P_GUnitPVP_Season2_UPT",
 		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
@@ -4157,9 +4167,9 @@ end_proc:
 	}
 	else
 	{
-		START_LOG( cerr, L"À¯´Ö ´ëÀü Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iOK )
-			//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+			//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 			<< BUILD_LOG( kNot.m_iUnitUID )
 			<< BUILD_LOG( kNot.m_iOfficialMatchCnt )
@@ -4185,7 +4195,7 @@ bool KGSGameDBThread::Query_UpdateLastGamePoint( IN const KDBE_UPDATE_UNIT_INFO_
 {
 	int iOK = NetError::ERR_ODBC_01;
 	
-	// ÇØ´ç Ä³¸¯ÅÍÀÇ ¸¶Áö¸· À§Ä¡ Á¤º¸ ÀúÀå!
+	// ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	DO_QUERY( L"exec dbo.gup_update_unit_lastpoint", L"%d, %d", % kReq.m_iUnitUID % kReq.m_iRealDataED );
 
 	if( m_kODBC.BeginFetch() )
@@ -4197,7 +4207,7 @@ bool KGSGameDBThread::Query_UpdateLastGamePoint( IN const KDBE_UPDATE_UNIT_INFO_
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"·Î±× ¿ÀÇÁ EDÃ¼Å© Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ EDÃ¼Å© ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< BUILD_LOG( kReq.m_iRealDataED )
@@ -4210,9 +4220,9 @@ end_proc:
 
 bool KGSGameDBThread::Query_UpdateResurrectionStone( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq, OUT KDBE_UPDATE_UNIT_INFO_ACK& kAck )
 {
-	// Áß±¹ÀÇ °æ¿ì ºÎÈ°¼® º¯È­·®ÀÌ ¾ø¾îµµ ÇÁ·Î½ÃÀú È£ÃâÇÔ
+	// ï¿½ß±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½îµµ ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½ï¿½
 #ifndef GIANT_RESURRECTION_CASHSTONE
-	// ºÎÈ°¼® º¯È­·®ÀÌ ¾øÀ¸¸é ÇÁ·Î½ÃÀú È£Ãâ¾ÈÇÔ. (Áß±¹Á¦¿Ü)
+	// ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½ï¿½ï¿½. (ï¿½ß±ï¿½ï¿½ï¿½ï¿½ï¿½)
 	if( kReq.m_iNumResurrectionStone != 0 )
 #endif //GIANT_RESURRECTION_CASHSTONE
 	{
@@ -4231,7 +4241,7 @@ bool KGSGameDBThread::Query_UpdateResurrectionStone( IN const KDBE_UPDATE_UNIT_I
 		}
 		else
 		{
-			START_LOG( cerr, L"ºÎÈ°¼® ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kReq.m_iNumResurrectionStone )
@@ -4240,7 +4250,7 @@ bool KGSGameDBThread::Query_UpdateResurrectionStone( IN const KDBE_UPDATE_UNIT_I
 		}
 	}
 
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦ ºÎÈ°¼®
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 #ifdef AP_RESTONE
 	if( kReq.m_iNumAutoPaymentResStone != 0 )
 	{
@@ -4259,7 +4269,7 @@ bool KGSGameDBThread::Query_UpdateResurrectionStone( IN const KDBE_UPDATE_UNIT_I
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀÚµ¿°áÁ¦ ºÎÈ°¼® ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kReq.m_iNumAutoPaymentResStone )
@@ -4273,7 +4283,7 @@ bool KGSGameDBThread::Query_UpdateResurrectionStone( IN const KDBE_UPDATE_UNIT_I
 	return true;
 
 end_proc:
-	START_LOG( cerr, L"ºÎÈ°¼® Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+	START_LOG( cerr, L"ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( kReq.m_iUnitUID )
 		<< BUILD_LOG( kReq.m_iNumResurrectionStone )
 		<< BUILD_LOG( kReq.m_iNumAutoPaymentResStone )
@@ -4288,7 +4298,7 @@ bool KGSGameDBThread::Query_UpdateQuestInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 	{
 		if( kQuestInfo.m_vecClearData.size() != 5 )
 		{
-			START_LOG( cerr, L"Äù½ºÆ® ÁøÇà Á¤º¸°¡ 5°³°¡ ¾Æ´Ï´Ù! Àý´ë ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 5ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kQuestInfo.m_iQuestID )
 				<< BUILD_LOG( kQuestInfo.m_vecClearData.size() )
@@ -4316,7 +4326,7 @@ bool KGSGameDBThread::Query_UpdateQuestInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Äù½ºÆ® ÁøÇà Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kQuestInfo.m_iQuestID )
@@ -4329,10 +4339,10 @@ bool KGSGameDBThread::Query_UpdateQuestInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 		}
 	}
 
-	//{{ 2010. 02. 09  ÃÖÀ°»ç	ÀÏÀÏ ÀÌº¥Æ® Äù½ºÆ®
+	//{{ 2010. 02. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_DAY_QUEST
 
-	// ¿¹¾àµÈ Æ÷±â Äù½ºÆ®
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 	BOOST_TEST_FOREACH( const int, iGiveUpQuestID, kReq.m_vecGiveUpQuestList )
 	{
 		int iOK = NetError::ERR_ODBC_01;
@@ -4347,7 +4357,7 @@ bool KGSGameDBThread::Query_UpdateQuestInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Äù½ºÆ® Æ÷±â Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( iGiveUpQuestID )
 				<< END_LOG;
@@ -4359,7 +4369,7 @@ bool KGSGameDBThread::Query_UpdateQuestInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 	return true;
 
 end_proc:
-	START_LOG( cerr, L"Äù½ºÆ® Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+	START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( kReq.m_iUnitUID )
 		<< END_LOG;
 	return false;
@@ -4372,7 +4382,7 @@ bool KGSGameDBThread::Query_UpdateTitleInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 	{
 		if( kMission.m_vecClearData.size() != 5 )
 		{
-			START_LOG( cerr, L"ÄªÈ£ Å¬¸®¾î Á¤º¸°¡ 5°³°¡ ¾Æ´Ï´Ù! Àý´ë ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+			START_LOG( cerr, L"ÄªÈ£ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 5ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kMission.m_iTitleID )
 				<< BUILD_LOG( kMission.m_vecClearData.size() )
@@ -4400,7 +4410,7 @@ bool KGSGameDBThread::Query_UpdateTitleInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"¹Ì¼Ç Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kMission.m_iTitleID )
@@ -4414,10 +4424,10 @@ bool KGSGameDBThread::Query_UpdateTitleInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 		}
 	}
 
-	//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 //#ifdef SERV_TITLE_DATA_SIZE
 
-	// ÀåÂøÁßÀÎ Å¸ÀÌÆ² ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	if( kReq.m_iInitTitleID != kReq.m_iEquippedTitleID )
 	{
 		int iOK = NetError::ERR_ODBC_01;
@@ -4436,7 +4446,7 @@ bool KGSGameDBThread::Query_UpdateTitleInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ÄªÈ£ ÀåÂø Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kReq.m_iInitTitleID )
@@ -4448,7 +4458,7 @@ bool KGSGameDBThread::Query_UpdateTitleInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 
 //#else
 //
-//	// ÀåÂøÁßÀÎ Å¸ÀÌÆ² ¾÷µ¥ÀÌÆ®
+//	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 //	if( kPacket_.m_sInitTitleID != kPacket_.m_sEquippedTitleID )
 //	{
 //		DO_QUERY( L"exec dbo.gup_update_title_hang", L"%d, %d, %d",
@@ -4465,7 +4475,7 @@ bool KGSGameDBThread::Query_UpdateTitleInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 //
 //		if( iOK != NetError::NET_OK )
 //		{
-//			START_LOG( cerr, L"ÄªÈ£ ÀåÂø Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+//			START_LOG( cerr, L"ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( kPacket_.m_iUnitUID )
 //				<< BUILD_LOG( kPacket_.m_sInitTitleID )
@@ -4481,7 +4491,7 @@ bool KGSGameDBThread::Query_UpdateTitleInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 	return true;
 
 end_proc:
-	START_LOG( cerr, L"ÄªÈ£ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+	START_LOG( cerr, L"ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( kReq.m_iUnitUID )
 		<< END_LOG;
     return false;
@@ -4491,7 +4501,7 @@ bool KGSGameDBThread::Query_UpdateSkillSlotInfo( IN const KDBE_UPDATE_UNIT_INFO_
 {
 	if( kReq.m_vecSkillSlot.size() < 4 )
 	{
-		START_LOG( cerr, L"½ºÅ³ ½½·Ô Á¤º¸°¡ ÀÌ»óÇÕ´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½!" )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< BUILD_LOG( kReq.m_vecSkillSlot.size() )
 			<< END_LOG;
@@ -4518,7 +4528,7 @@ bool KGSGameDBThread::Query_UpdateSkillSlotInfo( IN const KDBE_UPDATE_UNIT_INFO_
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"½ºÅ³ ½½·Ô Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kReq.m_vecSkillSlot[0] )
 				<< BUILD_LOG( kReq.m_vecSkillSlot[1] )
@@ -4534,7 +4544,7 @@ bool KGSGameDBThread::Query_UpdateSkillSlotInfo( IN const KDBE_UPDATE_UNIT_INFO_
 	{
 		int iOK = NetError::ERR_ODBC_01;
 
-		// [º¤ÅÍ Á¶½É]
+		// [ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½]
 		DO_QUERY( L"exec dbo.gup_insert_skill_slot2_new", L"%d, %d, %d, %d, %d",
 			% kReq.m_iUnitUID
 			% kReq.m_vecSkillSlot[4]
@@ -4551,7 +4561,7 @@ bool KGSGameDBThread::Query_UpdateSkillSlotInfo( IN const KDBE_UPDATE_UNIT_INFO_
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"½ºÅ³ ½½·ÔB Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½B ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kReq.m_vecSkillSlot[4] )
 				<< BUILD_LOG( kReq.m_vecSkillSlot[5] )
@@ -4565,7 +4575,7 @@ bool KGSGameDBThread::Query_UpdateSkillSlotInfo( IN const KDBE_UPDATE_UNIT_INFO_
 	return true;
 
 end_proc:
-	START_LOG( cerr, L"½ºÅ³ ½½·Ô Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+	START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( kReq.m_iUnitUID )
 		<< END_LOG;
 	return false;
@@ -4576,7 +4586,7 @@ bool KGSGameDBThread::Query_UpdateCommunityOption( IN const KDBE_UPDATE_UNIT_INF
 	int iOK = NetError::ERR_ODBC_01;
 
 	//COMMUNITY OPTION UPDATE
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	DO_QUERY( L"exec dbo.P_GDenyOption_UPD", L"%d, %d, %d, %d, %d, %d",
 		% kReq.m_iUnitUID
@@ -4593,7 +4603,7 @@ bool KGSGameDBThread::Query_UpdateCommunityOption( IN const KDBE_UPDATE_UNIT_INF
 		m_kODBC.EndFetch();
 	}
 #else
-// ÇØ¿ÜÆÀ SP ÀÌ¸§ ¼öÁ¤
+// ï¿½Ø¿ï¿½ï¿½ï¿½ SP ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_update_community_opt", L"%d, %d, %d, %d, %d",
 		% kReq.m_iUnitUID
 		% (int)kReq.m_kDenyOptions.m_cDenyFriendShip
@@ -4613,13 +4623,13 @@ bool KGSGameDBThread::Query_UpdateCommunityOption( IN const KDBE_UPDATE_UNIT_INF
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä¿¹Â´ÏÆ¼ ¿É¼Ç Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"Ä¿ï¿½Â´ï¿½Æ¼ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< BUILD_LOGc( kReq.m_kDenyOptions.m_cDenyFriendShip )
 			<< BUILD_LOGc( kReq.m_kDenyOptions.m_cDenyInviteGuild )
 			<< BUILD_LOGc( kReq.m_kDenyOptions.m_cDenyParty )
 			<< BUILD_LOGc( kReq.m_kDenyOptions.m_cDenyPersonalTrade )
-			//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 			<< BUILD_LOGc( kReq.m_kDenyOptions.m_cDenyRequestCouple )
 #endif SERV_RELATIONSHIP_SYSTEM
@@ -4649,7 +4659,7 @@ bool KGSGameDBThread::Query_UpdateWishList( IN const UidType iUserUID, IN const 
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Àå¹Ù±¸´Ï DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½Ù±ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( iUserUID )
 				<< BUILD_LOG( mitWishList->first )
@@ -4665,7 +4675,7 @@ bool KGSGameDBThread::Query_UpdateRankingInfo( IN const KDBE_UPDATE_UNIT_INFO_RE
 {
 	BOOST_TEST_FOREACH( const KHenirRankingInfo&, kRankingInfo, kReq.m_vecHenirRanking )
 	{
-		// RegDate º¯È¯
+		// RegDate ï¿½ï¿½È¯
 		CTime tRegDate = CTime( kRankingInfo.m_tRegDate );
 		std::wstring wstrRegDate = ( CStringW )( tRegDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
 
@@ -4689,7 +4699,7 @@ bool KGSGameDBThread::Query_UpdateRankingInfo( IN const KDBE_UPDATE_UNIT_INFO_RE
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Çì´Ï¸£ ·©Å· Á¤º¸ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kRankingInfo.m_iStageCount )
@@ -4701,7 +4711,7 @@ end_proc:
 			return false;
 		}
 
-		// ·©Å·Á¤º¸´Â ÇÏ³ª¹Û¿¡ ¾Èµé¾îÀÖ´Ù.
+		// ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½Û¿ï¿½ ï¿½Èµï¿½ï¿½ï¿½Ö´ï¿½.
 		break;
 	}
 
@@ -4710,14 +4720,14 @@ end_proc:
 
 bool KGSGameDBThread::Query_UpdateGuildInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq )
 {
-	//{{ 2009. 10. 7  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 10. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 //#ifdef GUILD_TEST
 
-	// ±æµå Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	if( kReq.m_iGuildUID == 0 )
 		return true;
 
-	// ¸¶Áö¸· ¾÷µ¥ÀÌÆ®¶ó¸é ·Î±×¾Æ¿ô Ã³¸®
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ ï¿½Î±×¾Æ¿ï¿½ Ã³ï¿½ï¿½
 	if( kReq.m_bFinal )
 	{
 		int iOK = NetError::ERR_ODBC_01;
@@ -4735,7 +4745,7 @@ bool KGSGameDBThread::Query_UpdateGuildInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"±æµå ·Î±×¾Æ¿ô Ã³¸® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½Î±×¾Æ¿ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kReq.m_iGuildUID )
@@ -4746,7 +4756,7 @@ bool KGSGameDBThread::Query_UpdateGuildInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 	{
 		int iOK = NetError::ERR_ODBC_01;
 
-		// ±æµå ¸í¿¹ Æ÷ÀÎÆ® ¾÷µ¥ÀÌÆ®
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		DO_QUERY( L"exec dbo.gup_update_guild_member_exp", L"%d, %d, %d",
 			% kReq.m_iUnitUID
 			% kReq.m_iGuildUID
@@ -4761,7 +4771,7 @@ bool KGSGameDBThread::Query_UpdateGuildInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"±æµå¿ø ¸í¿¹ Æ÷ÀÎÆ® ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kReq.m_iGuildUID )
@@ -4776,7 +4786,7 @@ bool KGSGameDBThread::Query_UpdateGuildInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ&
 	return true;
 
 end_proc:
-	START_LOG( cerr, L"±æµå Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+	START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 		<< BUILD_LOG( kReq.m_iUnitUID )
 		<< BUILD_LOG( kReq.m_iGuildUID )
 		<< END_LOG;
@@ -4787,7 +4797,7 @@ bool KGSGameDBThread::Query_UpdateConnectTimeEventInfo( IN const UidType iUserUI
 {	
 	BOOST_TEST_FOREACH( const KCumulativeTimeEventInfo&, kEventInfo, kReq.m_vecUpdateEventTime )
 	{
-		//{{ 2010. 06. 15  ÃÖÀ°»ç	°èÁ¤´ÜÀ§ Á¢¼Ó½Ã°£ ÀÌº¥Æ®
+		//{{ 2010. 06. 15  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_ACC_TIME_EVENT
 		if( kEventInfo.m_bAccountEvent )
 		{
@@ -4803,7 +4813,7 @@ bool KGSGameDBThread::Query_UpdateConnectTimeEventInfo( IN const UidType iUserUI
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+				START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( iUserUID )
 					<< BUILD_LOG( kEventInfo.m_iEventUID )
@@ -4827,7 +4837,7 @@ bool KGSGameDBThread::Query_UpdateConnectTimeEventInfo( IN const UidType iUserUI
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+				START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( kReq.m_iUnitUID )
 					<< BUILD_LOG( kEventInfo.m_iEventUID )
@@ -4840,7 +4850,7 @@ bool KGSGameDBThread::Query_UpdateConnectTimeEventInfo( IN const UidType iUserUI
 	return true;
 
 end_proc:
-	START_LOG( cerr, L"Á¢¼Ó ½Ã°£ ÀÌº¥Æ® DB¾÷µ¥ÀÌÆ® ½ÇÆÐ" )
+	START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ® DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½" )
 		<< BUILD_LOG( iUserUID )
 		<< BUILD_LOG( kReq.m_iUnitUID )
 		<< END_LOG;
@@ -4853,7 +4863,7 @@ bool KGSGameDBThread::Query_UpdatePetInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& k
 	{
 		int iOK = NetError::ERR_ODBC_01;
 
-		// Æê Á¤º¸ ¾÷µ¥ÀÌÆ®
+		// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		DO_QUERY( L"exec dbo.gup_update_pet_info", L"%d, %d, %d, %d, %d, %d, %d, N\'%s\', N\'%s\'", 
 			% kPet.m_iPetUID
 			% (int)kPet.m_cEvolutionStep
@@ -4875,7 +4885,7 @@ bool KGSGameDBThread::Query_UpdatePetInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& k
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Æê Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kPet.m_iPetUID )
 				<< BUILD_LOGc( kPet.m_cEvolutionStep )
@@ -4888,7 +4898,7 @@ end_proc:
 				<< BUILD_LOG( kPet.m_wstrLastSummonDate )
 				<< END_LOG;
 
-			// DB¾÷µ¥ÀÌÆ®°¡ ½ÇÆÐ ÇÑ´Ù¸é ·Ñ¹é µ¥ÀÌÅÍ¸¦ ³ÖÀÚ!
+			// DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´Ù¸ï¿½ ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			kAck.m_vecPet.push_back( kPet );
 		}
 	}
@@ -4918,7 +4928,7 @@ bool KGSGameDBThread::Query_UpdateGameCountInfo( IN const KDBE_UPDATE_UNIT_INFO_
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Ä³¸¯ÅÍ °ÔÀÓ Ä«¿îÆ® Á¤º¸ ¾÷µ¥ÀÌÆ®!" )
+			START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( mitCGC->first )
@@ -4950,7 +4960,7 @@ bool KGSGameDBThread::Query_UpdateHenirRewardCount( IN const KDBE_UPDATE_UNIT_IN
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ °ÔÀÓ Ä«¿îÆ® Á¤º¸ ¾÷µ¥ÀÌÆ®!" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®!" )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< BUILD_LOG( kReq.m_kHenirRewardCnt.m_iNormal )
@@ -4963,13 +4973,13 @@ end_proc:
 	return true;
 }
 
-//{{ 2012. 10. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 10. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 bool KGSGameDBThread::Query_UpdateLastPosition( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq )
 {
 	int iOK = NetError::ERR_ODBC_01;
 	
-	// ¸¶Áö¸· À§Ä¡ ÀúÀå
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GUnitLastPosition_UPT", L"%d, %d, %d, %d",
 		% kReq.m_iUnitUID
 		% kReq.m_kLastPos.m_iMapID
@@ -4986,7 +4996,7 @@ bool KGSGameDBThread::Query_UpdateLastPosition( IN const KDBE_UPDATE_UNIT_INFO_R
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"À¯´Ö ¸¶À» À§Ä¡ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< BUILD_LOG( kReq.m_kLastPos.m_iMapID )
@@ -5007,7 +5017,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
     KGamePlayStatus kPlayStatus;
 	if( kReq.m_kGamePlayStatus.Get( kPlayStatus ) == false )
 	{
-		START_LOG( cerr, L"°ÔÀÓ ÇÃ·¹ÀÌ »óÅÂ Á¤º¸°¡ ¾ø´Ù? GSUser¿¡¼­ ¹«Á¶°Ç ¹Þ¾Æ¿ÀÁö ¾Ê³ª?" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? GSUserï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½ ï¿½Ê³ï¿½?" )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< END_LOG;
 		return false;
@@ -5016,7 +5026,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 	{
 		int iOK = NetError::ERR_ODBC_01;
 
-		// Ä³¸¯ÅÍ ±âº» Á¤º¸ ÀúÀå
+		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.P_GUnitPlayInfo_INS", L"%d, %d, %d, %d, %d, %d, %d",
 			% kReq.m_iUnitUID
 			% kPlayStatus.m_iMaxHP
@@ -5035,7 +5045,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Ä³¸¯ÅÍ ÇÃ·¹ÀÌ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+			START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kPlayStatus.m_iMaxHP )
@@ -5048,8 +5058,8 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 		}
 	}
 
-	// ½ºÅ³ ÄðÅ¸ÀÓ µ¥ÀÌÅÍ ÀúÀå!
-#ifdef SERV_CHANGE_SKILL_COOL_TIME_DB_SP 	// Àû¿ë³¯Â¥: 2013-05-02
+	// ï¿½ï¿½Å³ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
+#ifdef SERV_CHANGE_SKILL_COOL_TIME_DB_SP 	// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-05-02
 	{
 		int arrySlotID[8] = {-1,};
 		int arryCoolTime[8] = {0,};
@@ -5064,8 +5074,8 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 		{
 			if( index >= 8 )
 			{
-				// ¹è¿­ »çÀÌÁî ¿À¹ö ÀÌ¹Ç·Î È®ÀÎ ÇÊ¿ä
-				START_LOG( cerr, L"½ºÅ³ ¹è¿­ index °¡ ¿À¹ö µÇ¾ú½À´Ï´Ù." )
+				// ï¿½è¿­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹Ç·ï¿½ È®ï¿½ï¿½ ï¿½Ê¿ï¿½
+				START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½è¿­ index ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 					<< BUILD_LOG( kReq.m_iUnitUID )
 					<< BUILD_LOG( index )
 					<< BUILD_LOG( mit->first )
@@ -5110,7 +5120,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Ä³¸¯ÅÍ ½ºÅ³ ÄðÅ¸ÀÓ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+			START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( arrySlotID[0] )
@@ -5135,7 +5145,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 
 #else		// SERV_CHANGE_SKILL_COOL_TIME_DB_SP
 
-	// ½ºÅ³ ÄðÅ¸ÀÓ µ¥ÀÌÅÍ ÀúÀå!
+	// ï¿½ï¿½Å³ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	{
 		std::map< int, int >::const_iterator mit;
 		for( mit = kPlayStatus.m_mapSkillCoolTime.begin(); mit != kPlayStatus.m_mapSkillCoolTime.end(); ++mit )
@@ -5157,7 +5167,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"Ä³¸¯ÅÍ ÇÃ·¹ÀÌ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+				START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( kReq.m_iUnitUID )
 					<< BUILD_LOG( mit->first )
@@ -5168,8 +5178,8 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 	}
 #endif	// SERV_CHANGE_SKILL_COOL_TIME_DB_SP
 
-#ifdef	SERV_CHANGE_QUICK_SLOT_COOL_TIME_DB_SP 	// Àû¿ë³¯Â¥: 2013-06-20
-	// Äü½½·Ô ÄðÅ¸ÀÓ µ¥ÀÌÅÍ ÀúÀå!
+#ifdef	SERV_CHANGE_QUICK_SLOT_COOL_TIME_DB_SP 	// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-20
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	{
 		int arrySlotID[CXSLItem::CIG_MAX] = {-1,};
 		int arryCoolTime[CXSLItem::CIG_MAX] = {0,};
@@ -5189,7 +5199,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 			}
 		}
 
-		// 10 °³¾¿ ²÷¾î¼­ È£Ãâ!
+		// 10 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½î¼­ È£ï¿½ï¿½!
 		for( int inum = 0 ; inum < CXSLItem::CIG_MAX ; inum += 10 )
 		{
 			int arryTempSlotID[10] = {-1,};
@@ -5251,7 +5261,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 
 				if( iOK != NetError::NET_OK )
 				{
-					START_LOG( cerr, L"Ä³¸¯ÅÍ Äü ½½·Ô ÄðÅ¸ÀÓ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+					START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOG( iOK )
 						<< BUILD_LOG( kReq.m_iUnitUID )
 						<< BUILD_LOG( arryTempSlotID[0] )
@@ -5281,7 +5291,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 	}
 #else	// SERV_CHANGE_QUICK_SLOT_COOL_TIME_DB_SP
 
-// Äü½½·Ô ÄðÅ¸ÀÓ µ¥ÀÌÅÍ ÀúÀå!
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	{
 		std::map< int, int >::const_iterator mit;
 		for( mit = kPlayStatus.m_mapQuickSlotCoolTime.begin(); mit != kPlayStatus.m_mapQuickSlotCoolTime.end(); ++mit )
@@ -5303,7 +5313,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"Ä³¸¯ÅÍ ÇÃ·¹ÀÌ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+				START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( kReq.m_iUnitUID )
 					<< BUILD_LOG( mit->first )
@@ -5316,8 +5326,8 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 #endif	// SERV_CHANGE_QUICK_SLOT_COOL_TIME_DB_SP
 
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
-	// Äü½½·Ô ÄðÅ¸ÀÓ µ¥ÀÌÅÍ ÀúÀå!
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	{
 		std::map< int, int >::const_iterator it;
 		for( it = kPlayStatus.m_mapRidingPetCoolTime.begin(); it != kPlayStatus.m_mapRidingPetCoolTime.end(); ++it )
@@ -5339,7 +5349,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"Ä³¸¯ÅÍ ÇÃ·¹ÀÌ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+				START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( kReq.m_iUnitUID )
 					<< BUILD_LOG( it->first )
@@ -5353,7 +5363,7 @@ bool KGSGameDBThread::Query_UpdateGamePlayStatus( IN const KDBE_UPDATE_UNIT_INFO
 	return true;
 
 end_proc:
-	START_LOG( cerr, L"Ä³¸¯ÅÍ ÇÃ·¹ÀÌ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+	START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( kReq.m_iUnitUID )
 		<< END_LOG;
 	return false;
@@ -5361,7 +5371,7 @@ end_proc:
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2012. 05. 6	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+//{{ 2012. 05. 6	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 bool KGSGameDBThread::Query_UpdateBuffEffect( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq )
 {	
@@ -5384,7 +5394,7 @@ bool KGSGameDBThread::Query_UpdateBuffEffect( IN const KDBE_UPDATE_UNIT_INFO_REQ
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"¹öÇÁ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kReq.m_iUnitUID )
 				<< BUILD_LOG( kRecordBuffInfo.m_iBuffID )
 				<< BUILD_LOG( kRecordBuffInfo.m_wstrStartTime )
@@ -5397,7 +5407,7 @@ end_proc:
 #endif SERV_REFORM_THE_GATE_OF_DARKNESS
 //}}
 
-//{{ 2013. 3. 17	¹Ú¼¼ÈÆ	 ·ÎÄÃ ·©Å· ½Ã½ºÅÛ
+//{{ 2013. 3. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 bool KGSGameDBThread::Query_UpdateLocalRankingInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq, OUT KDBE_UPDATE_UNIT_INFO_ACK& kAck )
 {	
@@ -5430,7 +5440,7 @@ end_proc:
 #endif SERV_LOCAL_RANKING_SYSTEM
 //}}
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 bool KGSGameDBThread::Query_UpdateRidingPetInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq, OUT KDBE_UPDATE_UNIT_INFO_ACK& kAck )
 {
 	BOOST_TEST_FOREACH( const KRidingPetInfo&, kInfo, kReq.m_vecRidingPetList )
@@ -5484,7 +5494,7 @@ bool KGSGameDBThread::Query_UpdateGateOfDarknessSupportEventTime( IN const KDBE_
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"¾îµÒÀÇ ¹® °³Æí ÀÌº¥Æ® ³²Àº ½Ã°£ °»½Å ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< BUILD_LOG( kReq.m_iGateOfDarknessSupportEventTime )
 			<< END_LOG;
@@ -5499,7 +5509,7 @@ end_proc:
 //}}
 
 
-//{{ 2013. 07. 08	ÃÖÀ°»ç	°øÀ¯ ÀºÇà
+//{{ 2013. 07. 08	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SHARING_BANK_TEST
 bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ& kReq, OUT KDBE_UPDATE_SHARE_ITEM_ACK& kAck )
 {
@@ -5508,11 +5518,11 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 	kAck.m_wstrReloadNickname	= kReq.m_wstrReloadNickname;
 	kAck.m_vecInventorySlotItem = kReq.m_vecInventorySlotItem;
 
-	std::map< UidType, KUpdateShareItemInfo >::const_iterator mit;	//	³»±¸µµ, ¼ö·® ¾÷µ¥ÀÌÆ®
-	KItemPositionUpdate::const_iterator mit2;						//	½½·Ô À§Ä¡º¯°æ
+	std::map< UidType, KUpdateShareItemInfo >::const_iterator mit;	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+	KItemPositionUpdate::const_iterator mit2;						//	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½
 	std::map< UidType, KTradeShareItemInfo >::const_iterator mit3;	//	In&Out	
 
-	//	1. ³»±¸µµ ¾÷µ¥ÀÌÆ®
+	//	1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	for( mit = kReq.m_mapUpdateEndurance.begin(); mit != kReq.m_mapUpdateEndurance.end(); ++mit )
 	{
 		DO_QUERY( L"exec dbo.gup_update_item", L"%d, %d, %d, %d", 
@@ -5529,7 +5539,7 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 
 			if( kAck.m_iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀºÇà °øÀ¯ : ¾ÆÀÌÅÛ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( kAck.m_iOK )
 					<< BUILD_LOG( mit->second.m_iUnitUID )
 					<< BUILD_LOG( mit->first )
@@ -5539,11 +5549,11 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀºÇà °øÀ¯ : ¾ÆÀÌÅÛ ³»±¸µµ ¾÷µ¥ÀÌÆ®Áß BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 	}
 
-	//	2. ¼ö·® ¾÷µ¥ÀÌÆ®
+	//	2. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	for( mit = kReq.m_mapUpdateQuantity.begin(); mit != kReq.m_mapUpdateQuantity.end(); ++mit )
 	{
 		DO_QUERY( L"exec dbo.gup_update_item", L"%d, %d, %d, %d", 
@@ -5560,17 +5570,17 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 
 			if( kAck.m_iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀºÇà °øÀ¯ : ¾ÆÀÌÅÛ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( kAck.m_iOK )
 					<< BUILD_LOG( mit->second.m_iUnitUID )
 					<< BUILD_LOG( mit->first )
 					<< BUILD_LOG( mit->second.m_iValue )
 					<< END_LOG;
 
-				//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¹ö±×ÇÑ¹ø Àâ¾Æº¸ÀÚ~!
+				//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ ï¿½ï¿½Æºï¿½ï¿½ï¿½~!
 				if( kAck.m_iOK == -5 )
 				{
-					START_LOG( cout, L"ÀºÇà °øÀ¯ : ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ¹ö±× ¹ß»ý!" )
+					START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½!" )
 						<< BUILD_LOG( kAck.m_iOK )
 						<< BUILD_LOG( mit->second.m_iUnitUID )
 						<< BUILD_LOG( mit->first )
@@ -5583,11 +5593,11 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀºÇà °øÀ¯ : ¾ÆÀÌÅÛ ¼ö·® ¾÷µ¥ÀÌÆ®Áß BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 	}
 
-	//	3. ½½·Ô À§Ä¡ º¯°æ
+	//	3. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 	for( mit2 = kReq.m_mapUpdatePosition.begin(); mit2 != kReq.m_mapUpdatePosition.end(); ++mit2 )
 	{
 		const UidType iItemUID	= mit2->first;
@@ -5607,7 +5617,7 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 
 			if( kAck.m_iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀºÇà °øÀ¯ : ¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( kAck.m_iOK )
 					<< BUILD_LOG( iItemUID )
 					<< BUILD_LOG( iCategory )
@@ -5617,11 +5627,11 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀºÇà °øÀ¯ : ¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ® BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 	}
 
-	//	4. ÀÎº¥Åä¸® -> °øÀ¯ÀºÇà
+	//	4. ï¿½Îºï¿½ï¿½ä¸® -> ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	for( mit3 = kReq.m_mapInItem.begin(); mit3 != kReq.m_mapInItem.end(); ++mit3 )
 	{
 		KTradeShareItemInfo kShareInfo = mit3->second;
@@ -5658,7 +5668,7 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 
 			if( kAck.m_iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀºÇà °øÀ¯ : °øÀ¯ÀºÇàÀ¸·Î ¾ÆÀÌÅÛ ³Ö±â ½ÇÆÐ" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kAck.m_iOK )
 					<< BUILD_LOG( kShareInfo.m_iFromUnitUID )
 					<< BUILD_LOG( kShareInfo.m_iToUnitUID )
@@ -5677,11 +5687,11 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀºÇà °øÀ¯ : °øÀ¯ÀºÇàÀ¸·Î ¾ÆÀÌÅÛ ³Ö±â BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 	}
 
-	//	5. °øÀ¯ÀºÇà -> ÀÎº¥Åä¸®
+	//	5. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> ï¿½Îºï¿½ï¿½ä¸®
 	for( mit3 = kReq.m_mapOutItem.begin(); mit3 != kReq.m_mapOutItem.end(); ++mit3 )
 	{
 		KTradeShareItemInfo kShareInfo = mit3->second;
@@ -5718,7 +5728,7 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 
 			if( kAck.m_iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀºÇà °øÀ¯ : °øÀ¯ÀºÇà¿¡¼­ ¾ÆÀÌÅÛ ²¨³»±â ½ÇÆÐ" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kAck.m_iOK )
 					<< BUILD_LOG( kShareInfo.m_iFromUnitUID )
 					<< BUILD_LOG( kShareInfo.m_iToUnitUID )
@@ -5737,11 +5747,11 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀºÇà °øÀ¯ : °øÀ¯ÀºÇà¿¡¼­ ¾ÆÀÌÅÛ ²¨³»±â BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 	}
 
-	//	6. »èÁ¦µÉ ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ®
+	//	6. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	BOOST_TEST_FOREACH( const UidType, iItemUID, kReq.m_vecDeletedItem )
 	{
 		DO_QUERY( L"exec dbo.gup_delete_item", L"%d, %d", % iItemUID % static_cast<int>(KDeletedItemInfo::DR_ZERO_QUANTITY_SHARE_BANK) );
@@ -5753,7 +5763,7 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 
 			if( kAck.m_iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀºÇà °øÀ¯ : ¾ÆÀÌÅÛ »èÁ¦ ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( kAck.m_iOK )
 					<< BUILD_LOG( iItemUID )
 					<< END_LOG;
@@ -5761,7 +5771,7 @@ bool KGSGameDBThread::Query_UpdateShareItem( IN const KDBE_UPDATE_SHARE_ITEM_REQ
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀºÇà °øÀ¯ : °øÀ¯ÀºÇà¿¡¼­ ¾ÆÀÌÅÛ ²¨³»±â BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 	}
 
@@ -5782,7 +5792,7 @@ void KGSGameDBThread::SendToUser( UidType nTo, unsigned short usEventID )
     SendToUser( nTo, usEventID, char() );
 }
 
-//{{ 2012. 10. 23	ÃÖÀ°»ç		DB¾÷µ¥ÀÌÆ® ÄÚµå ¸®ÆÑÅä¸µ
+//{{ 2012. 10. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ä¸µ
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_DB_UPDATE_UNIT_INFO_REFACTORING
 //////////////////////////////////////////////////////////////////////////
@@ -5793,7 +5803,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 	kPacket.m_iEventID				= kPacket_.m_iEventID;
 	kPacket.m_iEXP				    = kPacket_.m_iEXP;
 	kPacket.m_iED				    = kPacket_.m_iED;
-	//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	kPacket.m_iOfficialMatchCnt		= kPacket_.m_iOfficialMatchCnt;
 	kPacket.m_iRating				= kPacket_.m_iRating;
@@ -5803,7 +5813,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 	kPacket.m_iWin					= kPacket_.m_iWin;
 	kPacket.m_iLose					= kPacket_.m_iLose;
 
-	//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	kPacket.m_fKFactor				= kPacket_.m_fKFactor;
 #endif SERV_2012_PVP_SEASON2
@@ -5828,41 +5838,41 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 	kPacket.m_kItemEnduranceUpdate = kPacket_.m_kItemEnduranceUpdate;
 	kPacket.m_kItemPositionUpdate = kPacket_.m_kItemPositionUpdate;
 	kPacket.m_iNumResurrectionStone = kPacket_.m_iNumResurrectionStone;
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦ ºÎÈ°¼®
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 #ifdef AP_RESTONE
 	kPacket.m_iNumAutoPaymentResStone = kPacket_.m_iNumAutoPaymentResStone;
 #endif AP_RESTONE
 	//}}
-	//{{ 2013. 3. 17	¹Ú¼¼ÈÆ	 ·ÎÄÃ ·©Å· ½Ã½ºÅÛ
+	//{{ 2013. 3. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 	kPacket.m_iChangedLocalRankingSpirit	= kPacket_.m_iChangedLocalRankingSpirit;
 	kPacket.m_iChangedLocalRankingAP		= kPacket_.m_iChangedLocalRankingAP;
 #endif SERV_LOCAL_RANKING_SYSTEM
 	//}}
 
-	// Ä³¸¯ÅÍ ±âº» Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateUnitInfo( kPacket_, kPacket ) );
 
-	// Ä³¸¯ÅÍ ´ëÀü Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdatePvpInfo( kPacket_, kPacket ) );
 
-	//{{ 2011. 09. 23	ÃÖÀ°»ç	·Î±×¿ÀÇÁ »óÅÂ EDÃ¼Å©
+	//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±×¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EDÃ¼Å©
 #ifdef SERV_LOGOUT_ED_CHECK
 	LIF( Query_UpdateLastGamePoint( kPacket_ ) );
 #endif SERV_LOGOUT_ED_CHECK
 	//}}
 
-	//{{ 2012. 10. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 10. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-	// ¸¶Áö¸· À§Ä¡ Á¤º¸ ÀúÀå
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	LIF( Query_UpdateLastPosition( kPacket_ ) );
 
-	// Ä³¸¯ÅÍ ÇÃ·¹ÀÌ Á¤º¸ ÀúÀå
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	LIF( Query_UpdateGamePlayStatus( kPacket_ ) );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	LIF( Query_UpdateLastLogOffDate( kPacket_ ) );
 #endif SERV_RELATIONSHIP_SYSTEM
@@ -5879,87 +5889,87 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 	Query_UpdateItemPosition( kPacket_.m_iUnitUID, kPacket_.m_kItemPositionUpdate, kPacket.m_kItemPositionUpdate );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_bFinal );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	// ºÎÈ°¼® Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateResurrectionStone( kPacket_, kPacket ) );
 
-	// Äù½ºÆ® Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateQuestInfo( kPacket_ ) );
 
-	// ÄªÈ£ Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateTitleInfo( kPacket_ ) );
 
-	// ½ºÅ³ ½½·Ô ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateSkillSlotInfo( kPacket_ ) );
 
-	// Ä¿¹Â´ÏÆ¼ ¿É¼Ç Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// Ä¿ï¿½Â´ï¿½Æ¼ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateCommunityOption( kPacket_ ) );
 
-	// Âò ¸®½ºÆ® ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateWishList( FIRST_SENDER_UID, kPacket_ ) );
 
-	// Çì´Ï¸£ ½Ã°ø ·©Å· Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateRankingInfo( kPacket_ ) );
 	
-	// ±æµå Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateGuildInfo( kPacket_ ) );
 
-	//{{ 2009. 12. 8  ÃÖÀ°»ç	ÀÌº¥Æ®°³Æí
+	//{{ 2009. 12. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ®ï¿½ï¿½ï¿½ï¿½
 #ifdef CUMULATIVE_TIME_EVENT
-	// ÀÌº¥Æ® Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateConnectTimeEventInfo( FIRST_SENDER_UID, kPacket_ ) );
 #endif CUMULATIVE_TIME_EVENT
 	//}}
 	
-	//{{ 2010. 8. 4	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 8. 4	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
-	// Æê Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdatePetInfo( kPacket_, kPacket ) );
 #endif SERV_PET_SYSTEM
 	//}}
 
-	//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+	//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
-	// °ÔÀÓ Ä«¿îÆ® ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	LIF( Query_UpdateGameCountInfo( kPacket_ ) );
 #endif SERV_CHAR_LOG
 	//}}
 
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 	LIF( Query_UpdateHenirRewardCount( kPacket_ ) );
 #endif SERV_NEW_HENIR_TEST
 	//}}
 
-	//{{ 2012. 05. 6	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2012. 05. 6	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 	LIF( Query_UpdateBuffEffect( kPacket_ ) );
 #endif SERV_REFORM_THE_GATE_OF_DARKNESS
 	//}}
 
-	//{{ 2013. 3. 17	¹Ú¼¼ÈÆ	 ·ÎÄÃ ·©Å· ½Ã½ºÅÛ
+	//{{ 2013. 3. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 	LIF( Query_UpdateLocalRankingInfo( kPacket_, kPacket ) );
 #endif SERV_LOCAL_RANKING_SYSTEM
 	//}}
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 	LIF( Query_UpdateRidingPetInfo( kPacket_, kPacket ) );
 #endif	// SERV_RIDING_PET_SYSTM
 
@@ -5979,12 +5989,12 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //{
 //	KDBE_UPDATE_UNIT_INFO_ACK kPacket;
-//	//{{ 2009. 3. 17  ÃÖÀ°»ç	Ã¤³ÎÀÌµ¿
+//	//{{ 2009. 3. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ï¿½Ìµï¿½
 //	kPacket.m_iEventID				= kPacket_.m_iEventID;
 //	//}}
 //	kPacket.m_iEXP				    = kPacket_.m_iEXP;
 //	kPacket.m_iED				    = kPacket_.m_iED;
-//	//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+//	//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_PVP_NEW_SYSTEM
 //	kPacket.m_iOfficialMatchCnt		= kPacket_.m_iOfficialMatchCnt;
 //	kPacket.m_iRating				= kPacket_.m_iRating;
@@ -5994,7 +6004,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	kPacket.m_iWin					= kPacket_.m_iWin;
 //	kPacket.m_iLose					= kPacket_.m_iLose;
 //
-//	//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+//	//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 //#ifdef SERV_2012_PVP_SEASON2
 //	kPacket.m_fKFactor				= kPacket_.m_fKFactor;
 //#endif SERV_2012_PVP_SEASON2
@@ -6019,20 +6029,20 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	kPacket.m_kItemEnduranceUpdate = kPacket_.m_kItemEnduranceUpdate;
 //	kPacket.m_kItemPositionUpdate = kPacket_.m_kItemPositionUpdate;
 //	kPacket.m_iNumResurrectionStone = kPacket_.m_iNumResurrectionStone;
-//	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦ ºÎÈ°¼®
+//	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 //#ifdef AP_RESTONE
 //	kPacket.m_iNumAutoPaymentResStone = kPacket_.m_iNumAutoPaymentResStone;
 //#endif AP_RESTONE
 //	//}}	
 //
 //	int iOK = NetError::ERR_ODBC_01;
-//	//{{ 2012. 06. 11	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//	//{{ 2012. 06. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //	int iMapIDDummy = 0;
 //#endif SERV_BATTLE_FIELD_SYSTEM
 //	//}}
 //
-//	//{{ 2011. 10. 26	ÃÖÀ°»ç	DBÇØÅ· Æ®·¦
+//	//{{ 2011. 10. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	DBï¿½ï¿½Å· Æ®ï¿½ï¿½
 //#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
 //	DO_QUERY( L"exec dbo.gup_update_ui_5", L"%d, %d, %d, %d, %d, %d, %d, %d",
 //		% kPacket_.m_iUnitUID
@@ -6045,7 +6055,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		% kPacket_.m_bIsSpiritUpdated
 //		);
 //#else
-//	//{{ 2011. 07. 22	ÃÖÀ°»ç	´ëÀü °³Æí
+//	//{{ 2011. 07. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //	//#ifdef SERV_PVP_NEW_SYSTEM
 //	DO_QUERY( L"exec dbo.gup_update_unit_info", L"%d, %d, %d, %d, %d, %d, %d, %d",
 //		% kPacket_.m_iUnitUID
@@ -6087,7 +6097,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	{
 //		kPacket.m_iEXP = 0;
 //		kPacket.m_iED = 0;
-//		//{{ 2011. 07. 22	ÃÖÀ°»ç	´ëÀü °³Æí
+//		//{{ 2011. 07. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_PVP_NEW_SYSTEM
 //#else
 //		kPacket.m_iVSPoint = 0;
@@ -6097,7 +6107,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //    }
 //    else
 //    {
-//        START_LOG( cerr, L"À¯´Ö Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //            << BUILD_LOG( iOK )
 //			<< BUILD_LOG( kPacket_.m_iUnitUID )
 //			<< BUILD_LOG( kPacket_.m_iEXP )
@@ -6112,7 +6122,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //    }
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	//{{ 2012. 02. 02	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//	//{{ 2012. 02. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //	DO_QUERY( L"exec dbo.P_GUnitLastPosition_UPT", L"%d, %d, %d, %d",
 //		% kPacket_.m_iUnitUID
@@ -6129,7 +6139,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //	if( iOK != NetError::NET_OK )
 //	{
-//		START_LOG( cerr, L"À¯´Ö ¸¶À» À§Ä¡ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //			<< BUILD_LOG( iOK )
 //			<< BUILD_LOG( kPacket_.m_iUnitUID )
 //			<< BUILD_LOG( kPacket_.m_kLastPos.m_iMapID )
@@ -6143,10 +6153,10 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	//}}
 //	//////////////////////////////////////////////////////////////////////////	
 //
-//	//{{ 2011. 07. 22	ÃÖÀ°»ç	´ëÀü °³Æí
+//	//{{ 2011. 07. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_PVP_NEW_SYSTEM
 //
-//	//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+//	//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 //#ifdef SERV_2012_PVP_SEASON2
 //	DO_QUERY( L"exec dbo.P_GUnitPVP_Season2_UPT",
 //		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
@@ -6194,7 +6204,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		kPacket.m_iAPoint = 0;
 //		kPacket.m_iWin = 0;
 //		kPacket.m_iLose = 0;
-//		//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+//		//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 //#ifdef SERV_2012_PVP_SEASON2
 //		kPacket.m_fKFactor = 0.f;
 //#endif SERV_2012_PVP_SEASON2
@@ -6202,9 +6212,9 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	}
 //	else
 //	{
-//		START_LOG( cerr, L"À¯´Ö ´ëÀü Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //			<< BUILD_LOG( iOK )
-//			//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+//			//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 //#ifdef SERV_2012_PVP_SEASON2
 //			<< BUILD_LOG( kPacket_.m_iUnitUID )
 //			<< BUILD_LOG( kPacket_.m_iOfficialMatchCnt )
@@ -6227,9 +6237,9 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	//}}
 //
 //	//////////////////////////////////////////////////////////////////////////	
-//	//{{ 2011. 09. 23	ÃÖÀ°»ç	·Î±×¿ÀÇÁ »óÅÂ EDÃ¼Å©
+//	//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±×¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EDÃ¼Å©
 //#ifdef SERV_LOGOUT_ED_CHECK
-//	// ÇØ´ç Ä³¸¯ÅÍÀÇ ¸¶Áö¸· À§Ä¡ Á¤º¸ ÀúÀå!
+//	// ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //	DO_QUERY( L"exec dbo.gup_update_unit_lastpoint", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iRealDataED );
 //
 //	if( m_kODBC.BeginFetch() )
@@ -6240,7 +6250,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //	if( iOK != NetError::NET_OK )
 //	{
-//		START_LOG( cerr, L"·Î±× ¿ÀÇÁ EDÃ¼Å© Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//		START_LOG( cerr, L"ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ EDÃ¼Å© ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //			<< BUILD_LOG( iOK )
 //			<< BUILD_LOG( kPacket_.m_iUnitUID )
 //			<< BUILD_LOG( kPacket_.m_iRealDataED )
@@ -6249,13 +6259,13 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		kPacket.m_iOK = iOK;
 //	}
 //
-//	// ÇØ´ç Ä³¸¯ÅÍÀÇ ¸¶Áö¸· ÇÃ·¹ÀÌ »óÅÂ°ª ÀúÀå!
+//	// ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //	if( kPacket_.m_kGamePlayStatus.IsEmpty() == false )
 //	{
 //		KGamePlayStatus kPlayStatus;
 //		LIF( kPacket_.m_kGamePlayStatus.Get( kPlayStatus ) );
 //
-//		// Ä³¸¯ÅÍ ±âº» Á¤º¸ ÀúÀå
+//		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //		DO_QUERY( L"exec dbo.P_GUnitPlayInfo_INS", L"%d, %d, %d, %d, %d, %d, %d",
 //			% kPacket_.m_iUnitUID
 //			% kPlayStatus.m_iMaxHP
@@ -6274,7 +6284,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //		if( iOK != NetError::NET_OK )
 //		{
-//			START_LOG( cerr, L"Ä³¸¯ÅÍ ÇÃ·¹ÀÌ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+//			START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( kPacket_.m_iUnitUID )
 //				<< BUILD_LOG( kPlayStatus.m_iMaxHP )
@@ -6288,7 +6298,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //			kPacket.m_iOK = iOK;
 //		}
 //
-//		// ½ºÅ³ ÄðÅ¸ÀÓ µ¥ÀÌÅÍ ÀúÀå!
+//		// ï¿½ï¿½Å³ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //		{
 //			std::map< int, int >::const_iterator mit;
 //			for( mit = kPlayStatus.m_mapSkillCoolTime.begin(); mit != kPlayStatus.m_mapSkillCoolTime.end(); ++mit )
@@ -6308,7 +6318,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //				if( iOK != NetError::NET_OK )
 //				{
-//					START_LOG( cerr, L"Ä³¸¯ÅÍ ÇÃ·¹ÀÌ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+//					START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //						<< BUILD_LOG( iOK )
 //						<< BUILD_LOG( kPacket_.m_iUnitUID )
 //						<< BUILD_LOG( mit->first )
@@ -6320,7 +6330,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //			}
 //		}
 //
-//		// Äü½½·Ô ÄðÅ¸ÀÓ µ¥ÀÌÅÍ ÀúÀå!
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //		{
 //			std::map< int, int >::const_iterator mit;
 //			for( mit = kPlayStatus.m_mapQuickSlotCoolTime.begin(); mit != kPlayStatus.m_mapQuickSlotCoolTime.end(); ++mit )
@@ -6340,7 +6350,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //				if( iOK != NetError::NET_OK )
 //				{
-//					START_LOG( cerr, L"Ä³¸¯ÅÍ ÇÃ·¹ÀÌ Á¤º¸ ÀúÀå ½ÇÆÐ!" )
+//					START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //						<< BUILD_LOG( iOK )
 //						<< BUILD_LOG( kPacket_.m_iUnitUID )
 //						<< BUILD_LOG( mit->first )
@@ -6365,17 +6375,17 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	Query_UpdateItemPosition( kPacket_.m_iUnitUID, kPacket_.m_kItemPositionUpdate, kPacket.m_kItemPositionUpdate );
 //	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 //
-//	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+//	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 //	if( bUpdateFailed )
 //	{
-//		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+//		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 //			<< BUILD_LOG( kPacket_.m_iUnitUID )
 //			<< BUILD_LOG( kPacket_.m_bFinal );
 //
 //		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 //		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 //		{
-//			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+//			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 //				<< BUILD_LOG( mitQC->first )
 //				<< BUILD_LOG( mitQC->second );
 //		}
@@ -6383,7 +6393,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	//}}
 //
 //	//////////////////////////////////////////////////////////////////////////	
-//	// ºÎÈ°¼® º¯È­·®ÀÌ ¾øÀ¸¸é ÇÁ·Î½ÃÀú È£Ãâ¾ÈÇÔ.
+//	// ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½ï¿½ï¿½.
 //	if( kPacket_.m_iNumResurrectionStone != 0 )
 //	{
 //		DO_QUERY( L"exec dbo.gup_update_resurrection_stone", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iNumResurrectionStone );
@@ -6399,7 +6409,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		}
 //		else
 //		{
-//			START_LOG( cerr, L"ºÎÈ°¼® ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//			START_LOG( cerr, L"ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //				<< BUILD_LOG( iOK )
 //				<< END_LOG;
 //
@@ -6407,7 +6417,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		}
 //	}
 //
-//	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦ ºÎÈ°¼®
+//	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 //#ifdef AP_RESTONE
 //	if( kPacket_.m_iNumAutoPaymentResStone != 0 )
 //	{
@@ -6424,7 +6434,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		}
 //		else
 //		{
-//			START_LOG( cerr, L"ÀÚµ¿°áÁ¦ ºÎÈ°¼® ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//			START_LOG( cerr, L"ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //				<< BUILD_LOG( iOK )
 //				<< END_LOG;
 //
@@ -6461,10 +6471,10 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		}
 //	}
 //
-//	//{{ 2010. 02. 09  ÃÖÀ°»ç	ÀÏÀÏ ÀÌº¥Æ® Äù½ºÆ®
+//	//{{ 2010. 02. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½Æ®
 //#ifdef SERV_DAY_QUEST
 //
-//	// ¿¹¾àµÈ Æ÷±â Äù½ºÆ®
+//	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 //	for( u_int ui = 0; ui < kPacket_.m_vecGiveUpQuestList.size(); ++ui )
 //	{
 //		const int& iGiveUpQuestID = kPacket_.m_vecGiveUpQuestList[ui];
@@ -6486,7 +6496,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //#endif SERV_DAY_QUEST
 //	//}}
 //
-//	////{{ 2008. 10. 7  ÃÖÀ°»ç	Å¸ÀÌÆ²
+//	////{{ 2008. 10. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å¸ï¿½ï¿½Æ²
 //	//TITLE MISSION UPDATE
 //	for( u_int i = 0; i < kPacket_.m_vecMissionData.size(); i++ )
 //	{
@@ -6510,7 +6520,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //		if( iOK != NetError::NET_OK )
 //		{
-//			START_LOG( cerr, L"¹Ì¼Ç Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+//			START_LOG( cerr, L"ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( kPacket_.m_iUnitUID )
 //				<< BUILD_LOG( kMission.m_iTitleID )
@@ -6520,10 +6530,10 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		}
 //	}
 //
-//	//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+//	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 //#ifdef SERV_TITLE_DATA_SIZE
 //
-//	// ÀåÂøÁßÀÎ Å¸ÀÌÆ² ¾÷µ¥ÀÌÆ®
+//	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 //	if( kPacket_.m_iInitTitleID != kPacket_.m_iEquippedTitleID )
 //	{
 //		DO_QUERY( L"exec dbo.gup_update_title_hang", L"%d, %d, %d",
@@ -6540,7 +6550,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //		if( iOK != NetError::NET_OK )
 //		{
-//			START_LOG( cerr, L"ÄªÈ£ ÀåÂø Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+//			START_LOG( cerr, L"ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( kPacket_.m_iUnitUID )
 //				<< BUILD_LOG( kPacket_.m_iInitTitleID )
@@ -6553,7 +6563,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //#else
 //
-//	// ÀåÂøÁßÀÎ Å¸ÀÌÆ² ¾÷µ¥ÀÌÆ®
+//	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 //	if( kPacket_.m_sInitTitleID != kPacket_.m_sEquippedTitleID )
 //	{
 //		DO_QUERY( L"exec dbo.gup_update_title_hang", L"%d, %d, %d",
@@ -6570,7 +6580,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //		if( iOK != NetError::NET_OK )
 //		{
-//			START_LOG( cerr, L"ÄªÈ£ ÀåÂø Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+//			START_LOG( cerr, L"ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( kPacket_.m_iUnitUID )
 //				<< BUILD_LOG( kPacket_.m_sInitTitleID )
@@ -6610,7 +6620,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	//SKILL SLOT B UPDATE
 //	if( kPacket_.m_vecSkillSlot.size() >= 8 )
 //	{
-//		// [º¤ÅÍ Á¶½É]
+//		// [ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½]
 //		DO_QUERY( L"exec dbo.gup_insert_skill_slot2_new", L"%d, %d, %d, %d, %d",
 //			% kPacket_.m_iUnitUID
 //			% kPacket_.m_vecSkillSlot[4]
@@ -6651,7 +6661,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		kPacket.m_iOK = iOK;
 //	}
 //
-//	//{{ 2008. 5. 5  ÃÖÀ°»ç  Àå¹Ù±¸´Ï ¾÷µ¥ÀÌÆ®
+//	//{{ 2008. 5. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½Ù±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 //	{
 //		std::map< int, int >::const_iterator mitWishList;
 //		for( mitWishList = kPacket_.m_mapWishList.begin(); mitWishList != kPacket_.m_mapWishList.end(); ++mitWishList )
@@ -6666,28 +6676,28 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //			if( iOK != NetError::NET_OK )
 //			{
-//				START_LOG( cerr, L"Àå¹Ù±¸´Ï DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+//				START_LOG( cerr, L"ï¿½ï¿½Ù±ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 //					<< BUILD_LOG( iOK )
 //					<< BUILD_LOG( FIRST_SENDER_UID )
 //					<< BUILD_LOG( mitWishList->first )
 //					<< BUILD_LOG( mitWishList->second )
 //					<< END_LOG;
 //
-//				// [Âü°í] ½ÇÆÐÇÏ´õ¶óµµ ±»ÀÌ ·Ñ¹éÇÒ ÇÊ¿ä´Â ¾øÀ½. Áß¿äµµ°¡ ³·±â ¶§¹®..
+//				// [ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ß¿äµµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 //				kPacket.m_iOK = iOK;
 //			}
 //		}
 //	}
 //	//}}
 //
-//	//{{ 2009. 7. 7  ÃÖÀ°»ç		·©Å· °³Æí
+//	//{{ 2009. 7. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½
 //	{
 //		std::vector< KHenirRankingInfo >::const_iterator vit = kPacket_.m_vecHenirRanking.begin();
 //		if( vit != kPacket_.m_vecHenirRanking.end() )
 //		{
 //			const KHenirRankingInfo& kRankingInfo = *vit;
 //
-//			// RegDate º¯È¯
+//			// RegDate ï¿½ï¿½È¯
 //			CTime tRegDate = CTime( kRankingInfo.m_tRegDate );
 //			std::wstring wstrRegDate = ( CStringW )( tRegDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
 //
@@ -6708,7 +6718,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //			if( iOK != NetError::NET_OK )
 //			{
-//				START_LOG( cerr, L"¾ÆÄÉÀÌµå ·©Å· DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½Å· DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 //					<< BUILD_LOG( iOK )
 //					<< BUILD_LOG( kPacket_.m_iUnitUID )
 //					<< BUILD_LOG( kRankingInfo.m_iStageCount )
@@ -6718,20 +6728,20 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //					<< BUILD_LOG( wstrRegDate )
 //					<< END_LOG;
 //
-//				// ½ÇÆÐÇßÀ»¶§¿¡ ´ëÇÑ ¿¹¿ÜÃ³¸®´Â?
+//				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½?
 //				kPacket.m_iOK = iOK;
 //			}
 //		}
 //	}
 //	//}}
 //
-//	//{{ 2009. 10. 7  ÃÖÀ°»ç	±æµå
+//	//{{ 2009. 10. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 //#ifdef GUILD_TEST
 //
-//	// ±æµå Á¤º¸ ¾÷µ¥ÀÌÆ®
+//	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 //	if( kPacket_.m_iGuildUID > 0 )
 //	{
-//		// ¸¶Áö¸· ¾÷µ¥ÀÌÆ®¶ó¸é ·Î±×¾Æ¿ô Ã³¸®
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ ï¿½Î±×¾Æ¿ï¿½ Ã³ï¿½ï¿½
 //		if( kPacket_.m_bFinal )
 //		{
 //			DO_QUERY( L"exec dbo.gup_update_guild_lastdate", L"%d, %d",
@@ -6749,7 +6759,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //			{
 //				kPacket.m_iOK = iOK;
 //
-//				START_LOG( cerr, L"±æµå ·Î±×¾Æ¿ô Ã³¸® ½ÇÆÐ!" )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½Î±×¾Æ¿ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //					<< BUILD_LOG( iOK )
 //					<< BUILD_LOG( kPacket_.m_iUnitUID )
 //					<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -6758,7 +6768,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		}
 //
 //		//////////////////////////////////////////////////////////////////////////
-//		//{{ 2009. 10. 28  ÃÖÀ°»ç	±æµå·¹º§
+//		//{{ 2009. 10. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å·¹ï¿½ï¿½
 //		DO_QUERY( L"exec dbo.gup_update_guild_member_exp", L"%d, %d, %d",
 //			% kPacket_.m_iUnitUID
 //			% kPacket_.m_iGuildUID
@@ -6775,7 +6785,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		{
 //			kPacket.m_iOK = iOK;
 //
-//			START_LOG( cerr, L"±æµå¿ø ¸í¿¹ Æ÷ÀÎÆ® ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( kPacket_.m_iUnitUID )
 //				<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -6789,14 +6799,14 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //#endif GUILD_TEST
 //	//}}
 //
-//	//{{ 2009. 12. 8  ÃÖÀ°»ç	ÀÌº¥Æ®°³Æí
+//	//{{ 2009. 12. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ®ï¿½ï¿½ï¿½ï¿½
 //#ifdef CUMULATIVE_TIME_EVENT
 //
 //	{
 //		std::vector< KCumulativeTimeEventInfo >::const_iterator vitCT;
 //		for( vitCT = kPacket_.m_vecUpdateEventTime.begin(); vitCT != kPacket_.m_vecUpdateEventTime.end(); ++vitCT )
 //		{
-//			//{{ 2010. 06. 15  ÃÖÀ°»ç	°èÁ¤´ÜÀ§ Á¢¼Ó½Ã°£ ÀÌº¥Æ®
+//			//{{ 2010. 06. 15  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 //#ifdef SERV_ACC_TIME_EVENT
 //			if( vitCT->m_bAccountEvent )
 //			{
@@ -6812,7 +6822,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //				{
 //					kPacket.m_iOK = iOK;
 //
-//					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+//					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 //						<< BUILD_LOG( iOK )
 //						<< BUILD_LOG( LAST_SENDER_UID )
 //						<< BUILD_LOG( vitCT->m_iEventUID )
@@ -6836,7 +6846,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //				{
 //					kPacket.m_iOK = iOK;
 //
-//					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+//					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 //						<< BUILD_LOG( iOK )
 //						<< BUILD_LOG( kPacket_.m_iUnitUID )
 //						<< BUILD_LOG( vitCT->m_iEventUID )
@@ -6850,10 +6860,10 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //#endif CUMULATIVE_TIME_EVENT
 //	//}}
 //
-//	//{{ 2010. 8. 4	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//	//{{ 2010. 8. 4	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_PET_SYSTEM
 //
-//	// Æê Á¤º¸ ¾÷µ¥ÀÌÆ®	
+//	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®	
 //	BOOST_TEST_FOREACH( const KPetInfo&, kPet, kPacket_.m_vecPet )
 //	{
 //		DO_QUERY( L"exec dbo.gup_update_pet_info", L"%d, %d, %d, %d, %d, %d, %d, N\'%s\', N\'%s\'", 
@@ -6878,7 +6888,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //		{
 //			kPacket.m_iOK = iOK;
 //
-//			START_LOG( cerr, L"Æê Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+//			START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOG( kPacket.m_iOK )
 //				<< BUILD_LOG( kPet.m_iPetUID )
 //				<< BUILD_LOG( kPet.m_sSatiety )
@@ -6890,7 +6900,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //				<< BUILD_LOG( kPet.m_wstrLastSummonDate )
 //				<< END_LOG;
 //
-//			// DB¾÷µ¥ÀÌÆ®°¡ ½ÇÆÐ ÇÑ´Ù¸é ·Ñ¹é µ¥ÀÌÅÍ¸¦ ³ÖÀÚ!
+//			// DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´Ù¸ï¿½ ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //			kPacket.m_vecPet.push_back( kPet );
 //		}
 //	}
@@ -6898,7 +6908,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //#endif SERV_PET_SYSTEM
 //	//}}
 //
-//	//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+//	//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_CHAR_LOG
 //	{
 //		std::map< int, int >::const_iterator mitCGC;
@@ -6920,7 +6930,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //			{
 //				kPacket.m_iOK = iOK;
 //
-//				START_LOG( cerr, L"Ä³¸¯ÅÍ °ÔÀÓ Ä«¿îÆ® Á¤º¸ ¾÷µ¥ÀÌÆ®!" )
+//				START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®!" )
 //					<< BUILD_LOG( kPacket.m_iOK )
 //					<< BUILD_LOG( kPacket_.m_iUnitUID )
 //					<< BUILD_LOG( mitCGC->first )
@@ -6931,7 +6941,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	}
 //#endif SERV_CHAR_LOG
 //	//}}
-//	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+//	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 //#ifdef SERV_NEW_HENIR_TEST
 //	DO_QUERY( L"exec dbo.gup_update_henir_reward_cnt", L"%d, %d, %d, %d", 
 //		% kPacket_.m_iUnitUID 
@@ -6950,7 +6960,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //	{
 //		kPacket.m_iOK = iOK;
 //
-//		START_LOG( cerr, L"Ä³¸¯ÅÍ °ÔÀÓ Ä«¿îÆ® Á¤º¸ ¾÷µ¥ÀÌÆ®!" )
+//		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®!" )
 //			<< BUILD_LOG( kPacket.m_iOK )
 //			<< BUILD_LOG( kPacket_.m_iUnitUID )
 //			<< BUILD_LOG( kPacket_.m_kHenirRewardCnt.m_iNormal )
@@ -6961,7 +6971,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //#endif SERV_NEW_HENIR_TEST
 //	//}}
 //
-//	//{{ 2012. 05. 6	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+//	//{{ 2012. 05. 6	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 //	BOOST_TEST_FOREACH( const KRecordBuffInfo&, kRecordBuffInfo, kPacket_.m_vecRecordBuffInfo )
 //	{
@@ -6979,7 +6989,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //
 //		if( iOK != NetError::NET_OK )
 //		{
-//			START_LOG( cerr, L"¹öÇÁ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOG( kPacket_.m_iUnitUID )
 //				<< BUILD_LOG( kRecordBuffInfo.m_iBuffID )
 //				<< BUILD_LOG( kRecordBuffInfo.m_wstrStartTime )
@@ -7002,11 +7012,11 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ )
 //////////////////////////////////////////////////////////////////////////
 //}}
 
-//{{ 2012. 04. 05	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+//{{ 2012. 04. 05	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, KDBE_GET_SECOND_SECURITY_INFO_REQ_FOR_GameDB )
 #else
-//{{ 2012. 03. 27	¹Ú¼¼ÈÆ	¾Æ¸®¿¤ÀÇ º¹±Í ¿ë»ç´ÔÀ» À§ÇÑ ¼±¹°! ( º¹±Í À¯Àú Ç¥½Ã )
+//{{ 2012. 03. 27	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK
 _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, KDBE_GET_SECOND_SECURITY_INFO_REQ_FOR_GameDB )
 #else
@@ -7019,7 +7029,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 	KEGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_UNIT_WAIT_DELETE //2012.03.07 lygan_Á¶¼º¿í // Ä³¸¯ÅÍ »èÁ¦¿Í º¹±¸ÀÏÀ» ¹®ÀÚ¿­ÀÌ ¾Æ´Ñ ¼ýÀÚ·Î º¯È¯ÇÏ±â À§ÇØ
+#ifdef SERV_UNIT_WAIT_DELETE //2012.03.07 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½ï¿½È¯ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½
 	std::wstring wstrDelAbleDate  = L"";
 	std::wstring wstrRestoreAbleDate  = L"";
 	CTime tDelAbleDateTime;
@@ -7027,7 +7037,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 #endif SERV_UNIT_WAIT_DELETE
 	std::vector< KUnitInfo >::iterator vit;
 
-	//{{ 2012. 04. 12	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+	//{{ 2012. 04. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 
 	kPacket.m_wstrLastConnectDate = kPacket_.m_wstrLastConnectDate;
@@ -7044,7 +7054,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 
 	DO_QUERY( L"exec dbo.gup_get_user_info", L"%d, N\'%s\'", % LAST_SENDER_UID % kPacket_.m_wstrName.c_str() );
 #else
-		//{{ 2012. 03. 27	¹Ú¼¼ÈÆ	¾Æ¸®¿¤ÀÇ º¹±Í ¿ë»ç´ÔÀ» À§ÇÑ ¼±¹°! ( º¹±Í À¯Àú Ç¥½Ã )
+		//{{ 2012. 03. 27	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 	#ifdef SERV_EVENT_RETURN_USER_MARK
 		kPacket.m_bEventMark = kPacket_.m_bEventMark;
 		DO_QUERY( L"exec dbo.gup_get_user_info", L"%d, N\'%s\'", % LAST_SENDER_UID % kPacket_.m_wstrName.c_str() );
@@ -7062,7 +7072,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 		m_kODBC.EndFetch();
 	}
 
-	//{{ 2012. 09. 11	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 09. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	DO_QUERY( L"exec dbo.P_GUnit_Userinfo_GET", L"%d", % LAST_SENDER_UID );
 #else
@@ -7072,18 +7082,18 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
     while( m_kODBC.Fetch() )
     {
         KUnitInfo kUnitInfo;
-		//{{ 2012. 06. 11	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 06. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		int iMapIDDummy = 0;
 #endif SERV_BATTLE_FIELD_SYSTEM
 		//}}
 
-		//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+		//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
-		//{{ 2012. 09. 11	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+		//{{ 2012. 09. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2		
 		
-		//{{ 2012.02.20 Á¶È¿Áø	Ä³¸¯ÅÍ »èÁ¦ ÇÁ·Î¼¼½º º¯°æ (»èÁ¦ ´ë±â ±â°£ µµÀÔ)
+		//{{ 2012.02.20 ï¿½ï¿½È¿ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_UNIT_WAIT_DELETE
 		FETCH_DATA( kUnitInfo.m_nUnitUID
 			>> kUnitInfo.m_cUnitClass
@@ -7126,14 +7136,14 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 		//}}		
 		
 		// GetPvpRankForClient()
-		// Ä³¸¯ÅÍ ¸®½ºÆ®¸¦ ÀÐ¾î °¥Àû¿£ À¯ÀúÀÇ ´ëÀü Á¤º¸°¡ Ã¤¿öÁ® ÀÖÁö ¾Ê°í DB¿¡¼­ ¹Ù·Î ·©Å© Á¤º¸¸¦ ÀÐ¾î°¡±â ¶§¹®¿¡
-		// ¹èÄ¡ ·©Ä¿¿¡ ´ëÇÑ º¯È¯ ÀýÂ÷¸¦ ÀÌ°÷¿¡¼­ ¹Ù·Î ¼öÇàÇÏ¿´´Ù. ( ÀÐ¾î°£ ·©Å© Á¤º¸´Â ¼­¹ö¿¡ ±â·ÏµÇÁö ¾Ê´Â´Ù )
+		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ð¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ DBï¿½ï¿½ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¾î°¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		// ï¿½ï¿½Ä¡ ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½. ( ï¿½Ð¾î°£ ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½ )
 		if( kUnitInfo.m_iOfficialMatchCnt < 10 )
 		{
 			kUnitInfo.m_cRank = static_cast<char>( CXSLUnit::PVPRANK_RANK_ARRANGE );
 		}
 #else
-		//{{ 2012.02.20 Á¶È¿Áø	Ä³¸¯ÅÍ »èÁ¦ ÇÁ·Î¼¼½º º¯°æ (»èÁ¦ ´ë±â ±â°£ µµÀÔ)
+		//{{ 2012.02.20 ï¿½ï¿½È¿ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_UNIT_WAIT_DELETE
 		FETCH_DATA( kUnitInfo.m_nUnitUID
 			>> kUnitInfo.m_cUnitClass
@@ -7197,13 +7207,13 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 		//}}        
 
 #ifdef SERV_UNIT_WAIT_DELETE
-		//{{ // 2012.03.06 lygan_Á¶¼º¿í // ±âÁ¸ ¹®ÀÚ¿­½Ã°£À» ±×´ë·Î ¹Þ´Â ºÎºÐÀ» ¼­¹ö¿¡¼­ ¼ýÀÚ·Î º¯°æÇØ¼­ Å¬¶ó·Î Àü´Þ ±¸Á¶·Î º¯°æ
+		//{{ // 2012.03.06 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ Å¬ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( KncUtil::ConvertStringToCTime( wstrDelAbleDate, tDelAbleDateTime ) == true )
 			kUnitInfo.m_trDelAbleDate = tDelAbleDateTime.GetTime();
 		else
 			kUnitInfo.m_trDelAbleDate = 0LL;
 
-		//{{ // 2012.03.06 lygan_Á¶¼º¿í // ±âÁ¸ ¹®ÀÚ¿­½Ã°£À» ±×´ë·Î ¹Þ´Â ºÎºÐÀ» ¼­¹ö¿¡¼­ ¼ýÀÚ·Î º¯°æÇØ¼­ Å¬¶ó·Î Àü´Þ ±¸Á¶·Î º¯°æ
+		//{{ // 2012.03.06 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ Å¬ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( KncUtil::ConvertStringToCTime( wstrRestoreAbleDate, tRestoreAbleDateTime ) == true )
 			kUnitInfo.m_trRestoreAbleDate = tRestoreAbleDateTime.GetTime();
 		else
@@ -7214,7 +7224,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 		//////////////////////////////////////////////////////////////////////////
 		if( CXSLUnit::IsValidUnitClass( static_cast<CXSLUnit::UNIT_CLASS>(kUnitInfo.m_cUnitClass) ) == false )
 		{
-			START_LOG( cout, L"[¾Ë¸²] µî·ÏµÇÁö ¾ÊÀº À¯´Ö Å¬·¡½ºÀÔ´Ï´Ù!" )
+			START_LOG( cout, L"[ï¿½Ë¸ï¿½] ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 				<< BUILD_LOG( kUnitInfo.m_nUnitUID )
 				<< BUILD_LOG( kUnitInfo.m_wstrNickName )
 				<< BUILD_LOGc( kUnitInfo.m_cUnitClass );
@@ -7226,15 +7236,15 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 		kPacket.m_vecUnitInfo.push_back( kUnitInfo );
 	}
 
-	// ÀåÂø ¾ÆÀÌÅÛ Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	for( vit = kPacket.m_vecUnitInfo.begin(); vit != kPacket.m_vecUnitInfo.end(); ++vit )
 	{
 		std::map< UidType, int > mapItemUIDSlot;
 		mapItemUIDSlot.clear();
 
-		//{{ 2013. 05. 24	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+		//{{ 2013. 05. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-		// ·£´ý ¼ÒÄÏ Á¤º¸ ¾ò±â
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		std::map< UidType, std::vector< int > > mapRandomSocketList;
 
 		DO_QUERY( L"exec dbo.P_GItemSocket_Random_SEL", L"%d", % vit->m_nUnitUID );
@@ -7251,12 +7261,17 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 				>> arrRandomSocketOption[4]
 				);
 
-				// 2-1. ·£´ý ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ®
-				for( int iCheckIdx = CXSLSocketItem::RSC_MAX - 1; iCheckIdx >= 0; --iCheckIdx )
+				// 2-1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+				//{{ Iruha : 2026-08-27 // VS2010 port: iCheckIdx is used after the loop, which
+				// VC7.1's non-conformant /Zc:forScope- tolerated; VC10 requires the loop
+				// variable to outlive the loop, so it's hoisted here.
+				int iCheckIdx;
+				for( iCheckIdx = CXSLSocketItem::RSC_MAX - 1; iCheckIdx >= 0; --iCheckIdx )
 				{
 					if( arrRandomSocketOption[iCheckIdx] != 0 )
 						break;
 				}
+				//}}
 
 				std::vector< int > vecRandomSocket;
 				for( int iIdx = 0; iIdx <= iCheckIdx; ++iIdx )
@@ -7264,18 +7279,18 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 					vecRandomSocket.push_back( arrRandomSocketOption[iIdx] );
 				}
 
-				// itemuid°ªÀº Áßº¹µÇÁö ¾Ê´Â°ÍÀ» db¿¡¼­ º¸ÀåÇØ¾ßÇÑ´Ù.
+				// itemuidï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â°ï¿½ï¿½ï¿½ dbï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ñ´ï¿½.
 				mapRandomSocketList.insert( std::make_pair( iItemUID, vecRandomSocket ) );
 		}
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 		//}}
 
-		// º¸À¯ ¾ÆÀÌÅÛÀ» ¾ò´Â´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
 		DO_QUERY( L"exec dbo.gup_get_equipped_item_list", L"%d", % vit->m_nUnitUID );
 		while( m_kODBC.Fetch() )
 		{
 			int iEnchantLevel = 0;
-			//{{ 2011. 07. 25    ±è¹Î¼º    ¾ÆÀÌÅÛ ¿É¼ÇID µ¥ÀÌÅÍ »çÀÌÁî Áõ°¡
+			//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_ITEM_OPTION_DATA_SIZE
 			int arrSocketOption[4] = {0,0,0,0};
 //#else
@@ -7284,7 +7299,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 			//}} 
 			KInventoryItemInfo kInventoryItemInfo;
 
-			//{{ 2011. 12. 15	ÃÖÀ°»ç	ÀÎº¥Åä¸® ½½·ÔIDÅ©±â ´Ã¸®±â
+			//{{ 2011. 12. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½IDÅ©ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½
 //#ifdef SERV_EXPAND_SLOT_ID_DATA_SIZE
 			FETCH_DATA( kInventoryItemInfo.m_iItemUID
 				>> kInventoryItemInfo.m_kItemInfo.m_iItemID
@@ -7318,26 +7333,31 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 //#endif SERV_EXPAND_SLOT_ID_DATA_SIZE
 			//}}
 
-			//{{ 2008. 2. 20  ÃÖÀ°»ç  °­È­
+			//{{ 2008. 2. 20  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½È­
 			kInventoryItemInfo.m_kItemInfo.m_cEnchantLevel = static_cast<char>(iEnchantLevel);
 			//}}
 
-			//{{ 2008. 3. 7  ÃÖÀ°»ç  ¼ÒÄÏ
-			for( int iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
+			//{{ 2008. 3. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½
+			//{{ Iruha : 2026-08-27 // VS2010 port: iCheckIdx is used after the loop, which
+			// VC7.1's non-conformant /Zc:forScope- tolerated; VC10 requires the loop
+			// variable to outlive the loop, so it's hoisted here.
+			int iCheckIdx;
+			for( iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
 			{
 				if( arrSocketOption[iCheckIdx] != 0 )
 					break;
 			}
+			//}}
 
 			for( int iIdx = 0; iIdx <= iCheckIdx; ++iIdx )
 			{
-				kInventoryItemInfo.m_kItemInfo.m_vecItemSocket.push_back( arrSocketOption[iIdx] );				
+				kInventoryItemInfo.m_kItemInfo.m_vecItemSocket.push_back( arrSocketOption[iIdx] );
 			}
 			//}}
 
-			//{{ 2013. 05. 21	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+			//{{ 2013. 05. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-			// 2-1. ·£´ý ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ®
+			// 2-1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 			std::map< UidType, std::vector< int > >::const_iterator mitCRS;
 			mitCRS = mapRandomSocketList.find( kInventoryItemInfo.m_iItemUID );
 			if( mitCRS != mapRandomSocketList.end() )
@@ -7348,7 +7368,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 			//}}
 
             std::map< int, KInventoryItemInfo >::iterator mit;
-			//{{ 2011. 12. 15	ÃÖÀ°»ç	ÀÎº¥Åä¸® ½½·ÔIDÅ©±â ´Ã¸®±â
+			//{{ 2011. 12. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½IDÅ©ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½
 //#ifdef SERV_EXPAND_SLOT_ID_DATA_SIZE
 			mit = vit->m_mapEquippedItem.find( kInventoryItemInfo.m_sSlotID );
 //#else
@@ -7357,9 +7377,9 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 //			//}}
             if( mit != vit->m_mapEquippedItem.end() )
             {
-                START_LOG( cerr, L"ÀåÂø ¾ÆÀÌÅÛ Á¤º¸°¡ Áßº¹µÊ." )
+                START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ï¿½ï¿½." )
                     << BUILD_LOG( kInventoryItemInfo.m_iItemUID )
-					//{{ 2011. 12. 15	ÃÖÀ°»ç	ÀÎº¥Åä¸® ½½·ÔIDÅ©±â ´Ã¸®±â
+					//{{ 2011. 12. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½IDÅ©ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½
 //#ifdef SERV_EXPAND_SLOT_ID_DATA_SIZE
 					<< BUILD_LOG( kInventoryItemInfo.m_sSlotID )
 //#else
@@ -7369,8 +7389,8 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
                     << BUILD_LOG( kInventoryItemInfo.m_kItemInfo.m_iItemID )
                     << END_LOG;
             }
-			//{{ 2008. 9. 26  ÃÖÀ°»ç	¼Ó¼º°­È­ Ä³¸¯ÅÍ ¸®½ºÆ® Ç¥½Ã
-			//{{ 2011. 12. 15	ÃÖÀ°»ç	ÀÎº¥Åä¸® ½½·ÔIDÅ©±â ´Ã¸®±â
+			//{{ 2008. 9. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó¼ï¿½ï¿½ï¿½È­ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® Ç¥ï¿½ï¿½
+			//{{ 2011. 12. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½IDÅ©ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½
 //#ifdef SERV_EXPAND_SLOT_ID_DATA_SIZE
 			vit->m_mapEquippedItem.insert( std::make_pair( kInventoryItemInfo.m_sSlotID, kInventoryItemInfo ) );
 
@@ -7384,7 +7404,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
         }
 
 		//////////////////////////////////////////////////////////////////////////
-		// ¼Ó¼º °­È­ ¾ò±â
+		// ï¿½Ó¼ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_get_attribute", L"%d", % vit->m_nUnitUID );
 		while( m_kODBC.Fetch() )
 		{
@@ -7406,7 +7426,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 			if( mitAtt == vit->m_mapEquippedItem.end() )
 				continue;
 
-			// ¼Ó¼º °­È­
+			// ï¿½Ó¼ï¿½ ï¿½ï¿½È­
 			switch( iAttribEnchantSlotNo )
 			{
 			case CXSLAttribEnchantItem::ESI_SLOT_1:
@@ -7422,7 +7442,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 				break;
 
 			default:
-				START_LOG( cerr, L"¼Ó¼º °­È­ ½½·Ô ³Ñ¹ö°¡ ÀÌ»óÇÕ´Ï´Ù." )
+				START_LOG( cerr, L"ï¿½Ó¼ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 					<< BUILD_LOG( iItemUID )
 					<< BUILD_LOG( iAttribEnchantSlotNo )
 					<< BUILD_LOG( iAttribEnchantID )
@@ -7432,10 +7452,10 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 		}
 		//////////////////////////////////////////////////////////////////////////
 
-		//{{ 2009. 9. 25  ÃÖÀ°»ç	±æµå
+		//{{ 2009. 9. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 
-		// ±æµå Á¤º¸ ¾ò±â
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_get_my_guild_info", L"%d", % vit->m_nUnitUID );
 		if( m_kODBC.BeginFetch() )
 		{
@@ -7450,9 +7470,9 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
     }
 
 #ifdef SERV_SHARING_BANK_QUEST_CASH
-	// ÁöÇå : Ä³½¬ÅÛ ¾Èº¸ÀÌµµ·Ï ÇÏ±â À§ÇØ¼­, ÀºÇà °øÀ¯ Çß´ÂÁö Ã¼Å©ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ : Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Èºï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß´ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
 
-	//1. ÀºÇà °øÀ¯ È®ÀÎ SP  È£Ãâ
+	//1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ SP  È£ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GBankShare_CHK", L"%d",
 		% LAST_SENDER_UID
 		);
@@ -7462,10 +7482,10 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 		FETCH_DATA( kPacket.m_iOK );
 	}
 
-	//2. ÀºÇà °øÀ¯ À¯¹«¸¦ ÆÐÅ¶¿¡ ³ÖÀÚ.
+	//2. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	if(kPacket.m_iOK != NetError::NET_OK)
 	{
-		START_LOG(clog2, L"ÁöÇå·Î±×:ÀºÇà°øÀ¯°¡ È°¼ºÈ­ µÇ¾î ÀÖÁö ¾Ê´Ù.")
+		START_LOG(clog2, L"ï¿½ï¿½ï¿½ï¿½Î±ï¿½:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È°ï¿½ï¿½È­ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½.")
 			<< BUILD_LOG(LAST_SENDER_UID)
 			<< BUILD_LOG(kPacket.m_iOK)
 			<< END_LOG;
@@ -7478,7 +7498,7 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring )
 	}
 #endif
 
-#ifdef SERV_JUMPING_CHARACTER// ÀÛ¾÷³¯Â¥: 2013-07-12	// ¹Ú¼¼ÈÆ
+#ifdef SERV_JUMPING_CHARACTER// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-12	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	{
 		KDBE_JUMPING_CHARACTER_INFO_NOT kPacket;
 
@@ -7509,7 +7529,7 @@ end_proc:
     SendToUser( LAST_SENDER_UID, DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK, kPacket );
 }
 
-//{{ 2011. 08. 09  ±è¹Î¼º (2011.08.11) Æ¯Á¤ÀÏ ÀÌÈÄ »ý¼ºÇÑ °èÁ¤¿¡ ´ëÇÏ¿© ½Å±ÔÄÉ¸¯ÅÍ »ý¼º ½Ã ¾ÆÀÌÅÛ Áö±Þ ÀÌº¥Æ®
+//{{ 2011. 08. 09  ï¿½ï¿½Î¼ï¿½ (2011.08.11) Æ¯ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Å±ï¿½ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_NEW_CREATE_CHAR_EVENT
 IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ )
 #else
@@ -7520,7 +7540,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
     KEGS_CREATE_UNIT_ACK kPacket;
     kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-    START_LOG( clog, L"À¯´Ö »ý¼º" )
+    START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
         << BUILD_LOG( kPacket_.m_wstrNickName )
         << BUILD_LOG( kPacket_.m_iClass );
 
@@ -7533,7 +7553,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 
 			if ( !((tempChar >= 'a' && tempChar <= 'z') || (tempChar >= 'A' && tempChar <= 'Z') || (tempChar >= '0' && tempChar <= '9')))
 			{
-				START_LOG( cerr, L"[ERROR] ´Ð³×ÀÓ¿¡ Àß¸øµÈ ¹®ÀÚ Æ÷ÇÔ!" )
+				START_LOG( cerr, L"[ERROR] ï¿½Ð³ï¿½ï¿½Ó¿ï¿½ ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( kPacket_.m_wstrNickName )
 					<< END_LOG;
 			
@@ -7546,7 +7566,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 	}
 	else
 	{
-		START_LOG( cerr, L"[ERROR] ´Ð³×ÀÓ ±æÀÌ°¡ Àß¸øµÇ¾ú´Ù!" )
+		START_LOG( cerr, L"[ERROR] ï¿½Ð³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½ß¸ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_wstrNickName )
 			<< END_LOG;
 
@@ -7561,7 +7581,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 				% LAST_SENDER_UID
 				% kPacket_.m_wstrNickName
 				% kPacket_.m_iClass
-				// º¯ÇÏÁö ¾Ê´Â °ªÀ» ÀÐ±â¸¸ ÇÏ¹Ç·Î ÀÌ ¾²·¹µå¿¡¼­ ÂüÁ¶ÇØµµ ±¦ÂúÀ»µí..
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ð±â¸¸ ï¿½Ï¹Ç·ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
 				//% GetKGameServer()->GetServerGroupID()
 				);
 
@@ -7570,7 +7590,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
     {
         FETCH_DATA( kPacket.m_iOK
                  >> kPacket.m_kUnitInfo.m_nUnitUID
-				 //{{ 2008. 4. 8  ÃÖÀ°»ç  »èÁ¦µÈ ´Ð³×ÀÓ »ç¿ë °¡´É ³¯Â¥
+				 //{{ 2008. 4. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â¥
 				 >> kPacket.m_wstrEnableDate
 				 //}}
 				 );
@@ -7589,7 +7609,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 		case -222:  kPacket.m_iOK = NetError::ERR_CREATE_UNIT_06;	break;
 		case -23:   kPacket.m_iOK = NetError::ERR_CREATE_UNIT_09;	break;
 		default:
-			START_LOG( cerr, L"gup_create_unit: Á¤ÀÇµÇÁö ¾ÊÀº °á°ú°ªÀÔ´Ï´Ù." )
+			START_LOG( cerr, L"gup_create_unit: ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< END_LOG;
 			break;
@@ -7610,12 +7630,12 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
     {
 		bool bIsSpiritUpdated = false;
 		UidType iRecommendUnitUID = 0;
-		//{{ 2012. 06. 11	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 06. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		int iMapIDDummy = 0;
 #endif SERV_BATTLE_FIELD_SYSTEM
 		//}}
-		//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+		//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 		FETCH_DATA( kPacket.m_kUnitInfo.m_nUnitUID
 			>> kPacket.m_kUnitInfo.m_cUnitClass
@@ -7667,7 +7687,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 		goto end_proc;
 	}
 
-#ifdef SERV_2012_PVP_SEASON2// ÀÛ¾÷³¯Â¥: 2013-07-01	// ¹Ú¼¼ÈÆ
+#ifdef SERV_2012_PVP_SEASON2// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-01	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GUnitPVP_Season2_GET", L"%d", % kPacket.m_kUnitInfo.m_nUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -7688,7 +7708,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 	}
 	else
 	{
-		START_LOG( cerr, L"P_GUnitPVP_Season2_GET È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"P_GUnitPVP_Season2_GET È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_kUnitInfo.m_nUnitUID )
 			<< END_LOG;
 
@@ -7697,7 +7717,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 	}
 #endif // SERV_2012_PVP_SEASON2
 
-	//{{ 2009. 3. 31  ÃÖÀ°»ç	Ä³¸¯ÅÍ »ý¼º½Ã ÇÁ·Î¸ð¼Ç ÀÔÈ÷±â
+	//{{ 2009. 3. 31  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	int iOK = NetError::ERR_ODBC_01;
 
 	DO_QUERY( L"exec dbo.gup_create_unit_set_promotion", L"%d", % kPacket.m_kUnitInfo.m_nUnitUID );
@@ -7708,7 +7728,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 	}
 	else
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ »ý¼º½Ã ¿ÊÀÔÈ÷±â Äõ¸® ½ÇÆÐ!" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_kUnitInfo.m_nUnitUID )
 			<< END_LOG;
 
@@ -7718,7 +7738,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ »ý¼º½Ã ¿ÊÀÔÈ÷±â Äõ¸® ½ÇÆÐ!" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_kUnitInfo.m_nUnitUID )
 			<< BUILD_LOG( iOK )
 			<< END_LOG;
@@ -7729,7 +7749,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 	//}}
 
 	//////////////////////////////////////////////////////////////////////////	
-	//{{ 2011. 08. 09  ±è¹Î¼º (2011.08.11) Æ¯Á¤ÀÏ ÀÌÈÄ »ý¼ºÇÑ °èÁ¤¿¡ ´ëÇÏ¿© ½Å±ÔÄÉ¸¯ÅÍ »ý¼º ½Ã ¾ÆÀÌÅÛ Áö±Þ ÀÌº¥Æ®
+	//{{ 2011. 08. 09  ï¿½ï¿½Î¼ï¿½ (2011.08.11) Æ¯ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Å±ï¿½ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 //#ifdef SERV_NEW_CREATE_CHAR_EVENT
 //	DO_QUERY( L"exec dbo.gup_insert_event_unit", L"%d, %d, N\'%s\'", % LAST_SENDER_UID % kPacket.m_kUnitInfo.m_nUnitUID % kPacket_.m_wstrRegDate );
 //	if( m_kODBC.BeginFetch() )
@@ -7742,7 +7762,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 //	{
 //	case 0:
 //		{
-//			START_LOG( clog, L"Ä³¸¯ÅÍ »ý¼º½Ã ¾ÆÀÌÅÛ Áö±Þ ¼º°ø!!" )
+//			START_LOG( clog, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!" )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( LAST_SENDER_UID )
 //				<< BUILD_LOG( kPacket.m_kUnitInfo.m_nUnitUID )
@@ -7752,7 +7772,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 //		}break;
 //	case -1:
 //		{
-//			START_LOG( cerr, L"°èÁ¤ »ý¼ºÀÏÀ» Ã¼Å©Çß´Âµ¥ ½Å±Ô°¡ ¾Æ´Ò ¶§(·Ñ¹é¾Æ´Ô/±×³É Á¾·á)" )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ß´Âµï¿½ ï¿½Å±Ô°ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½(ï¿½Ñ¹ï¿½Æ´ï¿½/ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½)" )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( LAST_SENDER_UID )
 //				<< BUILD_LOG( kPacket.m_kUnitInfo.m_nUnitUID )
@@ -7761,7 +7781,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 //		}break;
 //	case -2:
 //		{
-//			START_LOG( cerr, L"Å¥ºê ¿ìÆíÀ¸·Î ¾Èº¸³»Á³À»¶§" )
+//			START_LOG( cerr, L"Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Èºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( LAST_SENDER_UID )
 //				<< BUILD_LOG( kPacket.m_kUnitInfo.m_nUnitUID )
@@ -7770,7 +7790,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 //		}break;
 //	case -3:
 //		{
-//			START_LOG( cerr, L"ÄªÈ£ ÀåÂø ¾ÈµÆÀ»¶§" )
+//			START_LOG( cerr, L"ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½Èµï¿½ï¿½ï¿½ï¿½ï¿½" )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( LAST_SENDER_UID )
 //				<< BUILD_LOG( kPacket.m_kUnitInfo.m_nUnitUID )
@@ -7779,7 +7799,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 //		}break;
 //	case -4:
 //		{
-//			START_LOG( cerr, L"Å¥ºê ÄªÈ£ ¹ÞÀº Ä³¸¯ ±â·Ï ½ÇÆÐÇßÀ»¶§ " )
+//			START_LOG( cerr, L"Å¥ï¿½ï¿½ ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ " )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( LAST_SENDER_UID )
 //				<< BUILD_LOG( kPacket.m_kUnitInfo.m_nUnitUID )
@@ -7788,7 +7808,7 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_REQ, KEGS_CREATE_UNIT_REQ )
 //		}break;
 //	default:
 //		{
-//			START_LOG( cerr, L"¾ø´Â ½ÇÆÐ °ªÀÔ´Ï´Ù." )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 //				<< BUILD_LOG( iOK )
 //				<< BUILD_LOG( LAST_SENDER_UID )
 //				<< BUILD_LOG( kPacket.m_kUnitInfo.m_nUnitUID )
@@ -7815,9 +7835,9 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 	std::wstring wstrGuildName;
 #endif GUILD_TEST
 
-	//{{ 2012.02.20 Á¶È¿Áø	Ä³¸¯ÅÍ »èÁ¦ ÇÁ·Î¼¼½º º¯°æ (»èÁ¦ ´ë±â ±â°£ µµÀÔ)
+	//{{ 2012.02.20 ï¿½ï¿½È¿ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_UNIT_WAIT_DELETE
-	//{{	//2012.03.05 lygan_Á¶¼º¿í // Ä³¸¯ÅÍ »èÁ¦ ÇÒ¶§ ÃÖÁ¾ »èÁ¦°¡ °¡´ÉÇÒ ³¯ ¾Ë¾Æ ¿À±â À§ÇØ
+	//{{	//2012.03.05 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ë¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	std::wstring wstrDelDate  = L"";
 	std::wstring wstrDelAbleDate  = L"";
 	std::wstring wstrRestoreAbleDate  = L"";
@@ -7825,7 +7845,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 	CTime tReDelAbleDateTime;
 	CTime tDelAbleDateTime;
 
-	//}}//2012.03.05 lygan_Á¶¼º¿í // Ä³¸¯ÅÍ »èÁ¦ ÇÒ¶§ ÃÖÁ¾ »èÁ¦°¡ °¡´ÉÇÒ ³¯ ¾Ë¾Æ ¿À±â À§ÇØ
+	//}}//2012.03.05 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ë¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GUnitRestore_ReDelAbleDate_CHK", L"%d, %d",	% kPacket_.m_iUnitUID
 		% kPacket_.m_iUserUID);
 	if( m_kODBC.BeginFetch() )
@@ -7838,7 +7858,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 	}
 	else
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ »èÁ¦ Á¶°Ç »çÀü Ã¼Å© °á°ú °ªÀÌ ¿Ö ¾øÁö??" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½??" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iUserUID )
 			<< END_LOG;
@@ -7850,7 +7870,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ »èÁ¦ Á¶°Ç »çÀü Ã¼Å© ¿¡·¯!" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iUserUID )
@@ -7864,7 +7884,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 		{
 			kPacket.m_iOK = NetError::ERR_DELETE_UNIT_02;
 
-			//{{ // 2012.03.06 lygan_Á¶¼º¿í // ±âÁ¸ ¹®ÀÚ¿­½Ã°£À» ±×´ë·Î ¹Þ´Â ºÎºÐÀ» ¼­¹ö¿¡¼­ ¼ýÀÚ·Î º¯°æÇØ¼­ Å¬¶ó·Î Àü´Þ ±¸Á¶·Î º¯°æ
+			//{{ // 2012.03.06 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ Å¬ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			if( KncUtil::ConvertStringToCTime( wstrReDelAbleDate, tReDelAbleDateTime ) == true )
 				kPacket.m_tReDelAbleDate = tReDelAbleDateTime.GetTime();
 			else
@@ -7895,29 +7915,29 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÃßÃµÀÎ Å×ÀÌºí¿¡¼­ Ä³¸¯ÅÍ »èÁ¦ ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( NetError::ERR_RECOMMEND_USER_06 )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
 #endif SERV_RECRUIT_EVENT_BASE
 
-	//{{ 2011. 02. 23	ÃÖÀ°»ç	Ä³¸¯ÅÍ ·Î±×
+	//{{ 2011. 02. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_CHAR_LOG
-	// Ä³¸¯ÅÍ Á¤º¸¸¦ ¾ò´Â´Ù.
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
 	DO_QUERY( L"exec dbo.gup_get_unit_info_by_unituid", L"%d", % kPacket_.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
 		KUnitInfo kUnitInfo;
 		bool bIsSpiritUpdated = false;
 		UidType iRecommendUnitUID = 0;
-		//{{ 2012. 06. 11	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 06. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		int iMapIDDummy = 0;
 #endif SERV_BATTLE_FIELD_SYSTEM
 		//}}
 
-		//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+		//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 		FETCH_DATA( kUnitInfo.m_nUnitUID
 			>> kPacket.m_cUnitClass
@@ -7972,7 +7992,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 	//}}
 
 
-#ifdef SERV_UNIT_WAIT_DELETE //2012.06.08 lygan_Á¶¼º¿í // ´Ð³×ÀÓ º¯°æ ´ë±â ÁßÀÎ Ä³¸¯ÅÍ´Â Áö¿ìÁö ¸øÇÏ°Ô Ã³¸® ÇÏ±â À§ÇØ
+#ifdef SERV_UNIT_WAIT_DELETE //2012.06.08 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½Ð³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°ï¿½ Ã³ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if(kPacket.m_wstrNickName.length() != 0)
 	{
 		if(kPacket.m_wstrNickName.find(L"_") != -1)
@@ -7983,9 +8003,9 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 	}
 #endif //SERV_UNIT_WAIT_DELETE
 
-	//{{ 2009. 10. 8  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 10. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
-	// ±æµå Á¤º¸ ¾ò±â
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_my_guild_info", L"%d", % kPacket_.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -7998,21 +8018,21 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 	if( kPacket.m_iGuildUID > 0 )
 	{
 		//////////////////////////////////////////////////////////////////////////
-		// ±æµå ¸¶½ºÅÍ µî±Þ °Ë»ç
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 		u_char ucGuildMemberShipGrade = 0;
 		
 		if( Query_GetGuildMemberGrade( kPacket_.m_iUnitUID, ucGuildMemberShipGrade ) == false )
 		{
-			START_LOG( cerr, L"±æµå¿ø µî±Þ Á¤º¸ ¾ò±â ½ÇÆÐ. GuildUID´Â À¯È¿ÇÑµ¥ DB¿¡´Â µî±ÞÁ¤º¸°¡ ¾ø´Ù? ÀÖÀ»¼ö ¾ø´Â¿¡·¯!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. GuildUIDï¿½ï¿½ ï¿½ï¿½È¿ï¿½Ñµï¿½ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< END_LOG;
 
-			kPacket.m_iOK = NetError::ERR_GUILD_19; // ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
+			kPacket.m_iOK = NetError::ERR_GUILD_19; // ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 			goto end_proc;
 		}
 
-		// ±æµå ¸¶½ºÅÍ´Â Ä³¸¯ÅÍ »èÁ¦¸¦ ÇÒ¼ö ¾ø´Ù!
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¼ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		if( ucGuildMemberShipGrade == SEnum::GUG_MASTER )
 		{
 			kPacket.m_iOK = NetError::ERR_GUILD_35;
@@ -8020,7 +8040,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 		}
 
 		//////////////////////////////////////////////////////////////////////////
-		// ±æµå Å»Åð Ã³¸®
+		// ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ Ã³ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_delete_guild_member", L"%d, %d", 
 			% kPacket_.m_iUnitUID
 			% kPacket.m_iGuildUID
@@ -8034,7 +8054,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"±æµå Å»Åð ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( kPacket.m_iGuildUID )
@@ -8042,9 +8062,9 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 
 			switch( kPacket.m_iOK )
 			{
-			case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ÇØ´ç ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
-			case -2: kPacket.m_iOK = NetError::ERR_GUILD_26; break; // Æ®·£Á§¼Ç ¿¡·¯
-			default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ±æµå Å»Åð ½ÇÆÐ
+			case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ï¿½Ø´ï¿½ ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
+			case -2: kPacket.m_iOK = NetError::ERR_GUILD_26; break; // Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			}
 
 			goto end_proc;
@@ -8052,7 +8072,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 	}
 #endif GUILD_TEST
 	//}}
-	//{{ 2012.02.20 Á¶È¿Áø	Ä³¸¯ÅÍ »èÁ¦ ÇÁ·Î¼¼½º º¯°æ (»èÁ¦ ´ë±â ±â°£ µµÀÔ)
+	//{{ 2012.02.20 ï¿½ï¿½È¿ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_UNIT_WAIT_DELETE
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	DO_QUERY( L"exec dbo.P_GUnitWaitDelete_INT", L"%d, %d", % kPacket_.m_iUnitUID 
@@ -8068,7 +8088,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ »èÁ¦ ´ë±â Ã³¸® ½ÇÆÐ!" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
@@ -8079,8 +8099,8 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 		}
 		else if ( kPacket.m_iOK == -11 || kPacket.m_iOK == -12 )
 		{
-			// -11 : Ä³¸¯ÅÍ Á¤º¸ °»½Å ½ÇÆÐ, -12 : »çÁ¦ Á¤º¸ Á¦°Å ½ÇÆÐ
-			// À¯Àú ÀÔÀå¿¡¼­´Â DB¿¡·¯·Î ºÁ¾ßÇÔ
+			// -11 : Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, -12 : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½å¿¡ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			kPacket.m_iOK = NetError::ERR_ODBC_01;
 		} 
 		else if ( kPacket.m_iOK == -22 )
@@ -8090,7 +8110,7 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 	}
 
 
-	//{{ //2012.03.05 lygan_Á¶¼º¿í // Ä³¸¯ÅÍ »èÁ¦ ÇÒ¶§ ÃÖÁ¾ »èÁ¦°¡ °¡´ÉÇÒ ³¯ ¾Ë¾Æ ¿À±â À§ÇØ
+	//{{ //2012.03.05 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ë¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GUnitWaitDelete_SEL", L"%d",	% kPacket_.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -8102,18 +8122,18 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 		m_kODBC.EndFetch();
 	}
 
-	//{{ // 2012.03.06 lygan_Á¶¼º¿í // ±âÁ¸ ¹®ÀÚ¿­½Ã°£À» ±×´ë·Î ¹Þ´Â ºÎºÐÀ» ¼­¹ö¿¡¼­ ¼ýÀÚ·Î º¯°æÇØ¼­ Å¬¶ó·Î Àü´Þ ±¸Á¶·Î º¯°æ
+	//{{ // 2012.03.06 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ Å¬ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( KncUtil::ConvertStringToCTime( wstrDelAbleDate, tDelAbleDateTime ) == true )
 		kPacket.m_tDelAbleDate = tDelAbleDateTime.GetTime();
 	else
 		kPacket.m_tDelAbleDate = 0LL;
 	//}}
 
-	//}} //2012.03.05 lygan_Á¶¼º¿í // Ä³¸¯ÅÍ »èÁ¦ ÇÒ¶§ ÃÖÁ¾ »èÁ¦°¡ °¡´ÉÇÒ ³¯ ¾Ë¾Æ ¿À±â À§ÇØ
+	//}} //2012.03.05 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ë¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #else SERV_UNIT_WAIT_DELETE
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-	//{{ 2012. 02. 21	±è¹Î¼º	Ä³¸¯ÅÍ »èÁ¦ ¹× ±æµå Å»Åð ¿¹¿ÜÃ³¸® ¼öÁ¤
+	//{{ 2012. 02. 21	ï¿½ï¿½Î¼ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_UNIT_DELETE_EXCEPTION_MODIFY
 	DO_QUERY( L"exec dbo.gup_delete_unit", L"%d, %d", % kPacket_.m_iUserUID % kPacket_.m_iUnitUID );
 #else
@@ -8130,20 +8150,20 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_REQ, KEGS_DELETE_UNIT_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ »èÁ¦ ½ÇÆÐ!" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_DELETE_UNIT_00; break; // ÇØ´ç Ä³¸¯ÅÍ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.
-			//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+		case -1: kPacket.m_iOK = NetError::ERR_DELETE_UNIT_00; break; // ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½Í¸ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
+			//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
-		case -2: kPacket.m_iOK = NetError::ERR_DELETE_UNIT_06; break; // ÀÎ¿¬ »óÅÂ¿¡¼­´Â »èÁ¦ ÇÒ ¼ö ¾ø½À´Ï´Ù.
+		case -2: kPacket.m_iOK = NetError::ERR_DELETE_UNIT_06; break; // ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 #endif SERV_RELATIONSHIP_SYSTEM
 			//}
-		default: kPacket.m_iOK = NetError::ERR_DELETE_UNIT_05; break; // Ä³¸¯ÅÍ »èÁ¦ ½ÇÆÐ
+		default: kPacket.m_iOK = NetError::ERR_DELETE_UNIT_05; break; // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 #endif SERV_UNIT_WAIT_DELETE
@@ -8153,7 +8173,7 @@ end_proc:
     SendToUser( LAST_SENDER_UID, DBE_GAME_DELETE_UNIT_ACK, kPacket );
 }
 
-//{{ 2012.02.20 Á¶È¿Áø	Ä³¸¯ÅÍ »èÁ¦ ÇÁ·Î¼¼½º º¯°æ (»èÁ¦ ´ë±â ±â°£ µµÀÔ)
+//{{ 2012.02.20 ï¿½ï¿½È¿ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_UNIT_WAIT_DELETE
 _IMPL_ON_FUNC( DBE_GAME_FINAL_DELETE_UNIT_REQ, KEGS_FINAL_DELETE_UNIT_REQ )
 {
@@ -8161,15 +8181,15 @@ _IMPL_ON_FUNC( DBE_GAME_FINAL_DELETE_UNIT_REQ, KEGS_FINAL_DELETE_UNIT_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	kPacket.m_iUnitUID = kPacket_.m_iUnitUID;
 
-	//{{ 2012. 06. 11	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 06. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	int iMapIDDummy = 0;
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-	//{{ 2011. 02. 23	ÃÖÀ°»ç	Ä³¸¯ÅÍ ·Î±×
+	//{{ 2011. 02. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_CHAR_LOG
-	// Ä³¸¯ÅÍ Á¤º¸¸¦ ¾ò´Â´Ù.
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
 	DO_QUERY( L"exec dbo.gup_get_unit_info_by_unituid", L"%d", % kPacket_.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -8205,7 +8225,7 @@ _IMPL_ON_FUNC( DBE_GAME_FINAL_DELETE_UNIT_REQ, KEGS_FINAL_DELETE_UNIT_REQ )
 #endif SERV_CHAR_LOG
 	//}}
 
-	// ±æµå Á¤º¸´Â ÀÌ¹Ì »èÁ¦ µÇ¾ú´Ù°í º½ //
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ //
 
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	DO_QUERY( L"exec dbo.gup_delete_unit", L"%d, %d", % kPacket_.m_iUserUID
@@ -8220,7 +8240,7 @@ _IMPL_ON_FUNC( DBE_GAME_FINAL_DELETE_UNIT_REQ, KEGS_FINAL_DELETE_UNIT_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ ÃÖÁ¾ »èÁ¦ Ã³¸® ½ÇÆÐ!" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
@@ -8271,7 +8291,7 @@ _IMPL_ON_FUNC( DBE_GAME_RESTORE_UNIT_REQ, KEGS_RESTORE_UNIT_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ º¹±¸ Ã³¸® ½ÇÆÐ!" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iUserUID )
@@ -8285,7 +8305,7 @@ _IMPL_ON_FUNC( DBE_GAME_RESTORE_UNIT_REQ, KEGS_RESTORE_UNIT_REQ )
 		else if ( kPacket.m_iOK == -32 )
 		{
 			kPacket.m_iOK = NetError::ERR_RESTORE_UNIT_02;
-			//{{ // 2012.03.06 lygan_Á¶¼º¿í // ±âÁ¸ ¹®ÀÚ¿­½Ã°£À» ±×´ë·Î ¹Þ´Â ºÎºÐÀ» ¼­¹ö¿¡¼­ ¼ýÀÚ·Î º¯°æÇØ¼­ Å¬¶ó·Î Àü´Þ ±¸Á¶·Î º¯°æ
+			//{{ // 2012.03.06 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ Å¬ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			if( KncUtil::ConvertStringToCTime( wstrRestoreAbleDate, tRestoreAbleDateTime ) == true )
 				kPacket.m_tRestoreAbleDate = tRestoreAbleDateTime.GetTime();
 			else
@@ -8311,7 +8331,7 @@ end_proc:
 
 _IMPL_ON_FUNC( DBE_GAME_SELECT_UNIT_REQ, KEGS_SELECT_UNIT_REQ )
 {
-	//{{ 2012. 12. 10  Ä³¸¯ÅÍ ¼±ÅÃ ÆÐÅ¶ ºÐÇÒ - ±è¹Î¼º
+	//{{ 2012. 12. 10  Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SELECT_UNIT_PACKET_DIVISION
 	KDBE_SELECT_UNIT_ACK kPacket;
 #else
@@ -8319,10 +8339,10 @@ _IMPL_ON_FUNC( DBE_GAME_SELECT_UNIT_REQ, KEGS_SELECT_UNIT_REQ )
 #endif SERV_SELECT_UNIT_PACKET_DIVISION
 	//}}
 
-	// Ä³¸¯ÅÍ ¼±ÅÃ
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	Query_SelectUnit( LAST_SENDER_UID, kPacket_, kPacket );
 
-#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT// ÀÛ¾÷³¯Â¥: 2013-06-25	// ¹Ú¼¼ÈÆ
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-25	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	if( ( kPacket.m_iOK != NetError::ERR_SELECT_UNIT_01 )
 		|| ( CXSLUnit::GetUnitClassToUnitType( static_cast<CXSLUnit::UNIT_CLASS>( kPacket.m_kUnitInfo.m_cUnitClass ) ) != CXSLUnit::UT_ELESIS )
 		)
@@ -8332,14 +8352,14 @@ _IMPL_ON_FUNC( DBE_GAME_SELECT_UNIT_REQ, KEGS_SELECT_UNIT_REQ )
 		<< BUILD_LOG( NetError::GetErrStr( kPacket.m_iOK ) )
         << BUILD_LOG( LAST_SENDER_UID )
         << BUILD_LOG( kPacket_.m_iUnitUID );
-#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT// ÀÛ¾÷³¯Â¥: 2013-06-25	// ¹Ú¼¼ÈÆ
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-25	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	}
 #endif // SERV_ELISIS_PREVIOUS_SIS_EVENT
 
     SendToUser( LAST_SENDER_UID, DBE_GAME_SELECT_UNIT_ACK, kPacket );
 }
 
-//{{ 2009. 5. 28  ÃÖÀ°»ç	Ã¤³ÎÀÌµ¿
+//{{ 2009. 5. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ï¿½Ìµï¿½
 IMPL_ON_FUNC( DBE_CHANNEL_CHANGE_GAME_SELECT_UNIT_REQ )
 {
 	KDBE_CHANNEL_CHANGE_GAME_SELECT_UNIT_ACK kPacket;
@@ -8347,7 +8367,7 @@ IMPL_ON_FUNC( DBE_CHANNEL_CHANGE_GAME_SELECT_UNIT_REQ )
 	kPacket.m_kVerifyAccountAck = kPacket_.m_kVerifyAccountAck;
 	kPacket.m_kChangeUserInfo = kPacket_.m_kChangeUserInfo;
 
-	// Ä³¸¯ÅÍ ¼±ÅÃ
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	Query_SelectUnit( LAST_SENDER_UID, kPacket_.m_kSelectUnitReq, kPacket.m_kSelectUnitAck );
 
 	LOG_SUCCESS( kPacket.m_kSelectUnitAck.m_iOK == NetError::NET_OK )
@@ -8382,7 +8402,7 @@ _IMPL_ON_FUNC( DBE_ADMIN_MODIFY_UNIT_LEVEL_REQ, KEGS_ADMIN_MODIFY_UNIT_LEVEL_REQ
 		goto end_proc;
 	}
 
-	//{{ 2011. 07. 22	ÃÖÀ°»ç	¸ðµç Äõ¸® SP»ç¿ë
+	//{{ 2011. 07. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ï¿½
 #ifdef SERV_ALL_DB_QUERY_USE_SP
 	DO_QUERY( L"exec dbo.gup_get_unitclass_by_unituid", L"%d", % unitUID );
 #else
@@ -8460,7 +8480,7 @@ IMPL_ON_FUNC( DBE_BUY_ED_ITEM_REQ )
 {
     KDBE_BUY_ED_ITEM_ACK kPacket;
     kPacket.m_iED = 0;
-	//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	kPacket.m_iAPoint = 0;
 #else
@@ -8474,26 +8494,26 @@ IMPL_ON_FUNC( DBE_BUY_ED_ITEM_REQ )
     LIF( Query_UpdateItemEndurance( kPacket_.m_iUnitUID, kPacket_.m_kItemEnduranceUpdate, kPacket.m_kItemEnduranceUpdate ) );
     Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	// DB¿¡ ±¸¸ÅÇÑ ED¾ÆÀÌÅÛÀ» ³ÖÀ» ÁØºñ¸¦ ÇÏÀÚ!
+	// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ EDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ ï¿½ï¿½ï¿½ï¿½!
 	std::vector< KItemInfo > vecInsertItemList;
 
-	// »õ·Î ¸¶·ÃÇÑ ÄÁÅ×ÀÌ³Ê¿¡ ¿Å°Ü ´ãÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³Ê¿ï¿½ ï¿½Å°ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	BOOST_TEST_FOREACH( const KBuyGPItemInfo&, kBuyGPItemInfo, kPacket_.m_vecBuyGPItemInfo )
     {
 		KItemInfo kItemInfo;
@@ -8505,7 +8525,7 @@ IMPL_ON_FUNC( DBE_BUY_ED_ITEM_REQ )
 		vecInsertItemList.push_back( kItemInfo );
     }
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 #ifdef SERV_GET_ITEM_REASON_BY_CHEAT
 	int iGetItemReason = ( true == kPacket_.m_bCheat ) ? SEnum::GIR_GET_ITEM_BY_CHEAT : SEnum::GIR_BUY_ED_ITEM;
@@ -8519,7 +8539,7 @@ IMPL_ON_FUNC( DBE_BUY_ED_ITEM_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
@@ -8533,7 +8553,7 @@ IMPL_ON_FUNC( DBE_INSERT_ITEM_REQ )
 	kPacket.m_bOutRoom = kPacket_.m_bOutRoom;
     kPacket.m_mapInsertedItem = kPacket_.m_mapInsertedItem;
     kPacket.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
-	//{{ 2011. 05. 04  ±è¹Î¼º	´øÀü Å¬¸®¾î½Ã ¾ÆÀÌÅÛ Áö±Þ Á¶°Ç Ãß°¡
+	//{{ 2011. 05. 04  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM
 	kPacket.m_mapGetItem = kPacket_.m_mapGetItem;
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM
@@ -8544,23 +8564,23 @@ IMPL_ON_FUNC( DBE_INSERT_ITEM_REQ )
 	LIF( Query_UpdateItemEndurance( kPacket_.m_iUnitUID, kPacket_.m_kItemEnduranceUpdate, kPacket.m_kItemEnduranceUpdate ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( static_cast<SEnum::GET_ITEM_REASON>(kPacket_.m_cGetItemReason), kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -8568,7 +8588,7 @@ IMPL_ON_FUNC( DBE_INSERT_ITEM_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}	
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
@@ -8581,34 +8601,34 @@ IMPL_ON_FUNC( DBE_NEW_QUEST_REQ )
 	KDBE_NEW_QUEST_ACK kPacket;
 	kPacket.m_iOK		= NetError::ERR_ODBC_01;
 	kPacket.m_iQuestID	= kPacket_.m_iQuestID;
-	//{{ 2010. 10. 27	ÃÖÀ°»ç	Äù½ºÆ® Á¶°Ç Ãß°¡
+	//{{ 2010. 10. 27	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_QUEST_CLEAR_EXPAND
 	kPacket.m_mapInsertedItem			= kPacket_.m_mapInsertedItem;
 	kPacket.m_vecUpdatedInventorySlot	= kPacket_.m_vecUpdatedInventorySlot;
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¾ÆÀÌÅÛ º¸»ó
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_UnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_UnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_QUEST_REWARD, kPacket_.m_UnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -8616,7 +8636,7 @@ IMPL_ON_FUNC( DBE_NEW_QUEST_REQ )
 #endif SERV_GET_ITEM_REASON
 		//}}
 	{
-		START_LOG( cerr, L"Äù½ºÆ® ¼ö¶ô º¸»ó ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_UnitUID )
 			<< END_LOG;
 
@@ -8627,7 +8647,7 @@ IMPL_ON_FUNC( DBE_NEW_QUEST_REQ )
 	//}}
 
 	//////////////////////////////////////////////////////////////////////////
-	// Äù½ºÆ® ¼ö¶ô
+	// ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_create_quest", L"%d, %d", % kPacket_.m_UnitUID % kPacket_.m_iQuestID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -8637,7 +8657,7 @@ IMPL_ON_FUNC( DBE_NEW_QUEST_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Äù½ºÆ® DB »ý¼º ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® DB ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( LAST_SENDER_UID )
 			<< BUILD_LOG( kPacket.m_iQuestID )
 			<< BUILD_LOG( kPacket.m_iOK )
@@ -8666,7 +8686,7 @@ IMPL_ON_FUNC( DBE_GIVE_UP_QUEST_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Äù½ºÆ® DB »èÁ¦ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® DB ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( LAST_SENDER_UID )
 			<< BUILD_LOG( kPacket.m_iQuestID )
 			<< BUILD_LOG( kPacket.m_iOK )
@@ -8683,7 +8703,7 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_REQ )
 {
 	KDBE_QUEST_COMPLETE_ACK kPacket;
 	std::vector< KItemInfo >::iterator vit;
-	//{{ 2012. 04. 17	ÃÖÀ°»ç	Äù½ºÆ® Á¶°Ç ¸¶À» ÀÔÀå
+	//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ENTER_FIELD_QUEST_CLEAR
 	kPacket.m_bAutoComplete	= kPacket_.m_bAutoComplete;
 #endif SERV_ENTER_FIELD_QUEST_CLEAR
@@ -8695,12 +8715,12 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_REQ )
 	kPacket.m_bIsChangeJob = kPacket_.m_bIsChangeJob;
 	kPacket.m_cChangeUnitClass = kPacket_.m_cChangeUnitClass;	
 
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 	kPacket.m_iNewDefaultSkill1 = kPacket_.m_iNewDefaultSkill1;
 	kPacket.m_iNewDefaultSkill2 = kPacket_.m_iNewDefaultSkill2;	
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
-	//{{ 2010. 04. 02  ÃÖÀ°»ç	ÀÏÀÏÄù½ºÆ®
+	//{{ 2010. 04. 02  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_DAILY_QUEST
 	
 	kPacket.m_kCompleteQuestInfo.m_iQuestID = kPacket_.m_iQuestID;
@@ -8718,7 +8738,7 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Äù½ºÆ® ¿Ï·á DB ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï·ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_UnitUID )
 			<< BUILD_LOG( kPacket_.m_iQuestID )
@@ -8733,7 +8753,7 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_REQ )
 		CTime tCompleteDate;
 		LIF( KncUtil::ConvertStringToCTime( wstrCompleteDate, tCompleteDate ) );
 
-		// Äù½ºÆ® ¿Ï·á ¾÷µ¥ÀÌÆ® ¼º°ø!
+		// ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
 		kPacket.m_kCompleteQuestInfo.m_iQuestID = kPacket_.m_iQuestID;
 		kPacket.m_kCompleteQuestInfo.m_iCompleteCount = 1;
 		kPacket.m_kCompleteQuestInfo.m_tCompleteDate = tCompleteDate.GetTime();
@@ -8752,7 +8772,7 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Äù½ºÆ® ¿Ï·á DB ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï·ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_UnitUID )
 			<< BUILD_LOG( kPacket_.m_iQuestID )
@@ -8766,30 +8786,30 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_REQ )
 #endif SERV_DAILY_QUEST
 	//}}
 
-	//item uid ¹Þ¾Æ¿À±â
+	//item uid ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 	if( kPacket_.m_bIsNew == true )
 	{
 		bool bUpdateFailed = false;
 		LIF( Query_UpdateItemQuantity( kPacket_.m_UnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 		Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-		//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+		//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 		if( bUpdateFailed )
 		{
-			START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket_.m_UnitUID );
 
 			std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 			for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 			{
-				START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+				START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( mitQC->first )
 					<< BUILD_LOG( mitQC->second );
 			}
 		}
 		//}}
 
-		//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+		//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 		if( Query_InsertItemList( SEnum::GIR_QUEST_REWARD, kPacket_.m_UnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -8797,17 +8817,17 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_REQ )
 #endif SERV_GET_ITEM_REASON
 		//}}
 		{
-			START_LOG( cerr, L"Äù½ºÆ® º¸»ó ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket_.m_UnitUID )
 				<< END_LOG;
 			goto end_proc;
 		}
 	}
 
-	//ÀüÁ÷Äù½ºÆ® ¿´À» °æ¿ìÃ³¸®..
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã³ï¿½ï¿½..
 	if( kPacket_.m_bIsChangeJob == true )
 	{
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 		DO_QUERY( L"exec P_GUnit_UPD_UnitClass", L"%d, %d, %d, %d", % kPacket_.m_UnitUID % (int)kPacket_.m_cChangeUnitClass % kPacket_.m_iNewDefaultSkill1 % kPacket_.m_iNewDefaultSkill2 );
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
 /*
@@ -8824,7 +8844,7 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_REQ )
 		{
 			kPacket.m_iOK = NetError::ERR_QUEST_10;
 
-			START_LOG( cerr, L"DB Ã³¸® ½ÇÆÐ·Î ÀÎÇÑ À¯´Ö Äù½ºÆ®¿Ï·á ÀüÁ÷½ÇÆÐ.!" )
+			START_LOG( cerr, L"DB Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½Ð·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.!" )
 				<< BUILD_LOG( LAST_SENDER_UID )
 				<< BUILD_LOG( NetError::GetErrStr( kPacket.m_iOK ) )
 				<< END_LOG;
@@ -8836,7 +8856,7 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_REQ )
 		{
 			kPacket.m_iOK = NetError::ERR_QUEST_10;
 
-			START_LOG( cerr, L"À¯´Ö Äù½ºÆ®¿Ï·á ÀüÁ÷½ÇÆÐ.!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.!" )
 				<< BUILD_LOG( LAST_SENDER_UID )
 				<< BUILD_LOG( NetError::GetErrStr( kPacket.m_iOK ) )
 				<< END_LOG;
@@ -8849,7 +8869,7 @@ end_proc:
 	SendToUser( LAST_SENDER_UID, DBE_QUEST_COMPLETE_ACK, kPacket );
 }
 
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 IMPL_ON_FUNC( DBE_INSERT_SKILL_REQ )
 {
 	KDBE_INSERT_SKILL_ACK kPacket;
@@ -8859,7 +8879,7 @@ IMPL_ON_FUNC( DBE_INSERT_SKILL_REQ )
 	kPacket.m_iTotalSpendSkillPoint		= kPacket_.m_iTotalSpendSkillPoint;
 	kPacket.m_iBeforCSPoint		= kPacket_.m_iBeforCSPoint;
     
-	// Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® Á¤º¸¸¦ °»½Å
+	// Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( kPacket_.m_iCSPoint >= 0 )
 	{
 		DO_QUERY( L"exec dbo.gup_update_cash_skill_point_info", L"%d, %d",
@@ -8888,7 +8908,7 @@ IMPL_ON_FUNC( DBE_INSERT_SKILL_REQ )
 		}
 	}
 
-	// ½ºÅ³ È¹µæ Á¤º¸¸¦ °»½Å
+	// ï¿½ï¿½Å³ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	{
 		std::map< int, KGetSkillInfo >::iterator mit = kPacket_.m_mapSkillList.begin();
 		for( ; mit != kPacket_.m_mapSkillList.end() ; ++mit )
@@ -8967,7 +8987,7 @@ IMPL_ON_FUNC( DBE_INIT_SKILL_TREE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"DB ½ºÅ³ÃÊ±âÈ­ ½ÇÆÐ.!" )
+		START_LOG( cerr, L"DB ï¿½ï¿½Å³ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½.!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -8992,7 +9012,7 @@ end_proc:
 	SendToUser( LAST_SENDER_UID, DBE_INIT_SKILL_TREE_ACK, kPacket );
 }
 
-//{{ 2012. 03. 23	¹Ú¼¼ÈÆ	°ü¸®ÀÚ¿ë Ä¡Æ®Å° ¿À·ù ¼öÁ¤
+//{{ 2012. 03. 23	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ Ä¡Æ®Å° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 _IMPL_ON_FUNC( DBE_ADMIN_INIT_SKILL_TREE_REQ, KDBE_INIT_SKILL_TREE_REQ )
 {
 	KEGS_ADMIN_INIT_SKILL_TREE_ACK kPacket;
@@ -9000,7 +9020,7 @@ _IMPL_ON_FUNC( DBE_ADMIN_INIT_SKILL_TREE_REQ, KDBE_INIT_SKILL_TREE_REQ )
 	kPacket.m_iSPoint = kPacket_.m_iSPoint;
 	kPacket.m_iCSPoint = kPacket_.m_iCSPoint;
 
-	//{{ 2012. 03. 23	¹Ú¼¼ÈÆ	°ü¸®ÀÚ¿ë Ä¡Æ®Å° ¿À·ù ¼öÁ¤
+	//{{ 2012. 03. 23	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ Ä¡Æ®Å° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GSkill_New_All_DEL", L"%d, %d, %d, %d, %d, %d, %d, %d, %d",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_iSPoint
@@ -9028,7 +9048,7 @@ IMPL_ON_FUNC( DBE_ADMIN_CHANGE_UNIT_CLASS_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	kPacket.m_cUnitClass = kPacket_.m_cUnitClass;
 
-	//{{ 2012. 03. 23	¹Ú¼¼ÈÆ	°ü¸®ÀÚ¿ë Ä¡Æ®Å° ¿À·ù ¼öÁ¤
+	//{{ 2012. 03. 23	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ Ä¡Æ®Å° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GUnit_UPD_UnitClass_Admin", L"%d, %d, %d, %d, %d, %d, %d, %d",
 		% kPacket_.m_iUnitUID
 		% static_cast<int>(kPacket_.m_cUnitClass)
@@ -9065,7 +9085,7 @@ IMPL_ON_FUNC( DBE_ADMIN_AUTO_GET_ALL_SKILL_REQ )
 	kPacket.m_iNewDefaultSkill5 = kPacket_.m_iNewDefaultSkill5;
 	kPacket.m_iNewDefaultSkill6 = kPacket_.m_iNewDefaultSkill6;
 
-	//{{ 2012. 03. 23	¹Ú¼¼ÈÆ	°ü¸®ÀÚ¿ë Ä¡Æ®Å° ¿À·ù ¼öÁ¤
+	//{{ 2012. 03. 23	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ Ä¡Æ®Å° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GUnit_UPD_UnitClass_Admin", L"%d, %d, %d, %d, %d, %d, %d, %d",
 		% kPacket_.m_iUnitUID
 		% static_cast<int>(kPacket_.m_cUnitClass)
@@ -9084,7 +9104,7 @@ IMPL_ON_FUNC( DBE_ADMIN_AUTO_GET_ALL_SKILL_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä¡Æ®Å° ½ºÅ³ ÃÊ±âÈ­ ½ÇÆÐ" )
+		START_LOG( cerr, L"Ä¡Æ®Å° ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( LAST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket.m_iOK )
@@ -9165,7 +9185,7 @@ IMPL_ON_FUNC( DBE_ADMIN_GET_SKILL_REQ )
 	kPacket.m_iCSPoint = kPacket_.m_iCSPoint;
 	kPacket.m_bUnsealed = kPacket_.m_bUnsealed;
 
-	// ½ºÅ³ È¹µæ Á¤º¸¸¦ °»½Å
+	// ï¿½ï¿½Å³ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	{
 		DO_QUERY( L"exec dbo.gup_update_skill_info_new", L"%d, %d, %d, %d",
 			% kPacket_.m_iUnitUID 
@@ -9233,7 +9253,7 @@ IMPL_ON_FUNC( DBE_INSERT_SKILL_REQ )
 	kPacket.m_iSkillCSPoint		= kPacket_.m_iSkillCSPoint;
 	kPacket.m_iCSPoint			= kPacket_.m_iCSPoint;
 
-	// Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® Á¤º¸¸¦ °»½Å
+	// Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( kPacket_.m_iCSPoint >= 0 )
 	{
 		DO_QUERY( L"exec dbo.gup_update_cash_skill_point_info", L"%d, %d",
@@ -9265,7 +9285,7 @@ IMPL_ON_FUNC( DBE_INSERT_SKILL_REQ )
 		}
 	}
 
-	// ½ºÅ³ È¹µæ Á¤º¸¸¦ °»½Å
+	// ï¿½ï¿½Å³ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_update_skill_info_new", L"%d, %d, %d, %d",
 		% kPacket_.m_iUnitUID 
 		% kPacket_.m_iSkillID
@@ -9324,7 +9344,7 @@ IMPL_ON_FUNC( DBE_INIT_SKILL_TREE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"DB ½ºÅ³ÃÊ±âÈ­ ½ÇÆÐ.!" )
+		START_LOG( cerr, L"DB ï¿½ï¿½Å³ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½.!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -9345,7 +9365,7 @@ end_proc:
 	SendToUser( LAST_SENDER_UID, DBE_INIT_SKILL_TREE_ACK, kPacket );
 }
 
-//{{ 2012. 03. 23	¹Ú¼¼ÈÆ	°ü¸®ÀÚ¿ë Ä¡Æ®Å° ¿À·ù ¼öÁ¤
+//{{ 2012. 03. 23	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ Ä¡Æ®Å° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_FIX_THE_ADMIN_CHEAT
 	_IMPL_ON_FUNC( DBE_ADMIN_INIT_SKILL_TREE_REQ, KDBE_INIT_SKILL_TREE_REQ )
 #else
@@ -9356,7 +9376,7 @@ end_proc:
 	KEGS_ADMIN_INIT_SKILL_TREE_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-	//{{ 2012. 03. 23	¹Ú¼¼ÈÆ	°ü¸®ÀÚ¿ë Ä¡Æ®Å° ¿À·ù ¼öÁ¤
+	//{{ 2012. 03. 23	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ Ä¡Æ®Å° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_FIX_THE_ADMIN_CHEAT
 	DO_QUERY( L"exec dbo.gup_delete_all_skill_new", L"%d, %d, %d, %d, %d",
 		% kPacket_.m_iUnitUID
@@ -9442,8 +9462,8 @@ _IMPL_ON_FUNC( DBE_KNM_REQUEST_NEW_FRIEND_INFO_REQ, std::wstring )
 		goto end_proc;
 	}
 
-	//{{ 2009. 4. 1  ÃÖÀ°»ç		Ä£±¸ ÃÊ´ë Â÷´Ü ¿É¼ÇÀ» Ã£¾Æº¸ÀÚ	
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2009. 4. 1  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ä£ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ï¿½ï¿½ Ã£ï¿½Æºï¿½ï¿½ï¿½	
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	DO_QUERY( L"exec dbo.P_GDenyOption_SEL", L"%d", % iUnitUID );
 	if( m_kODBC.BeginFetch() )
@@ -9457,7 +9477,7 @@ _IMPL_ON_FUNC( DBE_KNM_REQUEST_NEW_FRIEND_INFO_REQ, std::wstring )
 
 		m_kODBC.EndFetch();
 
-		// Ä£±¸ ÃÊ´ë °ÅºÎ ¿É¼Ç
+		// Ä£ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½Åºï¿½ ï¿½É¼ï¿½
 		if( kDeny.m_cDenyFriendShip == KDenyOptions::DOS_ON )
 		{
 			kPacket.m_iOK = NetError::ERR_KNM_06;
@@ -9478,7 +9498,7 @@ _IMPL_ON_FUNC( DBE_KNM_REQUEST_NEW_FRIEND_INFO_REQ, std::wstring )
 
 		m_kODBC.EndFetch();
 
-		// Ä£±¸ ÃÊ´ë °ÅºÎ ¿É¼Ç
+		// Ä£ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½Åºï¿½ ï¿½É¼ï¿½
 		if( kDeny.m_cDenyFriendShip == KDenyOptions::DOS_ON )
 		{
 			kPacket.m_iOK = NetError::ERR_KNM_06;
@@ -9496,7 +9516,7 @@ _IMPL_ON_FUNC( DBE_KNM_REQUEST_NEW_FRIEND_INFO_REQ, std::wstring )
 	}
 	//}}
 
-	// ³Ø½¼ ¸Þ½ÅÀú¿ë CharacterSN.
+	// ï¿½Ø½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ CharacterSN.
 	DO_QUERY( L"exec dbo.gup_get_MessengerSN", L"%d", % iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -9528,23 +9548,23 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_TRADE, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -9552,7 +9572,7 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;		
 	}
@@ -9560,7 +9580,7 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_REQ )
 	SendToUser( LAST_SENDER_UID, DBE_INSERT_TRADE_ITEM_ACK, kPacket );
 }
 
-//{{ 2009. 2. 10  ÃÖÀ°»ç	°³ÀÎ°Å·¡ ¹ö±× ¿¹¹æ
+//{{ 2009. 2. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Î°Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_BY_SERVER_NOT )
 {
 	std::map< UidType, KItemInfo > mapDummy;
@@ -9573,23 +9593,23 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_BY_SERVER_NOT )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kDummy.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kDummy.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_TRADE_EXCEPTION, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, mapDummy ) == false )
 #else
@@ -9597,7 +9617,7 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_BY_SERVER_NOT )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
@@ -9614,7 +9634,7 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_BY_SERVER_NOT )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"°³ÀÎ°Å·¡Áß Á¾·á·Î ÀÎÇÑ ¼­¹ö °­Á¦ ED¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Î°Å·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iED )
@@ -9622,14 +9642,14 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_BY_SERVER_NOT )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"°³ÀÎ°Å·¡ ¶Ç´Â °³ÀÎ»óÁ¡Áß Á¾·á·Î ÀÎÇÑ ¼­¹ö °­Á¦ °Å·¡¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ®!" )
+	START_LOG( cout, L"ï¿½ï¿½ï¿½Î°Å·ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®!" )
 		<< BUILD_LOG( kPacket_.m_iUnitUID )
 		<< BUILD_LOG( kPacket_.m_iED );
 
 	mit = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 	for( ; mit != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mit )
 	{
-		START_LOG( cout, L"¼ö·® º¯µ¿" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( mit->first )
 			<< BUILD_LOG( mit->second );
 	}
@@ -9637,14 +9657,14 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_BY_SERVER_NOT )
 	vit = kPacket_.m_kItemQuantityUpdate.m_vecDeleted.begin();
 	for( ; vit != kPacket_.m_kItemQuantityUpdate.m_vecDeleted.end(); ++vit )
 	{
-		START_LOG( cout, L"¾ÆÀÌÅÛ »èÁ¦" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( vit->m_iItemUID );
 	}
     
 	vitIT = kPacket_.m_vecItemInfo.begin();
 	for( ; vitIT != kPacket_.m_vecItemInfo.end(); ++vitIT )
 	{
-		START_LOG( cout, L"¾ÆÀÌÅÛ »ý¼º" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( vitIT->m_iItemID )
 			<< BUILD_LOGc( vitIT->m_cUsageType )
 			<< BUILD_LOG( vitIT->m_iQuantity )
@@ -9655,7 +9675,7 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_BY_SERVER_NOT )
 			<< BUILD_LOG( vitIT->m_sPeriod )
 			<< BUILD_LOG( vitIT->m_wstrExpirationDate );
 
-		//{{ 2011. 07. 25    ±è¹Î¼º    ¾ÆÀÌÅÛ ¿É¼ÇID µ¥ÀÌÅÍ »çÀÌÁî Áõ°¡
+		//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ITEM_OPTION_DATA_SIZE
 		std::vector< int >::const_iterator vitS = vitIT->m_vecItemSocket.begin();
 #else
@@ -9664,7 +9684,7 @@ IMPL_ON_FUNC( DBE_INSERT_TRADE_ITEM_BY_SERVER_NOT )
 		//}} 
 		for( ; vitS != vitIT->m_vecItemSocket.begin(); ++vitS )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ »ý¼º : ¼ÒÄÏ" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( *vitS );
 		}
 	}
@@ -9686,23 +9706,23 @@ _IMPL_ON_FUNC( DBE_INSERT_PURCHASED_CASH_ITEM_REQ, KDBE_INSERT_ITEM_REQ )
     LIF( Query_UpdateItemEndurance( kPacket_.m_iUnitUID, kPacket_.m_kItemEnduranceUpdate, kPacket.m_kItemEnduranceUpdate ) );
     Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_BUY_CASH_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -9710,12 +9730,12 @@ _IMPL_ON_FUNC( DBE_INSERT_PURCHASED_CASH_ITEM_REQ, KDBE_INSERT_ITEM_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
 
-	//{{ 2009. 9. 2  ÃÖÀ°»ç		¹ÐºÀ
+	//{{ 2009. 9. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ðºï¿½
 	Query_UpdateSealItem( kPacket_.m_setSealCashItem, kPacket.m_mapItemInfo );
 	//}}
 
@@ -9734,23 +9754,23 @@ IMPL_ON_FUNC( DBE_INSERT_PURCHASED_CASH_PACKAGE_REQ )
 	LIF( Query_UpdateItemEndurance( kPacket_.m_iUnitUID, kPacket_.m_kItemEnduranceUpdate, kPacket.m_kItemEnduranceUpdate ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_BUY_CASH_PACKAGE, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -9758,12 +9778,12 @@ IMPL_ON_FUNC( DBE_INSERT_PURCHASED_CASH_PACKAGE_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
 
-	//{{ 2009. 9. 2  ÃÖÀ°»ç		¹ÐºÀ
+	//{{ 2009. 9. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ðºï¿½
 	Query_UpdateSealItem( kPacket_.m_setSealCashItem, kPacket.m_mapItemInfo );
 	//}}
 
@@ -9781,27 +9801,27 @@ IMPL_ON_FUNC( DBE_OPEN_RANDOM_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
-	//{{ 2013. 06. 04	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+	//{{ 2013. 06. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05	
-	// Å¥ºê ¿­°í ³ª¿Â °á°ú¹°ÀÌ ¹ÐºÀ µÇµµ·Ï ¼öÁ¤
+	// Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ðºï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( Query_InsertItemList( SEnum::GIR_RANDOM_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo, false ) == false )
 #else
 	if( Query_InsertItemList( SEnum::GIR_RANDOM_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
@@ -9812,7 +9832,7 @@ IMPL_ON_FUNC( DBE_OPEN_RANDOM_ITEM_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"·£´ý Å¥ºê ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -9822,20 +9842,20 @@ IMPL_ON_FUNC( DBE_OPEN_RANDOM_ITEM_REQ )
 	{
 		kPacket.m_iOK = NetError::NET_OK;
 
-		//{{ 2010. 7. 26  ÃÖÀ°»ç	¹ÐºÀ ·£´ý Å¥ºê
+		//{{ 2010. 7. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ðºï¿½ ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½
 #ifdef SERV_SEALED_RANDOM_ITEM
 		Query_UpdateSealItem( kPacket_.m_setSealRandomItem, kPacket.m_mapItemInfo );
 #endif SERV_SEALED_RANDOM_ITEM
 		//}}
 	}
 
-	//{{ 2011.12.28 ±è¹Î¼º   ·£´ý Å¥ºê ¿ÀÇÂ½Ã ºÎÈ°¼® Ç¥±â ¿À·ù ¼öÁ¤
+	//{{ 2011.12.28 ï¿½ï¿½Î¼ï¿½   ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½Â½ï¿½ ï¿½ï¿½È°ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_OPEN_RANDOM_CUBE_VIEW_ERROR
 	kPacket.m_iNumResurrectionStone	= kPacket_.m_iNumResurrectionStone;
 #endif SERV_OPEN_RANDOM_CUBE_VIEW_ERROR
 	//}}
 
-	//{{ 2012. 11. 26 Å¥ºê ED ¿ÀÇÂ Á¶°Ç ±â´É Ãß°¡ - ±è¹Î¼º
+	//{{ 2012. 11. 26 Å¥ï¿½ï¿½ ED ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_CUBE_OPEN_ED_CONDITION
 	kPacket.m_iSpendED = kPacket_.m_iSpendED;
 #endif SERV_CUBE_OPEN_ED_CONDITION
@@ -9855,23 +9875,23 @@ IMPL_ON_FUNC( DBE_ITEM_MANUFACTURE_REQ )
     LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
     Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_MANUFACTURE, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -9879,7 +9899,7 @@ IMPL_ON_FUNC( DBE_ITEM_MANUFACTURE_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -9888,14 +9908,14 @@ IMPL_ON_FUNC( DBE_ITEM_MANUFACTURE_REQ )
 	else
 	{
 		kPacket.m_iOK = NetError::NET_OK;
-		//{{ 2012. 02. 07	¹Ú¼¼ÈÆ	¾ÆÀÌÅÛ Åø ÀÛ¾÷ ( g_pManufactureItemManager:AddManufactureResultGroupWithRate ¿¡ ÃÊ±â ºÀÀÎ »óÅÂ ÀÎÀÚ Ãß°¡ )
+		//{{ 2012. 02. 07	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Û¾ï¿½ ( g_pManufactureItemManager:AddManufactureResultGroupWithRate ï¿½ï¿½ ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ )
 #ifdef SERV_ADD_SEALED_ITEM_SIGN
 
 		std::set< int > setSealItem;
 
 		for( size_t i=0; i < kPacket_.m_vecItemInfo.size(); ++i )
 		{
-			if( kPacket_.m_vecItemInfo[i].IsSealedItem() == true )   // ºÀÀÎ ¾ÆÀÌÅÛÀÌ¶ó´Â °Í
+			if( kPacket_.m_vecItemInfo[i].IsSealedItem() == true )   // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½
 			{
 				setSealItem.insert( kPacket_.m_vecItemInfo[i].m_iItemID );
 			}
@@ -9921,23 +9941,23 @@ IMPL_ON_FUNC( DBE_RESOLVE_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_RESOLVE_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -9945,7 +9965,7 @@ IMPL_ON_FUNC( DBE_RESOLVE_ITEM_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -9966,7 +9986,7 @@ _IMPL_ON_FUNC( DBE_CHANGE_NICK_NAME_REQ, KEGS_CHANGE_NICK_NAME_REQ )
     kPacket.m_iUnitUID = kPacket_.m_iUnitUID;
 	kPacket.m_bCheckOnly = kPacket_.m_bCheckOnly;
 
-	// »ç¿ë°¡´ÉÇÑ ´Ð³×ÀÓÀÎÁö Ã¼Å©¸¸ ÇÏ±â
+	// ï¿½ï¿½ë°¡ï¿½ï¿½ï¿½ï¿½ ï¿½Ð³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ï±ï¿½
 	if( kPacket_.m_bCheckOnly )
 	{
 		DO_QUERY( L"exec dbo.gup_check_nickname", L"N\'%s\'", % kPacket_.m_wstrNickName );
@@ -9995,7 +10015,7 @@ _IMPL_ON_FUNC( DBE_CHANGE_NICK_NAME_REQ, KEGS_CHANGE_NICK_NAME_REQ )
 
 			default:
 				{
-					START_LOG( cerr, L"Á¤ÀÇµÇÁö ¾ÊÀº ¿¡·¯! sp°¡ ¹Ù²¼³ª?" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! spï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( kPacket.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( kPacket_.m_wstrNickName )
@@ -10008,7 +10028,7 @@ _IMPL_ON_FUNC( DBE_CHANGE_NICK_NAME_REQ, KEGS_CHANGE_NICK_NAME_REQ )
 			goto end_proc;
 		}
 	}
-	// ½ÇÁ¦·Î ´Ð³×ÀÓ º¯°æÇÏ±â
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
 	else
 	{
 		DO_QUERY( L"exec dbo.gup_restore_nickname", L"%d, N\'%s\'", % kPacket_.m_iUnitUID % kPacket_.m_wstrNickName );
@@ -10046,7 +10066,7 @@ _IMPL_ON_FUNC( DBE_CHANGE_NICK_NAME_REQ, KEGS_CHANGE_NICK_NAME_REQ )
 
 			default:
 				{
-					START_LOG( cerr, L"Á¤ÀÇµÇÁö ¾ÊÀº ¿¡·¯! sp°¡ ¹Ù²¼³ª?" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! spï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( kPacket.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( kPacket_.m_wstrNickName )
@@ -10068,14 +10088,14 @@ end_proc:
     SendToUser( LAST_SENDER_UID, DBE_CHANGE_NICK_NAME_ACK, kPacket );
 }
 
-//{{ 2007. 8. 9  ÃÖÀ°»ç  ºí·¢¸®½ºÆ® ÆÐÅ¶ ÇÚµé·¯ - GSGameDBThread
+//{{ 2007. 8. 9  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½Å¶ ï¿½Úµé·¯ - GSGameDBThread
 IMPL_ON_FUNC( DBE_NEW_BLACKLIST_USER_REQ )
 {
 	KEGS_NEW_BLACKLIST_USER_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	kPacket.m_kChatBlackListUnit.m_iUnitUID = kPacket_.m_iBlackListUnitUID;
 
-	// ºí·¢¸®½ºÆ® À¯Àú ÀúÀå
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_insert_blacklist", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iBlackListUnitUID );
 	
 	if( m_kODBC.BeginFetch() )
@@ -10127,20 +10147,20 @@ end_proc:
 }
 //}}
 
-//{{ 2009. 9. 22  ÃÖÀ°»ç	ÀüÁ÷Ä³½¬
+//{{ 2009. 9. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½
 IMPL_ON_FUNC( DBE_CHANGE_UNIT_CLASS_REQ )
 {
 	KDBE_CHANGE_UNIT_CLASS_ACK kPacket;
 	kPacket.m_iOK		 = NetError::ERR_ODBC_01;
 	kPacket.m_usEventID  = kPacket_.m_usEventID;
 	kPacket.m_cUnitClass = kPacket_.m_cUnitClass;
-	//{{ 2012. 07. 12	±è¹Î¼º       ÀüÁ÷±Ç ±¸¸Å ÀÌº¥Æ®
+	//{{ 2012. 07. 12	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
 	kPacket.m_iItemID = kPacket_.m_iItemID;
 #endif SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
 	//}}
 
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 	kPacket.m_iNewDefaultSkill1 = kPacket_.m_iNewDefaultSkill1;
 	kPacket.m_iNewDefaultSkill2 = kPacket_.m_iNewDefaultSkill2;
 
@@ -10180,29 +10200,29 @@ IMPL_ON_FUNC( DBE_INSERT_BUY_PERSONAL_SHOP_ITEM_REQ )
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 
-// 	START_LOG( cerr, L"»èÁ¦ ´©°¡ È£Ãâ ÇÏ³ª" )
+// 	START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ ï¿½Ï³ï¿½" )
 // 		<< BUILD_LOG( kPacket_.m_iUnitUID )
 // 		<< END_LOG;
 
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_PERSONAL_SHOP, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -10210,7 +10230,7 @@ IMPL_ON_FUNC( DBE_INSERT_BUY_PERSONAL_SHOP_ITEM_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
@@ -10240,7 +10260,7 @@ IMPL_ON_FUNC( DBE_ENCHANT_ITEM_REQ )
 	{
 		std::wstring wstrEnchantResult = NetError::GetErrStr( kPacket_.m_iEnchantResult );
 
-		START_LOG( cerr, L"°­È­ ·¹º§ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -10256,16 +10276,16 @@ IMPL_ON_FUNC( DBE_ENCHANT_ITEM_REQ )
     LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -10276,7 +10296,7 @@ end_proc:
     SendToUser( LAST_SENDER_UID, DBE_ENCHANT_ITEM_ACK, kPacket );
 }
 
-//{{ 2008. 12. 21  ÃÖÀ°»ç	°­È­ º¹±¸
+//{{ 2008. 12. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_RESTORE_ITEM_REQ )
 {
 	KDBE_RESTORE_ITEM_ACK kPacket;
@@ -10295,7 +10315,7 @@ IMPL_ON_FUNC( DBE_RESTORE_ITEM_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"»ç¿ëºÒ°¡ ¾ÆÀÌÅÛ º¹±¸ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -10310,15 +10330,15 @@ IMPL_ON_FUNC( DBE_RESTORE_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" );
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -10330,12 +10350,12 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 3. 6  ÃÖÀ°»ç  ¼ÒÄÏ
+//{{ 2008. 3. 6  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_SOCKET_ITEM_REQ )
 {
 	KDBE_SOCKET_ITEM_ACK kPacket;
 	kPacket.m_vecSocketInfo = kPacket_.m_vecSocketInfo;
-	//{{ 2010. 04. 15  ÃÖÀ°»ç	¼ÒÄÏ °³Æí
+	//{{ 2010. 04. 15  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SOCKET_NEW
 #else
 	kPacket.m_iSocketResult = kPacket_.m_iSocketResult;
@@ -10344,15 +10364,15 @@ IMPL_ON_FUNC( DBE_SOCKET_ITEM_REQ )
 	//}}
 	kPacket.m_iItemUID		= kPacket_.m_iItemUID;
 	kPacket.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
-	//{{ 2011. 01. 26	ÃÖÀ°»ç	Äù½ºÆ® Å¬¸®¾î Á¶°Ç Ãß°¡
+	//{{ 2011. 01. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Æ® Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_QUEST_CLEAR_EXPAND
 	kPacket.m_iSocketUseCount = kPacket_.m_iSocketUseCount;
 #endif SERV_QUEST_CLEAR_EXPAND
 	//}}
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-	int arrSocketInfo[4] = {0,0,0,0}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í
-	//{{ 2011. 07. 25    ±è¹Î¼º    ¾ÆÀÌÅÛ ¿É¼ÇID µ¥ÀÌÅÍ »çÀÌÁî Áõ°¡
+	int arrSocketInfo[4] = {0,0,0,0}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ITEM_OPTION_DATA_SIZE
 	std::vector< int >::const_iterator vit = kPacket.m_vecSocketInfo.begin();
 #else
@@ -10385,7 +10405,7 @@ IMPL_ON_FUNC( DBE_SOCKET_ITEM_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -10402,16 +10422,16 @@ IMPL_ON_FUNC( DBE_SOCKET_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( LAST_SENDER_UID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -10423,16 +10443,16 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 3. 28  ÃÖÀ°»ç  ÃßÃµ / »çÁ¦ º¸»ó
+//{{ 2008. 3. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½Ãµ / ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_RECOMMEND_USER_REQ )
 {
 	KDBE_RECOMMEND_USER_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	kPacket.m_iRecommendedUnitUID = 0;
 
-	//{{ 2013. 03. 21	 ÃßÃµÀÎ ½Ã½ºÅÛ °³Æí - ±è¹Î¼º
+	//{{ 2013. 03. 21	 ï¿½ï¿½Ãµï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RECOMMEND_LIST_EVENT
-	// º¸»ó
+	// ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GRecommend_INS", L"%d, N\'%s\'",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_wstrNickName
@@ -10451,11 +10471,11 @@ IMPL_ON_FUNC( DBE_RECOMMEND_USER_REQ )
 		{
 		case -1:    kPacket.m_iOK = NetError::ERR_RECOMMEND_USER_00;   break;
 		case -2:    kPacket.m_iOK = NetError::ERR_RECOMMEND_USER_01;   break;
-		case -3:	kPacket.m_iOK = NetError::ERR_RECOMMEND_USER_07;   break;		// ´õ ÀÌ»ó ÃßÃµ ÇÒ ¼ö ¾ø´Â À¯ÀúÀÔ´Ï´Ù.
+		case -3:	kPacket.m_iOK = NetError::ERR_RECOMMEND_USER_07;   break;		// ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½Ãµ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
 			//}}
 		default:
 			{
-				START_LOG( cerr, L"ÃßÃµÀÎ µî·ÏÀÌ ½ÇÆÐÇÏ¿´½À´Ï´Ù!" )
+				START_LOG( cerr, L"ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½!" )
 					<< BUILD_LOG( kPacket.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_wstrNickName )
@@ -10466,7 +10486,7 @@ IMPL_ON_FUNC( DBE_RECOMMEND_USER_REQ )
 		}
 	}
 #else
-	// º¸»ó
+	// ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_insert_recommend", L"%d, N\'%s\'",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_wstrNickName
@@ -10484,12 +10504,12 @@ IMPL_ON_FUNC( DBE_RECOMMEND_USER_REQ )
 		switch( kPacket.m_iOK )
 		{
 		case -1:    kPacket.m_iOK = NetError::ERR_RECOMMEND_USER_00;   break;
-			//{{ 2008. 5. 16  ÃÖÀ°»ç  Ã¼ÇèID Á¦ÇÑ
+			//{{ 2008. 5. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  Ã¼ï¿½ï¿½ID ï¿½ï¿½ï¿½ï¿½
 		case -3:	kPacket.m_iOK = NetError::ERR_GUEST_USER_01;	   break;
 			//}}
 		default:
 			{
-				START_LOG( cerr, L"ÃßÃµÀÎ µî·ÏÀÌ ½ÇÆÐÇÏ¿´½À´Ï´Ù!" )
+				START_LOG( cerr, L"ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½!" )
 					<< BUILD_LOG( kPacket.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_wstrNickName )
@@ -10517,7 +10537,7 @@ IMPL_ON_FUNC( DBE_INSERT_REWARD_TO_POST_REQ )
 	kPacket.m_iRewardLetter.m_iQuantity	   = kPacket_.m_sQuantity;
 	kPacket.m_iRewardLetter.m_wstrMessage  = kPacket_.m_wstrMessage;
 
-	// º¸»ó
+	// ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_insert_post_item", L"%d, %d, %d, %d, %d, N\'%s\'",
 		% kPacket_.m_iFromUnitUID
 		% kPacket_.m_iToUnitUID
@@ -10545,10 +10565,10 @@ IMPL_ON_FUNC( DBE_INSERT_REWARD_TO_POST_REQ )
 		goto end_proc;
 	}	
 
-	//{{ 2010. 02. 24  ÃÖÀ°»ç	À¥ Æ÷ÀÎÆ® ÀÌº¥Æ®
+	//{{ 2010. 02. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ìºï¿½Æ®
 #ifdef SERV_WEB_POINT_EVENT
 
-	// À¥ Æ÷ÀÎÆ® ÀÌº¥Æ® º¸»ó ¿ìÆí ·Î±×
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 	if( kPacket_.m_iRewardType == KPostItemInfo::LT_WEB_POINT_EVENT )
 	{
 		int iOK = NetError::ERR_ODBC_01;
@@ -10563,7 +10583,7 @@ IMPL_ON_FUNC( DBE_INSERT_REWARD_TO_POST_REQ )
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"À¥ Æ÷ÀÎÆ® ÀÌº¥Æ® º¸»ó ¿ìÆí ·Î±× Äõ¸® ½ÇÆÐ" )				
+			START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )				
 				<< BUILD_LOG( kPacket_.m_iToUnitUID )
 				<< BUILD_LOG( kPacket.m_iRewardLetter.m_iPostNo )
 				<< END_LOG;
@@ -10573,7 +10593,7 @@ IMPL_ON_FUNC( DBE_INSERT_REWARD_TO_POST_REQ )
 #endif SERV_WEB_POINT_EVENT
 	//}}
 
-	//{{ 2013. 01. 21  ´ë±Ô¸ð ÀÌº¥Æ® º¸»ó ½Ã ÃÖÃÊ ¼±ÅÃ Ä³¸¯ÅÍ¿¡°Ô Áö±ÞÇÏ´Â ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 01. 21  ï¿½ï¿½Ô¸ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_FIRST_SELECT_UNIT_REWARD_SYSTEM
 	kPacket.m_iDBIndex = kPacket_.m_iDBIndex;
 #endif SERV_FIRST_SELECT_UNIT_REWARD_SYSTEM
@@ -10591,15 +10611,15 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 9. 18  ÃÖÀ°»ç	ÆíÁö ¾²±â
+//{{ 2008. 9. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_PREPARE_INSERT_LETTER_TO_POST_REQ )
 {
 	KDBE_PREPARE_INSERT_LETTER_TO_POST_ACK kPacket;
 	kPacket.m_iOK			  = NetError::ERR_ODBC_01;
 
-	//{{ 2012. 08. 23	¹Ú¼¼ÈÆ	¿ìÆí ·ÎÁ÷ º¯°æ
+	//{{ 2012. 08. 23	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_LOGIC_CHANGE_LETTER
-	// ED µ¿±âÈ­
+	// ED ï¿½ï¿½ï¿½ï¿½È­
 	int iOK = NetError::ERR_ODBC_00;
 	DO_QUERY( L"exec dbo.P_GUnit_UPT_POST_GP", L"%d, %d", % kPacket_.m_iFromUnitUID % kPacket_.m_iIncrementED );
 	if( m_kODBC.BeginFetch() )
@@ -10610,31 +10630,31 @@ IMPL_ON_FUNC( DBE_PREPARE_INSERT_LETTER_TO_POST_REQ )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ED µ¿±âÈ­ ½ÇÆÐ!!" )
+		START_LOG( cerr, L"ED ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½!!" )
 			<< BUILD_LOG( LAST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_iFromUnitUID )
 			<< BUILD_LOG( kPacket_.m_iIncrementED )
 			<< BUILD_LOG( iOK )
 			<< END_LOG;
 
-		// ½ÇÆÐ Çß´Ù¸é ED¸¦ ¿ø·¡´ë·Î µ¹·Á³ö¾ß ÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ß´Ù¸ï¿½ EDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 		kPacket.m_iIncrementED = kPacket_.m_iIncrementED;
 	}
 
-	// ¾ÆÀÌÅÛ µ¿±âÈ­
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iFromUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iFromUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -10644,7 +10664,7 @@ IMPL_ON_FUNC( DBE_PREPARE_INSERT_LETTER_TO_POST_REQ )
 		( kPacket.m_kItemQuantityUpdate.m_mapQuantityChange.empty() != true ) ||
 		( kPacket.m_kItemQuantityUpdate.m_vecDeleted.empty() != true ) )
 	{
-		// ÀÛ¾÷ Àü µ¿±âÈ­ ¼öÇà ½ÇÆÐ!!
+		// ï¿½Û¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!
 		kPacket.m_iOK = NetError::ERR_POST_LETTER_03;
 		goto end_proc;
 	}
@@ -10657,7 +10677,7 @@ IMPL_ON_FUNC( DBE_PREPARE_INSERT_LETTER_TO_POST_REQ )
 	kPacket.m_iSendLetterCost = kPacket_.m_iSendLetterCost;
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¿ìÆí¿¡ Ã·ºÎ ³Ö±â Àü¿¡ ¼ö·® Ã¼Å©	
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã·ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©	
 	DO_QUERY( L"exec dbo.gup_check_insert_post_item", L"%d, N\'%s\'", % kPacket_.m_iFromUnitUID % kPacket_.m_wstrToNickName );
 
 	if( m_kODBC.BeginFetch() )
@@ -10674,14 +10694,14 @@ IMPL_ON_FUNC( DBE_PREPARE_INSERT_LETTER_TO_POST_REQ )
 		case -98: kPacket.m_iOK = NetError::ERR_POST_LETTER_13; break;
 		case -97: kPacket.m_iOK = NetError::ERR_POST_LETTER_15; break;
 		case -96: kPacket.m_iOK = NetError::ERR_POST_LETTER_17; break;
-			//{{ 2012. 09. 26	ÃÖÀ°»ç		¿ìÆí º¹»ç ¹ö±× ¼öÁ¤
+			//{{ 2012. 09. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_POST_COPY_BUG_FIX
 		case -100: kPacket.m_iOK = NetError::ERR_POST_LETTER_20; break;
 #endif SERV_POST_COPY_BUG_FIX
 			//}}
 
 		default:
-			START_LOG( cerr, L"Á¤ÀÇµÇÁö ¾ÊÀº ¿¡·¯~!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½~!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iFromUnitUID )
 				<< BUILD_LOG( kPacket_.m_wstrToNickName )
@@ -10712,14 +10732,14 @@ end_proc:
 	SendToUser( LAST_SENDER_UID, DBE_PREPARE_INSERT_LETTER_TO_POST_ACK, kPacket );
 }
 
-//{{ 2012. 08. 20	¹Ú¼¼ÈÆ	¿ìÆí ·ÎÁ÷ º¯°æ
+//{{ 2012. 08. 20	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_TRADE_LOGIC_CHANGE_LETTER
 //////////////////////////////////////////////////////////////////////////
 IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 {
 	KDBE_INSERT_LETTER_TO_POST_ACK kPacket;
-	//{{ 2011. 07. 25    ±è¹Î¼º    ¾ÆÀÌÅÛ ¿É¼ÇID µ¥ÀÌÅÍ »çÀÌÁî Áõ°¡
+	//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ITEM_OPTION_DATA_SIZE
 	std::vector< int >::const_iterator vit;
 #else
@@ -10734,24 +10754,24 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 	
 	if( kPacket_.m_kSendLetter.IsSystemLetter() != true )
 	{
-		const byte	iTradeType		= 0;	// ¿ìÆí º¸³»±â
+		const byte	iTradeType		= 0;	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		int			iED				= -kPacket_.m_iSendLetterCost;
 		UidType		iItemUID		= 0;
 		int			iQuantity		= 0;
-		byte		iPostItemType	= 3;	// Ã·ºÎ ¾øÀ½
+		byte		iPostItemType	= 3;	// Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		byte		iUsageType		= static_cast<byte>( CXSLItem::PT_INFINITY );
 
 		if( 0 < kPacket_.m_kSendLetter.m_iScriptIndex )
 		{
 			if( kPacket_.m_kSendLetter.m_iScriptIndex == CXSLItem::EDI_BRONZE_ED )
 			{
-				iPostItemType	= 2;	// ED Ã·ºÎ
+				iPostItemType	= 2;	// ED Ã·ï¿½ï¿½
 				iED				-= kPacket_.m_kSendLetter.m_iQuantity;
 				iQuantity		= kPacket_.m_kSendLetter.m_iQuantity;
 			}
 			else
 			{
-				iPostItemType = 1;	// ¾ÆÀÌÅÛ Ã·ºÎ
+				iPostItemType = 1;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã·ï¿½ï¿½
 				iItemUID  = kPacket_.m_kSendLetter.m_iItemUID;
 				iQuantity = kPacket_.m_kSendLetter.m_iQuantity;
 				iUsageType= kPacket_.m_kSendLetter.m_iUsageType;
@@ -10788,7 +10808,7 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ÆíÁö ¾²±â ½ÇÆÐ!! Àý´ë ÀÏ¾î³ª¼­´Â ¾ÈµÊ!!!!! º¹±¸ ÀÌ½´ ¹ß»ý!")
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!! ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½Èµï¿½!!!!! ï¿½ï¿½ï¿½ï¿½ ï¿½Ì½ï¿½ ï¿½ß»ï¿½!")
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( iTradeType )
 				<< BUILD_LOG( kPacket_.m_iFromUnitUID )
@@ -10809,28 +10829,28 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 	}
 	else
 	{
-		// 1. ¾ÆÀÌÅÛµéÀ» Áö¿î´Ù..
+		// 1. ï¿½ï¿½ï¿½ï¿½ï¿½Ûµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½..
 		bool bUpdateFailed = false;
 		LIF( Query_UpdateItemQuantity( kPacket_.m_iFromUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 		Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );	
 
-		//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+		//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 		if( bUpdateFailed )
 		{
-			START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket_.m_iFromUnitUID );
 
 			std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 			for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 			{
-				START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+				START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( mitQC->first )
 					<< BUILD_LOG( mitQC->second );
 			}
 		}
 		//}}
 
-		int arrSocketInfo[4] = {0,0,0,0}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í
+		int arrSocketInfo[4] = {0,0,0,0}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
 		vit = kPacket_.m_kSendLetter.m_vecItemSocket.begin();
 		for( int iIdx = 0; iIdx < 4; iIdx++ )
 		{		
@@ -10841,10 +10861,10 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 			++vit;
 		}
 		
-		//{{ 2013. 05. 28	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+		//{{ 2013. 05. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 
-		int arrRandomSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í
+		int arrRandomSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
 
 		std::vector< int >::const_iterator vitSocket = kPacket_.m_kSendLetter.m_vecRandomSocket.begin();
 		for( int iIdx = 0; iIdx < CXSLSocketItem::RSC_MAX; ++iIdx )
@@ -10856,7 +10876,7 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 			++vitSocket;
 		}
 
-		// 2. ¿ìÃ¼±¹¿¡ ÆíÁö¸¦ ³Ö´Â´Ù..
+		// 2. ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Â´ï¿½..
 		DO_QUERY( L"exec dbo.P_GPost_INS",
 			L"%d, N\'%s\', %d, %d, %d, N\'%s\', N\'%s\', %d, %d, %d, "
 			L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
@@ -10917,7 +10937,7 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{	
-			START_LOG( cerr, L"ÆíÁö ¾²±â DB isnert½ÇÆÐ! ÀÏ¾î³ª¸é ¾ÈµÇ´Â ¿¡·¯!!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DB isnertï¿½ï¿½ï¿½ï¿½! ï¿½Ï¾î³ªï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iFromUnitUID )
 				<< BUILD_LOG( kPacket_.m_wstrToNickName	)
@@ -10933,10 +10953,10 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 				<< BUILD_LOG( arrSocketInfo[3] )
 				<< BUILD_LOGc( kPacket_.m_kSendLetter.m_kAttribEnchantInfo.m_cAttribEnchant0 )
 				<< BUILD_LOGc( kPacket_.m_kSendLetter.m_kAttribEnchantInfo.m_cAttribEnchant1 )
-				//{{ 2009. 11. 9  ÃÖÀ°»ç	Æ®¸®ÇÃ¼Ó¼º
+				//{{ 2009. 11. 9  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ®ï¿½ï¿½ï¿½Ã¼Ó¼ï¿½
 				<< BUILD_LOGc( kPacket_.m_kSendLetter.m_kAttribEnchantInfo.m_cAttribEnchant2 )
 				//}}
-				//{{ 2009. 8. 27  ÃÖÀ°»ç	¹ÐºÀ
+				//{{ 2009. 8. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ðºï¿½
 				<< BUILD_LOGc( kPacket_.m_kSendLetter.m_ucSealData )
 				//}}
 				<< END_LOG;
@@ -10955,7 +10975,7 @@ end_proc:
 IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 {
 	KDBE_INSERT_LETTER_TO_POST_ACK kPacket;
-	//{{ 2011. 07. 25    ±è¹Î¼º    ¾ÆÀÌÅÛ ¿É¼ÇID µ¥ÀÌÅÍ »çÀÌÁî Áõ°¡
+	//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ITEM_OPTION_DATA_SIZE
 	std::vector< int >::const_iterator vit;
 #else
@@ -10968,28 +10988,28 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 	kPacket.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
 	kPacket.m_iSendLetterCost		  = kPacket_.m_iSendLetterCost;
 
-	// 1. ¾ÆÀÌÅÛµéÀ» Áö¿î´Ù..
+	// 1. ï¿½ï¿½ï¿½ï¿½ï¿½Ûµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½..
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iFromUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );	
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iFromUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	int arrSocketInfo[4] = {0,0,0,0}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í
+	int arrSocketInfo[4] = {0,0,0,0}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
 	vit = kPacket_.m_kSendLetter.m_vecItemSocket.begin();
 	for( int iIdx = 0; iIdx < 4; iIdx++ )
 	{		
@@ -11000,10 +11020,10 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 		++vit;
 	}
 	
-	//{{ 2013. 05. 28	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+	//{{ 2013. 05. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 
-	int arrRandomSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í
+	int arrRandomSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	std::vector< int >::const_iterator vitSocket = kPacket_.m_kSendLetter.m_vecRandomSocket.begin();
 	for( int iIdx = 0; iIdx < CXSLSocketItem::RSC_MAX; ++iIdx )
@@ -11015,7 +11035,7 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 		++vitSocket;
 	}
 
-	// 2. ¿ìÃ¼±¹¿¡ ÆíÁö¸¦ ³Ö´Â´Ù..
+	// 2. ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Â´ï¿½..
 	DO_QUERY( L"exec dbo.P_GPost_INS",
 		L"%d, N\'%s\', %d, %d, %d, N\'%s\', N\'%s\', %d, %d, %d, "
 		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
@@ -11076,7 +11096,7 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{	
-		START_LOG( cerr, L"ÆíÁö ¾²±â DB isnert½ÇÆÐ! ÀÏ¾î³ª¸é ¾ÈµÇ´Â ¿¡·¯!!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DB isnertï¿½ï¿½ï¿½ï¿½! ï¿½Ï¾î³ªï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iFromUnitUID )
 			<< BUILD_LOG( kPacket_.m_wstrToNickName	)
@@ -11092,10 +11112,10 @@ IMPL_ON_FUNC( DBE_INSERT_LETTER_TO_POST_REQ )
 			<< BUILD_LOG( arrSocketInfo[3] )
 			<< BUILD_LOGc( kPacket_.m_kSendLetter.m_kAttribEnchantInfo.m_cAttribEnchant0 )
 			<< BUILD_LOGc( kPacket_.m_kSendLetter.m_kAttribEnchantInfo.m_cAttribEnchant1 )
-			//{{ 2009. 11. 9  ÃÖÀ°»ç	Æ®¸®ÇÃ¼Ó¼º
+			//{{ 2009. 11. 9  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ®ï¿½ï¿½ï¿½Ã¼Ó¼ï¿½
 			<< BUILD_LOGc( kPacket_.m_kSendLetter.m_kAttribEnchantInfo.m_cAttribEnchant2 )
 			//}}
-			//{{ 2009. 8. 27  ÃÖÀ°»ç	¹ÐºÀ
+			//{{ 2009. 8. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ðºï¿½
 			<< BUILD_LOGc( kPacket_.m_kSendLetter.m_ucSealData )
 			//}}
 			<< END_LOG;
@@ -11110,20 +11130,20 @@ end_proc:
 #endif SERV_TRADE_LOGIC_CHANGE_LETTER
 //}}
 
-//{{ 2008. 9. 18  ÃÖÀ°»ç	¿ìÆíÇÔ
+//{{ 2008. 9. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_GET_POST_LETTER_LIST_REQ )
 {
 	KDBE_GET_POST_LETTER_LIST_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
-	//{{ 2012. 11. 08	¹Ú¼¼ÈÆ	¿¤¸®¿À½º Á¶»ç´Ü
+	//{{ 2012. 11. 08	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ELIOS_INVESTIGATIONS
 	kPacket.m_bIsChannelChange				= kPacket_.m_bIsChannelChange;
 	kPacket.m_bEliosInvestigationsReward	= kPacket_.m_bEliosInvestigationsReward;
 #endif SERV_ELIOS_INVESTIGATIONS
 	//}}
 
-	// º¸»ó
-	//{{ 2013. 05. 28	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+	// ï¿½ï¿½ï¿½ï¿½
+	//{{ 2013. 05. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	DO_QUERY( L"exec dbo.P_Gpost_SEL", L"%d", % kPacket_.m_iUnitUID );
 #else
@@ -11133,14 +11153,14 @@ IMPL_ON_FUNC( DBE_GET_POST_LETTER_LIST_REQ )
 
 	while( m_kODBC.Fetch() )
 	{
-		//{{ 2011. 07. 25    ±è¹Î¼º    ¾ÆÀÌÅÛ ¿É¼ÇID µ¥ÀÌÅÍ »çÀÌÁî Áõ°¡
+		//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_ITEM_OPTION_DATA_SIZE
 		int arrSocketOption[4] = {0,0,0,0};
 //#else
 //		short arrSocketOption[4] = {0,0,0,0};
 //#endif SERV_ITEM_OPTION_DATA_SIZE
 		//}} 
-		//{{ 2013. 05. 28	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+		//{{ 2013. 05. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		int arrRandomSocketOption[CXSLSocketItem::RSC_MAX] = {0,};
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
@@ -11149,7 +11169,7 @@ IMPL_ON_FUNC( DBE_GET_POST_LETTER_LIST_REQ )
 		KPostItemInfo kPostItemInfo;
 		bool bReceived = false;
 
-		//{{ 2013. 05. 28	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+		//{{ 2013. 05. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		FETCH_DATA( kPostItemInfo.m_iPostNo
 			>> kPostItemInfo.m_wstrFromNickName			
@@ -11204,7 +11224,7 @@ IMPL_ON_FUNC( DBE_GET_POST_LETTER_LIST_REQ )
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 		//}}	
 
-		// Ã·ºÎ¸¦ ÀÌ¹Ì ¹Þ¾Ò´Ù¸é ÃÊ±âÈ­ Ã³¸®
+		// Ã·ï¿½Î¸ï¿½ ï¿½Ì¹ï¿½ ï¿½Þ¾Ò´Ù¸ï¿½ ï¿½Ê±ï¿½È­ Ã³ï¿½ï¿½
 		if( bReceived )
 		{
 			kPostItemInfo.m_iScriptIndex = 0;
@@ -11212,25 +11232,32 @@ IMPL_ON_FUNC( DBE_GET_POST_LETTER_LIST_REQ )
 		}
 		else
 		{
-			for( int iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
+			//{{ Iruha : 2026-08-27 // VS2010 port: iCheckIdx is used after the loop, which
+			// VC7.1's non-conformant /Zc:forScope- tolerated; VC10 requires the loop
+			// variable to outlive the loop, so it's hoisted here.
+			int iCheckIdx;
+			for( iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
 			{
 				if( arrSocketOption[iCheckIdx] != 0 )
 					break;
 			}
+			//}}
 
 			for( int iIdx = 0; iIdx <= iCheckIdx; ++iIdx )
 			{
 				kPostItemInfo.m_vecItemSocket.push_back( arrSocketOption[iIdx] );
 			}
 
-			//{{ 2013. 05. 28	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+			//{{ 2013. 05. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-			// 2-1. ·£´ý ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ®
-			for( int iCheckIdx = CXSLSocketItem::RSC_MAX - 1; iCheckIdx >= 0; --iCheckIdx )
+			// 2-1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+			//{{ Iruha : 2026-08-27 // VS2010 port: same for-scope hoist as above
+			for( iCheckIdx = CXSLSocketItem::RSC_MAX - 1; iCheckIdx >= 0; --iCheckIdx )
 			{
 				if( arrRandomSocketOption[iCheckIdx] != 0 )
 					break;
 			}
+			//}}
 
 			for( int iIdx = 0; iIdx <= iCheckIdx; ++iIdx )
 			{
@@ -11240,11 +11267,11 @@ IMPL_ON_FUNC( DBE_GET_POST_LETTER_LIST_REQ )
 			//}}
 		}
 
-		// ¿ìÃ¼±¹ Á¤º¸ ³Ö±â
+		// ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½
 		kPacket.m_vecPostItem.push_back( kPostItemInfo );
 	}
 
-	// ºí·¢¸®½ºÆ®
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	DO_QUERY( L"exec dbo.gup_get_post_blacklist", L"%d", % kPacket_.m_iUnitUID );
 
 	while( m_kODBC.Fetch() )
@@ -11252,7 +11279,7 @@ IMPL_ON_FUNC( DBE_GET_POST_LETTER_LIST_REQ )
 		std::wstring wstrNickName;
 		FETCH_DATA( wstrNickName );
 
-		// ¿ìÃ¼±¹ Á¤º¸ ³Ö±â
+		// ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½
 		kPacket.m_vecBlackList.push_back( wstrNickName );
 	}
 
@@ -11280,7 +11307,7 @@ IMPL_ON_FUNC( DBE_READ_LETTER_NOT )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÆíÁö ÀÐ±â DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ð±ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iPostNo )
 			<< BUILD_LOG( iOK )
 			<< END_LOG;
@@ -11290,7 +11317,7 @@ end_proc:
 	return;
 }
 
-//{{ 2012. 08. 20	¹Ú¼¼ÈÆ	¿ìÆí ·ÎÁ÷ º¯°æ
+//{{ 2012. 08. 20	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_LOGIC_CHANGE_LETTER
 IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 {
@@ -11302,7 +11329,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 	kPacket.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
 	kPacket.m_iED			  = kPacket_.m_iED;
 
-	// ED µ¿±âÈ­
+	// ED ï¿½ï¿½ï¿½ï¿½È­
 	int iOK = NetError::ERR_ODBC_00;
 	DO_QUERY( L"exec dbo.P_GUnit_UPT_POST_GP", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iIncrementED );
 	if( m_kODBC.BeginFetch() )
@@ -11313,31 +11340,31 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ED µ¿±âÈ­ ½ÇÆÐ!!" )
+		START_LOG( cerr, L"ED ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½!!" )
 			<< BUILD_LOG( LAST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iIncrementED )
 			<< BUILD_LOG( iOK )
 			<< END_LOG;
 
-		// ½ÇÆÐ Çß´Ù¸é ED¸¦ ¿ø·¡´ë·Î µ¹·Á³ö¾ß ÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ß´Ù¸ï¿½ EDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 		kPacket.m_iIncrementED = kPacket_.m_iIncrementED;
 	}
 
-	// ¾ÆÀÌÅÛ µ¿±âÈ­
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -11347,7 +11374,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 		( kPacket.m_kItemQuantityUpdate.m_mapQuantityChange.empty() != true ) ||
 		( kPacket.m_kItemQuantityUpdate.m_vecDeleted.empty() != true ) )
 	{
-		// ÀÛ¾÷ Àü µ¿±âÈ­ ¼öÇà ½ÇÆÐ!!
+		// ï¿½Û¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!
 		kPacket.m_iOK = NetError::ERR_POST_LETTER_06;
 		goto end_proc;
 	}
@@ -11357,11 +11384,11 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 		kPacket.m_vecUpdatedInventorySlot.clear();
 		if( 0 < kPacket_.m_iED )
 		{
-			const byte	iTradeType		= 1;				// ¿ìÆí ¹Þ±â
+			const byte	iTradeType		= 1;				// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½
 			int			iED				= 0;
 			UidType		iItemUID		= 0;
 			int			iQuantity		= 0;
-			byte		iPostItemType	= 3;				// Ã·ºÎ ¾øÀ½
+			byte		iPostItemType	= 3;				// Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			byte		iUsageType		= static_cast<byte>( CXSLItem::PT_INFINITY );
 
 			DO_QUERY( L"exec dbo.P_GItem_Total_Post",
@@ -11396,7 +11423,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 
 			if( kPacket.m_iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"¾ÆÀÌÅÛ °¡Á®¿À±â ½ÇÆÐ!!")
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!")
 					<< BUILD_LOG( kPacket.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iPostNo )
@@ -11408,7 +11435,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 		{
 			if( kPacket_.m_vecItemInfo.empty() == true )
 			{
-                START_LOG( cerr, L"¿©±â¼­ ¿ø¼Ò °¹¼ö°¡ 0°³ÀÏ¸®°¡ ¾øÀ½. ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+                START_LOG( cerr, L"ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( kPacket_.m_vecItemInfo.size() )
 					<< END_LOG;
 
@@ -11418,11 +11445,11 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 
 			BOOST_TEST_FOREACH( const KItemInfo&, kItem, kPacket_.m_vecItemInfo )
 			{
-				const byte	iTradeType		= 1;				// ¿ìÆí ¹Þ±â
+				const byte	iTradeType		= 1;				// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½
 				int			iED				= 0;
 				UidType		iItemUID		= 0;
 				int			iQuantity		= 0;
-				byte		iPostItemType	= 3;				// Ã·ºÎ ¾øÀ½
+				byte		iPostItemType	= 3;				// Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				byte		iUsageType		= static_cast<byte>( kItem.m_cUsageType );
 
 				DO_QUERY( L"exec dbo.P_GItem_Total_Post",
@@ -11457,7 +11484,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 
 				if( kPacket.m_iOK != NetError::NET_OK )
 				{
-					START_LOG( cerr, L"¾ÆÀÌÅÛ °¡Á®¿À±â ½ÇÆÐ!!")
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!")
 						<< BUILD_LOG( kPacket.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( kPacket_.m_iPostNo )
@@ -11475,7 +11502,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 	}
 	else
 	{
-		// ½Ã½ºÅÛ ÆíÁö¶ó¸é Áö¿ì°í..
+		// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½..
 		DO_QUERY( L"exec dbo.P_GPost_DEL_System", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iPostNo );
 
 		if( m_kODBC.BeginFetch() )
@@ -11486,7 +11513,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ÆíÁö Ã·ºÎ¹° ¹Þ¾Æ°¡±â DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Ã·ï¿½Î¹ï¿½ ï¿½Þ¾Æ°ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket_.m_iPostNo )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< END_LOG;
@@ -11495,7 +11522,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 			goto end_proc;
 		}
 
-		//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+		//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 		if( Query_InsertItemList( SEnum::GIR_FROM_LETTER, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -11503,7 +11530,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 #endif SERV_GET_ITEM_REASON
 			//}}
 		{
-			START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( kPacket_.m_iPostNo )
 				<< END_LOG;
@@ -11518,7 +11545,7 @@ SendToUser( LAST_SENDER_UID, DBE_GET_ITEM_FROM_LETTER_ACK, kPacket );
 
 IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 {
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	KDBE_GET_ITEM_FROM_LETTER_ACK kPacket;
 	kPacket.m_iOK			  = NetError::ERR_ODBC_01;
@@ -11536,7 +11563,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 	{
 	case KPostItemInfo::LT_POST_OFFICE:
 		{
-			// À¯Àú ÆíÁö¶ó¸é Ã·ºÎÃ¼Å©¸¸ ÇÑ´Ù..
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã·ï¿½ï¿½Ã¼Å©ï¿½ï¿½ ï¿½Ñ´ï¿½..
 			DO_QUERY( L"exec dbo.gup_update_get_post_item", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iPostNo );
 			if( m_kODBC.BeginFetch() )
 			{
@@ -11561,7 +11588,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 			if( kPacket.m_iOK != NetError::NET_OK )
 			{
 				kPacket.m_iWeddingUID = 0;
-				START_LOG( cerr, L"¿þµù °ü·Ã ¿ìÆíÀÎµ¥...°áÈ¥½ÄÀåUID ¸¦ ¾òÁö ¸øÇß´Ù" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½...ï¿½ï¿½È¥ï¿½ï¿½ï¿½ï¿½UID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß´ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iPostNo )
 					<< BUILD_LOG( kPacket.m_iOK )
 					<< END_LOG;
@@ -11584,13 +11611,13 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 				m_kODBC.EndFetch();
 			}
 
-			// ¾øÀ¸¹Ç·Î °­Á¦·Î ÃÊ±âÈ­
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 			kPacket.m_iWeddingUID = 0;
 
 			if( kPacket.m_iOK != NetError::NET_OK )
 			{
 				kPacket.m_iWeddingUID = 0;
-				START_LOG( cerr, L"¿þµù °ü·Ã ¿ìÆíÀÎµ¥..." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½..." )
 					<< BUILD_LOG( kPacket_.m_iPostNo )
 					<< BUILD_LOG( kPacket.m_iOK )
 					<< END_LOG;
@@ -11599,7 +11626,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 		break;
 	default:
 		{
-			// ½Ã½ºÅÛ ÆíÁö¶ó¸é Áö¿ì°í..
+			// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½..
 			DO_QUERY( L"exec dbo.P_GPost_DEL_System", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iPostNo );
 			if( m_kODBC.BeginFetch() )
 			{
@@ -11611,7 +11638,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÆíÁö Ã·ºÎ¹° ¹Þ¾Æ°¡±â DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Ã·ï¿½Î¹ï¿½ ï¿½Þ¾Æ°ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iPostNo )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< END_LOG;
@@ -11632,7 +11659,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 	
 	if( Query_InsertItemList( SEnum::GIR_FROM_LETTER, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iPostNo )
 			<< END_LOG;
@@ -11654,7 +11681,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"Ã»Ã¸Àå ¾ÆÀÌÅÛ ±â·Ï ½ÇÆÐ!" )
+				START_LOG( cerr, L"Ã»Ã¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( mit->first )
 					<< BUILD_LOG( kPacket.m_iWeddingUID )
 					<< END_LOG;
@@ -11675,12 +11702,12 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 
 	if( kPacket_.m_bSystemLetter )
 	{
-		// ½Ã½ºÅÛ ÆíÁö¶ó¸é Áö¿ì°í..
+		// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½..
 		DO_QUERY( L"exec dbo.P_GPost_DEL_System", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iPostNo );
 	}
 	else
 	{
-		// À¯Àú ÆíÁö¶ó¸é Ã·ºÎÃ¼Å©¸¸ ÇÑ´Ù..
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã·ï¿½ï¿½Ã¼Å©ï¿½ï¿½ ï¿½Ñ´ï¿½..
 		DO_QUERY( L"exec dbo.gup_update_get_post_item", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iPostNo );
 	}
 
@@ -11692,7 +11719,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÆíÁö Ã·ºÎ¹° ¹Þ¾Æ°¡±â DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Ã·ï¿½Î¹ï¿½ ï¿½Þ¾Æ°ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iPostNo )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< END_LOG;
@@ -11701,7 +11728,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 		goto end_proc;
 	}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_FROM_LETTER, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -11709,7 +11736,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_REQ )
 #endif SERV_GET_ITEM_REASON
 		//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iPostNo )
 			<< END_LOG;
@@ -11741,7 +11768,7 @@ IMPL_ON_FUNC( DBE_DELETE_LETTER_NOT )
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ÆíÁö »èÁ¦ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( *vit )
 				<< BUILD_LOG( iOK )
 				<< END_LOG;
@@ -11771,7 +11798,7 @@ IMPL_ON_FUNC( DBE_DEL_TUTORIAL_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"»çÁ¦¸®½ºÆ® µðºñ»èÁ¦ ½ÇÆÐ.!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iTeacherUID )
 				<< BUILD_LOG( kPacket_.m_iStudentUID )
@@ -11815,7 +11842,7 @@ IMPL_ON_FUNC( DBE_INSERT_TUTORIAL_REQ )
 				break;
 			}
 
-			START_LOG( cerr, L"»çÁ¦°ü°è ¸Î±â DBÃ³¸® ½ÇÆÐ.!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DBÃ³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 				<< BUILD_LOG( kPacket.m_iTeacherUID )
 				<< BUILD_LOG( kPacket.m_kStudentUnitInfo.m_iUnitUID )
 				<< BUILD_LOG( NetError::GetErrStr( kPacket.m_iOK ) )
@@ -11827,7 +11854,7 @@ end_proc:
 	SendToUser( LAST_SENDER_UID, DBE_INSERT_TUTORIAL_ACK, kPacket );
 }
 
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 
 IMPL_ON_FUNC( DBE_RESET_SKILL_REQ )
 {
@@ -11844,16 +11871,16 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -11862,14 +11889,14 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_REQ )
 
 	if( !kPacket.m_kItemQuantityUpdate.m_mapQuantityChange.empty() || !kPacket.m_kItemQuantityUpdate.m_vecDeleted.empty() )
 	{
-		START_LOG( cerr, L"½ºÅ³ ÃÊ±âÈ­ ¾ÆÀÌÅÛ DB¿¡¼­ ¼ö·®°¨¼Ò È¤Àº »èÁ¦ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 		kPacket.m_iOK = NetError::ERR_RESET_SKILL_02;
 		goto end_proc;
 	}
 
-	// ½ºÅ³ ÃÊ±âÈ­
+	// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­
 	DO_QUERY( L"exec dbo.gup_update_skill_info_new", L"%d, %d, %d, %d",
 		% kPacket_.m_iUnitUID 
 		% kPacket_.m_iDelSkillID 
@@ -11887,7 +11914,7 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"½ºÅ³ ÃÊ±âÈ­ DBÄõ¸® ½ÇÆÐ ¹ÝÈ¯." )
+		START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯." )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iDelSkillID )
 			<< BUILD_LOG( kPacket.m_iOK )
@@ -11897,7 +11924,7 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_REQ )
 		goto end_proc;
 	}
 	
-	// Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® Á¤º¸ °»½Å
+	// Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( kPacket_.m_iCSPoint >= 0 )
 	{
 		DO_QUERY( L"exec dbo.gup_update_cash_skill_point_info", L"%d, %d",
@@ -11956,16 +11983,16 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -11974,14 +12001,14 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_REQ )
 
 	if( !kPacket.m_kItemQuantityUpdate.m_mapQuantityChange.empty() || !kPacket.m_kItemQuantityUpdate.m_vecDeleted.empty() )
 	{
-		START_LOG( cerr, L"½ºÅ³ ÃÊ±âÈ­ ¾ÆÀÌÅÛ DB¿¡¼­ ¼ö·®°¨¼Ò È¤Àº »èÁ¦ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 		kPacket.m_iOK = NetError::ERR_RESET_SKILL_02;
 		goto end_proc;
 	}
 
-	// ½ºÅ³ ÃÊ±âÈ­
+	// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­
 	DO_QUERY( L"exec dbo.gup_update_skill_info_new", L"%d, %d, %d, %d",
 		% kPacket_.m_iUnitUID 
 		% kPacket_.m_iSkillID 
@@ -11999,7 +12026,7 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"½ºÅ³ ÃÊ±âÈ­ DBÄõ¸® ½ÇÆÐ ¹ÝÈ¯." )
+		START_LOG( cerr, L"ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯." )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iSkillID )
 			<< BUILD_LOG( kPacket.m_iOK )
@@ -12009,7 +12036,7 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_REQ )
 		goto end_proc;
 	}
 
-	// Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® Á¤º¸ °»½Å
+	// Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( kPacket_.m_iCSPoint >= 0 )
 	{
 		DO_QUERY( L"exec dbo.gup_update_cash_skill_point_info", L"%d, %d",
@@ -12068,8 +12095,8 @@ IMPL_ON_FUNC( DBE_EXPAND_INVENTORY_SLOT_REQ )
     std::map< int, int >::const_iterator mit;
     for( mit = kPacket_.m_mapExpandedSlot.begin(); mit != kPacket_.m_mapExpandedSlot.end(); ++mit )
     {
-//#ifdef SERV_REFORM_INVENTORY_INT	// ÇØ¿ÜÆÀ ÁÖ¼® Ã³¸®
-		//{{ 2012. 12. 26	¹Ú¼¼ÈÆ	ÀÎº¥Åä¸® °³Æí Å×½ºÆ®	- Çã»óÇü ( Merged by ¹Ú¼¼ÈÆ )
+//#ifdef SERV_REFORM_INVENTORY_INT	// ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ Ã³ï¿½ï¿½
+		//{{ 2012. 12. 26	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ®	- ï¿½ï¿½ï¿½ï¿½ï¿½ ( Merged by ï¿½Ú¼ï¿½ï¿½ï¿½ )
 //#ifdef SERV_REFORM_INVENTORY_TEST
 //		if( mit->first == CXSLInventory::ST_BANK )
 //		{
@@ -12099,7 +12126,7 @@ IMPL_ON_FUNC( DBE_EXPAND_INVENTORY_SLOT_REQ )
         }
         else
         {
-            START_LOG( cerr, L"ÀÎº¥Åä¸® È®Àå ½ÇÆÐ." )
+            START_LOG( cerr, L"ï¿½Îºï¿½ï¿½ä¸® È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
                 << BUILD_LOG( iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( mit->first )
@@ -12117,7 +12144,7 @@ IMPL_ON_FUNC( DBE_EXPAND_SKILL_SLOT_REQ )
 	KDBE_EXPAND_SKILL_SLOT_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	kPacket.m_iPeriodExpire = kPacket_.m_iPeriodExpire;
-	//{{ 2011. 11. 30	ÃÖÀ°»ç	ÆÐÅ°Áö »óÇ° Ãß°¡
+	//{{ 2011. 11. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½Ç° ï¿½ß°ï¿½
 #ifdef SERV_ADD_PACKAGE_PRODUCT
 	kPacket.m_usEventID = kPacket_.m_usEventID;
 #endif SERV_ADD_PACKAGE_PRODUCT
@@ -12135,7 +12162,7 @@ IMPL_ON_FUNC( DBE_EXPAND_SKILL_SLOT_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"½ºÅ³½½·ÔB È®Àå ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½B È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iPeriodExpire )			
@@ -12148,7 +12175,7 @@ end_proc:
 	SendToUser( LAST_SENDER_UID, DBE_EXPAND_SKILL_SLOT_ACK, kPacket );
 }
 
-//{{ 2008. 12. 14  ÃÖÀ°»ç	Ä³¸¯ÅÍ ½½·Ô È®Àå
+//{{ 2008. 12. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 IMPL_ON_FUNC( DBE_EXPAND_CHAR_SLOT_REQ )
 {
 	KDBE_EXPAND_CHAR_SLOT_ACK kPacket;
@@ -12166,7 +12193,7 @@ IMPL_ON_FUNC( DBE_EXPAND_CHAR_SLOT_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä³¸¯ÅÍ ½½·Ô È®Àå ½ÇÆÐ." )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( LAST_SENDER_UID )			
 			<< BUILD_LOG( kPacket_.m_iExpandSlotSize )
@@ -12181,7 +12208,7 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 5. 5  ÃÖÀ°»ç  Àå¹Ù±¸´Ï ¾ò±â
+//{{ 2008. 5. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½Ù±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_GET_WISH_LIST_REQ )
 {
 	KDBE_GET_WISH_LIST_ACK kPacket;
@@ -12203,7 +12230,7 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 5. 19  ÃÖÀ°»ç  ÀÌº¥Æ® Å¸ÀÓ ¾÷µ¥ÀÌÆ®
+//{{ 2008. 5. 19  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 {
 	KDBE_UPDATE_EVENT_TIME_ACK kPacket;
@@ -12211,12 +12238,12 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 
 	{
 		//////////////////////////////////////////////////////////////////////////
-		// Á¢¼Ó ½Ã°£ ÀÌº¥Æ®
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 
 		std::vector< KConnectTimeEventInfo >::const_iterator vit;
 		for( vit = kPacket_.m_vecConnectTimeEvent.begin(); vit != kPacket_.m_vecConnectTimeEvent.end(); ++vit )
 		{
-			//{{ 2010. 06. 11  ÃÖÀ°»ç	°èÁ¤´ÜÀ§ Á¢¼Ó½Ã°£ ÀÌº¥Æ®
+			//{{ 2010. 06. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_ACC_TIME_EVENT
 			if( vit->m_bAccountEvent )
 			{
@@ -12232,7 +12259,7 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 				{
 					kPacket.m_setConnectTimeEvent.insert( vit->m_iEventUID );
 					
-					//{{ 2012. 08. 14	¹Ú¼¼ÈÆ	´ëÃµ»çÀÇ ÁÖÈ­ ÀÌº¥Æ® °¡ÀÌµå ¹®±¸ Ãâ·Â
+					//{{ 2012. 08. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
 					if( vit->m_iScriptID == 573 )
 					{
@@ -12249,7 +12276,7 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 						
 						if( iResult != 0 )
 						{
-							START_LOG( cerr, L"´ëÃµ»çÀÇ ÁÖÈ­ ÀÌº¥Æ® Insert BeginFetch() ½ÇÆÐ")
+							START_LOG( cerr, L"ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½Ìºï¿½Æ® Insert BeginFetch() ï¿½ï¿½ï¿½ï¿½")
 								<< BUILD_LOG( LAST_SENDER_UID )
 								<< BUILD_LOG( kPacket_.m_iUnitUID )
 								<< BUILD_LOG( wstrCurrentTime )
@@ -12261,7 +12288,7 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 				}
 				else
 				{
-					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( kPacket.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( vit->m_iEventUID )
@@ -12287,7 +12314,7 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 				}
 				else
 				{
-					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( kPacket.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( vit->m_iEventUID )
@@ -12301,18 +12328,18 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 	}
 	
 
-	//{{ 2009. 12. 7  ÃÖÀ°»ç	´©Àû½Ã°£ÀÌº¥Æ®
+	//{{ 2009. 12. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½Ìºï¿½Æ®
 #ifdef CUMULATIVE_TIME_EVENT
 
 	{
 		//////////////////////////////////////////////////////////////////////////
-		// ´©Àû ½Ã°£ ÀÌº¥Æ®
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 
-		//{{ 2013. 1. 8	¹Ú¼¼ÈÆ	´©Àû ÀÌº¥Æ®¿¡ ¹Ýº¹ ±â´É Ãß°¡
+		//{{ 2013. 1. 8	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Ýºï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 #else
 		CTime tUpdateTime = CTime::GetCurrentTime();
-		tUpdateTime += CTimeSpan( 18250, 0, 0, 0 ); // ÇÑ¹ø¸¸ Áà¾ß ÇÏ¹Ç·Î 50³âÀ» ´õÇÑ´Ù.
+		tUpdateTime += CTimeSpan( 18250, 0, 0, 0 ); // ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï¹Ç·ï¿½ 50ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 		std::wstring wstrUpdateDate = ( CStringW )( tUpdateTime.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
 #endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 		//}}
@@ -12320,12 +12347,12 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 		std::vector< KCumulativeTimeEventInfo >::const_iterator vitCT;
 		for( vitCT = kPacket_.m_vecCumulativeTimeEvent.begin(); vitCT != kPacket_.m_vecCumulativeTimeEvent.end(); ++vitCT )
 		{
-			//{{ 2010. 06. 11  ÃÖÀ°»ç	°èÁ¤´ÜÀ§ Á¢¼Ó½Ã°£ ÀÌº¥Æ®
+			//{{ 2010. 06. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_ACC_TIME_EVENT
 			if( vitCT->m_bAccountEvent )
 			{
-				// ¿Ï·á Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÏÀÚ!
-				//{{ 2013. 1. 8	¹Ú¼¼ÈÆ	´©Àû ÀÌº¥Æ®¿¡ ¹Ýº¹ ±â´É Ãß°¡
+				// ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
+				//{{ 2013. 1. 8	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Ýºï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 				DO_QUERY( L"exec dbo.gup_update_event_account_nor", L"%d, %d, N\'%s\'", % LAST_SENDER_UID % vitCT->m_iEventUID % vitCT->m_wstrEventTime );
 #else
@@ -12345,11 +12372,11 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 				}
 				else
 				{
-					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( kPacket.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( vitCT->m_iEventUID )
-						//{{ 2013. 1. 8	¹Ú¼¼ÈÆ	´©Àû ÀÌº¥Æ®¿¡ ¹Ýº¹ ±â´É Ãß°¡
+						//{{ 2013. 1. 8	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Ýºï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 						<< BUILD_LOG( vitCT->m_wstrEventTime )
 #else
@@ -12363,8 +12390,8 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 #endif SERV_ACC_TIME_EVENT
 			//}}
 			{
-				// ¿Ï·á Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÏÀÚ!
-				//{{ 2013. 1. 8	¹Ú¼¼ÈÆ	´©Àû ÀÌº¥Æ®¿¡ ¹Ýº¹ ±â´É Ãß°¡
+				// ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
+				//{{ 2013. 1. 8	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Ýºï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 				DO_QUERY( L"exec dbo.gup_update_30min", L"%d, %d, N\'%s\'", % kPacket_.m_iUnitUID % vitCT->m_iEventUID % vitCT->m_wstrEventTime );
 #else
@@ -12384,11 +12411,11 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ )
 				}
 				else
 				{
-					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( kPacket.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( vitCT->m_iEventUID )
-						//{{ 2013. 1. 8	¹Ú¼¼ÈÆ	´©Àû ÀÌº¥Æ®¿¡ ¹Ýº¹ ±â´É Ãß°¡
+						//{{ 2013. 1. 8	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Ýºï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 						<< BUILD_LOG( vitCT->m_wstrEventTime )
 #else
@@ -12409,10 +12436,10 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 5. 28  ÃÖÀ°»ç  Àß¸øµÈ ÀÎº¥ Ä«Å×°í¸®
+//{{ 2008. 5. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½Îºï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_UPDATE_INVENTORY_ITEM_POS_NOT )
 {
-	//{{ 2010. 8. 3	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 8. 3	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 	std::map< UidType, KItemPosition > mapFailedPos;
 #else
@@ -12424,7 +12451,7 @@ IMPL_ON_FUNC( DBE_UPDATE_INVENTORY_ITEM_POS_NOT )
 }
 //}}
 
-//{{ 2008. 6. 20  ÃÖÀ°»ç  ¼±¹°ÇÏ±â
+//{{ 2008. 6. 20  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
 IMPL_ON_FUNC( DBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ )
 {
 	KDBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_ACK kPacket;
@@ -12440,11 +12467,11 @@ IMPL_ON_FUNC( DBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ )
 	kPacket.m_iUseCashType		 = kPacket_.m_iUseCashType;
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 
-#ifdef SERV_NEXON_COUPON_SYSTEM// ÀÛ¾÷³¯Â¥: 2013-07-29	// ¹Ú¼¼ÈÆ
+#ifdef SERV_NEXON_COUPON_SYSTEM// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-29	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	kPacket.m_bUseCoupon		= kPacket_.m_bUseCoupon;
 #endif // SERV_NEXON_COUPON_SYSTEM	
 
-	// SERV_GLOBAL_BILLING - SP ¼öÁ¤ ÇØ¾ß ÇÔ
+	// SERV_GLOBAL_BILLING - SP ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_userid_by_nickname", L"N\'%s\'", % kPacket_.m_wstrReceiverNickName );
 
 	if( m_kODBC.BeginFetch() )
@@ -12489,7 +12516,7 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 9. 3  ÃÖÀ°»ç		¼Ó¼º°­È­
+//{{ 2008. 9. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ó¼ï¿½ï¿½ï¿½È­
 IMPL_ON_FUNC( DBE_ATTRIB_ENCHANT_ITEM_REQ )
 {
 	KDBE_ATTRIB_ENCHANT_ITEM_ACK kPacket;
@@ -12515,7 +12542,7 @@ IMPL_ON_FUNC( DBE_ATTRIB_ENCHANT_ITEM_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"¼Ó¼º °­È­ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½Ó¼ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -12530,16 +12557,16 @@ IMPL_ON_FUNC( DBE_ATTRIB_ENCHANT_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -12561,23 +12588,23 @@ IMPL_ON_FUNC( DBE_IDENTIFY_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_IDENTIFY_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -12585,7 +12612,7 @@ IMPL_ON_FUNC( DBE_IDENTIFY_ITEM_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}	
 	{
-		START_LOG( cerr, L"°¨Á¤µÈ ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -12600,7 +12627,7 @@ IMPL_ON_FUNC( DBE_IDENTIFY_ITEM_REQ )
 }
 //}}
 
-//{{ 2008. 9. 26  ÃÖÀ°»ç	¿ìÃ¼±¹ ºí·¢¸®½ºÆ®
+//{{ 2008. 9. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 IMPL_ON_FUNC( DBE_NEW_POST_BLACK_LIST_REQ )
 {
 	KDBE_NEW_POST_BLACK_LIST_ACK kPacket;
@@ -12664,7 +12691,7 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 10. 7  ÃÖÀ°»ç	Å¸ÀÌÆ²
+//{{ 2008. 10. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å¸ï¿½ï¿½Æ²
 IMPL_ON_FUNC( DBE_INSERT_TITLE_REQ )
 {
 	KDBE_INSERT_TITLE_ACK kPacket;
@@ -12672,7 +12699,7 @@ IMPL_ON_FUNC( DBE_INSERT_TITLE_REQ )
 	kPacket.m_iUnitUID = kPacket_.m_iUnitUID;
 	kPacket.m_iTitleID = kPacket_.m_iTitleID;
 
-	//{{ 2011. 04. 27	ÃÖÀ°»ç	ÄªÈ£ È¹µæ ¾ÆÀÌÅÛ °³Æí
+	//{{ 2011. 04. 27	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TITLE_ITEM_NEW
 	if( kPacket_.m_bExpandPeriod )
 	{
@@ -12702,7 +12729,7 @@ IMPL_ON_FUNC( DBE_INSERT_TITLE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-        START_LOG( cerr, L"ÄªÈ£ ¾÷µ¥ÀÌÆ®°¡ ½ÇÆÐÇß´Ù? ÀÏ¾î³¯¼ö ¾ø´Â ¿¡·¯." )
+        START_LOG( cerr, L"ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´ï¿½? ï¿½Ï¾î³¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iTitleID )
 			<< BUILD_LOG( kPacket_.m_sPeriod )
@@ -12723,7 +12750,7 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 12. 25  ÃÖÀ°»ç	ºÎ¿©
+//{{ 2008. 12. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î¿ï¿½
 IMPL_ON_FUNC( DBE_ENCHANT_ATTACH_ITEM_REQ )
 {
 	KDBE_ENCHANT_ATTACH_ITEM_ACK kPacket;
@@ -12742,7 +12769,7 @@ IMPL_ON_FUNC( DBE_ENCHANT_ATTACH_ITEM_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"°­È­ ·¹º§ ºÎ¿© ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -12757,15 +12784,15 @@ IMPL_ON_FUNC( DBE_ENCHANT_ATTACH_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" );
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -12777,14 +12804,14 @@ end_proc:
 }
 //}}
 
-//{{ 2008. 11. 18  ÃÖÀ°»ç	¾ÆÀÌÅÛ ±³È¯
+//{{ 2008. 11. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 IMPL_ON_FUNC( DBE_ITEM_EXCHANGE_REQ )
 {
 	KDBE_ITEM_EXCHANGE_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;	
 	kPacket.m_vecUpdatedInventorySlot	= kPacket_.m_vecUpdatedInventorySlot;	
 
-	//{{ 2013. 02. 19   ±³È¯ ·Î±× Ãß°¡ - ±è¹Î¼º
+	//{{ 2013. 02. 19   ï¿½ï¿½È¯ ï¿½Î±ï¿½ ï¿½ß°ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_EXCHANGE_LOG
 	kPacket.m_iSourceItemID			= kPacket_.m_iSourceItemID;
 	kPacket.m_iSourceItemQuantity	= kPacket_.m_iSourceItemQuantity;
@@ -12796,23 +12823,23 @@ IMPL_ON_FUNC( DBE_ITEM_EXCHANGE_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_EXCHANGE_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -12820,7 +12847,7 @@ IMPL_ON_FUNC( DBE_ITEM_EXCHANGE_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ±³È¯ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -12831,7 +12858,7 @@ IMPL_ON_FUNC( DBE_ITEM_EXCHANGE_REQ )
 		kPacket.m_iOK = NetError::NET_OK;
 	}
 
-	//{{ 2012. 03. 05	±è¹Î¼º	·£´ý±³È¯
+	//{{ 2012. 03. 05	ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¯
 #ifdef SERV_RANDOM_EXCHANGE_RESULT_VIEW
 	kPacket.m_mapResultItem = kPacket_.m_mapResultItem;
 #endif SERV_RANDOM_EXCHANGE_RESULT_VIEW
@@ -12858,7 +12885,7 @@ IMPL_ON_FUNC( DBE_ITEM_EXCHANGE_REQ )
 		}
 		else
 		{
-			START_LOG( clog, L"P_GEventTradeCount_UPD È£Ãâ ½ÇÆÐ! ½ÇÆÐ ÇÏ¸é ¾ÈµÇ´Âµ¥??" )
+			START_LOG( clog, L"P_GEventTradeCount_UPD È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ÈµÇ´Âµï¿½??" )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< END_LOG;
 		}
@@ -12866,14 +12893,14 @@ IMPL_ON_FUNC( DBE_ITEM_EXCHANGE_REQ )
 end_proc:
 #endif SERV_GROW_UP_SOCKET
 
-	//{{ 2012. 08. 14	¹Ú¼¼ÈÆ	´ëÃµ»çÀÇ ÁÖÈ­ ±³È¯ ·Î±×
+	//{{ 2012. 08. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½È¯ ï¿½Î±ï¿½
 #ifdef SERV_ARCHUANGEL_S_COIN_EVENT_LOG
 	if( ( kPacket.m_iOK == NetError::NET_OK ) && ( kPacket_.m_vecDestItem.empty() == false ) )
 	{
 		bool bChecker = false;
 		if( 1 < kPacket_.m_vecDestItem.size() )
 		{
-			START_LOG( cerr, L"´ëÃµ»çÀÇ ÁÖÈ­ ±³È¯ °á°ú ¾ÆÀÌÅÛÀÇ Á¾·ù°¡ ¿©·¯°³ÀÔ´Ï´Ù.")
+			START_LOG( cerr, L"ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.")
 				<< END_LOG;
 			bChecker = true;
 		}
@@ -12900,7 +12927,7 @@ end_proc:
 
 			if( iResult != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"´ëÃµ»çÀÇ ÁÖÈ­ ±³È¯ ·Î±× »ðÀÔ ½ÇÆÐ")
+				START_LOG( cerr, L"ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½È¯ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½")
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( iItemID )
@@ -12918,7 +12945,7 @@ end_proc:
 }
 //}}
 
-//{{ 2009. 4. 8  ÃÖÀ°»ç		´Ð³×ÀÓ º¯°æ
+//{{ 2009. 4. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ð³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_DELETE_NICK_NAME_REQ )
 {
 	KDBE_DELETE_NICK_NAME_ACK kPacket;
@@ -12944,7 +12971,7 @@ IMPL_ON_FUNC( DBE_DELETE_NICK_NAME_REQ )
 		case -1:
 		case -2:
 			{
-				START_LOG( cerr, L"´Ð³×ÀÓ º¯°æ ½ÇÆÐ!" )
+				START_LOG( cerr, L"ï¿½Ð³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( kPacket.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_wstrNickName )
@@ -12956,7 +12983,7 @@ IMPL_ON_FUNC( DBE_DELETE_NICK_NAME_REQ )
 
 		default:
 			{
-				START_LOG( cerr, L"Á¤ÀÇµÇÁö ¾ÊÀº ¿¡·¯! sp°¡ ¹Ù²¼³ª?" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! spï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½?" )
 					<< BUILD_LOG( kPacket.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_wstrNickName )
@@ -12980,7 +13007,7 @@ IMPL_ON_FUNC( DBE_INSERT_CASH_SKILL_POINT_REQ )
 	kPacket.m_iCSPoint				= kPacket_.m_iCSPoint;
 	kPacket.m_iPeriod				= kPacket_.m_iPeriod;
 	kPacket.m_bUpdateEndDateOnly	= kPacket_.m_bUpdateEndDateOnly;
-	//{{ 2010. 12. 8	ÃÖÀ°»ç	ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹
+	//{{ 2010. 12. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM
 	kPacket.m_iSkillPointItemID		= kPacket_.m_iSkillPointItemID;
 #endif SERV_EVENT_CASH_SKILL_POINT_ITEM
@@ -13040,7 +13067,7 @@ IMPL_ON_FUNC( DBE_EXPIRE_CASH_SKILL_POINT_REQ )
 	kPacket.m_iOK					= NetError::ERR_ODBC_01;
 	kPacket.m_iRetrievedSPoint		= kPacket_.m_iRetrievedSPoint;
 
-	// expire ½ÃÅ°±â Àü¿¡ ÇöÀç ¹è¿î ½ºÅ³Æ®¸®ÀÇ º¹»çº»À» log·Î ³²±ä´Ù, ±×¸®°í MAX_CSP¸¦ 0·Î ¹Ù²Û´Ù.
+	// expire ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½çº»ï¿½ï¿½ logï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½×¸ï¿½ï¿½ï¿½ MAX_CSPï¿½ï¿½ 0ï¿½ï¿½ ï¿½Ù²Û´ï¿½.
 	DO_QUERY( L"exec dbo.gup_insert_BeforeSkillList", L"%d", % kPacket_.m_iUnitUID );
 
 	if( m_kODBC.BeginFetch() )
@@ -13062,7 +13089,7 @@ IMPL_ON_FUNC( DBE_EXPIRE_CASH_SKILL_POINT_REQ )
 		goto end_proc;	
 	}
 
-	// ·Î±×¸¦ ³²°å´Ù¸é ½ÇÁ¦·Î cash skill point Á¤º¸¸¦ ÃÊ±âÈ­ ÇÑ´Ù
+	// ï¿½Î±×¸ï¿½ ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ cash skill point ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ñ´ï¿½
 	DO_QUERY( L"exec dbo.gup_update_cash_skill_point_info", L"%d, %d", % kPacket_.m_iUnitUID % 0 ); // Cash skill point
 
 	if( m_kODBC.BeginFetch() )
@@ -13084,8 +13111,8 @@ IMPL_ON_FUNC( DBE_EXPIRE_CASH_SKILL_POINT_REQ )
 		goto end_proc;	
 	}
 
-	// note!! 300°³ ÀÌ»ó skillÁ¤º¸°¡ ¹Ù²î´Â °æ¿ì°¡ ÀÖÀ»±î? ·Î±×¸¸ ³²±â±â.
-	// °úµµÇÑ Äõ¸® È£ÃâÀ» °ÆÁ¤ÇØ¼­ ³²±ä ·Î±×?
+	// note!! 300ï¿½ï¿½ ï¿½Ì»ï¿½ skillï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ ï¿½ï¿½ì°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½? ï¿½Î±×¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½?
 	if( kPacket_.m_vecUserSkillData.size() > 300 )
 	{
 		START_LOG( cerr, L"too many skill update on cash skill point expiration!" )
@@ -13134,7 +13161,7 @@ end_proc:
 	SendToUser( LAST_SENDER_UID, DBE_EXPIRE_CASH_SKILL_POINT_ACK, kPacket );
 }
 
-//{{ 2009. 8. 4  ÃÖÀ°»ç		ºÀÀÎ ½ºÅ³
+//{{ 2009. 8. 4  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
 IMPL_ON_FUNC( DBE_UNSEAL_SKILL_REQ )
 {
 	KDBE_UNSEAL_SKILL_ACK kPacket;
@@ -13150,7 +13177,7 @@ IMPL_ON_FUNC( DBE_UNSEAL_SKILL_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ºÀÀÎ½ºÅ³ ºÀÀÎÇØÁ¦ ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Î½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iSkillID )
@@ -13164,7 +13191,7 @@ end_proc:
 }
 //}}
 
-//{{ 2009. 5. 11  ÃÖÀ°»ç	½Ç½Ã°£ ¾ÆÀÌÅÛ
+//{{ 2009. 5. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_GET_ITEM_INSERT_TO_INVENTORY_REQ )
 {
 	KDBE_GET_ITEM_INSERT_TO_INVENTORY_ACK kPacket;
@@ -13177,23 +13204,23 @@ IMPL_ON_FUNC( DBE_GET_ITEM_INSERT_TO_INVENTORY_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_DUNGEON_DROP, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -13201,7 +13228,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_INSERT_TO_INVENTORY_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}	
 	{
-		START_LOG( cerr, L"½Ç½Ã°£ ¾ÆÀÌÅÛ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -13211,7 +13238,7 @@ IMPL_ON_FUNC( DBE_GET_ITEM_INSERT_TO_INVENTORY_REQ )
 	{
 		kPacket.m_iOK = NetError::NET_OK;
 
-		//{{ 2009. 11. 18  ÃÖÀ°»ç	Æ¯Á¤½Ã°¢µå·ÓÀÌº¥Æ®
+		//{{ 2009. 11. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½Æ®
 		std::set< int > setSealItem;
 		std::vector< KItemInfo >::const_iterator vit;
 		for( vit = kPacket_.m_vecItemInfo.begin(); vit != kPacket_.m_vecItemInfo.end(); ++vit )
@@ -13241,23 +13268,23 @@ IMPL_ON_FUNC( DBE_GET_TEMP_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_TEMP_INVENTORY, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -13265,7 +13292,7 @@ IMPL_ON_FUNC( DBE_GET_TEMP_ITEM_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"½Ç½Ã°£ ¾ÆÀÌÅÛ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -13275,7 +13302,7 @@ IMPL_ON_FUNC( DBE_GET_TEMP_ITEM_REQ )
 	{
 		kPacket.m_iOK = NetError::NET_OK;
 
-		//{{ 2009. 11. 18  ÃÖÀ°»ç	Æ¯Á¤½Ã°¢µå·ÓÀÌº¥Æ®
+		//{{ 2009. 11. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½Æ®
 		std::set< int > setSealItem;
 		std::vector< KItemInfo >::const_iterator vit;
 		for( vit = kPacket_.m_vecItemInfo.begin(); vit != kPacket_.m_vecItemInfo.end(); ++vit )
@@ -13322,7 +13349,7 @@ IMPL_ON_FUNC( DBE_REQUEST_FRIEND_REQ )
     case NetError::NET_OK:
         break;
 #ifdef SERV_REQUEST_FRIEND_NO_NICKNAME_ERROR_FIX
-	case -1:	// ÀÓ±Ô¼ö ÀÏº» Ãß°¡ ´Ð³×ÀÓ Á¸ÀçÇÏÁö ¾ÊÀ» ½Ã 
+	case -1:	// ï¿½Ó±Ô¼ï¿½ ï¿½Ïºï¿½ ï¿½ß°ï¿½ ï¿½Ð³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ 
 		kPacket.m_iOK = NetError::ERR_SEARCH_UNIT_04;
 		break;
 #endif SERV_REQUEST_FRIEND_NO_NICKNAME_ERROR_FIX
@@ -13340,7 +13367,7 @@ IMPL_ON_FUNC( DBE_REQUEST_FRIEND_REQ )
         break;
     default:
 		{
-			START_LOG( cerr, L"Á¤ÀÇ µÇÁö ¾ÊÀº ¿¡·¯ ¸®ÅÏ°ª" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°ï¿½" )
 				<< BUILD_LOG( LAST_SENDER_UID )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket.m_iUnitUID )
@@ -13352,7 +13379,7 @@ IMPL_ON_FUNC( DBE_REQUEST_FRIEND_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ ¿äÃ» ½ÇÆÐ" )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½" )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( kPacket.m_iUnitUID )
@@ -13385,7 +13412,7 @@ IMPL_ON_FUNC( DBE_ACCEPT_FRIEND_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ ¼ö¶ô ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13414,7 +13441,7 @@ IMPL_ON_FUNC( DBE_DENY_FRIEND_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ °ÅÀý ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13449,7 +13476,7 @@ IMPL_ON_FUNC( DBE_BLOCK_FRIEND_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ Â÷´Ü ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13484,7 +13511,7 @@ IMPL_ON_FUNC( DBE_UNBLOCK_FRIEND_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ Â÷´Ü ÇØÁ¦ ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13513,7 +13540,7 @@ IMPL_ON_FUNC( DBE_DELETE_FRIEND_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ »èÁ¦ ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13543,7 +13570,7 @@ IMPL_ON_FUNC( DBE_MOVE_FRIEND_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ ±×·ì ÀÌµ¿ ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½×·ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13574,7 +13601,7 @@ IMPL_ON_FUNC( DBE_MAKE_FRIEND_GROUP_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ ±×·ì ¸¸µé±â ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13605,7 +13632,7 @@ IMPL_ON_FUNC( DBE_RENAME_FRIEND_GROUP_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ ±×·ì ÀÌ¸§ º¯°æ ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½×·ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13635,7 +13662,7 @@ IMPL_ON_FUNC( DBE_DELETE_FRIEND_GROUP_REQ )
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ ±×·ì »èÁ¦ ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.m_iOK )
             << BUILD_LOG( LAST_SENDER_UID )
             << BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13662,7 +13689,7 @@ IMPL_ON_FUNC( DBE_FRIEND_MESSAGE_NOT )
 
     if( iOK != NetError::NET_OK )
     {
-        START_LOG( cerr, L"Ä£±¸ ¸Þ¼¼Áö ³²±â±â ½ÇÆÐ." )
+        START_LOG( cerr, L"Ä£ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( iOK )
             << BUILD_LOG( kPacket_.m_iSenderUnitUID )
             << BUILD_LOG( kPacket_.m_wstrReceiverNickName )
@@ -13675,7 +13702,7 @@ end_proc:
     return;
 }
 
-//{{ 2009. 7. 29  ÃÖÀ°»ç	item set cheat
+//{{ 2009. 7. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	item set cheat
 IMPL_ON_FUNC( DBE_ADMIN_GET_ITEM_SET_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
@@ -13689,7 +13716,7 @@ IMPL_ON_FUNC( DBE_ADMIN_GET_ITEM_SET_NOT )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¼¼Æ® Ä¡Æ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® Ä¡Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kPacket_.m_wstrNickName )
 			<< END_LOG;
@@ -13700,7 +13727,7 @@ end_proc:
 }
 //}}
 
-//{{ 2009. 8. 27  ÃÖÀ°»ç	ºÀÀÎ
+//{{ 2009. 8. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_SEAL_ITEM_REQ )
 {
 	KDBE_SEAL_ITEM_ACK kPacket;
@@ -13718,7 +13745,7 @@ IMPL_ON_FUNC( DBE_SEAL_ITEM_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ºÀÀÎ DB ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
 			<< BUILD_LOGc( kPacket_.m_ucSealResult )
@@ -13732,16 +13759,16 @@ IMPL_ON_FUNC( DBE_SEAL_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iItemUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -13769,7 +13796,7 @@ IMPL_ON_FUNC( DBE_UNSEAL_ITEM_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ºÀÀÎÇØÁ¦ DB ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
 			<< BUILD_LOGc( kPacket_.m_ucSealResult )
@@ -13783,16 +13810,16 @@ IMPL_ON_FUNC( DBE_UNSEAL_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iItemUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -13805,10 +13832,10 @@ end_proc:
 //}}
 
 //////////////////////////////////////////////////////////////////////////
-//{{ 2009. 9. 22  ÃÖÀ°»ç	±æµå
+//{{ 2009. 9. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 
-//{{ 2012. 02. 22	¹Ú¼¼ÈÆ	±æµå ÀÌ¸§ º¯°æ±Ç
+//{{ 2012. 02. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GUILD_CHANGE_NAME
 #else
 IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
@@ -13817,7 +13844,7 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	kPacket.m_iItemUID = kPacket_.m_iItemUID;
 
-	// 1. ±æµå Ã¢´Ü °¡´ÉÇÑÁö Ã¼Å©
+	// 1. ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 	DO_QUERY( L"exec dbo.gup_create_guild_check", L"%d, N\'%s\'", % kPacket_.m_iUnitUID % kPacket_.m_wstrGuildName );
 
 	if( m_kODBC.BeginFetch() )
@@ -13828,17 +13855,17 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( clog, L"±æµå »ý¼ºÇÒ ¼ö ¾ø´Â°ÍÀ¸·Î Ã¼Å©µÊ!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_wstrGuildName );
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_00; break; // ÀÌ¹Ì ³ª´Â ±æµå¿¡ °¡ÀÔÁß
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_01; break; // ±æµå ÀÌ¸§ Áßº¹
-			//{{ 2009. 10. 26  ÃÖÀ°»ç	±æµå
-		case -3: kPacket.m_iOK = NetError::ERR_GUILD_42; break; // ÀÌ ±æµå ÀÌ¸§Àº 7ÀÏ°£ »ç¿ëÇÒ ¼ö ¾ø½À´Ï´Ù.
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_00; break; // ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_01; break; // ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ßºï¿½
+			//{{ 2009. 10. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
+		case -3: kPacket.m_iOK = NetError::ERR_GUILD_42; break; // ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ 7ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 			//}}
 		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
 		}
@@ -13850,14 +13877,14 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 		goto end_proc;
 	}
 
-	// 2. ±æµå »ý¼º
+	// 2. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CREATE_GUILD_EVENT
 	DO_QUERY( L"exec dbo.gup_create_guild", L"%d, N\'%s\', %d, N\'%s\'", 
 		% kPacket_.m_iUnitUID 
 		% kPacket_.m_wstrGuildName
 		% 30
 		% kPacket_.m_wstrGuildMessage
-		); // ÃÊ±âÀÎ¿ø 30¸íÀ¸·Î
+		); // ï¿½Ê±ï¿½ï¿½Î¿ï¿½ 30ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #else //SERV_CREATE_GUILD_EVENT
 	DO_QUERY( L"exec dbo.gup_create_guild", L"%d, N\'%s\', %d, N\'%s\'", 
 		% kPacket_.m_iUnitUID 
@@ -13878,7 +13905,7 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå »ý¼º ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_wstrGuildName )
@@ -13886,8 +13913,8 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_04; break; // ±æµå Ã¢´Ü ¿¡·¯
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_05; break; // »ý¼ºÀÚ°¡ ±æµå¿ø °¡ÀÔ Áß ¿¡·¯			
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_04; break; // ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_05; break; // ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½			
 		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
 		}
 
@@ -13899,7 +13926,7 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 	}
 	else
 	{
-		// Ã¢´Ü ¼º°øÇÏ¸é ÃÊ±â ±æµå Á¤º¸ ¼¼ÆÃ
+		// Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		kPacket.m_kCreatedGuildInfo.m_wstrGuildName		= kPacket_.m_wstrGuildName;
 #ifdef SERV_CREATE_GUILD_EVENT
 		kPacket.m_kCreatedGuildInfo.m_usMaxNumMember	= 30;
@@ -13911,8 +13938,8 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 		kPacket.m_kCreatedGuildInfo.m_wstrGuildMessage	= kPacket_.m_wstrGuildMessage;
 	}
 
-	//{{ 2009. 12. 3  ÃÖÀ°»ç	±æµå½ºÅ³
-	// 3. ±æµå ½ºÅ³ Æ÷ÀÎÆ®
+	//{{ 2009. 12. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
+	// 3. ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef GUILD_SKILL_TEST
 
 	DO_QUERY( L"exec dbo.gup_update_guild_skill_point", L"%d, %d",
@@ -13928,7 +13955,7 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå »ý¼º Á÷ÈÄ¿¡ ½ºÅ³ Æ÷ÀÎÆ® 1Æ÷ÀÎÆ® insert°¡ ½ÇÆÐÇÏ¿´´Ù. ÀÖÀ»¼ö ¾ø´Â¿¡·¯!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® 1ï¿½ï¿½ï¿½ï¿½Æ® insertï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket.m_kCreatedGuildInfo.m_iGuildUID )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
@@ -13936,7 +13963,7 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // Á¸ÀçÇÏÁö¾Ê´Â ±æµå
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½
 		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
 		}
 
@@ -13944,7 +13971,7 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 	}
 	else
 	{
-		// ±æµå ½ºÅ³ Æ÷ÀÎÆ® ÃÊ±â°ªÀº 1Æ÷ÀÎÆ®´Ù.
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ê±â°ªï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½.
 		kPacket.m_kGuildSkillInfo.m_iGuildSPoint = 1;
 	}
 
@@ -13972,11 +13999,11 @@ _IMPL_ON_FUNC( DBE_INVITE_GUILD_NICKNAME_CHECK_REQ, KELG_INVITE_GUILD_ACK )
 
 	if( iUnitUID != 0 )
 	{
-		kPacket_.m_iOK = NetError::ERR_GUILD_08; // ÇöÀç ¿ÀÇÁ¶óÀÎÀÎ À¯ÀúÀÔ´Ï´Ù.
+		kPacket_.m_iOK = NetError::ERR_GUILD_08; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
 	}
 	else
 	{
-		kPacket_.m_iOK = NetError::ERR_SEARCH_UNIT_04; // Á¸ÀçÇÏÁö ¾Ê´Â ´Ð³×ÀÓÀÔ´Ï´Ù.
+		kPacket_.m_iOK = NetError::ERR_SEARCH_UNIT_04; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½Ð³ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
 	}
 
 end_proc:
@@ -13991,7 +14018,7 @@ IMPL_ON_FUNC( DBE_JOIN_GUILD_REQ )
 	kPacket.m_kJoinGuildMember = kPacket_.m_kJoinGuildMember;	
 
 	//////////////////////////////////////////////////////////////////////////
-	// ±æµå °¡ÀÔ
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_create_guild_member", L"%d, %d, N\'%s\'", 
 		% kPacket_.m_kJoinGuildMember.m_iUnitUID
 		% kPacket_.m_iGuildUID
@@ -14008,7 +14035,7 @@ IMPL_ON_FUNC( DBE_JOIN_GUILD_REQ )
 	{
 		if( kPacket.m_iOK == -3 )
 		{
-			START_LOG( cwarn, L"±æµå ÃÖ´ë °¡ÀÔ ÀÎ¿ø ºÎÁ·." )
+			START_LOG( cwarn, L"ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iGuildUID )
 				<< BUILD_LOG( kPacket_.m_kJoinGuildMember.m_iUnitUID )
@@ -14016,7 +14043,7 @@ IMPL_ON_FUNC( DBE_JOIN_GUILD_REQ )
 		}
 		else
 		{
-			START_LOG( cerr, L"±æµå °¡ÀÔ ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iGuildUID )
 				<< BUILD_LOG( kPacket_.m_kJoinGuildMember.m_iUnitUID )
@@ -14025,9 +14052,9 @@ IMPL_ON_FUNC( DBE_JOIN_GUILD_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_14; break; // ÀÌ¹Ì ±æµå¿¡ °¡ÀÔµÇ¾îÀÖÀ½
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_18; break; // ±æµå °¡ÀÔ ½ÇÆÐ
-		case -3: kPacket.m_iOK = NetError::ERR_GUILD_18; break; // ±æµå °¡ÀÔ ÃÖ´ë ÀÎ¿ø Á¦ÇÑ
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_14; break; // ï¿½Ì¹ï¿½ ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ÔµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_18; break; // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		case -3: kPacket.m_iOK = NetError::ERR_GUILD_18; break; // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
 		}
 	}
@@ -14044,14 +14071,14 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_GRADE_REQ )
 	kPacket.m_iTargetUnitUID = kPacket_.m_iTargetUnitUID;
 	kPacket.m_wstrTargetNickName = kPacket_.m_wstrTargetNickName;
 	kPacket.m_ucMemberShipGrade = kPacket_.m_ucMemberShipGrade;	
-	kPacket.m_bChangeGuildMaster = kPacket_.m_bChangeGuildMaster; // ¹Ýµå½Ã ³Ñ°ÜÁà¾ßÇÏ´Â °ª!
+	kPacket.m_bChangeGuildMaster = kPacket_.m_bChangeGuildMaster; // ï¿½Ýµï¿½ï¿½ ï¿½Ñ°ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½!
 	
 	//////////////////////////////////////////////////////////////////////////
-	// µî±Þ º¯°æ ¿äÃ»!
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»!
 	
 	if( kPacket_.m_bChangeGuildMaster )
 	{
-		// ±æµå ¸¶½ºÅÍ À§ÀÓ
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_update_guild_master", L"%d, %d, %d, %d, %d",
 			% kPacket_.m_iUnitUID
 			% kPacket_.m_iTargetUnitUID 
@@ -14068,7 +14095,7 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_GRADE_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"±æµå¸¶½ºÅÍ À§ÀÓ ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½å¸¶ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( kPacket_.m_iTargetUnitUID )
@@ -14077,16 +14104,16 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_GRADE_REQ )
 
 			switch( kPacket.m_iOK )
 			{
-			case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ÇØ´ç ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
-			case -2: kPacket.m_iOK = NetError::ERR_GUILD_21; break; // °ú°Å ±æ¸¶ »óÅÂº¯È¯ ½ÇÆÐ
-			case -3: kPacket.m_iOK = NetError::ERR_GUILD_21; break; // »õ ±æ¸¶ »óÅÂº¯È¯ ½ÇÆÐ
-			default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ±æµå¿ø µî±Þ º¯°æ ½ÇÆÐ
+			case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ï¿½Ø´ï¿½ ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
+			case -2: kPacket.m_iOK = NetError::ERR_GUILD_21; break; // ï¿½ï¿½ï¿½ï¿½ ï¿½æ¸¶ ï¿½ï¿½ï¿½Âºï¿½È¯ ï¿½ï¿½ï¿½ï¿½
+			case -3: kPacket.m_iOK = NetError::ERR_GUILD_21; break; // ï¿½ï¿½ ï¿½æ¸¶ ï¿½ï¿½ï¿½Âºï¿½È¯ ï¿½ï¿½ï¿½ï¿½
+			default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			}
 		}
 	}
 	else
 	{
-		// ±æµå ¸â¹ö µî±Þ º¯°æ
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_update_guild_member_grade", L"%d, %d, %d",
 			% kPacket_.m_iTargetUnitUID 
 			% kPacket_.m_iGuildUID
@@ -14101,7 +14128,7 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_GRADE_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"±æµå¿ø µî±Þ º¯°æ ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14111,9 +14138,9 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_GRADE_REQ )
 
 			switch( kPacket.m_iOK )
 			{
-			case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ÇØ´ç ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
-			case -2: kPacket.m_iOK = NetError::ERR_GUILD_21; break; // Æ®·£Á§¼Ç ¿¡·¯
-			default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ±æµå¿ø µî±Þ º¯°æ ½ÇÆÐ
+			case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ï¿½Ø´ï¿½ ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
+			case -2: kPacket.m_iOK = NetError::ERR_GUILD_21; break; // Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			}
 		}
 	}
@@ -14123,7 +14150,7 @@ end_proc:
 
 	if( kPacket.m_iOK == NetError::NET_OK )
 	{
-		// µî±Þ ¼öÁ¤ÀÌ ¼º°øÇÏ¸é ±æµå ¸Å´ÏÀú¿¡ ¼öÁ¤µÈ Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ñ´ï¿½.
 		SendToLoginServer( ELG_UPDATE_CHANGE_GUILD_MEMBER_GRADE_NOT, kPacket );
 	}
 }
@@ -14136,29 +14163,29 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MESSAGE_REQ )
 	kPacket.m_wstrMessage = kPacket_.m_wstrMessage;
 
 	//////////////////////////////////////////////////////////////////////////
-	// 1. ±æµå ¸Þ½ÃÁö º¯°æÀ» ¿äÃ»ÇÑ À¯Àú°¡ º¯°æ±ÇÇÑÀÌ ÀÖ´ÂÁö ¾Ë¾Æº¸ÀÚ!
+	// 1. ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë¾Æºï¿½ï¿½ï¿½!
 	u_char ucGuildMemberShipGrade = 0;	
 
 	if( Query_GetGuildMemberGrade( kPacket_.m_iUnitUID, ucGuildMemberShipGrade ) == false )
 	{
-		START_LOG( cerr, L"±æµå¿ø µî±Þ Á¤º¸ ¾ò±â ½ÇÆÐ." )			
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )			
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
-		kPacket.m_iOK = NetError::ERR_GUILD_19; // ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
+		kPacket.m_iOK = NetError::ERR_GUILD_19; // ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 		goto end_proc;
 	}
 
-	// ±æµå ¸¶½ºÅÍ¿Í ±æµå °ü¸®ÀÚ¸¸ ±æµå ¸Þ½ÃÁö º¯°æ±ÇÇÑÀÌ ÀÖ½À´Ï´Ù.
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
 	if( ucGuildMemberShipGrade != SEnum::GUG_MASTER  &&
 		ucGuildMemberShipGrade != SEnum::GUG_SYSOP )
 	{
-		kPacket.m_iOK = NetError::ERR_GUILD_22; // ±æµå ¸Þ½ÃÁö º¯°æ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.
+		kPacket.m_iOK = NetError::ERR_GUILD_22; // ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 		goto end_proc;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// 2. ±æµå ¸Þ½ÃÁö º¯°æ ¿äÃ»!
+	// 2. ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»!
 
 	DO_QUERY( L"exec dbo.gup_update_guild_message", L"%d, %d, N\'%s\'", 
 		% kPacket_.m_iUnitUID
@@ -14174,7 +14201,7 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MESSAGE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå ¸Þ½ÃÁö º¯°æ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14183,9 +14210,9 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MESSAGE_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ÇØ´ç ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_23; break; // Æ®·£Á§¼Ç ¿¡·¯
-		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ±æµå ¸Þ½ÃÁö º¯°æ ½ÇÆÐ
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ï¿½Ø´ï¿½ ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_23; break; // Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 
@@ -14194,7 +14221,7 @@ end_proc:
 	
 	if( kPacket.m_iOK == NetError::NET_OK )
 	{
-		// ±æµå ¸Þ½ÃÁö º¯°æÀÌ ¼º°øÇÏ¸é ±æµå ¸Å´ÏÀú¿¡ ¼öÁ¤µÈ Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ñ´ï¿½.
 		SendToLoginServer( ELG_UPDATE_CHANGE_GUILD_MESSAGE_NOT, kPacket );
 	}
 }
@@ -14208,42 +14235,42 @@ IMPL_ON_FUNC( DBE_KICK_GUILD_MEMBER_REQ )
 	kPacket.m_iTargetUnitUID = kPacket_.m_iTargetUnitUID;
 
 	//////////////////////////////////////////////////////////////////////////
-	// 1. ±æµå°ü¸®ÀÚ°¡ ³ª¸¦ °­ÅðÇÏ´Â°Å¶ó¸é °­Åð¸¦ ¿äÃ»ÇÑ À¯Àú°¡ ±ÇÇÑÀÌ ÀÖ´ÂÁö ¾Ë¾Æº¸ÀÚ!
+	// 1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´Â°Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë¾Æºï¿½ï¿½ï¿½!
 	u_char ucGuildMemberShipGrade = 0;
 	
 	if( Query_GetGuildMemberGrade( kPacket_.m_iUnitUID, ucGuildMemberShipGrade ) == false )
 	{
-		START_LOG( cerr, L"±æµå¿ø µî±Þ Á¤º¸ ¾ò±â ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
-		kPacket.m_iOK = NetError::ERR_GUILD_19; // ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
+		kPacket.m_iOK = NetError::ERR_GUILD_19; // ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 		goto end_proc;
 	}
 	
-	// ´©±º°¡¸¦ °­ÅðÇÏ´Â°Å¶ó¸é?
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´Â°Å¶ï¿½ï¿½?
 	if( kPacket_.m_iUnitUID != kPacket_.m_iTargetUnitUID )
 	{
 		u_char ucTargetMemberShipGrade = 0;
 
 		if( Query_GetGuildMemberGrade( kPacket_.m_iTargetUnitUID, ucTargetMemberShipGrade ) == false )
 		{
-			START_LOG( cerr, L"±æµå¿ø µî±Þ Á¤º¸ ¾ò±â ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( kPacket_.m_iTargetUnitUID )
 				<< END_LOG;
 
-			kPacket.m_iOK = NetError::ERR_GUILD_19; // ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
+			kPacket.m_iOK = NetError::ERR_GUILD_19; // ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 			goto end_proc;
 		}
 
-		// ±æµå ¸¶½ºÅÍ¸¦ °­Åð ½ÃÅ°·Á´Â °Å¶ó¸é?
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ï¿½ï¿½ ï¿½Å¶ï¿½ï¿½?
 		if( ucTargetMemberShipGrade == SEnum::GUG_MASTER )
 		{
-			kPacket.m_iOK = NetError::ERR_GUILD_25; // ±æµå ¸¶½ºÅÍ´Â °­Åð ´çÇÒ ¼ö ¾ø½À´Ï´Ù!
+			kPacket.m_iOK = NetError::ERR_GUILD_25; // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½!
 			goto end_proc;
 		}
 			
-		// ³ª¿¡°Ô °­Åð ±ÇÇÑÀÌ ÀÖ´Â°¡?
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Â°ï¿½?
 		switch( ucGuildMemberShipGrade )
 		{
 		case SEnum::GUG_MASTER:			
@@ -14251,10 +14278,10 @@ IMPL_ON_FUNC( DBE_KICK_GUILD_MEMBER_REQ )
 
 		case SEnum::GUG_SYSOP:
 			{
-				// °ü¸®ÀÚ°¡ ´Ù¸¥ °ü¸®ÀÚ¸¦ °­Åð ½ÃÅ³¼ø ¾ø´Ù.
+				// ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 				if( ucTargetMemberShipGrade == SEnum::GUG_SYSOP )
 				{
-					kPacket.m_iOK = NetError::ERR_GUILD_24; // ±æµå¿ø °­Åð ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.
+					kPacket.m_iOK = NetError::ERR_GUILD_24; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 					goto end_proc;
 				}
 			}
@@ -14262,7 +14289,7 @@ IMPL_ON_FUNC( DBE_KICK_GUILD_MEMBER_REQ )
 
 		default:
 			{
-				kPacket.m_iOK = NetError::ERR_GUILD_24; // ±æµå¿ø °­Åð ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.
+				kPacket.m_iOK = NetError::ERR_GUILD_24; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 				goto end_proc;
 			}
 			break;
@@ -14270,16 +14297,16 @@ IMPL_ON_FUNC( DBE_KICK_GUILD_MEMBER_REQ )
 	}
 	else
 	{
-		// ±æµå ¸¶½ºÅÍ°¡ Å»ÅðÇÏ·Á´Â °Å¶ó¸é?
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ Å»ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½Å¶ï¿½ï¿½?
 		if( ucGuildMemberShipGrade == SEnum::GUG_MASTER )
 		{
-			kPacket.m_iOK = NetError::ERR_GUILD_25; // ±æµå ¸¶½ºÅÍ´Â Å»Åð±â´ÉÀ» »ç¿ëÇÒ¼ö ¾ø½À´Ï´Ù!
+			kPacket.m_iOK = NetError::ERR_GUILD_25; // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í´ï¿½ Å»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½!
 			goto end_proc;
 		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// 2. Å»ÅðÀÚÀÇ ¸í¿¹ Æ÷ÀÎÆ® ÃÊ±âÈ­
+	// 2. Å»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ê±ï¿½È­
 	
 	DO_QUERY( L"exec dbo.gup_update_guild_member_exp", L"%d, %d, %d",
 		% kPacket_.m_iUnitUID
@@ -14295,7 +14322,7 @@ IMPL_ON_FUNC( DBE_KICK_GUILD_MEMBER_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå¿ø ¸í¿¹ Æ÷ÀÎÆ® ÃÊ±âÈ­ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14303,8 +14330,8 @@ IMPL_ON_FUNC( DBE_KICK_GUILD_MEMBER_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ±æµå¿øÀÌ ¾Æ´Ï°Å³ª, Àß¸øµÈ ±æµå³Ñ¹ö
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_29; break; // Æ®·£Á§¼Ç ¿¡·¯
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï°Å³ï¿½, ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¹ï¿½
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_29; break; // Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
 		}
 
@@ -14312,7 +14339,7 @@ IMPL_ON_FUNC( DBE_KICK_GUILD_MEMBER_REQ )
 	}
 
 	//////////////////////////////////////////////////////////////////////////	
-	// 3. ±æµå¿ø °­Åð ¶Ç´Â ±æµåÅ»Åð ¿äÃ»!
+	// 3. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Å»ï¿½ï¿½ ï¿½ï¿½Ã»!
 
 	DO_QUERY( L"exec dbo.gup_delete_guild_member", L"%d, %d", 
 		% kPacket_.m_iTargetUnitUID
@@ -14327,7 +14354,7 @@ IMPL_ON_FUNC( DBE_KICK_GUILD_MEMBER_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå Å»Åð ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iTargetUnitUID )
@@ -14336,9 +14363,9 @@ IMPL_ON_FUNC( DBE_KICK_GUILD_MEMBER_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ÇØ´ç ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_26; break; // Æ®·£Á§¼Ç ¿¡·¯
-		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ±æµå Å»Åð ½ÇÆÐ
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ï¿½Ø´ï¿½ ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_26; break; // Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 
@@ -14347,7 +14374,7 @@ end_proc:
 	
 	if( kPacket.m_iOK == NetError::NET_OK )
 	{
-		// ±æµå¿ø Å»Åð°¡ ¼º°øÇÏ¸é ±æµå ¸Å´ÏÀú¿¡ ¼öÁ¤µÈ Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ñ´ï¿½.
 		SendToLoginServer( ELG_UPDATE_KICK_GUILD_MEMBER_NOT, kPacket );
 	}
 }
@@ -14361,41 +14388,41 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_MESSAGE_REQ )
 	kPacket.m_iGuildUID = kPacket_.m_iGuildUID;
 	kPacket.m_wstrMessage = kPacket_.m_wstrMessage;
 
-	// ´Ù¸¥ ±æµå¿øÀÇ ¸Þ½ÃÁö¸¦ º¯°æÇÏ´Â°ÍÀÌ¶ó¸é!
+	// ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´Â°ï¿½ï¿½Ì¶ï¿½ï¿½!
 	if( kPacket_.m_iUnitUID != kPacket_.m_iTargetUnitUID )
 	{
-		// ¿äÃ»ÀÚÀÇ µî±ÞÀ» ¾òÀÚ!
+		// ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		u_char ucGuildMemberShipGrade = 0;
 
 		if( Query_GetGuildMemberGrade( kPacket_.m_iUnitUID, ucGuildMemberShipGrade ) == false )
 		{
-			START_LOG( cerr, L"±æµå¿ø µî±Þ Á¤º¸ ¾ò±â ½ÇÆÐ." )				
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )				
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< END_LOG;
 
-			kPacket.m_iOK = NetError::ERR_GUILD_19; // ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
+			kPacket.m_iOK = NetError::ERR_GUILD_19; // ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 			goto end_proc;
 		}
 
-		// ´ë»óÀÚÀÇ µî±ÞÀ» ¾òÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		u_char ucTargerGrade = 0;
 
 		if( Query_GetGuildMemberGrade( kPacket_.m_iTargetUnitUID, ucTargerGrade ) == false )
 		{
-			START_LOG( cerr, L"±æµå¿ø µî±Þ Á¤º¸ ¾ò±â ½ÇÆÐ." )				
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )				
 				<< BUILD_LOG( kPacket_.m_iTargetUnitUID )
 				<< END_LOG;
 
-			kPacket.m_iOK = NetError::ERR_GUILD_19; // ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
+			kPacket.m_iOK = NetError::ERR_GUILD_19; // ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 			goto end_proc;
 		}
 
-		// µî±Þº° µ¿ÀÛ Á¦ÇÑ
+		// ï¿½ï¿½Þºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		switch( ucTargerGrade )
 		{
 		case SEnum::GUG_MASTER:
 			{
-				START_LOG( cerr, L"´Ù¸¥ ´©±º°¡°¡ ±æµå¸¶½ºÅÍÀÇ ÀÎ»ç¸»À» Àý´ëº¯°æÇÒ¼ö¾ø´Ù!" )
+				START_LOG( cerr, L"ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å¸¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î»ç¸»ï¿½ï¿½ ï¿½ï¿½ï¿½ëº¯ï¿½ï¿½ï¿½Ò¼ï¿½ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( kPacket_.m_iGuildUID )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iTargetUnitUID )
@@ -14410,7 +14437,7 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_MESSAGE_REQ )
 			{
 				if( ucGuildMemberShipGrade != SEnum::GUG_MASTER )
 				{
-					kPacket.m_iOK = NetError::ERR_GUILD_28; // ±æµå °ü¸®ÀÚÀÇ ÀÎ»ç¸»Àº ±æµå¸¶½ºÅÍ¸¸ ¼öÁ¤°¡´ÉÇÕ´Ï´Ù.
+					kPacket.m_iOK = NetError::ERR_GUILD_28; // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î»ç¸»ï¿½ï¿½ ï¿½ï¿½å¸¶ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
 					goto end_proc;
 				}
 			}
@@ -14424,7 +14451,7 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_MESSAGE_REQ )
 				if( ucGuildMemberShipGrade != SEnum::GUG_MASTER  &&
 					ucGuildMemberShipGrade != SEnum::GUG_SYSOP )
 				{
-					kPacket.m_iOK = NetError::ERR_GUILD_28; // ÀÏ¹Ý ¸â¹öÀÇ ÀÎ»ç¸»Àº ±æµå¸¶½ºÅÍ¿Í ±æµå°ü¸®ÀÚ¸¸ ¼öÁ¤°¡´ÉÇÕ´Ï´Ù.
+					kPacket.m_iOK = NetError::ERR_GUILD_28; // ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î»ç¸»ï¿½ï¿½ ï¿½ï¿½å¸¶ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
 					goto end_proc;
 				}
 			}
@@ -14432,18 +14459,18 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_MESSAGE_REQ )
 
 		default:
 			{
-				START_LOG( cerr, L"±æµå¿ø µî±Þ Á¤º¸ ¾ò±â ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( kPacket.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iTargetUnitUID )
 					<< END_LOG;
 
-				kPacket.m_iOK = NetError::ERR_GUILD_19; // ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
+				kPacket.m_iOK = NetError::ERR_GUILD_19; // ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 				goto end_proc;
 			}
 		}
 	}
 
-	// ±æµå¿ø ÀÎ»ç¸» º¯°æ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Î»ç¸» ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_update_guild_member_message", L"%d, %d, N\'%s\'", 
 		% kPacket_.m_iTargetUnitUID
 		% kPacket_.m_iGuildUID
@@ -14458,7 +14485,7 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_MESSAGE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå Å»Åð ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iTargetUnitUID )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14467,9 +14494,9 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_MEMBER_MESSAGE_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ÇØ´ç ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_29; break; // Æ®·£Á§¼Ç ¿¡·¯
-		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ±æµå¿ø ÀÎ»ç¸» º¯°æ ½ÇÆÐ
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ï¿½Ø´ï¿½ ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_29; break; // Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ï¿½ï¿½ï¿½ï¿½ ï¿½Î»ç¸» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 
@@ -14478,7 +14505,7 @@ end_proc:
 	
 	if( kPacket.m_iOK == NetError::NET_OK )
 	{
-		// ±æµå¿ø ÀÎ»ç¸» º¯°æÀÌ ¼º°øÇÏ¸é ±æµå ¸Å´ÏÀú¿¡ ¼öÁ¤µÈ Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Î»ç¸» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ñ´ï¿½.
 		SendToLoginServer( ELG_UPDATE_CHANGE_GUILD_MEMBER_MESSAGE_NOT, kPacket );
 	}
 }
@@ -14490,35 +14517,35 @@ IMPL_ON_FUNC( DBE_DISBAND_GUILD_REQ )
 	kPacket.m_iGuildUID = kPacket_.m_iGuildUID;
 
 	//////////////////////////////////////////////////////////////////////////
-	// 1. ±æµå°ü¸®ÀÚ°¡ ³ª¸¦ °­ÅðÇÏ´Â°Å¶ó¸é °­Åð¸¦ ¿äÃ»ÇÑ À¯Àú°¡ ±ÇÇÑÀÌ ÀÖ´ÂÁö ¾Ë¾Æº¸ÀÚ!
+	// 1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´Â°Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë¾Æºï¿½ï¿½ï¿½!
 	u_char ucGuildMemberShipGrade = 0;
 
 	if( Query_GetGuildMemberGrade( kPacket_.m_iUnitUID, ucGuildMemberShipGrade ) == false )
 	{
-		START_LOG( cerr, L"±æµå¿ø µî±Þ Á¤º¸ ¾ò±â ½ÇÆÐ." )			
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )			
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
-		kPacket.m_iOK = NetError::ERR_GUILD_19; // ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
+		kPacket.m_iOK = NetError::ERR_GUILD_19; // ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 		goto end_proc;
 	}
 
-	// ±æµå ¸¶½ºÅÍ¸¸ ±æµåÇØ»êÀ» ÇÒ¼öÀÖ´Ù
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½Ø»ï¿½ï¿½ï¿½ ï¿½Ò¼ï¿½ï¿½Ö´ï¿½
 	if( ucGuildMemberShipGrade != SEnum::GUG_MASTER )
 	{
-		START_LOG( cerr, L"±æµå ¸¶½ºÅÍ°¡ ¾Æ´Ñµ¥ ±æµåÇØ»êÀ» ÇÏ·ÁÇÔ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Æ´Ñµï¿½ ï¿½ï¿½ï¿½ï¿½Ø»ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( ucGuildMemberShipGrade )
 			<< END_LOG;
 
-		kPacket.m_iOK = NetError::ERR_GUILD_30; // ±æµå¸¶½ºÅÍ°¡ ¾Æ´Õ´Ï´Ù.
+		kPacket.m_iOK = NetError::ERR_GUILD_30; // ï¿½ï¿½å¸¶ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 		goto end_proc;
 	}
 
 	//////////////////////////////////////////////////////////////////////////	
-	// 2. ±æµå ÇØ»ê ¿äÃ»
+	// 2. ï¿½ï¿½ï¿½ ï¿½Ø»ï¿½ ï¿½ï¿½Ã»
 
-	//±æµå ÇØ»ê
+	//ï¿½ï¿½ï¿½ ï¿½Ø»ï¿½
 	DO_QUERY( L"exec dbo.gup_delete_guild", L"%d, %d", 
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_iGuildUID
@@ -14532,7 +14559,7 @@ IMPL_ON_FUNC( DBE_DISBAND_GUILD_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå Å»Åð ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )	
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14540,12 +14567,12 @@ IMPL_ON_FUNC( DBE_DISBAND_GUILD_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ÇØ´ç À¯´ÖÀº ÇØ´ç ±æµå¿øÀÌ ¾Æ´Ô
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_31; break; // ±æµåÀÇ ±æµå¿øÀÌ 1¸í ÃÊ°ú
-		case -3: kPacket.m_iOK = NetError::ERR_GUILD_32; break; // ±æµå¿ø »èÁ¦ ½ÇÆÐ
-		case -4: kPacket.m_iOK = NetError::ERR_GUILD_32; break; // ±æµå »èÁ¦·Î ¾÷µ¥ÀÌÆ® ½ÇÆÐ
-		case -5: kPacket.m_iOK = NetError::ERR_GUILD_32; break; // ±æµå »èÁ¦ ·Î±× ³²±â±â ½ÇÆÐ
-		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ±æµå ÇØ»ê ½ÇÆÐ
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_19; break; // ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_31; break; // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ê°ï¿½
+		case -3: kPacket.m_iOK = NetError::ERR_GUILD_32; break; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		case -4: kPacket.m_iOK = NetError::ERR_GUILD_32; break; // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+		case -5: kPacket.m_iOK = NetError::ERR_GUILD_32; break; // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break; // ï¿½ï¿½ï¿½ ï¿½Ø»ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 
@@ -14554,7 +14581,7 @@ end_proc:
 	
 	if( kPacket.m_iOK == NetError::NET_OK )
 	{
-		// ±æµåÇØ»êÀÌ ¼º°øÇÏ¸é ±æµå¸Å´ÏÀú¿¡ ÇØ´ç ±æµå¸¦ Áö¿ì·¯ °¡ÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½Ø»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½å¸¦ ï¿½ï¿½ï¿½ì·¯ ï¿½ï¿½ï¿½ï¿½!
 		SendToLoginServer( ELG_UPDATE_DISBAND_GUILD_NOT, kPacket );
 	}	
 }
@@ -14567,24 +14594,24 @@ IMPL_ON_FUNC( DBE_EXPAND_GUILD_MAX_MEMBER_REQ )
 	kPacket.m_iGuildUID = kPacket_.m_iGuildUID;
 
 	//////////////////////////////////////////////////////////////////////////
-	// ±æµå ¸¶½ºÅÍÀÎÁö È®ÀÎ
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	u_char ucGuildMemberShipGrade = 0;
 
 	if( Query_GetGuildMemberGrade( kPacket_.m_iUnitUID, ucGuildMemberShipGrade ) == false )
 	{
-		START_LOG( cerr, L"±æµå¿ø µî±Þ Á¤º¸ ¾ò±â ½ÇÆÐ." )			
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )			
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
-		kPacket.m_iOK = NetError::ERR_GUILD_19; // ±æµå¿¡ ¼ÓÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù.
+		kPacket.m_iOK = NetError::ERR_GUILD_19; // ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 		goto end_proc;
 	}
 
-	// ±æµå °ü¸®ÀÚ, ±æµå ¸¶½ºÅÍ¸¸ ±æµåÀÎ¿ø È®ÀåÀ» ÇÒ ¼ö ÀÖ´Ù.
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½Î¿ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½.
 	if( ucGuildMemberShipGrade != SEnum::GUG_MASTER  &&
 		ucGuildMemberShipGrade != SEnum::GUG_SYSOP )
 	{
-		START_LOG( cerr, L"±æµå ¸¶½ºÅÍ ¶Ç´Â ±æµå °ü¸®ÀÚ°¡ ¾Æ´Ñµ¥ ±æµå ÀÎ¿ø È®ÀåÀ» ÇÏ·ÁÇÔ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Æ´Ñµï¿½ ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( ucGuildMemberShipGrade )
 			<< END_LOG;
@@ -14594,7 +14621,7 @@ IMPL_ON_FUNC( DBE_EXPAND_GUILD_MAX_MEMBER_REQ )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ±æµå È®Àå °¡´ÉÇÑ ÀÎ¿øÀÎÁö È®ÀÎ
+	// ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 
 	DO_QUERY( L"exec dbo.gup_get_guild_info", L"%d", % kPacket_.m_iGuildUID );
 
@@ -14613,7 +14640,7 @@ IMPL_ON_FUNC( DBE_EXPAND_GUILD_MAX_MEMBER_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå Á¤º¸ ¾ò±â ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14625,7 +14652,7 @@ IMPL_ON_FUNC( DBE_EXPAND_GUILD_MAX_MEMBER_REQ )
 	
 	if( kGuildInfo.m_usMaxNumMember >= KGuildInfo::GUILD_MAX_MEMBER_LIMIT )
 	{
-		START_LOG( cerr, L"±æµå ÀÎ¿øÀ» ´õÀÌ»ó È®ÀåÇÒ ¼ö ¾ø½À´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì»ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14636,14 +14663,14 @@ IMPL_ON_FUNC( DBE_EXPAND_GUILD_MAX_MEMBER_REQ )
 	}
 	else
 	{
-		// ÀÎ¿ø È®Àå!
+		// ï¿½Î¿ï¿½ È®ï¿½ï¿½!
 		kPacket.m_usMaxNumMember = kGuildInfo.m_usMaxNumMember + 10;
 		if( kPacket.m_usMaxNumMember > KGuildInfo::GUILD_MAX_MEMBER_LIMIT )
 			kPacket.m_usMaxNumMember = KGuildInfo::GUILD_MAX_MEMBER_LIMIT;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ±æµå ÀÎ¿ø È®Àå
+	// ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ È®ï¿½ï¿½
 
 	DO_QUERY( L"exec dbo.gup_update_guild_maxno", L"%d, %d", % kPacket_.m_iGuildUID % kPacket.m_usMaxNumMember );
 
@@ -14655,7 +14682,7 @@ IMPL_ON_FUNC( DBE_EXPAND_GUILD_MAX_MEMBER_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå ÀÎ¿ø È®Àå ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14669,7 +14696,7 @@ end_proc:
 	SendToServer( DBE_EXPAND_GUILD_MAX_MEMBER_ACK, kPacket );
 }
 
-//{{ 2009. 10. 27  ÃÖÀ°»ç	±æµå·¹º§
+//{{ 2009. 10. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å·¹ï¿½ï¿½
 IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 {
 	KDBE_UPDATE_GUILD_EXP_ACK kPacket;
@@ -14680,7 +14707,7 @@ IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 	KGuildInfo kGuildInfo;
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¸í¿¹ Æ÷ÀÎÆ® ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	DO_QUERY( L"exec dbo.gup_update_guild_member_exp", L"%d, %d, %d",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_iGuildUID
@@ -14695,7 +14722,7 @@ IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå¿ø ¸í¿¹ Æ÷ÀÎÆ® ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14704,8 +14731,8 @@ IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ±æµå¿øÀÌ ¾Æ´Ï°Å³ª, Àß¸øµÈ ±æµå³Ñ¹ö
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_29; break; // Æ®·£Á§¼Ç ¿¡·¯
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï°Å³ï¿½, ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¹ï¿½
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_29; break; // Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
 		}
 
@@ -14713,7 +14740,7 @@ IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ±æµå EXP ¾ò±â	
+	// ï¿½ï¿½ï¿½ EXP ï¿½ï¿½ï¿½	
 
 	DO_QUERY( L"exec dbo.gup_get_guild_info", L"%d", % kPacket_.m_iGuildUID );
 
@@ -14732,7 +14759,7 @@ IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå Á¤º¸ ¾ò±â ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14743,10 +14770,10 @@ IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ±æµå Á¦ÇÑ ·¹º§ Ã¼Å©
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 	if( kGuildInfo.m_iGuildEXP >= kPacket_.m_iGuildLimitEXP )
 	{
-		START_LOG( clog, L"´õÀÌ»ó ±æµå °æÇèÄ¡¸¦ È¹µæÇÒ ¼ö ¾ø½À´Ï´Ù." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOG( kGuildInfo.m_iGuildEXP )
 			<< BUILD_LOG( kPacket_.m_iGuildLimitEXP );
 		
@@ -14755,20 +14782,20 @@ IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 	}
 	else
 	{
-		// Áõ°¡ÇÑ °æÇèÄ¡
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 		kPacket.m_iGuildEXP = kGuildInfo.m_iGuildEXP + kPacket_.m_iGuildEXP;
 		
 		if( kPacket.m_iGuildEXP > kPacket_.m_iGuildLimitEXP )
 		{
 			kPacket.m_iGuildEXP = kPacket_.m_iGuildLimitEXP;
 
-			// ÁõºÐ°ª ´Ù½Ã ¾ò±â
+			// ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½
 			kPacket_.m_iGuildEXP = kPacket_.m_iGuildLimitEXP - kGuildInfo.m_iGuildEXP;
 		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ±æµå EXP ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ EXP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	DO_QUERY( L"exec dbo.gup_update_guild_exp", L"%d, %d, %d",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_iGuildUID
@@ -14783,7 +14810,7 @@ IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå EXP ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ EXP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14792,8 +14819,8 @@ IMPL_ON_FUNC( DBE_UPDATE_GUILD_EXP_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ±æµå¿øÀÌ ¾Æ´Ï°Å³ª, Àß¸øµÈ ±æµå³Ñ¹ö
-		case -2: kPacket.m_iOK = NetError::ERR_GUILD_29; break; // Æ®·£Á§¼Ç ¿¡·¯
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï°Å³ï¿½, ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¹ï¿½
+		case -2: kPacket.m_iOK = NetError::ERR_GUILD_29; break; // Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
 		}
 
@@ -14810,7 +14837,7 @@ end_proc:
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-//{{ 2009. 11. 24  ÃÖÀ°»ç	±æµå½ºÅ³
+//{{ 2009. 11. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 #ifdef GUILD_SKILL_TEST
 
 IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
@@ -14829,16 +14856,16 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -14847,7 +14874,7 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 
 	if( !kPacket.m_kItemQuantityUpdate.m_mapQuantityChange.empty()  ||  !kPacket.m_kItemQuantityUpdate.m_vecDeleted.empty() )
 	{
-		START_LOG( cerr, L"±æµå ½ºÅ³ ÃÊ±âÈ­ ¾ÆÀÌÅÛ DB¿¡¼­ ¼ö·®°¨¼Ò È¤Àº »èÁ¦ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -14855,7 +14882,7 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 		goto end_proc;
 	}
 
-	// ½ºÅ³ ÃÊ±âÈ­
+	// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­
 	DO_QUERY( L"exec dbo.gup_update_guild_skill_info_new", L"%d, %d, %d, %d",
 		% kPacket_.m_iGuildUID
 		% kPacket_.m_iGuildSkillID 
@@ -14871,7 +14898,7 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå ½ºÅ³ µÇµ¹¸®±â DBÄõ¸® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
 			<< BUILD_LOG( kPacket_.m_iGuildSkillID )
@@ -14881,7 +14908,7 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06;		break; // Á¸ÀçÇÏÁö¾Ê´Â ±æµå
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06;		break; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½
 		case -2: kPacket.m_iOK = NetError::ERR_GUILD_SKILL_10;	break;
 		case -3: kPacket.m_iOK = NetError::ERR_GUILD_SKILL_10;	break;
 		default: kPacket.m_iOK = NetError::ERR_UNKNOWN;			break;
@@ -14890,7 +14917,7 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 		goto end_proc;
 	}
 
-	// ±æµå Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® Á¤º¸ °»½Å
+	// ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( kPacket_.m_iGuildCSPoint >= 0 )
 	{
 		DO_QUERY( L"exec dbo.gup_update_guild_cash_skill_point_info", L"%d, %d, %d",
@@ -14907,7 +14934,7 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"±æµå ½ºÅ³ µÇµ¹¸®±âÇÑ ÀÌÈÄ¿¡ ±â°£Á¦ ½ºÅ³ Æ÷ÀÎÆ® DB¾÷µ¥ÀÌÆ® ÇÏ´Ù ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½â°£ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( LAST_SENDER_UID )
 				<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14918,14 +14945,14 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 
 			switch( kPacket.m_iOK )
 			{
-			case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // Á¸ÀçÇÏÁö¾Ê´Â ±æµå
+			case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½
 			default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
 			}
 
 			goto end_proc;
 		}
 	}
-	// ±æµå ½ºÅ³ Æ÷ÀÎÆ® Á¤º¸ °»½Å
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	else
 	{
 		DO_QUERY( L"exec dbo.gup_update_guild_skill_point", L"%d, %d",
@@ -14941,7 +14968,7 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"±æµå ½ºÅ³ µÇµ¹¸®±âÇÑ ÀÌÈÄ¿¡ ½Ã½ºÅ³ Æ÷ÀÎÆ® DB¾÷µ¥ÀÌÆ® ÇÏ´Ù ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½Ã½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( LAST_SENDER_UID )
 				<< BUILD_LOG( kPacket_.m_iGuildUID )
@@ -14951,7 +14978,7 @@ IMPL_ON_FUNC( DBE_RESET_GUILD_SKILL_REQ )
 
 			switch( kPacket.m_iOK )
 			{
-			case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // Á¸ÀçÇÏÁö¾Ê´Â ±æµå
+			case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½
 			default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
 			}
 
@@ -14981,16 +15008,16 @@ IMPL_ON_FUNC( DBE_INIT_GUILD_SKILL_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -14999,7 +15026,7 @@ IMPL_ON_FUNC( DBE_INIT_GUILD_SKILL_REQ )
 
 	if( !kPacket.m_kItemQuantityUpdate.m_mapQuantityChange.empty()  ||  !kPacket.m_kItemQuantityUpdate.m_vecDeleted.empty() )
 	{
-		START_LOG( cerr, L"±æµå ½ºÅ³ ÃÊ±âÈ­ ¾ÆÀÌÅÛ DB¿¡¼­ ¼ö·®°¨¼Ò È¤Àº »èÁ¦ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -15007,7 +15034,7 @@ IMPL_ON_FUNC( DBE_INIT_GUILD_SKILL_REQ )
 		goto end_proc;
 	}
 
-	// ±æµå ½ºÅ³ ÃÊ±âÈ­
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­
 	DO_QUERY( L"exec dbo.gup_delete_all_guild_skill", L"%d, %d, %d",
 		% kPacket_.m_iGuildUID
 		% kPacket_.m_iGuildSPoint
@@ -15022,7 +15049,7 @@ IMPL_ON_FUNC( DBE_INIT_GUILD_SKILL_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±æµå ½ºÅ³ ÃÊ±âÈ­ DBÄõ¸® ½ÇÆÐ.!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iGuildUID )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
@@ -15033,7 +15060,7 @@ IMPL_ON_FUNC( DBE_INIT_GUILD_SKILL_REQ )
 
 		switch( kPacket.m_iOK )
 		{
-		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // Á¸ÀçÇÏÁö¾Ê´Â ±æµå
+		case -1: kPacket.m_iOK = NetError::ERR_GUILD_06; break; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½
 		case -2: kPacket.m_iOK = NetError::ERR_GUILD_SKILL_14; break;
 		case -3: kPacket.m_iOK = NetError::ERR_GUILD_SKILL_14; break;
 		default: kPacket.m_iOK = NetError::ERR_UNKNOWN; break;
@@ -15057,7 +15084,7 @@ end_proc:
 //}}
 //////////////////////////////////////////////////////////////////////////
 
-//{{ 2009. 12. 8  ÃÖÀ°»ç	Å©¸®½º¸¶½ºÀÌº¥Æ®
+//{{ 2009. 12. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½Æ®
 IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 {
 	KDBE_CHECK_TIME_EVENT_COMPLETE_ACK kPacket;
@@ -15065,28 +15092,28 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 	kPacket.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
 
 	//////////////////////////////////////////////////////////////////////////	
-	// ÀÏ´Ü º¸»óºÎÅÍ ÁÖÀÚ!
+	// ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_XMAS_EVENT, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -15094,7 +15121,7 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"ÀÌº¥Æ® º¸»ó ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -15106,14 +15133,14 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 	}
 
 	CTime tUpdateTime = CTime::GetCurrentTime();
-	tUpdateTime += CTimeSpan( 18250, 0, 0, 0 ); // ÇÑ¹ø¸¸ Áà¾ß ÇÏ¹Ç·Î 50³âÀ» ´õÇÑ´Ù.
+	tUpdateTime += CTimeSpan( 18250, 0, 0, 0 ); // ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï¹Ç·ï¿½ 50ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 	std::wstring wstrUpdateDate = ( CStringW )( tUpdateTime.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
 
 	std::vector< KCumulativeTimeEventInfo >::const_iterator vit;
 	for( vit = kPacket_.m_vecCompletedEvent.begin(); vit != kPacket_.m_vecCompletedEvent.end(); ++vit )
 	{
 		//////////////////////////////////////////////////////////////////////////
-		// ´Ù½Ã ÀÌº¥Æ® ½ÃÀÛÇÒ¼ö ÀÖÀ¸¸é ¿Ï·á ¾÷µ¥ÀÌÆ® ÇÏÁö ¸»°í ÀÌº¥Æ® ´Ù½Ã ½ÃÀÛ ¸øÇÏ¸é ¿Ï·á ¾÷µ¥ÀÌÆ® ÇÏÀÚ!
+		// ï¿½Ù½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
 		bool bRestartEvent = false;
 		int iOK = NetError::ERR_ODBC_01;
 
@@ -15127,7 +15154,7 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 
 		if( iOK <= 0 )
 		{
-			START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+			START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( vit->m_iEventUID )
@@ -15152,7 +15179,7 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 		}
 
 		//////////////////////////////////////////////////////////////////////////
-		// ÀÌº¥Æ® º¸»ó ·Î±×¸¦ ±â·ÏÇÏÀÚ!
+		// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 
 		if( bRestartEvent == false )
 		{
@@ -15166,7 +15193,7 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 
 			if( kPacket.m_iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+				START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 					<< BUILD_LOG( kPacket.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( vit->m_iEventUID )
@@ -15179,7 +15206,7 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 		}
 		else
 		{
-			// ÀÌº¥Æ® °æ°ú ½Ã°£ ÃÊ±âÈ­
+			// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ê±ï¿½È­
 			DO_QUERY( L"exec dbo.gup_update_remaintime", L"%d, %d, %d", % kPacket_.m_iUnitUID % vit->m_iEventUID % 0 );
 
 			if( m_kODBC.BeginFetch() )
@@ -15190,7 +15217,7 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+				START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( vit->m_iEventUID )					
@@ -15201,7 +15228,7 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ )
 			}
 			else
 			{
-				// Àç½ÃÀÛÇÒ ÀÌº¥Æ®¸¦ ³ÖÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				kPacket.m_vecRestartEvent.push_back( vit->m_iEventUID );
 			}
 		}
@@ -15213,7 +15240,7 @@ end_proc:
 //}}
 
 #ifdef SERV_GLOBAL_BILLING
-//{{ Çã»óÇü : [2010/8/19/] //	¼±¹° ±â´É °³Æí
+//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/8/19/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_GET_NICKNAME_BY_UNITUID_REQ )
 {
 	KDBE_GET_NICKNAME_BY_UNITUID_ACK kPacket;
@@ -15238,7 +15265,7 @@ IMPL_ON_FUNC( DBE_GET_NICKNAME_BY_UNITUID_REQ )
 			m_kODBC.EndFetch();
 		}
 
-		START_LOG( clog2, L"[Å×½ºÆ®·Î±×]")
+		START_LOG( clog2, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½]")
 			<< BUILD_LOG( fromUnitUID )
 			<< BUILD_LOG( wstrNickName )
 			<< END_LOG;
@@ -15249,17 +15276,17 @@ IMPL_ON_FUNC( DBE_GET_NICKNAME_BY_UNITUID_REQ )
 end_proc:
 	SendToUser( LAST_SENDER_UID, DBE_GET_NICKNAME_BY_UNITUID_ACK, kPacket );
 }
-//}} Çã»óÇü : [2010/8/19/] //	¼±¹° ±â´É °³Æí
+//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/8/19/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif // SERV_GLOBAL_BILLING
 
 
-//{{ 2010. 01. 11  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 IMPL_ON_FUNC( DBE_GET_RECOMMEND_USER_LIST_REQ )
 {
 	KDBE_GET_RECOMMEND_USER_LIST_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-	// ÃßÃµÀÎ ¸®½ºÆ®
+	// ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 	DO_QUERY( L"exec dbo.gup_get_recommend_list_me", L"%d", % kPacket_.m_iUnitUID );
 
 	while( m_kODBC.Fetch() )
@@ -15283,7 +15310,7 @@ end_proc:
 }
 //}}
 
-//{{ 2010. 02. 23  ÃÖÀ°»ç	À¥ Æ÷ÀÎÆ® ÀÌº¥Æ®
+//{{ 2010. 02. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ìºï¿½Æ®
 #ifdef SERV_WEB_POINT_EVENT
 
 IMPL_ON_FUNC( DBE_ATTENDANCE_CHECK_REQ )
@@ -15291,7 +15318,7 @@ IMPL_ON_FUNC( DBE_ATTENDANCE_CHECK_REQ )
 	KDBE_ATTENDANCE_CHECK_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-	// Ãâ¼® Ã¼Å©
+	// ï¿½â¼® Ã¼Å©
 	DO_QUERY( L"exec dbo.gup_insert_event_attendance", L"%d", % kPacket_.m_iUnitUID );
 
 	if( m_kODBC.BeginFetch() )
@@ -15304,7 +15331,7 @@ IMPL_ON_FUNC( DBE_ATTENDANCE_CHECK_REQ )
 	{
 		if( kPacket.m_iOK != -1 )
 		{
-			START_LOG( cerr, L"Ãâ¼® Ã¼Å© ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½â¼® Ã¼Å© ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< END_LOG;
@@ -15326,7 +15353,7 @@ _IMPL_ON_FUNC( DBE_INCREASE_WEB_POINT_LOG_NOT, KDBE_INCREASE_WEB_POINT_ACK )
 {	
 	int iOK = NetError::ERR_ODBC_01;
 
-	// À¥ Æ÷ÀÎÆ® È¹µæ ·Î±×
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® È¹ï¿½ï¿½ ï¿½Î±ï¿½
 	DO_QUERY( L"exec dbo.gup_insert_event_webpoint", L"%d, %d, %d", % kPacket_.m_iUnitUID % (int)kPacket_.m_cPointType % kPacket_.m_iIncreasePoint );
 
 	if( m_kODBC.BeginFetch() )
@@ -15337,7 +15364,7 @@ _IMPL_ON_FUNC( DBE_INCREASE_WEB_POINT_LOG_NOT, KDBE_INCREASE_WEB_POINT_ACK )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"À¥ Æ÷ÀÎÆ® È¹µæ ·Î±× ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® È¹ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
@@ -15350,7 +15377,7 @@ end_proc:
 #endif SERV_WEB_POINT_EVENT
 //}}
 
-//{{ 2010. 03. 22  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+//{{ 2010. 03. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
 
 IMPL_ON_FUNC( DBE_EXPAND_SKILL_NOTE_PAGE_REQ )
@@ -15359,7 +15386,7 @@ IMPL_ON_FUNC( DBE_EXPAND_SKILL_NOTE_PAGE_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	kPacket.m_cExpandedMaxPageNum = kPacket_.m_cExpandedMaxPageNum;
 
-	// ±â¼úÀÇ ³ëÆ® ÆäÀÌÁö È®Àå
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_insert_notecnt", L"%d, %d", % kPacket_.m_iUnitUID % (int)kPacket_.m_cExpandedMaxPageNum );
 	
 	if( m_kODBC.BeginFetch() )
@@ -15370,7 +15397,7 @@ IMPL_ON_FUNC( DBE_EXPAND_SKILL_NOTE_PAGE_REQ )
 	
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±â¼úÀÇ ³ëÆ® ÆäÀÌÁö È®Àå ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOGc( kPacket_.m_cExpandedMaxPageNum )
@@ -15391,7 +15418,7 @@ IMPL_ON_FUNC( DBE_REG_SKILL_NOTE_MEMO_REQ )
 	kPacket.m_iMemoID = kPacket_.m_iMemoID;
 	kPacket.m_vecInventorySlotInfo = kPacket_.m_vecInventorySlotInfo;
 
-	// ±â¼úÀÇ ³ëÆ® ¸Þ¸ð µî·Ï
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_insert_note", L"%d, %d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iMemoID % (int)kPacket_.m_cPageNum );
 
 	if( m_kODBC.BeginFetch() )
@@ -15402,7 +15429,7 @@ IMPL_ON_FUNC( DBE_REG_SKILL_NOTE_MEMO_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"±â¼úÀÇ ³ëÆ® ¸Þ¸ð µî·Ï ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iMemoID )
@@ -15419,7 +15446,7 @@ end_proc:
 #endif SERV_SKILL_NOTE
 //}}
 
-//{{ 2010. 7. 30 ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//{{ 2010. 7. 30 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 
 IMPL_ON_FUNC( DBE_CREATE_PET_REQ )
@@ -15433,24 +15460,24 @@ IMPL_ON_FUNC( DBE_CREATE_PET_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		BOOST_MAP_CONST_FOREACH( UidType, int, kItem, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kItem.first )
 				<< BUILD_LOG( kItem.second );
 		}
 	}
 	//}}
 
-	// Æê »ý¼º
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PERIOD_PET
-	// SERV_PET_AUTO_LOOTING, SERV_PETID_DATA_TYPE_CHANGE ÄÑÁø °Í ±âÁØÀ¸·Î ÇÏ³ª¸¸ Á¦ÀÛ
+	// SERV_PET_AUTO_LOOTING, SERV_PETID_DATA_TYPE_CHANGE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_create_pet", L"%d, %d, N\'%s\', %d, %d, %d, %d, %d, %d", 
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_kPetInfo.m_iPetID					// SERV_PETID_DATA_TYPE_CHANGE
@@ -15508,7 +15535,7 @@ IMPL_ON_FUNC( DBE_CREATE_PET_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Æê »ý¼º ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 #ifdef SERV_PETID_DATA_TYPE_CHANGE //2013.07.02
@@ -15544,7 +15571,7 @@ IMPL_ON_FUNC( DBE_CREATE_PET_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ÆêÀÇ ¿ÀÅä ·çÆÃ ±â´É DB ¾÷µ¥ÀÌÆ®¿¡ ½ÇÆÐ ÇÏ¿´½À´Ï´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket.m_kPetInfo.m_iPetUID )
 				<< END_LOG;
@@ -15566,7 +15593,7 @@ IMPL_ON_FUNC( DBE_SUMMON_PET_REQ )
 	kPacket.m_iSummonPetUID = kPacket_.m_iSummonPetUID;
 
 	//////////////////////////////////////////////////////////////////////////
-	// ÀÎº¥Åä¸® º¯°æ µ¥ÀÌÅÍ ¾÷µ¥ÀÌÆ® ( ¼ÒÈ¯ ÇØÁ¦µÇ´Â ÆêÀÇ ÀÎº¥ Á¤º¸µµ Æ÷ÇÔ µÈ°Í ) 
+	// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ( ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È°ï¿½ ) 
 
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );	
@@ -15574,15 +15601,15 @@ IMPL_ON_FUNC( DBE_SUMMON_PET_REQ )
 	Query_UpdateItemPosition( kPacket_.m_iUnitUID, kPacket_.m_kItemPositionUpdate, kPacket.m_kItemPositionUpdate );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		BOOST_MAP_CONST_FOREACH( UidType, int, kItem, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kItem.first )
 				<< BUILD_LOG( kItem.second );
 		}
@@ -15590,10 +15617,10 @@ IMPL_ON_FUNC( DBE_SUMMON_PET_REQ )
 	//}}
     
 	//////////////////////////////////////////////////////////////////////////
-	// ¼ÒÈ¯ ÇØÁ¦!
+	// ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½!
 	if( kPacket_.m_iBeforeSummonPetUID > 0 )
 	{
-		// Æê ¼ÒÈ¯ ÇØÁ¦
+		// ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_update_pet_call", L"%d, %d", % kPacket_.m_iBeforeSummonPetUID % 0 );
 
 		if( m_kODBC.BeginFetch() )
@@ -15604,19 +15631,19 @@ IMPL_ON_FUNC( DBE_SUMMON_PET_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Æê ¼ÒÈ¯ ÇØÁ¦ ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iBeforeSummonPetUID )
 				<< END_LOG;
 
-			// Æê ¼ÒÈ¯ ÇØÁ¦ ½ÇÆÐÇÏ¸é ¿©±â¼­ µ¹¾Æ°¡ÀÚ!
+			// ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½!
 			kPacket.m_iOK = NetError::ERR_PET_08;
 			goto end_proc;
 		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// Æê ¼ÒÈ¯!
+	// ï¿½ï¿½ ï¿½ï¿½È¯!
 	if( kPacket_.m_iSummonPetUID > 0 )
 	{
 		DO_QUERY( L"exec dbo.gup_update_pet_call", L"%d, %d", % kPacket_.m_iSummonPetUID % 1 );
@@ -15629,12 +15656,12 @@ IMPL_ON_FUNC( DBE_SUMMON_PET_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Æê ¼ÒÈ¯ ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iSummonPetUID )
 				<< END_LOG;
 
-			// Æê ¼ÒÈ¯ ½ÇÆÐÇÏ¸é ¿©±â¼­ µ¹¾Æ°¡ÀÚ!
+			// ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½!
 			kPacket.m_iOK = NetError::ERR_PET_04;
 			goto end_proc;
 		}
@@ -15644,7 +15671,7 @@ end_proc:
 	SendToUser( LAST_SENDER_UID, DBE_SUMMON_PET_ACK, kPacket );
 }
 
-//{{ 2012. 02. 22	¹Ú¼¼ÈÆ	Æê ÀÌ¸§ º¯°æ±Ç
+//{{ 2012. 02. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_CHANGE_NAME
 IMPL_ON_FUNC( DBE_CHANGE_PET_NAME_REQ )
 {
@@ -15657,15 +15684,15 @@ IMPL_ON_FUNC( DBE_CHANGE_PET_NAME_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		BOOST_MAP_CONST_FOREACH( UidType, int, kItem, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kItem.first )
 				<< BUILD_LOG( kItem.second );
 		}
@@ -15674,7 +15701,7 @@ IMPL_ON_FUNC( DBE_CHANGE_PET_NAME_REQ )
 
 	if( kPacket.m_kItemQuantityUpdate.m_mapQuantityChange.find( kPacket_.m_iItemUID ) != kPacket.m_kItemQuantityUpdate.m_mapQuantityChange.end() )
 	{
-		START_LOG( cerr, L"DBE_CHANGE_GUILD_NAME_REQ: ¼ö·® °¨¼Ò ½ÇÆÐ" )
+		START_LOG( cerr, L"DBE_CHANGE_GUILD_NAME_REQ: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
 			<< END_LOG;
@@ -15688,7 +15715,7 @@ IMPL_ON_FUNC( DBE_CHANGE_PET_NAME_REQ )
 		{
 			if( kDeletedItemInfo.m_iItemUID == kPacket_.m_iItemUID )
 			{
-				START_LOG( cerr, L"DBE_CHANGE_GUILD_NAME_REQ: ¾ÆÀÌÅÛ »èÁ¦ ½ÇÆÐ" )
+				START_LOG( cerr, L"DBE_CHANGE_GUILD_NAME_REQ: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iItemUID )
 					<< END_LOG;
@@ -15701,7 +15728,7 @@ IMPL_ON_FUNC( DBE_CHANGE_PET_NAME_REQ )
 
 	kPacket.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
 
-	// ÆêÀÌ¸§ º¯°æ
+	// ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GPet_Info_UPT", L"%d, N\'%s\'", 
 		% kPacket_.m_kPetInfo.m_iPetUID
 		% kPacket_.m_kPetInfo.m_wstrPetName
@@ -15716,7 +15743,7 @@ IMPL_ON_FUNC( DBE_CHANGE_PET_NAME_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Æê ÀÌ¸§ º¯°æ ½ÇÆÐ! ( ¾ÆÀÌÅÛ º¹±¸ ÀÌ½´ ¹ß»ý )" )
+		START_LOG( cerr, L"ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì½ï¿½ ï¿½ß»ï¿½ )" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOGc( kPacket_.m_kPetInfo.m_iPetUID )
@@ -15746,7 +15773,7 @@ end_proc:
 #endif SERV_PET_SYSTEM
 //}}
 
-//{{ 2010. 8. 16	ÃÖÀ°»ç	±â°£ ¸®¼Â ¾ÆÀÌÅÛ ÀÌº¥Æ®
+//{{ 2010. 8. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_RESET_PERIOD_EVENT
 
 IMPL_ON_FUNC( DBE_RESET_PERIOD_ITEM_REQ )
@@ -15777,7 +15804,7 @@ IMPL_ON_FUNC( DBE_RESET_PERIOD_ITEM_REQ )
 		}
 		else
 		{
-			START_LOG( cerr, L"±â°£ ÃÊ±âÈ­ ¾ÆÀÌÅÛ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½â°£ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( mit->first )
@@ -15793,7 +15820,7 @@ end_proc:
 #endif SERV_RESET_PERIOD_EVENT
 //}}
 
-//{{ 2011. 01. 04	ÃÖÀ°»ç	¼Ó¼º ºÎÀû
+//{{ 2011. 01. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ATTRIBUTE_CHARM
 
 IMPL_ON_FUNC( DBE_ATTRIB_ATTACH_ITEM_REQ )
@@ -15805,7 +15832,7 @@ IMPL_ON_FUNC( DBE_ATTRIB_ATTACH_ITEM_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	
 	{
-		// Ã¹¹øÂ° ½½·Ô
+		// Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_update_Attribute", L"%d, %d, %d, %d",
 			% kPacket_.m_iUnitUID
 			% kPacket_.m_iItemUID
@@ -15821,7 +15848,7 @@ IMPL_ON_FUNC( DBE_ATTRIB_ATTACH_ITEM_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"0¹ø ½½·Ô ¼Ó¼º ºÎ¿© ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"0ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -15835,7 +15862,7 @@ IMPL_ON_FUNC( DBE_ATTRIB_ATTACH_ITEM_REQ )
 	}
 
 	{
-		// µÎ¹øÂ° ½½·Ô
+		// ï¿½Î¹ï¿½Â° ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_update_Attribute", L"%d, %d, %d, %d",
 			% kPacket_.m_iUnitUID
 			% kPacket_.m_iItemUID
@@ -15851,7 +15878,7 @@ IMPL_ON_FUNC( DBE_ATTRIB_ATTACH_ITEM_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"1¹ø ½½·Ô ¼Ó¼º ºÎ¿© ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -15865,7 +15892,7 @@ IMPL_ON_FUNC( DBE_ATTRIB_ATTACH_ITEM_REQ )
 	}
 
 	{
-		// ¼¼¹øÂ° ½½·Ô
+		// ï¿½ï¿½ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_update_Attribute", L"%d, %d, %d, %d",
 			% kPacket_.m_iUnitUID
 			% kPacket_.m_iItemUID
@@ -15881,7 +15908,7 @@ IMPL_ON_FUNC( DBE_ATTRIB_ATTACH_ITEM_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"2¹ø ½½·Ô ¼Ó¼º ºÎ¿© ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -15898,15 +15925,15 @@ IMPL_ON_FUNC( DBE_ATTRIB_ATTACH_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" );
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -15920,7 +15947,7 @@ end_proc:
 #endif SERV_ATTRIBUTE_CHARM
 //}}
 
-//{{ 2011. 04. 14	ÃÖÀ°»ç	´ë¸® »óÀÎ
+//{{ 2011. 04. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 
 IMPL_ON_FUNC( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ )
@@ -15929,7 +15956,7 @@ IMPL_ON_FUNC( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ )
 	kPacket.m_usEventID = kPacket_.m_usEventID;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-	// ´ë¸® »óÀÎ »ý¼º
+	// ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_insert_PShopinfo", L"%d, %d, %d", 
 		% LAST_SENDER_UID
 		% kPacket_.m_iUnitUID
@@ -15947,7 +15974,7 @@ IMPL_ON_FUNC( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"´ë¸® »óÀÎ ±â°£ ¼³Á¤ ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_sAgencyPeriod )
@@ -15973,16 +16000,16 @@ IMPL_ON_FUNC( DBE_PREPARE_REG_PSHOP_AGENCY_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -15992,7 +16019,7 @@ IMPL_ON_FUNC( DBE_PREPARE_REG_PSHOP_AGENCY_ITEM_REQ )
 	SendToUser( LAST_SENDER_UID, DBE_PREPARE_REG_PSHOP_AGENCY_ITEM_ACK, kPacket );
 }
 
-//{{ 2012. 05. 31	±è¹Î¼º       ´ë¸® »óÁ¡ °Å·¡ ·ÎÁ÷ º¯°æ
+//{{ 2012. 05. 31	ï¿½ï¿½Î¼ï¿½       ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_LOGIC_CHANGE_AGENCY_SHOP
 IMPL_ON_FUNC( DBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_REQ )
 {
@@ -16005,29 +16032,29 @@ IMPL_ON_FUNC( DBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_REQ )
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 
-	// 	START_LOG( cerr, L"»èÁ¦ ´©°¡ È£Ãâ ÇÏ³ª" )
+	// 	START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ ï¿½Ï³ï¿½" )
 	// 		<< BUILD_LOG( kPacket_.m_iUnitUID )
 	// 		<< END_LOG;
 
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_PICK_UP_PSHOP, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -16035,7 +16062,7 @@ IMPL_ON_FUNC( DBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_REQ )
 #endif SERV_GET_ITEM_REASON
 		//}}
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
@@ -16055,23 +16082,23 @@ IMPL_ON_FUNC( DBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_PICK_UP_PSHOP, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo, false ) == false )
 #else
@@ -16079,7 +16106,7 @@ IMPL_ON_FUNC( DBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_REQ )
 #endif SERV_GET_ITEM_REASON
 	//}}
 	{
-		START_LOG( cerr, L"´ë¸® »óÀÎ Pick Up ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½ Pick Up ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -16112,7 +16139,7 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 		kAck.m_wstrNickName = kPacket_;
 #endif // SERV_NEW_UNIT_TRADE_LIMIT
 
-	//	UnitUID ¾ò±â
+	//	UnitUID ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_get_unit_uid", L"N\'%s\'", % kAck.m_wstrNickName );
 
 	if( m_kODBC.BeginFetch() )
@@ -16187,7 +16214,7 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 	}
 #endif SERV_NEW_UNIT_TRADE_LIMIT
 
-	//	ÀºÇà Å©±â ¾ò±â
+	//	ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GItemInventorySize_SEL_Bank", L"%d", % kAck.m_iUnitUID );
 
 	int iBankSize = 0;
@@ -16205,8 +16232,8 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 		goto end_proc;
 	}
 
-	//	ÀºÇà¾ÆÀÌÅÛ ¾ò¾î¿À±â
-#ifdef SERV_SHARE_BANK_ITEM_EVALUATE_FIX // ±è¼®±Ù // Àû¿ë³¯Â¥ : 2013-08-28
+	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#ifdef SERV_SHARE_BANK_ITEM_EVALUATE_FIX // ï¿½è¼®ï¿½ï¿½ // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-08-28
 	DO_QUERY( L"exec dbo.P_GItem_GET_BankItem_New", L"%d", % kAck.m_iUnitUID );
 #else //SERV_SHARE_BANK_ITEM_EVALUATE_FIX
 	DO_QUERY( L"exec dbo.P_GItem_GET_BankItem", L"%d", % kAck.m_iUnitUID );
@@ -16222,7 +16249,7 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 		KInventoryItemInfo kInventoryItemInfo;
 
 
-#ifdef SERV_SHARE_BANK_ITEM_EVALUATE_FIX // ±è¼®±Ù // Àû¿ë³¯Â¥ : 2013-08-28
+#ifdef SERV_SHARE_BANK_ITEM_EVALUATE_FIX // ï¿½è¼®ï¿½ï¿½ // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-08-28
 		int arrRandomSocketOption[5] = {0};
 
 		FETCH_DATA( kInventoryItemInfo.m_iItemUID
@@ -16276,7 +16303,7 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 			>> kInventoryItemInfo.m_sSlotID );
 
 			/*
-			START_LOG(cout2, L"ÁöÇå·Î±×:Å¸ÀÔ °ª È®ÀÎ ÇØº¾½Ã´Ù.")
+			START_LOG(cout2, L"ï¿½ï¿½ï¿½ï¿½Î±ï¿½:Å¸ï¿½ï¿½ ï¿½ï¿½ È®ï¿½ï¿½ ï¿½Øºï¿½ï¿½Ã´ï¿½.")
 				<< BUILD_LOG(kInventoryItemInfo.m_iItemUID)
 				<< BUILD_LOG(kInventoryItemInfo.m_kItemInfo.m_iItemID)
 				<< BUILD_LOG(kInventoryItemInfo.m_kItemInfo.m_iQuantity)
@@ -16287,10 +16314,10 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 				*/
 #endif //SERV_SHARE_BANK_ITEM_EVALUATE_FIX
 
-			// 1. °­È­ Á¤º¸ ¾÷µ¥ÀÌÆ®
+			// 1. ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 			kInventoryItemInfo.m_kItemInfo.m_cEnchantLevel = static_cast<char>(iEnchantLevel);
 
-			// 2. ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ®
+			// 2. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 			int iCheckIdx;
 			for( iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
 			{
@@ -16305,7 +16332,7 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 
 			if( kInventoryItemInfo.m_cSlotCategory != CXSLInventory::ST_BANK )
 			{
-				START_LOG( cerr, L"ÀºÇà °øÀ¯ : ÀºÇà Ä«Å×°í¸®°¡ ¾Æ´Ñµ¥ µé¾î¿È" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ñµï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kAck.m_iUnitUID )
 					<< BUILD_LOG( kInventoryItemInfo.m_iItemUID )
 					<< BUILD_LOG( kInventoryItemInfo.m_cSlotCategory )
@@ -16313,14 +16340,14 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 
 				continue;
 			}
-			// TypeÀ» °øÀ¯ÀºÇàÀ¸·Î ¹Ù²ãÁØ´Ù
+			// Typeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½Ø´ï¿½
 			kInventoryItemInfo.m_cSlotCategory = CXSLInventory::ST_SHARE_BANK;
 
-			// ¾ÆÀÌÅÛ UID°¡ PKÀÌ¹Ç·Î map¿¡ insert ÇÒ ¶§ Å° Áßº¹ ¿©ºÎ °Ë»ç¸¦ ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UIDï¿½ï¿½ PKï¿½Ì¹Ç·ï¿½ mapï¿½ï¿½ insert ï¿½ï¿½ ï¿½ï¿½ Å° ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 			kAck.m_mapItem.insert( std::make_pair( kInventoryItemInfo.m_iItemUID, kInventoryItemInfo ) );
 	}
 
-	//	Attribute Á¤º¸ ¾ò¾î¿À±â
+	//	Attribute ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GItemAttribute_SEL_BankItem", L"%d", % kAck.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -16352,7 +16379,7 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 				break;
 
 			default:
-				START_LOG( cerr, L"ÀºÇà °øÀ¯ : ¼Ó¼º °­È­ ½½·Ô ³Ñ¹ö°¡ ÀÌ»óÇÕ´Ï´Ù." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½Ó¼ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 					<< BUILD_LOG( kAck.m_iUnitUID )
 					<< BUILD_LOG( iItemUID )
 					<< BUILD_LOG( iAttribEnchantSlotNo )
@@ -16363,7 +16390,7 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀºÇà °øÀ¯ : ¼Ó¼ºÁ¤º¸´Â ÀÖ´Âµ¥ ¾ÆÀÌÅÛÀº ¾ø´Ù?" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 				<< BUILD_LOG( kAck.m_iUnitUID )
 				<< BUILD_LOG( iItemUID )
 				<< BUILD_LOG( iAttribEnchantSlotNo )
@@ -16372,7 +16399,7 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 		}
 	}
 
-	//	ºÀÀÎ Á¤º¸ ¾ò¾î¿À±â
+	//	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GItemSeal_SEL_BankItem", L"%d", % kAck.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -16390,7 +16417,7 @@ _IMPL_ON_FUNC( DBE_GET_SHARE_BANK_REQ, KEGS_GET_SHARE_BANK_REQ )
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀºÇà °øÀ¯ : ºÀÀÎÁ¤º¸´Â ÀÖ´Âµ¥ ¾ÆÀÌÅÛÀº ¾ø´Ù?" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 				<< BUILD_LOG( kAck.m_iUnitUID )
 				<< BUILD_LOG( iItemUID )
 				<< BUILD_LOG( iSealCnt )
@@ -16409,7 +16436,7 @@ IMPL_ON_FUNC( DBE_UPDATE_SHARE_ITEM_REQ )
 
 	if( Query_UpdateShareItem( kPacket_, kAck ) == false )
 	{
-		START_LOG( cerr, L"°øÀ¯ ÀºÇà ¾ÆÀÌÅÛ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
@@ -16423,7 +16450,7 @@ _IMPL_ON_FUNC( DBE_UPDATE_SHARE_ITEM_FOR_MOVE_SLOT_REQ, KDBE_UPDATE_SHARE_ITEM_R
 
 	if( Query_UpdateShareItem( kPacket_, kAck ) == false )
 	{
-		START_LOG( cerr, L"°øÀ¯ ÀºÇà ¾ÆÀÌÅÛ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 	}
@@ -16448,7 +16475,7 @@ _IMPL_ON_FUNC( DBE_UPDATE_SEAL_DATA_NOT, KDBE_SEAL_ITEM_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ºÀÀÎ DB ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
 			<< BUILD_LOGc( kPacket_.m_ucSealResult )
@@ -16474,7 +16501,7 @@ IMPL_ON_FUNC( DBE_CHANGE_INVENTORY_SLOT_ITEM_REQ )
 	kPacket.m_kItemPositionUpdate = kPacket_.m_kItemPositionUpdate;
 
 	//////////////////////////////////////////////////////////////////////////
-	//START_LOG( cout, L"[Å×½ºÆ®·Î±×] °øÀ¯ ÀºÇà ½½·Ô µ¿ÀÛÇÏ±â Àü¿¡ ¹Ì¸® DB¾÷µ¥ÀÌÆ® Á¤º¸¸¦ Ã³¸®ÇÏÀÚ!" )		
+	//START_LOG( cout, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!" )		
 	//	<< BUILD_LOG( kPacket_.m_iUnitUID )
 	//	<< BUILD_LOG( kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.size() )
 	//	<< BUILD_LOG( kPacket_.m_kItemEnduranceUpdate.size() )
@@ -16482,7 +16509,7 @@ IMPL_ON_FUNC( DBE_CHANGE_INVENTORY_SLOT_ITEM_REQ )
 	//	<< BUILD_LOG( kPacket_.m_kItemQuantityUpdate.m_vecDeleted.size() );
 	//////////////////////////////////////////////////////////////////////////
 
-	// °øÀ¯ ÀºÇà ½½·Ô ÀÌµ¿À» ÇÏ±â Àü¿¡ ¹Ì¸® ÀÎº¥Åä¸®ÀÇ ¸ðµç º¯°æ Á¤º¸¸¦ DB¿Í ¸ÂÃßÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	LIF( Query_UpdateItemEndurance( kPacket_.m_iUnitUID, kPacket_.m_kItemEnduranceUpdate, kPacket.m_kItemEnduranceUpdate ) );
@@ -16544,7 +16571,7 @@ end_proc:
 IMPL_ON_FUNC( DBE_SHARING_BANK_EVENT_REQ )
 {
 	int iOK = NetError::ERR_ODBC_01;
-	// sp¸¦ È£ÃâÇØ¼­ ÀÌº¥Æ® º¸»óÀ» ÁÖµµ·Ï ÇÕ´Ï´Ù~
+	// spï¿½ï¿½ È£ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½~
 	DO_QUERY( L"exec dbo.P_GBankShare_GET_Event", L"%d, %d, %d", % kPacket_.m_iUserUID % kPacket_.m_iUnitUID % kPacket_.m_iItemID);
 
 	if( m_kODBC.BeginFetch() )
@@ -16555,7 +16582,7 @@ IMPL_ON_FUNC( DBE_SHARING_BANK_EVENT_REQ )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( clog2, L"°èÁ¤ÀºÇà ÀÌº¥Æ® SP ½ÇÆÐ!" )
+		START_LOG( clog2, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® SP ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kPacket_.m_iUserUID )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
@@ -16564,7 +16591,7 @@ IMPL_ON_FUNC( DBE_SHARING_BANK_EVENT_REQ )
 	}
 	else
 	{
-		START_LOG( clog2, L"ÁöÇå·Î±×:°èÁ¤ÀºÇà ÀÌº¥Æ® SP ¼º°ø!" )
+		START_LOG( clog2, L"ï¿½ï¿½ï¿½ï¿½Î±ï¿½:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® SP ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kPacket_.m_iUserUID )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
@@ -16581,14 +16608,14 @@ end_proc:
 }
 #endif
 
-//{{ ÁöÇå - ÀºÇà °³Æí Äù½ºÆ®, Ä³½¬ ÀÛ¾÷ 
+//{{ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®, Ä³ï¿½ï¿½ ï¿½Û¾ï¿½ 
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 IMPL_ON_FUNC( DBE_SHARING_BACK_OPEN_REQ )
 {
 	KDBE_SHARING_BACK_OPEN_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
-	// °èÁ¤ ÀºÇà ¿ÀÇÂ Çß´Ù°í µðºñ¿¡ ¾Ë¸®ÀÚ
-	// ÇØ´ç sp¸¦ È£Ãâ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß´Ù°ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ï¿½ï¿½
+	// ï¿½Ø´ï¿½ spï¿½ï¿½ È£ï¿½ï¿½
 
 	DO_QUERY( L"exec dbo.P_GBankShare_INS", L"%d, %d, %d", % kPacket_.m_iUserUID % kPacket_.m_iUnitUID % kPacket_.m_iOpenType);
 
@@ -16600,7 +16627,7 @@ IMPL_ON_FUNC( DBE_SHARING_BACK_OPEN_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"°èÁ¤ÀºÇà ¶Õ±â SP ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Õ±ï¿½ SP ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUserUID )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
@@ -16636,7 +16663,7 @@ IMPL_ON_FUNC( DBE_INSERT_ADVERTISEMENT_EVENT_INFO_NOT )
 
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"½Ç½Ã°£ ±¤°í ÀÌº¥Æ® Á¤º¸ ±â·Ï ½ÇÆÐ" )
+			START_LOG( cerr, L"ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( iOK )
 				<< END_LOG;
 		}
@@ -16646,7 +16673,7 @@ end_proc:
 }
 #endif SERV_ADVERTISEMENT_EVENT
 
-//{{ 2011. 08. 03	ÃÖÀ°»ç	´ëÀü °­Á¦ Á¾·á¿¡ ´ëÇÑ ¿¹¿ÜÃ³¸®
+//{{ 2011. 08. 03	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½á¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 #ifdef SERV_CLIENT_QUIT_PVP_BUG_PLAY_FIX
 IMPL_ON_FUNC( DBE_QUIT_USER_PVP_RESULT_UPDATE_NOT )
 {
@@ -16655,7 +16682,7 @@ IMPL_ON_FUNC( DBE_QUIT_USER_PVP_RESULT_UPDATE_NOT )
 #endif SERV_CLIENT_QUIT_PVP_BUG_PLAY_FIX
 //}}
 
-//{{ 2011. 06. 22    ±è¹Î¼º    ÀÌÅ» ¹æÁö ¸ðµ¨ - NEXON ¼¼¼Ç ½Ã½ºÅÛ ¼öÁ¤
+//{{ 2011. 06. 22    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ - NEXON ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEXON_SESSION_PROTOCOL
 IMPL_ON_FUNC( DBE_RETAINING_SELECT_REWARD_REQ )
 {
@@ -16666,16 +16693,16 @@ IMPL_ON_FUNC( DBE_RETAINING_SELECT_REWARD_REQ )
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cerr, L"ÀÌÅ»¹æÁö º¸»ó ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -16684,7 +16711,7 @@ IMPL_ON_FUNC( DBE_RETAINING_SELECT_REWARD_REQ )
 
 	if( Query_InsertItemList( SEnum::GIR_RETAINING_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 	{
-		START_LOG( cerr, L"ÀÌÅ»¹æÁö º¸»ó ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -16700,7 +16727,7 @@ IMPL_ON_FUNC( DBE_RETAINING_SELECT_REWARD_REQ )
 #endif SERV_NEXON_SESSION_PROTOCOL
 //}} 
 
-//{{ 2011. 10. 14	ÃÖÀ°»ç	¾ÆÀÌÅÛ »ç¿ë DB ¾÷µ¥ÀÌÆ® ¼öÁ¤
+//{{ 2011. 10. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_USE_ITEM_DB_UPDATE_FIX
 IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_REQ )
 {
@@ -16711,12 +16738,12 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_REQ )
 	kPacket.m_iItemUID = kPacket_.m_iItemUID;
 #endif //SERV_GOLD_TICKET
 	kPacket.m_iWarpPointMapID = kPacket_.m_iWarpPointMapID;
-	//{{ 2012. 10. 31	¹Ú¼¼ÈÆ	ÄÚº¸ ÀÍ½ºÇÁ·¹½º Æ¼ÄÏ Ãß°¡
+	//{{ 2012. 10. 31	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Úºï¿½ ï¿½Í½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¼ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_COBO_EXPRESS_TICKET
 	kPacket.m_iED	= kPacket_.m_iED;
 #endif SERV_ADD_COBO_EXPRESS_TICKET
 	//}}
-	//{{ 2012. 12. 24	¹Ú¼¼ÈÆ	Æê ¿ÀÅä ·çÆÃ ±â´É Ãß°¡
+	//{{ 2012. 12. 24	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_PET_AUTO_LOOTING
 	kPacket.m_iTempCode	= kPacket_.m_iTempCode;
 //#endif SERV_PET_AUTO_LOOTING
@@ -16728,16 +16755,16 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -16749,7 +16776,7 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_REQ )
 #endif SERV_USE_ITEM_DB_UPDATE_FIX
 //}}
 
-//{{ 2011. 11. 21  ±è¹Î¼º	ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ
+//{{ 2011. 11. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_UNIT_CLASS_CHANGE_ITEM
 IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 {
@@ -16761,8 +16788,8 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 	std::map< int, int >::const_iterator mitCompleteQuest = kPacket_.m_mapChangeCompleteQuest.begin();
 	std::map< int, int >::const_iterator mitInProgressQuest = kPacket_.m_mapChangeInProgressQuest.begin();
 
-	// Å¬·¡½º º¯°æ
-	DO_QUERY( L"exec dbo.P_GUnit_UPT_UnitClassChange", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iNewUnitClass ); // ´Ü¼ø UnitClass ¸¸ º¯°æ
+	// Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	DO_QUERY( L"exec dbo.P_GUnit_UPT_UnitClassChange", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iNewUnitClass ); // ï¿½Ü¼ï¿½ UnitClass ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket_.m_iOK );
@@ -16775,7 +16802,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		{
 		case -1:
 			{
-				START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! UnitClass º¯°æ ½ÇÆÐ - ÇØ´ç À¯´ÖÀÌ ¾ø´Â °æ¿ì" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! UnitClass ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iNewUnitClass )
@@ -16783,7 +16810,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			}break;
 		case -2:
 			{
-				START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! UnitClass º¯°æ ½ÇÆÐ - ¾÷µ¥ÀÌÆ® ½ÇÆÐ" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! UnitClass ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iNewUnitClass )
@@ -16791,7 +16818,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			}break;
 		default:
 			{
-				START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! UnitClass º¯°æ ½ÇÆÐ" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! UnitClass ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iNewUnitClass )
@@ -16801,7 +16828,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 	}
 
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
-	// ¹«Á¦ÇÑ º¯°æ±ÇÀ» »ç¿ë½Ã ·Î±× ³²±ä´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 	if( kPacket_.m_iOK == NetError::NET_OK && kPacket_.m_bUnlimitedSecondJobItem == true )
 	{
 		KDBE_UNLIMITED_SECOND_CHANGE_JOB_NOT	kUSCjobNot;
@@ -16813,8 +16840,8 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 	}
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
 
-	// ½ºÅ³ ÃÊ±âÈ­
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+	// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 	DO_QUERY( L"exec dbo.P_GSkill_New_All_DEL_UnitClassChange", L"%d, %d, %d, %d, %d, %d, %d, %d, %d",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_iSPoint
@@ -16850,12 +16877,12 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		{
 		case -1:
 			{
-				START_LOG( cerr, L"DB ½ºÅ³ÃÊ±âÈ­ ½ÇÆÐ.! - ½Àµæ ½ºÅ³ Áö¿ì±â ½ÇÆÐ" )
+				START_LOG( cerr, L"DB ï¿½ï¿½Å³ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½.! - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iSPoint )
 					<< BUILD_LOG( kPacket_.m_iCSPoint )
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 					<< BUILD_LOG( kPacket_.m_iDefaultSkillID1 )
 					<< BUILD_LOG( kPacket_.m_iDefaultSkillID2 )
 					<< BUILD_LOG( kPacket_.m_iDefaultSkillID3 )
@@ -16872,7 +16899,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			}break;
 		case -2:
 			{
-				START_LOG( cerr, L"DB ½ºÅ³ÃÊ±âÈ­ ½ÇÆÐ.!- ½ºÅ³ Æ÷ÀÎÆ® º¸»ó ½ÇÆÐ" )
+				START_LOG( cerr, L"DB ï¿½ï¿½Å³ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½.!- ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iSPoint )
@@ -16881,7 +16908,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			}break;
 		case -3:
 			{
-				START_LOG( cerr, L"DB ½ºÅ³ÃÊ±âÈ­ ½ÇÆÐ.!- Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® º¸»ó ½ÇÆÐ" )
+				START_LOG( cerr, L"DB ï¿½ï¿½Å³ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½.!- Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iSPoint )
@@ -16890,7 +16917,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			}break;
 		case -4:
 			{
-				START_LOG( cerr, L"DB ½ºÅ³ÃÊ±âÈ­ ½ÇÆÐ.!- ½ºÅ³ ½½·ÔA ÃÊ±âÈ­ ½ÇÆÐ" )
+				START_LOG( cerr, L"DB ï¿½ï¿½Å³ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½.!- ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½A ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iSPoint )
@@ -16899,7 +16926,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			}break;
 		case -5:
 			{
-				START_LOG( cerr, L"DB ½ºÅ³ÃÊ±âÈ­ ½ÇÆÐ.!- ½ºÅ³ ½½·ÔB ÃÊ±âÈ­ ½ÇÆÐ" )
+				START_LOG( cerr, L"DB ï¿½ï¿½Å³ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½.!- ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½B ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iSPoint )
@@ -16908,7 +16935,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			}break;
 		case -6:
 			{
-				START_LOG( cerr, L"DB ½ºÅ³ÃÊ±âÈ­ ½ÇÆÐ.! - ±âº» ½ºÅ³ ·¹º§ 1·Î º¯°æ" )
+				START_LOG( cerr, L"DB ï¿½ï¿½Å³ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½.! - ï¿½âº» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iSPoint )
@@ -16917,7 +16944,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			}break;
 		default:
 			{
-				START_LOG( cerr, L"DB ½ºÅ³ÃÊ±âÈ­ ½ÇÆÐ.!" )
+				START_LOG( cerr, L"DB ï¿½ï¿½Å³ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½.!" )
 					<< BUILD_LOG( kPacket_.m_iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( kPacket_.m_iSPoint )
@@ -16927,7 +16954,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		}
 	}
 
-	// ½ºÅ³ º¯°æ Àû¿ë
+	// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	for( ; mitSkill != kPacket_.m_mapChangeSkill.end() ; ++mitSkill )
 	{
 		DO_QUERY( L"exec dbo.P_GSkill_Unsealed_UPT_UnitClassChange", L"%d, %d, %d", % kPacket_.m_iUnitUID % mitSkill->first % mitSkill->second );
@@ -16943,7 +16970,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			{
 			case -1:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! Skill º¯°æ ½ÇÆÐ - ÇØ´ç À¯´ÖÀÌ ¾ø´Â °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! Skill ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitSkill->first )
@@ -16952,7 +16979,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			case -2:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! Skill º¯°æ ½ÇÆÐ - ÇØ´ç Ä³½Ã ½ºÅ³ÀÌ ºÀÀÎÇØÁ¦µÇÁö ¾ÊÀº °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! Skill ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitSkill->first )
@@ -16961,7 +16988,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			default:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! Skill º¯°æ ½ÇÆÐ" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! Skill ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitSkill->first )
@@ -16972,7 +16999,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		}
 	}
 	
-	// ÀåÂøÇÑ ¸Þ¸ð º¯°æ Àû¿ë
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	for( ; mitMemo != kPacket_.m_mapChangeMemo.end() ; ++mitMemo )
 	{
 		DO_QUERY( L"exec dbo.P_GNote_UPT_UnitClassChange", L"%d, %d, %d", % kPacket_.m_iUnitUID % mitMemo->first % mitMemo->second );
@@ -16989,7 +17016,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			{
 			case -1:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! Memo º¯°æ ½ÇÆÐ - ÇØ´ç À¯´ÖÀÌ ¾ø´Â °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! Memo ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitMemo->first )
@@ -16998,7 +17025,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			case -2:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! Memo º¯°æ ½ÇÆÐ - ÇØ´ç ¸Þ¸ð°¡ ±â¼úÀÇ ³ëÆ®¿¡ ±â·ÏµÇÁö ¾ÊÀº °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! Memo ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitMemo->first )
@@ -17007,7 +17034,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			default:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! Memo º¯°æ ½ÇÆÐ" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! Memo ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitMemo->first )
@@ -17018,7 +17045,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		}
 	}
 
-	// ÀÎº¥Åä¸® Ä³½¬ & Äù½ºÆ® ¾ÆÀÌÅÛ º¯°æ Àû¿ë
+	// ï¿½Îºï¿½ï¿½ä¸® Ä³ï¿½ï¿½ & ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	for( ; mitItem != kPacket_.m_mapChangeItem.end() ; ++mitItem )
 	{
 		DO_QUERY( L"exec dbo.P_GItem_UPT_UnitClassChange", L"%d, %d, %d", % kPacket_.m_iUnitUID % mitItem->first % mitItem->second );
@@ -17035,7 +17062,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			{
 			case -1:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! Item º¯°æ ½ÇÆÐ - ÇØ´ç À¯´ÖÀÌ ¾ø´Â °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! Item ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitItem->first )
@@ -17044,7 +17071,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			case -2:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! Item º¯°æ ½ÇÆÐ - ÇØ´ç ¾ÆÀÌÅÛÀÌ ÀÎº¥Åä¸®¿¡ ¾ø´Â °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! Item ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitItem->first )
@@ -17053,7 +17080,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			default:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! Item º¯°æ ½ÇÆÐ" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! Item ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitItem->first )
@@ -17064,7 +17091,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		}
 	}
 
-	// Äù½ºÆ® »èÁ¦
+	// ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	for( u_short unSize = 0 ; unSize < kPacket_.m_vecDeleteCompleteQuest.size() ; ++unSize )
 	{
 		DO_QUERY( L"exec dbo.P_GQuests_Complete_DEL_UnitClassChange", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_vecDeleteCompleteQuest[unSize]  );
@@ -17081,7 +17108,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			{
 			case -1:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ Quest »èÁ¦ ½ÇÆÐ - ÇØ´ç À¯´ÖÀÌ ¾ø´Â °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( kPacket_.m_vecDeleteCompleteQuest[unSize] )
@@ -17089,7 +17116,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			case -2:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ Quest »èÁ¦ ½ÇÆÐ - Äù½ºÆ®°¡ ¿Ï·áµÇÁö ¾ÊÀº °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( kPacket_.m_vecDeleteCompleteQuest[unSize] )
@@ -17097,7 +17124,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			default:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ Quest »èÁ¦ ½ÇÆÐ" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( kPacket_.m_vecDeleteCompleteQuest[unSize] )
@@ -17107,7 +17134,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		}
 	}
 
-	// Äù½ºÆ® »èÁ¦
+	// ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	for( u_short unSize = 0 ; unSize < kPacket_.m_vecDeleteInProgressQuest.size() ; ++unSize )
 	{
 		DO_QUERY( L"exec dbo.P_GQuests_DEL_UnitClassChange", L"%d, %d", % kPacket_.m_iUnitUID % kPacket_.m_vecDeleteInProgressQuest[unSize]  );
@@ -17124,7 +17151,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			{
 			case -1:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ÁøÇà Áß Quest »èÁ¦ ½ÇÆÐ - ÇØ´ç À¯´ÖÀÌ ¾ø´Â °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( kPacket_.m_vecDeleteInProgressQuest[unSize] )
@@ -17132,7 +17159,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			case -2:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ÁøÇà Áß Quest »èÁ¦ ½ÇÆÐ - Äù½ºÆ®°¡ ¿Ï·áµÇÁö ¾ÊÀº °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( kPacket_.m_vecDeleteInProgressQuest[unSize] )
@@ -17140,7 +17167,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			default:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ÁøÇà Áß Quest »èÁ¦ ½ÇÆÐ" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( kPacket_.m_vecDeleteInProgressQuest[unSize] )
@@ -17150,7 +17177,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		}
 	}
 
-	// Äù½ºÆ® º¯°æ Àû¿ë
+	// ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	for( ; mitCompleteQuest != kPacket_.m_mapChangeCompleteQuest.end() ; ++mitCompleteQuest )
 	{
 		DO_QUERY( L"exec dbo.P_GQuests_Complete_UPT_UnitClassChange", L"%d, %d, %d", % kPacket_.m_iUnitUID % mitCompleteQuest->first % mitCompleteQuest->second );
@@ -17167,7 +17194,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			{
 			case -1:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! ¿Ï·á Quest º¯°æ ½ÇÆÐ - ÇØ´ç À¯´ÖÀÌ ¾ø´Â °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½Ï·ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitCompleteQuest->first )
@@ -17176,7 +17203,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			case -2:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! ¿Ï·á Quest º¯°æ ½ÇÆÐ - ÇØ´ç Äù½ºÆ®°¡ ¿Ï·áµÇÁö ¾ÊÀº °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½Ï·ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitCompleteQuest->first )
@@ -17185,7 +17212,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			default:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! ¿Ï·á Quest º¯°æ ½ÇÆÐ" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½Ï·ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitCompleteQuest->first )
@@ -17202,7 +17229,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			% kPacket_.m_iUnitUID 
 			% mitInProgressQuest->first 
 			% mitInProgressQuest->second
-			); //¿Ï·á·Î º¯°æ ¹× »õ·Î ¼ö¶ô
+			); //ï¿½Ï·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 		if( m_kODBC.BeginFetch() )
 		{
@@ -17216,7 +17243,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 			{
 			case -1:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! ÁøÇà Quest º¯°æ ½ÇÆÐ - ÇØ´ç À¯´ÖÀÌ ¾ø´Â °æ¿ì" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitInProgressQuest->first )
@@ -17225,7 +17252,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			case -2:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! ÁøÇà Quest º¯°æ ½ÇÆÐ - ÇØ´ç Äù½ºÆ®°¡ ÁøÇàÁßÀÌÁö ¾ÊÀº °æ¿ì " )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ " )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitInProgressQuest->first )
@@ -17234,7 +17261,7 @@ IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_REQ )
 				}break;
 			default:
 				{
-					START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ ½ÇÆÐ! ÁøÇà Quest º¯°æ ½ÇÆÐ" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ Quest ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket_.m_iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( mitInProgressQuest->first )
@@ -17252,7 +17279,7 @@ end_proc:
 //}}
 
 
-//{{ 2012. 04. 30	¹Ú¼¼ÈÆ	ÇöÀÚÀÇ ÁÖ¹®¼­ Á¢¼Ó ÀÌº¥Æ® ( ¿ìÆíÇÔ Áßº¹ Ã¼Å© )
+//{{ 2012. 04. 30	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ Ã¼Å© )
 #ifdef SERV_SCROLL_OF_SAGE_CHECK_THE_LETTER_BOX
 _IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_NOT, KDBE_UPDATE_EVENT_TIME_REQ )
 {
@@ -17260,12 +17287,12 @@ _IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_NOT, KDBE_UPDATE_EVENT_TIME_REQ )
 
 	{
 		//////////////////////////////////////////////////////////////////////////
-		// Á¢¼Ó ½Ã°£ ÀÌº¥Æ®
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 
 		std::vector< KConnectTimeEventInfo >::const_iterator vit;
 		for( vit = kPacket_.m_vecConnectTimeEvent.begin(); vit != kPacket_.m_vecConnectTimeEvent.end(); ++vit )
 		{
-			//{{ 2010. 06. 11  ÃÖÀ°»ç	°èÁ¤´ÜÀ§ Á¢¼Ó½Ã°£ ÀÌº¥Æ®
+			//{{ 2010. 06. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_ACC_TIME_EVENT
 			if( vit->m_bAccountEvent )
 			{
@@ -17279,7 +17306,7 @@ _IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_NOT, KDBE_UPDATE_EVENT_TIME_REQ )
 
 				if( iOK != NetError::NET_OK )
 				{
-					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( vit->m_iEventUID )
@@ -17301,7 +17328,7 @@ _IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_NOT, KDBE_UPDATE_EVENT_TIME_REQ )
 
 				if( iOK != NetError::NET_OK )
 				{
-					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( vit->m_iEventUID )
@@ -17315,25 +17342,25 @@ _IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_NOT, KDBE_UPDATE_EVENT_TIME_REQ )
 	}
 
 
-	//{{ 2009. 12. 7  ÃÖÀ°»ç	´©Àû½Ã°£ÀÌº¥Æ®
+	//{{ 2009. 12. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½Ìºï¿½Æ®
 #ifdef CUMULATIVE_TIME_EVENT
 
 	{
 		//////////////////////////////////////////////////////////////////////////
-		// ´©Àû ½Ã°£ ÀÌº¥Æ®
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 
 		CTime tUpdateTime = CTime::GetCurrentTime();
-		tUpdateTime += CTimeSpan( 18250, 0, 0, 0 ); // ÇÑ¹ø¸¸ Áà¾ß ÇÏ¹Ç·Î 50³âÀ» ´õÇÑ´Ù.
+		tUpdateTime += CTimeSpan( 18250, 0, 0, 0 ); // ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï¹Ç·ï¿½ 50ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 		std::wstring wstrUpdateDate = ( CStringW )( tUpdateTime.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
 
 		std::vector< KCumulativeTimeEventInfo >::const_iterator vitCT;
 		for( vitCT = kPacket_.m_vecCumulativeTimeEvent.begin(); vitCT != kPacket_.m_vecCumulativeTimeEvent.end(); ++vitCT )
 		{
-			//{{ 2010. 06. 11  ÃÖÀ°»ç	°èÁ¤´ÜÀ§ Á¢¼Ó½Ã°£ ÀÌº¥Æ®
+			//{{ 2010. 06. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_ACC_TIME_EVENT
 			if( vitCT->m_bAccountEvent )
 			{
-				// ¿Ï·á Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÏÀÚ!
+				// ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
 				DO_QUERY( L"exec dbo.gup_update_event_account_nor", L"%d, %d, N\'%s\'", % LAST_SENDER_UID % vitCT->m_iEventUID % wstrUpdateDate );
 
 				if( m_kODBC.BeginFetch() )
@@ -17344,7 +17371,7 @@ _IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_NOT, KDBE_UPDATE_EVENT_TIME_REQ )
 
 				if( iOK != NetError::NET_OK )
 				{
-					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( vitCT->m_iEventUID )
@@ -17356,7 +17383,7 @@ _IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_NOT, KDBE_UPDATE_EVENT_TIME_REQ )
 #endif SERV_ACC_TIME_EVENT
 				//}}
 			{
-				// ¿Ï·á Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÏÀÚ!
+				// ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
 				DO_QUERY( L"exec dbo.gup_update_30min", L"%d, %d, N\'%s\'", % kPacket_.m_iUnitUID % vitCT->m_iEventUID % wstrUpdateDate );
 
 				if( m_kODBC.BeginFetch() )
@@ -17367,7 +17394,7 @@ _IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_NOT, KDBE_UPDATE_EVENT_TIME_REQ )
 
 				if( iOK != NetError::NET_OK )
 				{
-					START_LOG( cerr, L"ÀÌº¥Æ® Å¸ÀÓ DB¾÷µ¥ÀÌÆ® ½ÇÆÐ?" )
+					START_LOG( cerr, L"ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½?" )
 						<< BUILD_LOG( iOK )
 						<< BUILD_LOG( kPacket_.m_iUnitUID )
 						<< BUILD_LOG( vitCT->m_iEventUID )
@@ -17387,7 +17414,7 @@ end_proc:
 #endif SERV_SCROLL_OF_SAGE_CHECK_THE_LETTER_BOX
 //}}
 
-//{{ 2012. 05. 08	±è¹Î¼º       °³ÀÎ °Å·¡ ·ÎÁ÷ º¯°æ
+//{{ 2012. 05. 08	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_LOGIC_CHANGE_TRADE
 IMPL_ON_FUNC( DBE_TRADE_COMPLETE_REQ )
 {
@@ -17402,16 +17429,16 @@ IMPL_ON_FUNC( DBE_TRADE_COMPLETE_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -17423,14 +17450,14 @@ IMPL_ON_FUNC( DBE_TRADE_COMPLETE_REQ )
 #endif SERV_TRADE_LOGIC_CHANGE_TRADE
 //}}
 
-//{{ 2012. 07. 24	¹Ú¼¼ÈÆ	ÇØ´ç Ä³¸¯ÅÍÀÇ ¸ðµç ½ºÅ³À» ´Ù Âï´Â Ä¡Æ®
+//{{ 2012. 07. 24	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä¡Æ®
 #ifdef SERV_ADMIN_CHEAT_GET_ALL_SKILL
 IMPL_ON_FUNC( DBE_ADMIN_CHEAT_GET_ALL_SKILL_REQ )
 {
 	KDBE_ADMIN_CHEAT_GET_ALL_SKILL_ACK kPacket;
 	kPacket.m_iOK = NetError::NET_OK;
 
-	// ºÀÀÎµÈ ½ºÅ³ ÇØÁ¦
+	// ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
 	if( kPacket_.m_vecUnSealedSkill.empty() == false )
 	{
 		BOOST_TEST_FOREACH( short, iSkillID, kPacket_.m_vecUnSealedSkill )
@@ -17443,10 +17470,10 @@ IMPL_ON_FUNC( DBE_ADMIN_CHEAT_GET_ALL_SKILL_REQ )
 				m_kODBC.EndFetch();
 			}
 
-			// ÇØÁ¦¿¡ ½ÇÆÐÇÏ¸é ÇØ´ç ½ºÅ³Àº ÂïÁö ¾Ê´Â´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"ºÀÀÎ½ºÅ³ ºÀÀÎÇØÁ¦ ½ÇÆÐ!" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½Î½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< BUILD_LOG( iSkillID )
@@ -17460,7 +17487,7 @@ IMPL_ON_FUNC( DBE_ADMIN_CHEAT_GET_ALL_SKILL_REQ )
 		}
 	}
 
-	// ³²Àº ½ºÅ³ ÀüºÎ ´Ù Âï±â
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½
 	for( std::map<int, KAdminCheatSkill>::iterator it=kPacket_.m_mapSkillInfo.begin(); it != kPacket_.m_mapSkillInfo.end(); ++it )
 	{
 		int iOK = NetError::NET_OK;
@@ -17504,14 +17531,14 @@ end_proc:
 #endif SERV_ADMIN_CHEAT_GET_ALL_SKILL
 //}}
 
-//{{ 2012. 05. 30	ÃÖÀ°»ç	±×³ë½Ã½º ±â°£ Ä¡Æ®
+//{{ 2012. 05. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½×³ï¿½Ã½ï¿½ ï¿½â°£ Ä¡Æ®
 #ifdef SERV_CASH_SKILL_POINT_DATE_CHANGE
 IMPL_ON_FUNC( DBE_ADMIN_CASH_SKILL_POINT_DATE_CHANGE_REQ )
 {
 	KEGS_ADMIN_CASH_SKILL_POINT_DATE_CHANGE_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_00;
 
-	// ±â°£ º¯°æ Ä¡Æ®
+	// ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ Ä¡Æ®
 	DO_QUERY( L"exec dbo.P_GSkill_Cash_UPD_C", L"%d, N\'%s\'", % kPacket_.m_iUnitUID % kPacket_.m_wstrModifyDate );
 
 	if( m_kODBC.BeginFetch() )
@@ -17522,7 +17549,7 @@ IMPL_ON_FUNC( DBE_ADMIN_CASH_SKILL_POINT_DATE_CHANGE_REQ )
 	
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä¡Æ® Äõ¸® È£Ãâ ½ÇÆÐ!" )
+		START_LOG( cerr, L"Ä¡Æ® ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_wstrModifyDate )
 			<< END_LOG;
@@ -17540,7 +17567,7 @@ end_proc:
 #endif SERV_CASH_SKILL_POINT_DATE_CHANGE
 //}}
 
-//{{ ¿ìÆí ED °Å·¡½Ã ED µ¿±âÈ­ - ±è¹Î¼º
+//{{ ï¿½ï¿½ï¿½ï¿½ ED ï¿½Å·ï¿½ï¿½ï¿½ ED ï¿½ï¿½ï¿½ï¿½È­ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SEND_LETTER_BEFOR_ED_SYNC
 IMPL_ON_FUNC( DBE_SYNC_ED_REQ )
 {
@@ -17557,10 +17584,10 @@ IMPL_ON_FUNC( DBE_SYNC_ED_REQ )
 		m_kODBC.EndFetch();
 	}
 
-	// ÇØÁ¦¿¡ ½ÇÆÐÇÏ¸é ÇØ´ç ½ºÅ³Àº ÂïÁö ¾Ê´Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ED µ¿±âÈ­ ½ÇÆÐ!!" )
+		START_LOG( cerr, L"ED ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½!!" )
 			<< BUILD_LOG( LAST_SENDER_UID )
 			<< BUILD_LOG( kPacket.m_kInfo.m_iFromUnitUID )
 			<< BUILD_LOG( iTotalChangeED )
@@ -17574,7 +17601,7 @@ end_proc:
 #endif SERV_SEND_LETTER_BEFOR_ED_SYNC
 //}}
 
-//{{ 2012. 08. 14	¹Ú¼¼ÈÆ	´ëÃµ»çÀÇ ÁÖÈ­ ÀÌº¥Æ® °¡ÀÌµå ¹®±¸ Ãâ·Â
+//{{ 2012. 08. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
 IMPL_ON_FUNC_NOPARAM( DBE_CHECK_THE_ARCHUANGEL_S_COIN_EVENT_LETTER_REQ )
 {
@@ -17589,7 +17616,7 @@ IMPL_ON_FUNC_NOPARAM( DBE_CHECK_THE_ARCHUANGEL_S_COIN_EVENT_LETTER_REQ )
 
 	DO_QUERY( L"exec dbo.P_GEvent_AngelCoin_GET", L"%d, N\'%s\', N\'%s\'", % FIRST_SENDER_UID % wstrMore % wstrUnder );
 
-	// ·Î±× ³²±â±â
+	// ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 	int iResult = -1;
 	if( m_kODBC.BeginFetch() )
 	{
@@ -17606,7 +17633,7 @@ IMPL_ON_FUNC_NOPARAM( DBE_CHECK_THE_ARCHUANGEL_S_COIN_EVENT_LETTER_REQ )
 		kPacket.m_bReceiveTheLetter = false;
 		if( iResult == -1 )	
 		{
-			START_LOG( cerr, L"´ëÃµ»çÀÇ ÁÖÈ­ ÀÌº¥Æ® BeginFetch() ½ÇÆÐ")
+			START_LOG( cerr, L"ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½Ìºï¿½Æ® BeginFetch() ï¿½ï¿½ï¿½ï¿½")
 				<< END_LOG;
 		}
 	}
@@ -17617,7 +17644,7 @@ end_proc:
 #endif SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
 //}}
 
-//{{ 2012. 08. 21	¹Ú¼¼ÈÆ	¿ìÆí ·ÎÁ÷ º¯°æ
+//{{ 2012. 08. 21	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_LOGIC_CHANGE_LETTER
 IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_ARRANGE_REQ )
 {
@@ -17629,13 +17656,13 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_ARRANGE_REQ )
 
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -17655,14 +17682,14 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_ARRANGE_REQ )
 
 			if( iOK != NetError::NET_OK )
 			{
-				START_LOG( cerr, L"¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( iOK )
 					<< END_LOG;
 			}
 		}
 		else
 		{
-			START_LOG( cerr, L"¾ÆÀÌÅÛ À§Ä¡ ¾÷µ¥ÀÌÆ®Áß BeginFetch ½ÇÆÐ." );
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ BeginFetch ï¿½ï¿½ï¿½ï¿½." );
 		}
 	}
 
@@ -17672,7 +17699,7 @@ end_proc:
 #endif SERV_TRADE_LOGIC_CHANGE_LETTER
 //}}
 
-//{{ 2012 ´ëÀü ½ÃÁð2 Àü¾ß ·±Äª ÀÌº¥Æ®	- ±è¹Î¼º
+//{{ 2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Äª ï¿½Ìºï¿½Æ®	- ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_2012_PVP_SEASON2_EVENT
 IMPL_ON_FUNC( DBE_PVP_WIN_EVENT_CHECK_REQ )
 {
@@ -17689,7 +17716,7 @@ IMPL_ON_FUNC( DBE_PVP_WIN_EVENT_CHECK_REQ )
 	int iPvpEventIndex = 0;
 	std::wstring wstrLastPvpEventDate;
 
-	// ¹ÞÀ» ¼ö ÀÖ´Â À¯ÀúÀÎÁö È®ÀÎÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½.
 	DO_QUERY( L"exec dbo.P_GEvent_Unit_GET ", L"%d", % kPacket_.m_iUnitUID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -17699,10 +17726,10 @@ IMPL_ON_FUNC( DBE_PVP_WIN_EVENT_CHECK_REQ )
 		m_kODBC.EndFetch();
 	}
 
-	// ¹ÞÀº ÀûÀÌ ÀÖ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½.
 	if( iPvpEventIndex != 0 )
 	{
-		// °°Àº ³¯Â¥ÀÎµ¥ °°Àº ÀÎµ¦½º¶ó¸é ÀÌ¹ø ÀÌº¥Æ®¶§ ¹ú¼­ ¹ÞÀº »ç¶÷ÀÌ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â¥ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ì´ï¿½.
 		CTime tCurr;
 		CTime tDBRegDate;
 		KncUtil::ConvertStringToCTime( kPacket_.m_wstrRegDate, tCurr );
@@ -17710,7 +17737,7 @@ IMPL_ON_FUNC( DBE_PVP_WIN_EVENT_CHECK_REQ )
 
 		if( tCurr.GetDay() == tDBRegDate.GetDay() && kPacket_.m_iIndex == iPvpEventIndex )
 		{
-			START_LOG( cerr, L"´ëÀü ÀÌº¥Æ® ¾ÆÀÌÅÛ Áö±Þ ´ë»óÀÚ°¡ ¾Æ´Õ´Ï´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Æ´Õ´Ï´ï¿½." )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( kPacket_.m_wstrRegDate )
 				<< BUILD_LOG( iPvpEventIndex )
@@ -17721,7 +17748,7 @@ IMPL_ON_FUNC( DBE_PVP_WIN_EVENT_CHECK_REQ )
 		}
 	}
 	
-	// º¸»ó
+	// ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.gup_insert_post_item", L"%d, %d, %d, %d, %d, N\'%s\'",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_iUnitUID
@@ -17755,7 +17782,7 @@ IMPL_ON_FUNC( DBE_PVP_WIN_EVENT_CHECK_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"´ëÀü ÀÌº¥Æ® ¾ÆÀÌÅÛ Áö±Þ ÀÌÈÄ ·Î±× ±â·Ï ½ÇÆÐ" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( kPacket.m_iOK )
 				<< END_LOG;
@@ -17764,10 +17791,10 @@ IMPL_ON_FUNC( DBE_PVP_WIN_EVENT_CHECK_REQ )
 
 end_proc:
 
-	// ·Î±× ±â·Ï ¼º°ø
+	// ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	SendToUser( LAST_SENDER_UID, DBE_PVP_WIN_EVENT_CHECK_ACK, kPacket );
 
-	// ¿ìÆí ¹ß¼Û ¼º°ø
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( kPacket.m_kRewardAck.m_iOK == NetError::NET_OK )
 	{
 		SendToUser( LAST_SENDER_UID, DBE_INSERT_REWARD_TO_POST_ACK, kPacket.m_kRewardAck );
@@ -17776,7 +17803,7 @@ end_proc:
 #endif SERV_2012_PVP_SEASON2_EVENT
 //}}
 
-//{{ 2012. 12. 14  °èÁ¤ ¹Ì¼Ç ½Ã½ºÅÛ ( °èÁ¤´ÜÀ§ Äù½ºÆ® ) - ±è¹Î¼º
+//{{ 2012. 12. 14  ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 _IMPL_ON_FUNC( DBE_NEW_ACCOUNT_QUEST_GAME_DB_REQ, KDBE_NEW_QUEST_REQ )
 {
@@ -17787,31 +17814,31 @@ _IMPL_ON_FUNC( DBE_NEW_ACCOUNT_QUEST_GAME_DB_REQ, KDBE_NEW_QUEST_REQ )
 	kPacket.m_vecUpdatedInventorySlot	= kPacket_.m_vecUpdatedInventorySlot;
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¾ÆÀÌÅÛ º¸»ó
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bool bUpdateFailed = false;
 	LIF( Query_UpdateItemQuantity( kPacket_.m_UnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_UnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( Query_InsertItemList( SEnum::GIR_QUEST_REWARD, kPacket_.m_UnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 	{
-		START_LOG( cerr, L"Äù½ºÆ® ¼ö¶ô º¸»ó ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_UnitUID )
 			<< END_LOG;
 
@@ -17840,23 +17867,23 @@ _IMPL_ON_FUNC( DBE_ACCOUNT_QUEST_COMPLETE_GAME_DB_REQ, KDBE_ACCOUNT_QUEST_COMPLE
 	kPacket.m_kCompleteQuestInfo.m_iCompleteCount = 1;
 	kPacket.m_kCompleteQuestInfo.m_tCompleteDate = kPacket_.m_tCompleteTime;
 
-	//item uid ¹Þ¾Æ¿À±â
+	//item uid ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
 	if( kPacket_.m_kQuestReq.m_bIsNew == true )
 	{
 		bool bUpdateFailed = false;
 		LIF( Query_UpdateItemQuantity( kPacket_.m_kQuestReq.m_UnitUID, kPacket_.m_kQuestReq.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 		Query_DeleteItem( kPacket_.m_kQuestReq.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-		//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+		//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 		if( bUpdateFailed )
 		{
-			START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket_.m_kQuestReq.m_UnitUID );
 
 			std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kQuestReq.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 			for( ; mitQC != kPacket_.m_kQuestReq.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 			{
-				START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+				START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( mitQC->first )
 					<< BUILD_LOG( mitQC->second );
 			}
@@ -17865,7 +17892,7 @@ _IMPL_ON_FUNC( DBE_ACCOUNT_QUEST_COMPLETE_GAME_DB_REQ, KDBE_ACCOUNT_QUEST_COMPLE
 
 		if( Query_InsertItemList( SEnum::GIR_QUEST_REWARD, kPacket_.m_kQuestReq.m_UnitUID, kPacket_.m_kQuestReq.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 		{
-			START_LOG( cerr, L"Äù½ºÆ® º¸»ó ¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket_.m_kQuestReq.m_UnitUID )
 				<< END_LOG;
 			goto end_proc;
@@ -17878,7 +17905,7 @@ end_proc:
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 //}}
 
-//{{ 2012. 12. 24	¹Ú¼¼ÈÆ	Æê ¿ÀÅä ·çÆÃ ±â´É Ãß°¡
+//{{ 2012. 12. 24	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_PET_AUTO_LOOTING
 IMPL_ON_FUNC( DBE_PET_AUTO_LOOTING_NOT )
 {
@@ -17893,7 +17920,7 @@ IMPL_ON_FUNC( DBE_PET_AUTO_LOOTING_NOT )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÆêÀÇ ¿ÀÅä ·çÆÃ ±â´É DB ¾÷µ¥ÀÌÆ®¿¡ ½ÇÆÐ ÇÏ¿´½À´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iPetUID )
 			<< END_LOG;
 	}
@@ -17903,7 +17930,7 @@ end_proc:
 #endif SERV_PET_AUTO_LOOTING
 //}}
 
-//{{ 2011.05.04   ÀÓ±Ô¼ö ¾Æ¹ÙÅ¸ ÇÕ¼º ½Ã½ºÅÛ
+//{{ 2011.05.04   ï¿½Ó±Ô¼ï¿½ ï¿½Æ¹ï¿½Å¸ ï¿½Õ¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_SYNTHESIS_AVATAR
 IMPL_ON_FUNC( DBE_OPEN_SYNTHESIS_ITEM_REQ )
 {
@@ -17918,16 +17945,16 @@ IMPL_ON_FUNC( DBE_OPEN_SYNTHESIS_ITEM_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -17936,7 +17963,7 @@ IMPL_ON_FUNC( DBE_OPEN_SYNTHESIS_ITEM_REQ )
 
 	if( Query_InsertItemList( SEnum::GIR_SYNTHESIS_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -17947,7 +17974,7 @@ IMPL_ON_FUNC( DBE_OPEN_SYNTHESIS_ITEM_REQ )
 		kPacket.m_iOK = NetError::NET_OK;
 	}
 
-	//{{ 2009. 9. 2  ÃÖÀ°»ç		¹ÐºÀ
+	//{{ 2009. 9. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ðºï¿½
 	Query_UpdateSealItem( kPacket_.m_setSealCashItem, kPacket.m_mapItemInfo );
 	//}}
 
@@ -17962,7 +17989,7 @@ IMPL_ON_FUNC( DBE_CHANGE_PET_ID_REQ )
 	KDBE_CHANGE_PET_ID_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-	// Æê ID º¯°æ
+	// ï¿½ï¿½ ID ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GPet_Info_UPD_ChangePet", L"%d, %d", % kPacket_.m_iPetUID % kPacket_.m_iAfterPetID );
 	if( m_kODBC.BeginFetch() )
 	{
@@ -17972,7 +17999,7 @@ IMPL_ON_FUNC( DBE_CHANGE_PET_ID_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"º¯½Å ¹°¾à Çã¿ë °¡´ÉÇÑ ÆêÀÇ DB ¾÷µ¥ÀÌÆ®¿¡ ½ÇÆÐ ÇÏ¿´½À´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iPetUID )
 			<< END_LOG;
 	}
@@ -17994,7 +18021,7 @@ IMPL_ON_FUNC( DBE_INSERT_WARP_VIP_REQ )
 	kAck.m_iOK = NetError::ERR_ODBC_01;
 	kAck.m_wstrEndDate = L"2000-01-01 00:00:00";
 	
-	// VIP ±â°£ °»½Å½ÃÄÑ ÁÝ´Ï´Ù.
+	// VIP ï¿½â°£ ï¿½ï¿½ï¿½Å½ï¿½ï¿½ï¿½ ï¿½Ý´Ï´ï¿½.
 	DO_QUERY( L"exec dbo.P_GVIPTicket_SET", L" %d, %d", % kPacket_.m_iUnitUID % kPacket_.m_iPeriod );
 
 	if( m_kODBC.BeginFetch() )
@@ -18005,7 +18032,7 @@ IMPL_ON_FUNC( DBE_INSERT_WARP_VIP_REQ )
 		m_kODBC.EndFetch();
 	}
 	
-	START_LOG( clog, L"[TEST] VIP ±â°£ DB¿¡ ¾÷µ¥ÀÌÆ® Çß½À´Ï´Ù." )
+	START_LOG( clog, L"[TEST] VIP ï¿½â°£ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ß½ï¿½ï¿½Ï´ï¿½." )
 		<< BUILD_LOG( kPacket_.m_iUnitUID )
 		<< BUILD_LOG( kPacket_.m_iPeriod )
 		<< BUILD_LOG( kAck.m_wstrEndDate.c_str() )
@@ -18016,13 +18043,13 @@ end_proc:
 }
 #endif // SERV_ADD_WARP_BUTTON
 
-//{{ 2013. 3. 11	¹Ú¼¼ÈÆ	 ·ÎÄÃ ·©Å· ½Ã½ºÅÛ
+//{{ 2013. 3. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 IMPL_ON_FUNC( DBE_GAME_LOCAL_RANKING_USER_INFO_READ_REQ )
 {
 	KDBE_ACCOUNT_LOCAL_RANKING_USER_INFO_READ_ACK kPacket;
 
-	// À¯Àú Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GFriendSystem_UnitInfo_GET", L"%d", % kPacket_.m_iUnitUID );
 
 	if( m_kODBC.BeginFetch() )
@@ -18058,7 +18085,7 @@ IMPL_ON_FUNC( DBE_GAME_LOCAL_RANKING_UNIT_INFO_READ_FOR_INQUIRY_REQ )
 {
 	KDBE_ACCOUNT_LOCAL_RANKING_UNIT_INFO_READ_FOR_INQUIRY_REQ kPacket;
 
-	// À¯Àú Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GFriendSystem_UnitInfo_GET", L"%d", % kPacket_.m_iUnitUID );
 
 	if( m_kODBC.BeginFetch() )
@@ -18088,7 +18115,7 @@ IMPL_ON_FUNC( DBE_GAME_LOCAL_RANKING_UNIT_INFO_READ_FOR_INQUIRY_REQ )
 		kPacket.m_cMainTabIndex			= kPacket_.m_cMainTabIndex;
 		kPacket.m_cSubTabIndex			= kPacket_.m_cSubTabIndex;
 		kPacket.m_byteFilter			= kPacket_.m_byteFilter;
-#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ÀÛ¾÷³¯Â¥: 2013-05-15	// ¹Ú¼¼ÈÆ
+#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-15	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		kPacket.m_bRankingButtonClick	= kPacket_.m_bRankingButtonClick;
 #endif // SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG
 	}
@@ -18101,7 +18128,7 @@ IMPL_ON_FUNC( DBE_GAME_LOCAL_RANKING_UNIT_INFO_READ_FOR_INCREASE_REQ )
 {
 	KDBE_ACCOUNT_LOCAL_RANKING_UNIT_INFO_READ_FOR_INCREASE_ACK kPacket;
 
-	// À¯Àú Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GFriendSystem_UnitInfo_GET", L"%d", % kPacket_.m_iUnitUID );
 
 	if( m_kODBC.BeginFetch() )
@@ -18138,7 +18165,7 @@ end_proc:
 #endif SERV_LOCAL_RANKING_SYSTEM
 //}}
 
-//{{ 2013. 03. 21	 ÃßÃµÀÎ ½Ã½ºÅÛ °³Æí - ±è¹Î¼º
+//{{ 2013. 03. 21	 ï¿½ï¿½Ãµï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RECOMMEND_LIST_EVENT
 IMPL_ON_FUNC( DBE_RECOMMEND_USER_GET_NEXON_SN_REQ )
 {
@@ -18151,7 +18178,7 @@ IMPL_ON_FUNC( DBE_RECOMMEND_USER_GET_NEXON_SN_REQ )
 
 	if( m_kODBC.BeginFetch() )
 	{
-#ifdef SERV_RECOMMEND_LIST_EVENT_2013_07	// Àû¿ë³¯Â¥: 2013-07-04
+#ifdef SERV_RECOMMEND_LIST_EVENT_2013_07	// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-07-04
 		FETCH_DATA( kAck.m_iRecommendedUserNexonSN 
 			>> kAck.m_iRecommendedUserChannelCode  );
 #else	// SERV_RECOMMEND_LIST_EVENT_2013_07
@@ -18167,7 +18194,7 @@ end_proc:
 #endif SERV_RECOMMEND_LIST_EVENT
 //}
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 IMPL_ON_FUNC( DBE_GET_RIDING_PET_LIST_REQ )
 {
 	KDBE_GET_RIDING_PET_LIST_ACK kPacket;
@@ -18214,22 +18241,22 @@ IMPL_ON_FUNC( DBE_CREATE_RIDING_PET_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		BOOST_MAP_CONST_FOREACH( UidType, int, kItem, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kItem.first )
 				<< BUILD_LOG( kItem.second );
 		}
 	}
 	//}}
 
-	// ¶óÀÌµù Æê »ý¼º
+	// ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GRiding_INT", L"%d, %d, %d", 
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_usCreatePetID
@@ -18248,7 +18275,7 @@ IMPL_ON_FUNC( DBE_CREATE_RIDING_PET_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"¶óÀÌµù Æê »ý¼º ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_usCreatePetID )
@@ -18282,27 +18309,27 @@ IMPL_ON_FUNC( DBE_RELEASE_RIDING_PET_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"¶óÀÌµù Æê ³õ¾ÆÁÖ±â ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket.m_iRidingPetUID )
 			<< END_LOG;
 		
-		kPacket.m_iOK = NetError::ERR_RIDING_PET_11;	// ¶óÀÌµù Æê ³õ¾ÆÁÖ±â¿¡ ½ÇÆÐÇÏ¿´½À´Ï´Ù.
+		kPacket.m_iOK = NetError::ERR_RIDING_PET_11;	// ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±â¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 		goto end_proc;
 	}
 
 #ifdef SERV_EVENT_RIDING_WITH_SUB_QUEST
-	// ÇöÀç Äù½ºÆ®¸¦ º¸À¯ÁßÀÌ¸é
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½
 	if(kPacket_.m_bEventQuest == true)
 	{
-		// ÀÌº¥Æ® º¸»óÀ» ÁÖÀÚ!
+		// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDBPVPEVENT;
 		kPacketToDBPVPEVENT.m_iFromUnitUID = kPacket_.m_iUnitUID;
 		kPacketToDBPVPEVENT.m_iToUnitUID   = kPacket_.m_iUnitUID;
 		kPacketToDBPVPEVENT.m_iRewardType  = KPostItemInfo::LT_EVENT;
 		kPacketToDBPVPEVENT.m_iRewardID	   = _CONST_AEVENT_RIDING_WITH_SUB_QUEST::iHasEventQuestRewardID; 
 
-		// DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDBPVPEVENT); // ÀÌºÎºÐ »ðÀÔ
+		// DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDBPVPEVENT); // ï¿½ÌºÎºï¿½ ï¿½ï¿½ï¿½ï¿½
 		KDBE_INSERT_REWARD_TO_POST_ACK kPacket;
 		kPacket.m_iOK					  	   = NetError::ERR_ODBC_01;
 		kPacket.m_iRewardLetter.m_iFromUnitUID = kPacketToDBPVPEVENT.m_iFromUnitUID;
@@ -18312,7 +18339,7 @@ IMPL_ON_FUNC( DBE_RELEASE_RIDING_PET_REQ )
 		kPacket.m_iRewardLetter.m_iQuantity	   = kPacketToDBPVPEVENT.m_sQuantity;
 		kPacket.m_iRewardLetter.m_wstrMessage  = kPacketToDBPVPEVENT.m_wstrMessage;
 
-		// º¸»ó
+		// ï¿½ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.gup_insert_post_item", L"%d, %d, %d, %d, %d, N\'%s\'",
 			% kPacketToDBPVPEVENT.m_iFromUnitUID
 			% kPacketToDBPVPEVENT.m_iToUnitUID
@@ -18356,7 +18383,7 @@ end_proc:
 }
 #endif	// SERV_RIDING_PET_SYSTM
 
-//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 _IMPL_ON_FUNC( DBE_COUPLE_PROPOSE_USER_FIND_REQ, KEGS_COUPLE_PROPOSE_REQ )
 {
@@ -18378,7 +18405,7 @@ _IMPL_ON_FUNC( DBE_COUPLE_PROPOSE_USER_FIND_REQ, KEGS_COUPLE_PROPOSE_REQ )
 		m_kODBC.EndFetch();
 	}
 
-	// Á¸Àç ÇÏÁö ¾Ê´Â ´Ð³×ÀÓ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½Ð³ï¿½ï¿½ï¿½
 	if( kAck.m_iOK == -1 )
 	{
 		kAck.m_iOK = NetError::ERR_RELATIONSHIP_04;
@@ -18403,14 +18430,14 @@ IMPL_ON_FUNC( DBE_COUPLE_MAKING_SUCCESS_REQ )
 
 	Query_DeleteItem( kPacket_.m_vecDeleted, kAck.m_kItemQuantityUpdate.m_vecDeleted );
 
-	// ÇöÀç ½Ã°£ ±âÁØ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
 	CTime tNow = CTime::GetCurrentTime();
 
-	// »èÁ¦°¡ ¸ðµÎ ¼º°øÇØ¾ßÁö¸¸ ÀÎ¿¬ Á¤º¸ ±â·Ï
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	if( kAck.m_kItemQuantityUpdate.m_vecDeleted.empty() == true )
 	{		
 		std::wstring wstrNow = tNow.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
-		// ¾ÖÄªÀº ÃÊ±â°ª - Ä³½Ã¸¦ »ç¿ëÇÏÁö ¾ÊÀ¸¸é ºñ¾îÀÖÀ½
+		// ï¿½ï¿½Äªï¿½ï¿½ ï¿½Ê±â°ª - Ä³ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		std::wstring wstrLoveWord;
 
 		DO_QUERY( L"exec dbo.P_GCouple_Info_INT_UPD", L"%d, %d, %d, N\'%s\', N\'%s\', %d", 
@@ -18437,7 +18464,7 @@ IMPL_ON_FUNC( DBE_COUPLE_MAKING_SUCCESS_REQ )
 	{
 		kAck.m_tDate = tNow.GetTime();
 
-		START_LOG( clog, L"Ä¿ÇÃ ¸Î±â ¼º°ø!" )
+		START_LOG( clog, L"Ä¿ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kAck.m_iOK )
 			<< BUILD_LOG( kAck.m_wstrRequestUnitName )
 			<< BUILD_LOG( kAck.m_wstrAcceptUnitName )
@@ -18463,31 +18490,31 @@ IMPL_ON_FUNC( DBE_WEDDING_PROPOSE_REQ )
 	kAck.m_cOfficiantNPC = kPacket_.m_cOfficiantNPC;;
 	kAck.m_wstrWeddingMsg = kPacket_.m_wstrWeddingMsg;;
 
-	// ¾ÆÀÌÅÛ »èÁ¦
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bool bUpdateFailed = false;
 	Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kAck.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kAck.m_kItemQuantityUpdate.m_vecDeleted );
 
-	// ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	// ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 
-	// »èÁ¦°¡ ¸ðµÎ ¼º°øÇØ¾ßÁö¸¸ ÀÎ¿¬ Á¤º¸ ±â·Ï
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	if( kAck.m_kItemQuantityUpdate.m_vecDeleted.empty() == true && bUpdateFailed == false )
 	{
-		// ÇöÀç ½Ã°£ ±âÁØ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
 		CTime tNow = CTime::GetCurrentTime();
 		std::wstring wstrNow = tNow.Format( _T( "%Y-%m-%d %H:%M:%S" ) );	
 
@@ -18521,8 +18548,8 @@ IMPL_ON_FUNC( DBE_WEDDING_PROPOSE_REQ )
 	{
 		if( Quety_WeddingLetter( LAST_SENDER_UID, kPacket_, kAck ) == false )
 		{
-			// ¹º°¡ ½ÇÆÐ Çß´Ù!
-			START_LOG( cerr, L"°áÈ¥ °ü·Ã ¿ìÆí ¹ß¼Û ½ÇÆÐ!!" )
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß´ï¿½!
+			START_LOG( cerr, L"ï¿½ï¿½È¥ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½ ï¿½ï¿½ï¿½ï¿½!!" )
 				<< END_LOG;
 
 			kAck.m_iOK = NetError::ERR_RELATIONSHIP_20;
@@ -18536,7 +18563,7 @@ end_proc:
 bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDDING_PROPOSE_REQ& kPacket_, IN OUT KDBE_WEDDING_PROPOSE_ACK& kAck )
 {
 	//////////////////////////////////////////////////////////////////////////
-	// ¿ìÆí ¹ß¼Û
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½
 	int iOK = NetError::ERR_ODBC_01;
 
 	std::wstring wstReserveTemp;
@@ -18546,7 +18573,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 
 	int	iPostNo = 0;
 	//////////////////////////////////////////////////////////////////////////
-	// ½Å¶û
+	// ï¿½Å¶ï¿½
 	{
 		KPostItemInfo kInfo;
 		kInfo.m_iFromUnitUID = kPacket_.m_iManUID;
@@ -18581,7 +18608,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 
 			iOK = NetError::ERR_ODBC_01;
 
-			// Gpost_Wedding ¿¡ Á¤º¸ Ãß°¡
+			// Gpost_Wedding ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			DO_QUERY( L"exec dbo.P_Gpost_Wedding_INT", L"%d, %d",
 				% kInfo.m_iPostNo
 				% kAck.m_iWeddingUID );
@@ -18594,7 +18621,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 
 			if( iOK == NetError::NET_OK )
 			{
-				START_LOG( cerr, L"¿ìÆíÀÇ Wedding Á¤º¸ insert ¼º°ø" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Wedding ï¿½ï¿½ï¿½ï¿½ insert ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( kInfo.m_iPostNo )
 					<< BUILD_LOG( kAck.m_iWeddingUID )
@@ -18634,7 +18661,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 		}
 		else
 		{
-			START_LOG( cerr, L"°áÈ¥½Ä ¿¹¾à ¿ìÆí ¹ß¼Û ½ÇÆÐ" )
+			START_LOG( cerr, L"ï¿½ï¿½È¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kInfo.m_iFromUnitUID )
 				<< BUILD_LOG( kInfo.m_iToUnitUID )
@@ -18645,7 +18672,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 		}
 	}
 	//////////////////////////////////////////////////////////////////////////
-	// ½ÅºÎ
+	// ï¿½Åºï¿½
 	{
 		KPostItemInfo kInfo;
 		kInfo.m_iFromUnitUID = kPacket_.m_iGirlUID;
@@ -18680,7 +18707,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 
 			iOK = NetError::ERR_ODBC_01;
 
-			// Gpost_Wedding ¿¡ Á¤º¸ Ãß°¡
+			// Gpost_Wedding ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			DO_QUERY( L"exec dbo.P_Gpost_Wedding_INT", L"%d, %d",
 				% kInfo.m_iPostNo
 				% kAck.m_iWeddingUID );
@@ -18693,7 +18720,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 
 			if( iOK == NetError::NET_OK )
 			{
-				START_LOG( cerr, L"¿ìÆíÀÇ Wedding Á¤º¸ insert ¼º°ø" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Wedding ï¿½ï¿½ï¿½ï¿½ insert ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( kInfo.m_iPostNo )
 					<< BUILD_LOG( kAck.m_iWeddingUID )
@@ -18733,7 +18760,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 		}
 		else
 		{
-			START_LOG( cerr, L"°áÈ¥½Ä ¿¹¾à ¿ìÆí ¹ß¼Û ½ÇÆÐ" )
+			START_LOG( cerr, L"ï¿½ï¿½È¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kInfo.m_iFromUnitUID )
 				<< BUILD_LOG( kInfo.m_iToUnitUID )
@@ -18743,7 +18770,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 				<< END_LOG;
 		}
 	}
-	// ÇÏ°´
+	// ï¿½Ï°ï¿½
 	BOOST_TEST_FOREACH( UidType, iRecvUID, kPacket_.m_vecInviteUnitList )
 	{
 		KPostItemInfo kInfo;
@@ -18781,7 +18808,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 
 			iOK = NetError::ERR_ODBC_01;
 
-			// Gpost_Wedding ¿¡ Á¤º¸ Ãß°¡
+			// Gpost_Wedding ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			DO_QUERY( L"exec dbo.P_Gpost_Wedding_INT", L"%d, %d",
 				% kInfo.m_iPostNo
 				% kAck.m_iWeddingUID );
@@ -18794,7 +18821,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 
 			if( iOK == NetError::NET_OK )
 			{
-				START_LOG( cerr, L"¿ìÆíÀÇ Wedding Á¤º¸ insert ¼º°ø" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Wedding ï¿½ï¿½ï¿½ï¿½ insert ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( iOK )
 					<< BUILD_LOG( kInfo.m_iPostNo )
 					<< BUILD_LOG( kAck.m_iWeddingUID )
@@ -18803,7 +18830,7 @@ bool KGSGameDBThread::Quety_WeddingLetter( IN UidType iSendUserUID, IN KDBE_WEDD
 		}
 		else
 		{
-			START_LOG( cerr, L"°áÈ¥½Ä ¿¹¾à ¿ìÆí ¹ß¼Û ½ÇÆÐ" )
+			START_LOG( cerr, L"ï¿½ï¿½È¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( iOK )
 				<< BUILD_LOG( kInfo.m_iFromUnitUID )
 				<< BUILD_LOG( kInfo.m_iToUnitUID )
@@ -18831,7 +18858,7 @@ bool KGSGameDBThread::Query_UpdateLastLogOffDate( IN const KDBE_UPDATE_UNIT_INFO
 	CTime tCurr = CTime::GetCurrentTime();
 	std::wstring wstrLastDate;
 	wstrLastDate = tCurr.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
-	// ¸¶Áö¸· À§Ä¡ ÀúÀå
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 	DO_QUERY( L"exec dbo.P_GCouple_Info_UPD_LastLogOffDate", L"%d, N\'%s\'",
 		% kReq.m_iUnitUID
 		% wstrLastDate
@@ -18846,7 +18873,7 @@ bool KGSGameDBThread::Query_UpdateLastLogOffDate( IN const KDBE_UPDATE_UNIT_INFO
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"À¯´Ö ¸¶Áö¸· ·Î±×¿ÀÇÁ ½Ã°£ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×¿ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kReq.m_iUnitUID )
 			<< BUILD_LOG( wstrLastDate )
@@ -18911,7 +18938,7 @@ _IMPL_ON_FUNC( DBE_WEDDING_ITEM_INFO_REQ, KEGS_WEDDING_ITEM_INFO_REQ )
 		}
 		else
 		{
-			START_LOG( cerr, L"¾ÆÀÌÅÛ¿¡ ¸ÅÄªµÈ ¿þµù Á¤º¸°¡ ¾ø½À´Ï´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½Äªï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 				<< BUILD_LOG( LAST_SENDER_UID )
 				<< BUILD_LOG( iItemUID )
 				<< END_LOG;
@@ -18954,7 +18981,7 @@ IMPL_ON_FUNC( DBE_BREAK_UP_REQ )
 	CTime tNow = CTime::GetCurrentTime();
 	std::wstring wstrNow = tNow.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 	std::wstring wstrTemp;
-	// Å¸ÀÔÀÌ 3 ÀÌ¸é ÀÌº°
+	// Å¸ï¿½ï¿½ï¿½ï¿½ 3 ï¿½Ì¸ï¿½ ï¿½Ìºï¿½
 	DO_QUERY( L"exec dbo.P_GCouple_Info_INT_UPD", L"%d, %d, %d, N\'%s\', N\'%s\', %d", 
 		% 3	
 		% kPacket.m_iMyUnitUID
@@ -18971,7 +18998,7 @@ IMPL_ON_FUNC( DBE_BREAK_UP_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Çì¾îÁö±â ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iMyUnitUID )
 			<< BUILD_LOG( kPacket_.m_iLoverUnitUID )
@@ -18999,7 +19026,7 @@ IMPL_ON_FUNC( DBE_ADMIN_CHANGE_COUPLE_DATE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä¿ÇÃ ³¯Â¥ º¯°æ ¿À·ù Ä¡Æ®Å° ¿À·ù" )
+		START_LOG( cerr, L"Ä¿ï¿½ï¿½ ï¿½ï¿½Â¥ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä¡Æ®Å° ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iLoverUnitUID )
@@ -19011,7 +19038,7 @@ IMPL_ON_FUNC( DBE_ADMIN_CHANGE_COUPLE_DATE_REQ )
 
 	kPacket.m_iOK = NetError::NET_OK;
 
-	START_LOG( cout, L"Ä¿ÇÃ ³¯Â¥ º¯°æ ¼º°ø!" )
+	START_LOG( cout, L"Ä¿ï¿½ï¿½ ï¿½ï¿½Â¥ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( kPacket.m_iOK )
 		<< BUILD_LOG( kPacket_.m_iUnitUID )
 		<< BUILD_LOG( kPacket_.m_iLoverUnitUID )
@@ -19031,22 +19058,22 @@ IMPL_ON_FUNC( DBE_CHANGE_LOVE_WORD_REQ )
 	kPacket.m_wstrNewLoveWord = kPacket_.m_wstrNewLoveWord;
 	kPacket.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
 
-	// ¾ÆÀÌÅÛ »èÁ¦
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bool bUpdateFailed = false;
 	Query_UpdateItemQuantity( kPacket_.m_iUseUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	// ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	// ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUseUnitUID )
 			<< END_LOG;
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -19056,7 +19083,7 @@ IMPL_ON_FUNC( DBE_CHANGE_LOVE_WORD_REQ )
 	CTime tNow = CTime::GetCurrentTime();
 	std::wstring wstrNow = tNow.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 	std::wstring wstrTemp;
-	// Å¸ÀÔÀÌ 3 ÀÌ¸é ÀÌº°
+	// Å¸ï¿½ï¿½ï¿½ï¿½ 3 ï¿½Ì¸ï¿½ ï¿½Ìºï¿½
 	DO_QUERY( L"exec dbo.P_GCouple_Info_INT_UPD", L"%d, %d, %d, N\'%s\', N\'%s\', %d", 
 		% 4	
 		% kPacket_.m_iUseUnitUID
@@ -19073,7 +19100,7 @@ IMPL_ON_FUNC( DBE_CHANGE_LOVE_WORD_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"¾ÖÄª º¯°æ ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½Äª ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUseUnitUID )
 			<< BUILD_LOG( kPacket_.m_iLoverUnitUID )
@@ -19096,7 +19123,7 @@ IMPL_ON_FUNC( DBE_INSERT_WEDDING_REWARD_REQ )
 	kPacket.m_bTitleReward = kPacket_.m_bTitleReward;
 	kPacket.m_iTitleRewardStep = kPacket_.m_iTitleRewardStep;
 
-	// ¿ìÆí ¹ß¼Û sp
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½ sp
 	KPostItemInfo kInfo;
 	kInfo.m_iFromUnitUID = kPacket_.kPostReq.m_iFromUnitUID;
 	kInfo.m_iToUnitUID   = kPacket_.kPostReq.m_iToUnitUID;
@@ -19123,21 +19150,21 @@ IMPL_ON_FUNC( DBE_INSERT_WEDDING_REWARD_REQ )
 
 	if( kPacket.m_iOK == NetError::NET_OK )
 	{
-		// ¿ìÆí ¹ß¼Û °á°ú Àü¼Û
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		KDBE_INSERT_REWARD_TO_POST_ACK kPacket;
 		kPacket.m_iOK = NetError::NET_OK;
 		kPacket.m_iRewardLetter = kInfo;
 		SendToUser( LAST_SENDER_UID, DBE_INSERT_REWARD_TO_POST_ACK, kPacket );
 
-		// DB ÀÎ¿¬ Á¤º¸ °»½Å
+		// DB ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		int iType = 0;
 		if( kPacket_.m_bTitleReward == true )
 		{
-			iType = 6;	// Å¸ÀÌÆ² º¸»ó Á¤º¸ ¾÷µ¥ÀÌÆ®
+			iType = 6;	// Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		}
 		else
 		{
-			iType = 5;	// ÀÏ¹Ý º¸»ó
+			iType = 5;	// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 
 		CTime tCurr = CTime::GetCurrentTime();
@@ -19162,7 +19189,7 @@ IMPL_ON_FUNC( DBE_INSERT_WEDDING_REWARD_REQ )
 
 		if( kPacket.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ÀÎ¿¬ Á¤º¸ °»½Å ¿À·ù!" )
+			START_LOG( cerr, L"ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iLoverUnitUID )
@@ -19178,7 +19205,7 @@ end_proc:
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
 
-//{{ 2013. 05. 15	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+//{{ 2013. 05. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 IMPL_ON_FUNC( DBE_ITEM_EVALUATE_REQ )
 {
@@ -19188,7 +19215,7 @@ IMPL_ON_FUNC( DBE_ITEM_EVALUATE_REQ )
 	kPacket.m_iCost = kPacket_.m_iCost;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-	int arrSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í	
+	int arrSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½	
 
 	std::vector< int >::const_iterator vit = kPacket.m_vecRandomSocket.begin();
 	for( int iIdx = 0; iIdx < CXSLSocketItem::RSC_MAX; ++iIdx )
@@ -19200,7 +19227,7 @@ IMPL_ON_FUNC( DBE_ITEM_EVALUATE_REQ )
 		++vit;
 	}
 
-	// ·£´ý ¼ÒÄÏ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	DO_QUERY( L"exec dbo.P_GItemSocket_Random_INT_UPD", L"%d, %d, %d, %d, %d, %d, %d",
 		% kPacket_.m_iUnitUID		// @iUnitUID bigint
 		% kPacket_.m_iItemUID		// @iItemUID bigint
@@ -19219,7 +19246,7 @@ IMPL_ON_FUNC( DBE_ITEM_EVALUATE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
@@ -19248,25 +19275,25 @@ IMPL_ON_FUNC( DBE_RESTORE_ITEM_EVALUATE_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	int arrSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB Å×ÀÌºíÀÇ ¼ÒÄÏÅ×ÀÌºí Âü°í	
+	int arrSocketInfo[CXSLSocketItem::RSC_MAX] = {0,}; // DB ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½	
 
-	// ·£´ý ¼ÒÄÏ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	DO_QUERY( L"exec dbo.P_GItemSocket_Random_INT_UPD", L"%d, %d, %d, %d, %d, %d, %d",
 		% kPacket_.m_iUnitUID		// @iUnitUID bigint
 		% kPacket_.m_iTargetItemUID	// @iItemUID bigint
@@ -19285,7 +19312,7 @@ IMPL_ON_FUNC( DBE_RESTORE_ITEM_EVALUATE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ¼ÒÄÏ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< BUILD_LOG( kPacket_.m_iTargetItemUID )
@@ -19314,16 +19341,16 @@ IMPL_ON_FUNC( DBE_ITEM_CONVERT_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
@@ -19332,7 +19359,7 @@ IMPL_ON_FUNC( DBE_ITEM_CONVERT_REQ )
 
 	if( Query_InsertItemList( SEnum::GIR_RANDOM_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo, false ) == false )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ±³È¯½Ã ¾ÆÀÌÅÛ DB Ãß°¡ ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DB ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
@@ -19348,35 +19375,35 @@ IMPL_ON_FUNC( DBE_ITEM_CONVERT_REQ )
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 //}}
 
-#ifdef SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT// ÀÛ¾÷³¯Â¥: 2013-05-13	// ¹Ú¼¼ÈÆ
+#ifdef SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-13	// ï¿½Ú¼ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_SEND_LOVE_LETTER_EVENT_REQ )
 {
 	KDBE_SEND_LOVE_LETTER_EVENT_ACK kPacket;
 	kPacket.m_iOK						= NetError::ERR_ODBC_01;
 	kPacket.m_vecUpdatedInventorySlot	= kPacket_.m_vecUpdatedInventorySlot;
 
-	// ¾ÆÀÌÅÛ »èÁ¦
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bool bUpdateFailed = false;
 	Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	// ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	// ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 
-	// »èÁ¦°¡ ¼º°øÇØ¾ßÁö¸¸ ¿ìÆí Á¤º¸ ±â·Ï
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	if( ( kPacket.m_kItemQuantityUpdate.m_vecDeleted.empty() == true ) &&
 		( bUpdateFailed == false )
 		)
@@ -19403,7 +19430,7 @@ IMPL_ON_FUNC( DBE_SEND_LOVE_LETTER_EVENT_REQ )
 			}
 			else
 			{
-				START_LOG( cerr, L"»Ç·çÀÇ ·¯ºê ·¹ÅÍ DB ÀúÀå ½ÇÆÐ" )
+				START_LOG( cerr, L"ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kPacket_.m_iUnitUID )
 					<< END_LOG;
 			}
@@ -19419,15 +19446,15 @@ end_proc:
 }
 #endif // SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT
 
-#ifdef SERV_JUMPING_CHARACTER// ÀÛ¾÷³¯Â¥: 2013-07-10	// ¹Ú¼¼ÈÆ
+#ifdef SERV_JUMPING_CHARACTER// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-10	// ï¿½Ú¼ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_REQ )
 {
-	// Á¡ÇÎ Àü¿ë SP¸¦ ¸¸µé¾î¾ß ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 
 	KDBE_JUMPING_CHARACTER_UPDATE_ACK kPacket;
 	kPacket.m_iUnitUID = kPacket_.m_iUnitUID;
 
-	// Á¡ÇÎ ±â·Ï
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	DO_QUERY( L"exec dbo.P_GEvent_Jumping_INT", L"%d, %d, N\'%s\'",
 		% LAST_SENDER_UID
@@ -19452,7 +19479,7 @@ IMPL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_REQ )
 	kPacket.m_cExpandedMaxPageNum	= -1;
 	kPacket.m_iClass				= -1;
 
-	// 1. ±â¼úÀÇ ³ëÆ® ÆäÀÌÁö Ã³¸®
+	// 1. ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 	if( 0 <= kPacket_.m_cExpandedMaxPageNum )
 	{
 		DO_QUERY( L"exec dbo.gup_insert_notecnt", L"%d, %d",
@@ -19472,7 +19499,7 @@ IMPL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_REQ )
 		{
 			kPacket.m_cExpandedMaxPageNum = kPacket_.m_cExpandedMaxPageNum;
 
-			// ·Î±×
+			// ï¿½Î±ï¿½
 			DO_QUERY( L"exec dbo.P_GJumpingLog_INT", L"%d, %d, %d, N\'%s\'",
 				% LAST_SENDER_UID
 				% kPacket_.m_iUnitUID
@@ -19488,7 +19515,7 @@ IMPL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_REQ )
 		}
 	}
 
-	// 2. Class ¹× ±âº» ½ºÅ³ Ã³¸®
+	// 2. Class ï¿½ï¿½ ï¿½âº» ï¿½ï¿½Å³ Ã³ï¿½ï¿½
 	{
 		int iOK = NetError::NET_OK;
 		const int iMax = static_cast<int>( kPacket_.m_vecNewDefaultSkill.size() / 2 );
@@ -19526,7 +19553,7 @@ IMPL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_REQ )
 
 		if( iOK == NetError::NET_OK )
 		{
-			// ·Î±×
+			// ï¿½Î±ï¿½
 			DO_QUERY( L"exec dbo.P_GJumpingLog_INT", L"%d, %d, %d, N\'%s\'",
 				% LAST_SENDER_UID
 				% kPacket_.m_iUnitUID
@@ -19542,7 +19569,7 @@ IMPL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_REQ )
 		}
 	}
 
-	// 3. ºÀÀÎ ½ºÅ³ Ã³¸®
+	// 3. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ Ã³ï¿½ï¿½
 	{
 		int iOK = NetError::NET_OK;
 		BOOST_TEST_FOREACH( short, iSkillID, kPacket_.m_vecUnSealedSkill )
@@ -19572,7 +19599,7 @@ IMPL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_REQ )
 
 		if( iOK == NetError::NET_OK )
 		{
-			// ·Î±×
+			// ï¿½Î±ï¿½
 			DO_QUERY( L"exec dbo.P_GJumpingLog_INT", L"%d, %d, %d, N\'%s\'",
 				% LAST_SENDER_UID
 				% kPacket_.m_iUnitUID
@@ -19612,13 +19639,13 @@ IMPL_ON_FUNC( DBE_RELEASE_PET_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Æê ³õ¾ÆÁÖ±â ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iPetUID )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 
-		kPacket.m_iOK = NetError::ERR_RIDING_PET_11;	// Æê ³õ¾ÆÁÖ±â¿¡ ½ÇÆÐÇÏ¿´½À´Ï´Ù.
+		kPacket.m_iOK = NetError::ERR_RIDING_PET_11;	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±â¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 		goto end_proc;
 	}
 
@@ -19654,7 +19681,7 @@ IMPL_ON_FUNC( DBE_USE_RECRUIT_TICKET_REQ )
 	if( kPacket.m_iOK != NetError::NET_OK ||
 		tRegDate < tEventDate )
 	{
-		START_LOG( cerr, L"ÃßÃµ¹ÞÀ» ´ë»óÀÌ ¾Æ´Õ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
@@ -19676,7 +19703,7 @@ IMPL_ON_FUNC( DBE_REGISTER_RECRUITER_REQ )
 	CTime tEventDate;
 	KncUtil::ConvertStringToCTime( STRING_RECRUIT_EVENT_DATE, tEventDate );
 
-	// ÃßÃµÀÎ ³¯Â¥ °Ë»ç
+	// ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½Â¥ ï¿½Ë»ï¿½
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	DO_QUERY( L"exec dbo.gup_get_recommend_nickname", L"%d",
 		% kPacket_.m_wstrNickname
@@ -19693,7 +19720,7 @@ IMPL_ON_FUNC( DBE_REGISTER_RECRUITER_REQ )
 	if( kPacket.m_iOK != NetError::NET_OK ||
 		tRegDate > tEventDate )
 	{
-		START_LOG( cerr, L"ÃßÃµ °¡´ÉÇÑ À¯Àú°¡ ¾Æ´Õ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½Ãµ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
@@ -19702,7 +19729,7 @@ IMPL_ON_FUNC( DBE_REGISTER_RECRUITER_REQ )
 		goto end_proc;
 	}
 
-	// º¸»ó
+	// ï¿½ï¿½ï¿½ï¿½
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	DO_QUERY( L"exec dbo.gup_insert_recommend_new", L"%d, N\'%s\'",
 		% kPacket_.m_iUnitUID
@@ -19711,7 +19738,7 @@ IMPL_ON_FUNC( DBE_REGISTER_RECRUITER_REQ )
 
 	if( m_kODBC.BeginFetch() )
 	{
-		// ³ªÁß¿¡ ¸ñ·Ï ºÒ·¯¿À´Â sp¸¦ ¾²¹Ç·Î iRecruiterUnitUID ´Â ¿©±â¼± ±»ÀÌ ¹Þ¾Æ¿Ã ÇÊ¿ä°¡ ¾ø´Â °ªÀÌ±ä Çß´Ù.
+		// ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½ spï¿½ï¿½ ï¿½ï¿½ï¿½Ç·ï¿½ iRecruiterUnitUID ï¿½ï¿½ ï¿½ï¿½ï¿½â¼± ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½ ï¿½ß´ï¿½.
 		UidType iRecruiterUnitUID;
 		FETCH_DATA( kPacket.m_iOK
 			>> iRecruiterUnitUID
@@ -19740,7 +19767,7 @@ IMPL_ON_FUNC( DBE_REGISTER_RECRUITER_REQ )
 		goto end_proc;
 	}
 
-	// ÇÇÃßÃµÀÎÀÇ ÃßÃµÀÎ ¸ñ·Ï¿¡ Ãß°¡¸¦ ÇØ ÁÖ±â À§ÇÑ ºÎºÐ
+	// ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½Ï¿ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½
 	DO_QUERY( L"exec dbo.gup_get_recommend_newuid", L"%d", % kPacket_.m_iUnitUID );
 	while( m_kODBC.Fetch() )
 	{
@@ -19849,23 +19876,23 @@ IMPL_ON_FUNC( DBE_READY_TO_SOSUN_EVENT_REQ )
 	LIF( Query_UpdateItemQuantity( kPacket_.m_iUnitUID, kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange, kPacket.m_kItemQuantityUpdate.m_mapQuantityChange, bUpdateFailed ) );
 	Query_DeleteItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted, kPacket.m_kItemQuantityUpdate.m_vecDeleted );
 
-	//{{ 2008. 10. 23  ÃÖÀ°»ç	ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ
+	//{{ 2008. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	if( bUpdateFailed )
 	{
-		START_LOG( cout, L"ÁõºÐ°ª ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID );
 
 		std::map< UidType, int >::const_iterator mitQC = kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.begin();
 		for( ; mitQC != kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange.end(); ++mitQC )
 		{
-			START_LOG( cout, L"¾ÆÀÌÅÛ Á¤º¸" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( mitQC->first )
 				<< BUILD_LOG( mitQC->second );
 		}
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GET_ITEM_REASON
 	if( Query_InsertItemList( SEnum::GIR_ENCHANTMENT_EXTRACTION_ITEM, kPacket_.m_iUnitUID, kPacket_.m_vecItemInfo, kPacket.m_mapItemInfo ) == false )
 #else
@@ -19873,7 +19900,7 @@ IMPL_ON_FUNC( DBE_READY_TO_SOSUN_EVENT_REQ )
 #endif SERV_GET_ITEM_REASON
 		//}}
 	{
-		START_LOG( cerr, L"¾Æ¶ó 1Â÷ ÀüÁ÷ ÀÌ¸§ ¸ÂÃß±â ÀÌº¥Æ® º¸»ó ¾ÆÀÌÅÛ È¹µæ ½ÇÆÐ" )
+		START_LOG( cerr, L"ï¿½Æ¶ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ß±ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
 

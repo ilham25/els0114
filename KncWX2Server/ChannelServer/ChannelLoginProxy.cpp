@@ -9,14 +9,19 @@
 #include "DBLayer.h"
 //#include "RoomListManager.h"
 
-//{{ 2010. 10. 12	ÃÖÀ°»ç	¼­¹ö ¸ð´ÏÅÍ¸µ
+//{{ 2010. 10. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 #ifdef SERV_MORNITORING
 	#include "Mornitoring/MornitoringManager.h"
 #endif SERV_MORNITORING
 //}}
 
 NiImplementRTTI( KChannelLoginProxy, KActorProxy );
-ImplementProxy( KChannelLoginProxy );
+//{{ Iruha : 2026-08-27 // VS2010 port: ImplementProxy is undefined everywhere in this tree
+// (the sibling calls in GameServer/{GlobalProxy,CnProxy,LoginProxy}.cpp are all already
+// commented out). VC7.1 silently parsed it as an implicit-int prototype (harmless, unused);
+// VC10 makes that a hard error (C4430). Same class of issue as ImplementDBThread elsewhere.
+//ImplementProxy( KChannelLoginProxy );
+//}}
 ImplPfID( KChannelLoginProxy, PI_CHANNEL_LOGIN_PROXY );
 
 #define CLASS_TYPE KChannelLoginProxy
@@ -50,7 +55,7 @@ void KChannelLoginProxy::ProcessEvent( const KEventPtr& spEvent_ )
 		_CASE( ELG_VERIFY_SERVER_CONNECT_ACK, KECN_VERIFY_SERVER_CONNECT_ACK );
         CASE_NOPARAM( E_RESERVE_DESTROY );
 	default:
-		START_LOG( cerr, L"ÀÌº¥Æ® ÇÚµé·¯°¡ Á¤ÀÇµÇÁö ¾Ê¾ÒÀ½ - " << spEvent_->GetIDStr() );
+		START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ - " << spEvent_->GetIDStr() );
 	}
 }
 
@@ -60,20 +65,20 @@ void KChannelLoginProxy::OnDestroy()
 
 	SiKProxyManager()->DestroyProxy( KProxyManager::PT_LOGIN, GetProxyID() );
 
-	//{{ 2009. 1. 30  ÃÖÀ°»ç	°´Ã¼ ¼Ò¸ê ·Î±×
+	//{{ 2009. 1. 30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ã¼ ï¿½Ò¸ï¿½ ï¿½Î±ï¿½
 	if( GetDisconnectReason() == KStatistics::eSIColDR_Server_Shutdown )
 	{
-		START_LOG( cout, L"¼­¹ö ¼Ë´Ù¿îÀ¸·Î ÀÎÇÑ LoginProxy°´Ã¼ ¼Ò¸ê" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ë´Ù¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ LoginProxyï¿½ï¿½Ã¼ ï¿½Ò¸ï¿½" )
 			<< BUILD_LOG( GetProxyID() );
 	}
 	else
 	{
-		START_LOG( cout2, L"ºñÁ¤»óÀûÀÎ ¿øÀÎÀ¸·Î ÀÎÇÑ LoginProxy°´Ã¼ ¼Ò¸ê" )
+		START_LOG( cout2, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ LoginProxyï¿½ï¿½Ã¼ ï¿½Ò¸ï¿½" )
 			<< BUILD_LOG( GetProxyID() )
 			<< BUILD_LOG( GetDisconnectReason() )
-			<< dbg::tab << L"Á¾·á »çÀ¯ : " << KStatistics::GetDissconnectReasonString( GetDisconnectReason() ) << dbg::endl;
+			<< dbg::tab << L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : " << KStatistics::GetDissconnectReasonString( GetDisconnectReason() ) << dbg::endl;
 
-		//{{ 2010. 10. 11	ÃÖÀ°»ç	¼­¹ö°£ Á¢¼Ó ²÷±è ·Î±×
+		//{{ 2010. 10. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_SERVER_DISCONNECT_LOG
 		CTime kRegDate = CTime::GetCurrentTime();
 		KE_LOCAL_LOG_SERVER_DISCONNECT_NOT kNot;
@@ -87,7 +92,7 @@ void KChannelLoginProxy::OnDestroy()
 #endif SERV_SERVER_DISCONNECT_LOG
 		//}}
 
-		//{{ 2010. 10. 12	ÃÖÀ°»ç	¼­¹ö ¸ð´ÏÅÍ¸µ
+		//{{ 2010. 10. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 #ifdef SERV_MORNITORING
 		{
 			KE_DISCONNECT_SERVER_REPORT_NOT kNot;
@@ -114,8 +119,8 @@ _IMPL_ON_FUNC( ELG_VERIFY_SERVER_CONNECT_ACK, KECN_VERIFY_SERVER_CONNECT_ACK )
 
 		SetUID( kPacket_.m_iServerUID );
 
-		//{{ 2010. 04. 16  ÃÖÀ°»ç	·Î±× Ãß°¡		
-		START_LOG( cout2, L"·Î±×ÀÎ¼­¹ö¿Í Á¤»óÀûÀ¸·Î Á¢¼ÓÇÏ¿´½À´Ï´Ù!" )
+		//{{ 2010. 04. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±ï¿½ ï¿½ß°ï¿½		
+		START_LOG( cout2, L"ï¿½Î±ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iServerUID );
 		//}}
 	}
@@ -130,7 +135,7 @@ IMPL_ON_FUNC_NOPARAM( E_RESERVE_DESTROY )
 
 bool KChannelLoginProxy::RoutePacket( const KEventPtr& spEvent_ )
 {
-	//START_LOG( clog, L"¶ó¿ìÆÃ" )
+	//START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½" )
 	//    << BUILD_LOG( pkEvent_->m_kDestPerformer.m_dwPerformerID )
 	//    << BUILD_LOG( pkEvent_->m_kDestPerformer.m_iUID )
 	//    << BUILD_LOG( pkEvent_->GetLastSenderUID() )
@@ -148,7 +153,7 @@ bool KChannelLoginProxy::RoutePacket( const KEventPtr& spEvent_ )
 		}
 		else if( iEval > 0 )
 		{
-			START_LOG( cerr, L"»óÀ§ ¼­¹ö·Î º¸³¾ ÀÌº¥Æ®°¡ ¿À¸é ¾ÈµÈ´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÈ´ï¿½." )
 				<< BUILD_LOG( spEvent_->m_kDestPerformer.m_dwPerformerID )
 				<< BUILD_LOG( spEvent_->m_usEventID )
 				<< BUILD_LOG( spEvent_->GetIDStr() )
@@ -161,14 +166,14 @@ bool KChannelLoginProxy::RoutePacket( const KEventPtr& spEvent_ )
 			{
 			case PC_USER:
 				{
-					//{{ 2009. 7. 15  ÃÖÀ°»ç	À¯Àú Á¤º¸°¡ ¾øÀ»¶§ Ã³¸®
+					//{{ 2009. 7. 15  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 					std::vector< UidType > vecUID;
 					int iNotExistUserCnt = KActorManager::GetKObj()->MultiQueueing( spEvent_, vecUID );
 					if( iNotExistUserCnt > 0 )
 					{
 						ProcbyNotExistUser( spEvent_, vecUID );
 
-						START_LOG( cwarn, L"ÆÐÅ¶Àü´Þ À¯´ÖÀÌ ¾øÀ½." )
+						START_LOG( cwarn, L"ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 							<< BUILD_LOG( KEvent::GetIDStr( spEvent_->m_usEventID ) )
 							<< BUILD_LOG( iNotExistUserCnt )
 							<< END_LOG;
@@ -180,7 +185,7 @@ bool KChannelLoginProxy::RoutePacket( const KEventPtr& spEvent_ )
 				KBaseServer::GetKObj()->QueueingEvent( spEvent_ );
 				return true;
 			default:
-				START_LOG( cerr, L"µµÂøÁö°¡ ÀÌ»óÇÑ ÆÐÅ¶." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶." )
 					<< BUILD_LOG( spEvent_->m_kDestPerformer.m_dwPerformerID )
 					<< END_LOG;
 				return true;
@@ -223,8 +228,8 @@ void KChannelLoginProxy::ProcbyNotExistUser( const KEventPtr& spEvent_, std::vec
 
 					spEvent_->m_kbuff.Reset();
 
-					// ÀÏ´Ü ¿¡·¯·Î±× ÂïÀÚ!
-					START_LOG( cerr, L"À¯´Ö Á¤º¸ ¾òÀ»·Á°í Çß´Âµ¥ ½Ã°£Â÷·Î À¯Àú°¡ ²÷°Ü¹ö·È±º!" )
+					// ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½!
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß´Âµï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ü¹ï¿½ï¿½È±ï¿½!" )
 						<< BUILD_LOG( vecUID[i] )
 						<< END_LOG;
 				}

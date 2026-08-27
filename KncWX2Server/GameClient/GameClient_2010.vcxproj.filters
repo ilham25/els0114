@@ -2,55 +2,55 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Common">
-      <UniqueIdentifier>{3132d907-8c27-4664-a39d-c6d9e141a5f3}</UniqueIdentifier>
+      <UniqueIdentifier>{3e8a64ce-b978-431a-9340-255cddf49740}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Socket">
-      <UniqueIdentifier>{b499d522-8cf7-4670-a566-834d63fe96a3}</UniqueIdentifier>
+      <UniqueIdentifier>{0749f156-bc94-4d0a-8a51-de5f8f1431b2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Performer">
-      <UniqueIdentifier>{f9088f7c-a1ff-4ae4-9cc8-9e199f8dae60}</UniqueIdentifier>
+      <UniqueIdentifier>{213c6a7d-a4d6-44a5-9ea8-99cb054b695d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Packet">
-      <UniqueIdentifier>{63ac5c75-b4e8-4120-8506-b658743ca116}</UniqueIdentifier>
+      <UniqueIdentifier>{008d1f8c-a725-47c5-9815-8e1a0124b556}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Event">
-      <UniqueIdentifier>{51231aba-c5a2-4982-943e-90a97cbd4a8c}</UniqueIdentifier>
+      <UniqueIdentifier>{eb95e3f2-f7b2-4cac-84b0-c62c41174b44}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\FSM">
-      <UniqueIdentifier>{1d3596ff-3c0f-4c70-a8b5-78fab79f126c}</UniqueIdentifier>
+      <UniqueIdentifier>{3949c5e6-3299-4ba4-8745-f18f5129452e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\FSM\GSFSM">
-      <UniqueIdentifier>{3ac2ee8a-3ed4-4728-a3ed-cd9902d87757}</UniqueIdentifier>
+      <UniqueIdentifier>{fcccfd70-eda2-4573-a1a8-13d3b8676b2d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Lua">
-      <UniqueIdentifier>{68d0b80d-326d-4162-a8bc-ad2ff0a012fc}</UniqueIdentifier>
+      <UniqueIdentifier>{abd8f701-5f42-4b6e-ac5e-680ef4e6e6bd}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\NetError">
-      <UniqueIdentifier>{9a872ae7-1387-4a0f-bb8c-9d413e72e0d0}</UniqueIdentifier>
+      <UniqueIdentifier>{dee6adf1-8a57-4463-8e92-c80ec1b8a94a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Script">
-      <UniqueIdentifier>{1675f68f-50a7-4032-b0e4-0548c45e64ca}</UniqueIdentifier>
+      <UniqueIdentifier>{780fa323-ecbb-4a05-9b80-f618e6a95b89}</UniqueIdentifier>
     </Filter>
     <Filter Include="Actor">
-      <UniqueIdentifier>{a115229e-47eb-4281-931c-4f4bf07afaac}</UniqueIdentifier>
+      <UniqueIdentifier>{bbafef4f-0c7a-422c-adb1-7551ca74cee2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Actor\TCPRELAY">
-      <UniqueIdentifier>{3c1c89e0-4faa-4057-b2ff-c5be094cacb7}</UniqueIdentifier>
+      <UniqueIdentifier>{fc298cb7-b1ae-46c8-8233-7a4a909453c2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Actor\Robot">
-      <UniqueIdentifier>{fb80727c-f3df-485c-9f79-bc5b864cff26}</UniqueIdentifier>
+      <UniqueIdentifier>{11c17820-5e5e-40a7-9186-91961fd65327}</UniqueIdentifier>
     </Filter>
     <Filter Include="Actor\RobotThread">
-      <UniqueIdentifier>{2bb117e9-b32a-46ed-a86b-352817188c28}</UniqueIdentifier>
+      <UniqueIdentifier>{c40bf2c9-6d85-4834-89d2-363375f55305}</UniqueIdentifier>
     </Filter>
     <Filter Include="Actor\TRIOCP">
-      <UniqueIdentifier>{5d2486cf-9659-420a-8a59-67e2aa88e03e}</UniqueIdentifier>
+      <UniqueIdentifier>{69c003cb-8fd4-4c80-a29b-4ad7c0852191}</UniqueIdentifier>
     </Filter>
     <Filter Include="RBFSM">
-      <UniqueIdentifier>{6f112f1d-1493-47de-ad62-b501b4262c39}</UniqueIdentifier>
+      <UniqueIdentifier>{2eb0cd5a-ecbb-4abf-9026-fd5c63f6a2d8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Lib">
-      <UniqueIdentifier>{d3947c93-b6ec-4f22-b45d-acd2c3dfeca0}</UniqueIdentifier>
+      <UniqueIdentifier>{9a3f3d3d-9c43-4d26-920f-e30b902ee21d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

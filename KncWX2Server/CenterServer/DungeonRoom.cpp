@@ -10,34 +10,34 @@
 #include "X2Data/XSLUnitManager.h"
 #include "KAttribNpcTable.h"
 
-//{{ 2009. 5. 22  ÃÖÀ°»ç	µå·Ó·üÀÌº¥Æ®
+//{{ 2009. 5. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ó·ï¿½ï¿½Ìºï¿½Æ®
 #include "GameEvent/GameEventManager.h"
 //}}
-//{{ 2009. 7. 27  ÃÖÀ°»ç	Çì´Ï¸£ ½Ã°ø
+//{{ 2009. 7. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½
 #include "HenirResultTable.h"
 #include "GameSysVal/GameSysVal.h"
 //}}
-//{{ 2010. 10. 05	ÃÖÀ°»ç	¼¾ÅÍ¼­¹ö ÇØÅ·Ã¼Å©
+//{{ 2010. 10. 05	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©
 #ifdef SERV_CN_SERVER_HACKING_CHECK
 	#include "CnHackingCheckManager.h"
 #endif SERV_CN_SERVER_HACKING_CHECK
 //}}
-//{{ 2010. 11. 20	ÃÖÀ°»ç	Æ¯Á¤ ½Ã°¢ ¸ó½ºÅÍ ÃâÇö
+//{{ 2010. 11. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TIME_DROP_MONSTER_EVENT
 	#include "DungeonEventManager.h"
 #endif SERV_TIME_DROP_MONSTER_EVENT
 //}}
-//{{ 2012. 02. 06    ±è¹Î¼º    ´øÀü ¸ó½ºÅÍ UID ¹ß±Þ ¹æ½Ä º¯°æ
+//{{ 2012. 02. 06    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UID ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MAKE_MONSTER_UID_CHANGE
 	#include <boost/random.hpp>
 #endif SERV_MAKE_MONSTER_UID_CHANGE
 //}}
-//{{ 2012. 03. 05	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 03. 05	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	#include "X2Data/XSLBuffManager.h"
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
-//{{ 2013. 04. 15	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+//{{ 2013. 04. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	#include "X2Data/XSLDefenceDungeonManager.h"
 #endif SERV_NEW_DEFENCE_DUNGEON
@@ -49,7 +49,7 @@ NiImplementRTTI( KDungeonRoom, KRoom );
 
 KDungeonRoom::KDungeonRoom()
 {
-	//{{ 2011. 11. 7	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2011. 11. 7	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_spRoomUserManager = KRoomUserManagerPtr( new KRoomUserManager );
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -61,17 +61,17 @@ KDungeonRoom::KDungeonRoom()
 	m_cGetItemType			= CXSLRoom::DGIT_RANDOM;
 	m_usLoadingState		= 0;
 
-	//{{ 2011. 06. 13	ÃÖÀ°»ç	½ºÅ×ÀÌÁö ·Î±×
+	//{{ 2011. 06. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DUNGEON_STAGE_LOG
 	m_iLoadingCompleteStageID = -1;
 #endif SERV_DUNGEON_STAGE_LOG
 	//}}
 
-	// ¼Ó¼º ¸ó½ºÅÍ Ä«¿îÆ®
+	// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
 	m_iAttribNpcStageCnt	= 0;
 	m_iAttribNpcDropCnt		= 0;
 
-	//{{ 2010. 04. 07  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+	//{{ 2010. 04. 07  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
 	m_iExtraStageLoadCount	= 0;
 	m_bAdventExtraNpc		= false;	
@@ -79,7 +79,7 @@ KDungeonRoom::KDungeonRoom()
 #endif SERV_SECRET_HELL
 	//}}
 
-	//{{ 2010. 07. 09  ÃÖÀ°»ç	µå·Ó·ü ÀÌº¥Æ® È®Àå
+	//{{ 2010. 07. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ó·ï¿½ ï¿½Ìºï¿½Æ® È®ï¿½ï¿½
 #ifdef SERV_PC_BANG_DROP_EVENT
 	m_iItemDropEventProbCount = REE_DROP_EVENT_PROB_DEFAULT;
 	m_bWithPlayPcBangEvent	= false;
@@ -87,18 +87,18 @@ KDungeonRoom::KDungeonRoom()
 	//}}
 
 	m_iHighestUserLevelAtDungeonStart = 0;
-	//{{ 2012. 05. 10	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+	//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
 	m_iAverageUserLevelAtDungeonStart = 0;
 #endif SERV_DUNGEON_NPC_LEVEL
 	//}}
-	m_eDungeonType			= CXSLDungeon::DT_NORMAL; // Çì´Ï¸£ ½Ã°ø
+	m_eDungeonType			= CXSLDungeon::DT_NORMAL; // ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½
 
-	//{{ 2009. 7. 10  ÃÖÀ°»ç	»ç±â ½Ã½ºÅÛ
+	//{{ 2009. 7. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 	m_iPartyUID				= 0;
 	//}}
 
-	//{{ 2010. 06. 17  ÃÖÀ°»ç	¿ÀÅäÇÙ ¹æÁö
+	//{{ 2010. 06. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PROTECT_AUTO_HACK
 	m_iHackUserCheckCount	= 0;
 	m_iNpcDieHackCount		= 0;
@@ -106,26 +106,26 @@ KDungeonRoom::KDungeonRoom()
 	m_iStartedNumMember		= 0;
 #endif SERV_PROTECT_AUTO_HACK
 	//}}
-	//{{ 2012. 03. 15	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_bStartedByAutoParty	= false;
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	m_iDefenseMainCrystalNpcUID = 0;
 	m_setDefenseSmallCrystalNpcUID.clear();
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
-	//{{ 2012. 02. 06    ±è¹Î¼º    ´øÀü ¸ó½ºÅÍ UID ¹ß±Þ ¹æ½Ä º¯°æ
+	//{{ 2012. 02. 06    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UID ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MAKE_MONSTER_UID_CHANGE
 	m_bHackingNpcUid	= false;
 #endif SERV_MAKE_MONSTER_UID_CHANGE	
 	//}}
 
-	//{{ 2013. 03. 18	 Äù½ºÆ® µå·Ó È®·ü Áõ°¡ ÀÌº¥Æ® - ±è¹Î¼º
+	//{{ 2013. 03. 18	 ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_QUEST_ITEM_DROP_EVENT
 	m_fQuestItemDropEventProbRate = 1.f;
 #endif SERV_QUEST_ITEM_DROP_EVENT
@@ -160,21 +160,21 @@ void KDungeonRoom::Tick()
 	
 	if( GetStateID() == KRoomFSM::S_PLAY )
 	{
-		//{{ 2010. 05. 06  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+		//{{ 2010. 05. 06  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
-		// ºñ¹Ð´øÀüÀÌ¶ó¸é..
+		// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½..
 		if( m_eDungeonType == CXSLDungeon::DT_SECRET )
 		{
 			if( m_fPoisonTimeLimit > 0.0f )
 			{
-				// µ¶´ï ³²Àº½Ã°£°ú ³²Àº ÇÃ·¹ÀÌ½Ã°£À» ÇÕÇÑ°ªÀÌ ÀüÃ¼ ½Ã°£Á¦ÇÑº¸´Ù ÀÛÀ¸¸é µ¶´ï Àû¿ë ½Ã°£ÀÌ´Ù!
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ°ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½Ñºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½Ì´ï¿½!
 				if( ( m_fPoisonTimeLimit + GetRemainingPlayTime() ) < GetPlayTimeLimit() )
 				{
 					KEGS_DUNGEON_EFFECT_TIME_OUT_NOT kPacketNot;
 					kPacketNot.m_cType = KEGS_DUNGEON_EFFECT_TIME_OUT_NOT::DDT_POISON;
 					BroadCast( ERM_DUNGEON_EFFECT_TIME_OUT_NOT, kPacketNot );
 
-					// ÇÑ¹ø ³¯¸®°í ³ª¼­´Â -1.f°ªÀ» ³Ö¾î¼­ ´ÙÀ½ºÎÅÍ ¾È³¯¸®µµ·Ï ÇÑ´Ù.
+					// ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -1.fï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾î¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 					m_fPoisonTimeLimit = -1.f;
 				}
 			}
@@ -182,7 +182,7 @@ void KDungeonRoom::Tick()
 #endif SERV_SECRET_HELL
 		//}}
 
-		//{{ 2013. 02. 01  ÀÌº¥Æ® ¹ß·»Å¸ÀÎ ´øÀü - ±è¹Î¼º
+		//{{ 2013. 02. 01  ï¿½Ìºï¿½Æ® ï¿½ß·ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
 		if( CXSLDungeon::IsValentineDungeon( GetDungeonIDAndDif() ) == true )
 		{
@@ -194,7 +194,7 @@ void KDungeonRoom::Tick()
 			{
 			case KValentineManager::TT_SYNC_TIME:
 				{
-					// ¸ðµÎ¿¡°Ô ½Ã°£ Àü´Þ
+					// ï¿½ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
 					KEGS_SYNC_DUNGEON_TIMER_NOT kNot;
 					kNot.m_iRemainTime = KValentineManager::LDT_VALENTINE - m_kValentineManager.GetRemainTime( KValentineManager::TEM_AFTER_DUNGEON_START );
 					BroadCast( ERM_SYNC_DUNGEON_TIMER_NOT, kNot );
@@ -202,7 +202,7 @@ void KDungeonRoom::Tick()
 				break;
 			case KValentineManager::TT_END_GAME:
 				{
-					// ¹«Á¶°Ç ½Â¸®
+					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Â¸ï¿½
 					KEGS_SYNC_DUNGEON_TIMER_NOT kNot;
 					kNot.m_iRemainTime = 0;
 					BroadCast( ERM_SYNC_DUNGEON_TIMER_NOT, kNot );
@@ -214,49 +214,49 @@ void KDungeonRoom::Tick()
 		//}
 
 
-		// °ÔÀÓÁßÀÏ¶§ ¸ðµçÀ¯ÀúÀÇ »óÅÂ°¡ EndPlay¶ó¸é °ÔÀÓÀ» Á¾·áÇÑ´Ù!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ EndPlayï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½!
 		if( m_spRoomUserManager->CheckEndPlay() )
 		{
 			EndPlay();
 		}
 	}
-	//{{ 2013. 04. 15	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	else if( GetStateID() == KRoomFSM::S_WAIT_FOR_DEFENCE )
 	{
-		// 5ÃÊ°¡ Áö³ª¸é ÇöÀç ÀÎ¿øÀ» °¡Áö°í ±×´ë·Î ¾îµÒÀÇ ¹® ÁøÇà ÇÏÀÚ!
+		// 5ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
         if( m_kTimer[TM_WAIT_FOR_DEFENCE].elapsed() > 5.0 )
 		{
 			m_kTimer[TM_WAIT_FOR_DEFENCE].restart();
 
-			// ¾ÆÁ÷µµ Á¤º¸°¡ ¿ÀÁö ¾ÊÀº À¯Àú´Â 
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
 			std::map< UidType, UidType > mapUserList;
 			m_spRoomUserManager->GetUnitUIDListNotPrepareForDefenceDungeon( mapUserList );
 
-			// ¹æ¿¡¼­ ÀÌÅ» ½ÃÅ°ÀÚ!
+			// ï¿½æ¿¡ï¿½ï¿½ ï¿½ï¿½Å» ï¿½ï¿½Å°ï¿½ï¿½!
 			HandleTimeOutUser( mapUserList );			
 
-			//{{ 2013. 04. 23	ÃÖÀ°»ç	¾îµÒÀÇ ¹® ÀÔÀå ·ÎÁ÷ º¯°æ
+			//{{ 2013. 04. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
-			// 5ÃÊµ¿¾È ¾îµÒÀÇ ¹® ÀÔÀå ÀÇ»ç¸¦ ¹àÈ÷Áö ¾ÊÀº À¯Àú´Â °­Á¦·Î ÀÔÀå Ã³¸® ÇÏÀÚ!
+			// 5ï¿½Êµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç»ç¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			m_spRoomUserManager->SetAllEnterDefenceDungeon();
 #endif SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
 			//}}
 
 			if( IsEmpty() == false )
 			{
-				//{{ 2013. 04. 23	ÃÖÀ°»ç	¾îµÒÀÇ ¹® ÀÔÀå ·ÎÁ÷ º¯°æ
+				//{{ 2013. 04. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
-				// ÀÔÀåÀ» °ÅÀýÇÑ À¯Àúµé ¸®½ºÆ®¸¦ ¾òÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				std::vector< UidType > vecLeaveUnitUID;
 				m_spRoomUserManager->GetUnitUIDListDisagreeEnterDefenceDungeon( vecLeaveUnitUID );
 
-				// ¾îµÒÀÇ ¹® ´øÀü ÀÔÀå!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				EnterDefenceDungeon( vecLeaveUnitUID );
 
-				START_LOG( clog, L"5ÃÊ°¡ Áö³­ »óÅÂ¿¡¼­ ¾îµÒÀÇ ¹® ´øÀüÀ» ½ÃÀÛÇÕ´Ï´Ù!" );
+				START_LOG( clog, L"5ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½!" );
 #else
-				// ¾îµÒÀÇ ¹® ´øÀü ÀÔÀå!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				EnterDefenceDungeon();
 #endif SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
 				//}}
@@ -285,12 +285,12 @@ void KDungeonRoom::SetRoomInfo( const KRoomInfo& kInfo )
     m_iDungeonID		= kInfo.m_iDungeonID;
 	m_cDungeonMode		= kInfo.m_cDungeonMode;
 	m_iPartyUID			= kInfo.m_iPartyUID;
-	//{{ 2012. 02. 27	¹Ú¼¼ÈÆ	°øÁ¸ÀÇ ÃàÁ¦
+	//{{ 2012. 02. 27	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
 	m_iBuffType			= kInfo.m_iBuffType;
 #endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
 	//}}
-	//{{ 2012. 03. 15	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_bStartedByAutoParty = kInfo.m_bStartedByAutoParty;
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -298,7 +298,7 @@ void KDungeonRoom::SetRoomInfo( const KRoomInfo& kInfo )
 
 	if( kInfo.m_cGetItemType <= CXSLRoom::DGIT_NONE || kInfo.m_cGetItemType >= CXSLRoom::DGIT_END )
 	{
-		START_LOG( cwarn, L"´øÀü°ÔÀÓ ¾ÆÀÌÅÛ ½ÀµæÅ¸ÀÔÀÌ Àß¸øµÇ¾úÀ½.!" )
+		START_LOG( cwarn, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½.!" )
 			<< BUILD_LOGc( m_cGetItemType )
 			<< BUILD_LOGc( kInfo.m_cGetItemType )
 			<< BUILD_LOGc( kInfo.m_iDungeonID )
@@ -314,7 +314,7 @@ void KDungeonRoom::SetRoomInfo( const KRoomInfo& kInfo )
 
 	SetName( kInfo.m_RoomName );
 	SetPlayTimeLimit( kInfo.m_fPlayTime );
-	//{{ 2013. 04. 10	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	m_kDefenceDungeonManager.SetOpenDefenceDungeon( kInfo.m_bDefenceDungeonOpen );
 #endif SERV_NEW_DEFENCE_DUNGEON
@@ -327,7 +327,7 @@ void KDungeonRoom::GetRoomInfo( OUT KRoomInfo& kInfo )
 	kInfo.m_bStartedByAutoParty = IsStartedByAutoParty();
 }
 
-//{{ 2012. 10. 16	ÃÖÀ°»ç		P2P & Relay Á¤º¸ ¼öÁý
+//{{ 2012. 10. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		P2P & Relay ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COLLECTION_OF_RELAY_AND_P2P_INFO
 void KDungeonRoom::LogToDB_GamePlayNetWorkInfo( IN const UidType iUnitUID, IN const KGamePlayNetworkInfoPackage& kInfo, IN const bool bLeaveRoom )
 {
@@ -344,8 +344,8 @@ void KDungeonRoom::LogToDB_GamePlayNetWorkInfo( IN const UidType iUnitUID, IN co
 			KDBUpdateGamePlayNetworkInfo kDBUpdateInfo;
 			kDBUpdateInfo.m_iGameType			  = m_cRoomType;
 			kDBUpdateInfo.m_iHolePunchingTryCount = kGamePlayNetworkInfo.m_iHolePunchingTryCount;
-			kDBUpdateInfo.m_iP2PPlayTime		  = static_cast<int>(kGamePlayNetworkInfo.m_fP2PPlayTime);		// int·Î Å¸ÀÔ Ä³½ºÆÃÇÏ¸é ÃÊ¸¸ ³²´Â´Ù.
-			kDBUpdateInfo.m_iRelayPlayTime		  = static_cast<int>(kGamePlayNetworkInfo.m_fRelayPlayTime);	// int·Î Å¸ÀÔ Ä³½ºÆÃÇÏ¸é ÃÊ¸¸ ³²´Â´Ù.
+			kDBUpdateInfo.m_iP2PPlayTime		  = static_cast<int>(kGamePlayNetworkInfo.m_fP2PPlayTime);		// intï¿½ï¿½ Å¸ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Ê¸ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
+			kDBUpdateInfo.m_iRelayPlayTime		  = static_cast<int>(kGamePlayNetworkInfo.m_fRelayPlayTime);	// intï¿½ï¿½ Å¸ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Ê¸ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
 			kDBUpdateInfo.m_wstrRelayServerIP	  = NetCommon::GetLocalIPW();
 			kDBUpdateInfo.m_wstrRegDate			  = (const wchar_t*)tCurTime.Format(_T("%Y-%m-%d %H:%M:%S"));
 			kPacketToLog.m_vecDBUpdateInfo.push_back( kDBUpdateInfo );
@@ -360,9 +360,9 @@ void KDungeonRoom::LogToDB_GamePlayNetWorkInfo( IN const UidType iUnitUID, IN co
 #endif SERV_COLLECTION_OF_RELAY_AND_P2P_INFO
 //}}
 
-//{{ 2012. 11. 9	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 11. 9	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
-//{{ 2012. 12. 12	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 12. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_CHECK_USER_NEVER_RETURN_TO_FIELD
 void KDungeonRoom::LogToDB_DungeonLog( IN KRoomUserPtr spRoomUser, IN const int iClearValue, IN const KERM_UPDATE_DUNGEON_UNIT_INFO_NOT& kUpdateUnitInfo, IN const KDungeonUnitResultInfo& kDungeonUnitInfo, IN const int iLeaveReason /*= 0*/ )
 #else
@@ -370,10 +370,10 @@ void KDungeonRoom::LogToDB_DungeonLog( IN KRoomUserPtr spRoomUser, IN const int 
 #endif SERV_CHECK_USER_NEVER_RETURN_TO_FIELD
 //}}
 {
-	// ¿î¿µÀÚ´Â Åë°è¸¦ ³²±âÁö ¾Ê½À´Ï´Ù.
+	// ï¿½î¿µï¿½Ú´ï¿½ ï¿½ï¿½è¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
 	if( spRoomUser->GetAuthLevel() >= SEnum::UAL_GM )
 	{
-		START_LOG( cout, L"¿î¿µÀÚ´Â Åë°èµ¥ÀÌÅÍ¸¦ ³²±âÁö ¾Ê½À´Ï´Ù." )
+		START_LOG( cout, L"ï¿½î¿µï¿½Ú´ï¿½ ï¿½ï¿½èµ¥ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOGc( spRoomUser->GetAuthLevel() )
 #ifdef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( spRoomUser->GetCID() );
@@ -410,17 +410,17 @@ void KDungeonRoom::LogToDB_DungeonLog( IN KRoomUserPtr spRoomUser, IN const int 
 	kNot.m_iRessurectionStoneCount	= spRoomUser->GetUsedRessurectionStoneCount();
 	kNot.m_iPassedStageCount		= spRoomUser->GetPassedStageCount();
 	kNot.m_iPassedSubStageCount		= spRoomUser->GetPassedSubStageCount();
-	//{{ 2010. 9. 14	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 9. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 	kNot.m_bIsWithPet				= spRoomUser->HavePet();
 #endif SERV_PET_SYSTEM
 	//}}
-	//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+	//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 #ifdef SERV_DUNGEON_LOG_DB
 	kNot.m_wstrRegDate				= (const wchar_t*)kRegDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 #endif SERV_DUNGEON_LOG_DB
 	//}}
-	//{{ 2011. 03. 16	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+	//{{ 2011. 03. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_DUNGEON_LOG_COLUMN
 	kNot.m_sNpcDieCount				= spRoomUser->GetKillNPC_LUA();
 	kNot.m_iGivenDamage				= spRoomUser->GetTotalGivenDamamge_LUA();
@@ -435,12 +435,12 @@ void KDungeonRoom::LogToDB_DungeonLog( IN KRoomUserPtr spRoomUser, IN const int 
 	kNot.m_cPetEvoStep				= spRoomUser->GetPetEvolutionStep();
 #endif SERV_ADD_DUNGEON_LOG_COLUMN
 	//}}
-	//{{ 2012. 03. 05	±è¹Î¼º	´øÀü ´ë½Ã ·Î±×
+	//{{ 2012. 03. 05	ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DUNGEON_DASH_LOG
 	kNot.m_iDashCount				= spRoomUser->GetDashCount();
 #endif SERV_DUNGEON_DASH_LOG
 	//}}
-	//{{ 2012. 04. 17	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+	//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 	kNot.m_iBaseHP					= spRoomUser->GetBaseHP_LUA();
 	kNot.m_iEndHP					= spRoomUser->GetLastUpdatedHP();
@@ -453,28 +453,28 @@ void KDungeonRoom::LogToDB_DungeonLog( IN KRoomUserPtr spRoomUser, IN const int 
 	kNot.m_wstrChannelIP			= spRoomUser->GetGameChannelIP();
 #endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 	//}}
-	//{{ 2012. 07. 11 ±è¹Î¼º
+	//{{ 2012. 07. 11 ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_3
 	kNot.m_iUserUID					= spRoomUser->GetUserUID();
 #endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_3
 	//}}
-	//{{ 2012. 11. 6	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 11. 6	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	kNot.m_cAutoPartyPlay			= ( IsStartedByAutoParty() ? 1 : 0 );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
-	//{{ ÀÚµ¿ ÆÄÆ¼·Î ´øÀü ½ÃÀÛ ½Ã ¸ÅÄª ´ë±â ½Ã°£ ·Î±× Ãß°¡ - ±è¹Î¼º
+	//{{ ï¿½Úµï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Äª ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Î±ï¿½ ï¿½ß°ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_AUTO_PARTY_MATCHING_REQUIRED_TIME_LOG
 	kNot.m_iAutoPartyWaitTime		= spRoomUser->GetAutoPartyWaitTime();
 #endif SERV_AUTO_PARTY_MATCHING_REQUIRED_TIME_LOG
 	//}
-	//{{ 2012. 12. 12	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 12. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_CHECK_USER_NEVER_RETURN_TO_FIELD
 	kNot.m_iLeaveReason				= iLeaveReason;
 	kNot.m_cRoomState				= GetStateID();
 #endif SERV_CHECK_USER_NEVER_RETURN_TO_FIELD
 	//}}
-	//{{ 2012. 12. 12  ½ºÅ³ ½½·Ô »ç¿ë Å¸ÀÔ ·Î±× - ±è¹Î¼º
+	//{{ 2012. 12. 12  ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½Î±ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_USE_SKILL_SLOT_TYPE_LOG
 	kNot.m_bSkillSlotType				= spRoomUser->GetSkillSlotType();
 #endif SERV_USE_SKILL_SLOT_TYPE_LOG
@@ -482,10 +482,10 @@ void KDungeonRoom::LogToDB_DungeonLog( IN KRoomUserPtr spRoomUser, IN const int 
 	KSIManager.QueueingEvent( E_LOCAL_LOG_DUNGEON_NOT, kNot );
 	//////////////////////////////////////////////////////////////////////////
 	
-	// DB¿¡µµ ³²±âÀÚ
+	// DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	SendToLogDB( DBE_DB_LOG_DUNGEON_NOT, kNot );
 
-	//{{ 2013. 01. 09 ´øÀü °­Åð ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 01. 09 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 	bool bExitResult = false;
 
@@ -494,24 +494,24 @@ void KDungeonRoom::LogToDB_DungeonLog( IN KRoomUserPtr spRoomUser, IN const int 
 		bExitResult = true;
 	}
 
-	// ´øÀü °­Åð ½Ã½ºÅÛ ·Î±× ±â·ÏÇÏÀÚ
-	// ½ÃÀÛ ÀÎ¿øÀÌ 2ÀÎ ÀÌ»óÀÏ °æ¿ì
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ 2ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	if( m_bStartedByAutoParty == true && m_iStartedNumMember >= 2 )
 	{
 		KBadAttitudeManager::KBadAttitudeInfo kUnitData( spRoomUser->GetCID() );
 		if( m_kBadAttitudeManager.GetUnitData( spRoomUser->GetCID(), kUnitData ) == false )
 		{
-			START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯Àú¸¦ Áö¿ì·Á°í ÇÑ´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½." )
 				<< BUILD_LOG( spRoomUser->GetCID() )
 				<< END_LOG;
 
-			// ±×·¡µµ °è¼Ó ÁøÇà ÇÑ´Ù.
+			// ï¿½×·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 		}
 		else
 		{
 			if( kUnitData.m_iBadAttitudePoint > 0 )
 			{
-				// °­Åð ½Ã½ºÅÛÀ¸·Î ÀÎÇÑ °­Åð ·Î±× Ãß°¡
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ß°ï¿½
 				KERM_BAD_ATTITUDE_USER_LOG_NOT kLog;
 				kLog.m_iUnitUID = spRoomUser->GetCID();
 				kLog.m_iDungeonIDAndDif = GetDungeonIDAndDif();
@@ -545,7 +545,7 @@ void KDungeonRoom::ProcessNativeEvent( const KEventPtr& spEvent_ )
     // party
 	CASE( ERM_PARTY_OPEN_DUNGEON_ROOM_REQ );
    //_CASE( ERM_PARTY_GAME_REPLAY_START_REQ, KERM_PARTY_OPEN_DUNGEON_ROOM_REQ );
-   //{{ 2011. 12. 09	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+   //{{ 2011. 12. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
    _CASE( ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ );
    //_CASE( ERM_SINGLE_DUNGEON_GAME_REPLAY_REQ, KERM_OPEN_ROOM_REQ );
@@ -556,7 +556,7 @@ void KDungeonRoom::ProcessNativeEvent( const KEventPtr& spEvent_ )
 
     CASE( ERM_GAME_START_REQ );
 	CASE( ERM_LEAVE_ROOM_REQ );
-	//{{ 2011. 11. 1	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2011. 11. 1	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
    _CASE( ERM_LEAVE_ROOM_FOR_JOIN_BATTLE_FIELD_REQ, KERM_LEAVE_ROOM_REQ );
    _CASE( ERM_LEAVE_ROOM_FOR_ENTER_THE_VILLAGE_REQ, KERM_LEAVE_ROOM_REQ );
@@ -569,7 +569,7 @@ void KDungeonRoom::ProcessNativeEvent( const KEventPtr& spEvent_ )
    _CASE( ERM_DUNGEON_SUB_STAGE_GO_NEXT_REQ,		KEGS_DUNGEON_SUB_STAGE_GO_NEXT_REQ );
    _CASE( ERM_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ,	KEGS_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ );
 
-	//{{ 2009. 7. 20  ÃÖÀ°»ç	ºñ¹Ð½ºÅ×ÀÌÁö
+	//{{ 2009. 7. 20  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	CASE_NOPARAM( ERM_DUNGEON_SECRET_STAGE_ENTER_CHECK_REQ );
    _CASE( ERM_DUNGEON_SECRET_STAGE_ENTER_SELECT_NOT, KEGS_DUNGEON_SECRET_STAGE_ENTER_SELECT_NOT );
 	//}}
@@ -580,7 +580,7 @@ void KDungeonRoom::ProcessNativeEvent( const KEventPtr& spEvent_ )
     CASE_NOPARAM( ERM_USER_UNIT_DIE_COMPLETE_REQ );
    
    _CASE( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ );
-	//{{ 2009. 5. 11  ÃÖÀ°»ç	½Ç½Ã°£¾ÆÀÌÅÛ
+	//{{ 2009. 5. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ç½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	CASE( ERM_GET_ITEM_COMPLETE_NOT );
 	//}}
 	CASE( ERM_MY_USER_UNIT_INFO_TO_SERVER_REQ );
@@ -601,16 +601,16 @@ void KDungeonRoom::ProcessNativeEvent( const KEventPtr& spEvent_ )
 
 	CASE_NOPARAM( ERM_PARTY_BAN_USER_REQ );
 
-	//{{ 2009. 12. 29  ÃÖÀ°»ç	NPCKILLALLÇØÅ·¹æÁö
+	//{{ 2009. 12. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	NPCKILLALLï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½
 	CASE_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ );
 	//}}
-	//{{ 2010. 11. 18	ÃÖÀ°»ç	¾ÆÀÌÅÛ ÆÇ¸Å Â÷´Ü
+	//{{ 2010. 11. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_AUTO_HACK_CHECK_SELL_ITEM
    _CASE( ERM_CHECK_SELL_ED_ITEM_REQ, KEGS_SELL_ED_ITEM_REQ );
 #endif SERV_AUTO_HACK_CHECK_SELL_ITEM
 	//}}
 
-   //{{ 2011. 01. 25  ±è¹Î¼º  ¿ùµå Æ®¸®°Å Àü´Þ(´øÀü¸¸ Àû¿ëÁß - ÀÌÈÄ PVP È®Àå)
+   //{{ 2011. 01. 25  ï¿½ï¿½Î¼ï¿½  ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ PVP È®ï¿½ï¿½)
 #ifdef SERV_WORLD_TRIGGER_RELOCATION
    _CASE( ECN_WORLD_TRIGGER_RELOCATION_REQ, KEGS_WORLD_TRIGGER_RELOCATION_REQ );
 #endif SERV_WORLD_TRIGGER_RELOCATION
@@ -619,34 +619,34 @@ void KDungeonRoom::ProcessNativeEvent( const KEventPtr& spEvent_ )
    _CASE( ERM_ADMIN_NPC_UNIT_CREATE_REQ, KEGS_ADMIN_NPC_UNIT_CREATE_REQ );
 #endif SERV_CREATE_ELITE_FOR_ADMIN
    
-   //{{ 2012. 09. 02	¹Ú¼¼ÈÆ	Merge ( ´ëÀü¿¡¼­ Å¬¶óÀÌ¾ðÆ® Á¶ÀÛµîÀ¸·Î UDP ÆÐÅ¶ÀÌ ³¯¾Æ¿ÀÁö ¾Ê´Â À¯Àú°¡ ¹ß°ßµÇ¸é ¼­¹ö¿¡¼­ Å±ÇÑ´Ù. // 2012.06.11 lygan_Á¶¼º¿í )
+   //{{ 2012. 09. 02	ï¿½Ú¼ï¿½ï¿½ï¿½	Merge ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½Ûµï¿½ï¿½ï¿½ï¿½ï¿½ UDP ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ßµÇ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å±ï¿½Ñ´ï¿½. // 2012.06.11 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
 #ifdef UDP_CAN_NOT_SEND_USER_KICK
    _CASE( ERM_UDP_CHECK_KICK_USER_NOT, KEGS_UDP_CHECK_KICK_USER_NOT );
 #endif UDP_CAN_NOT_SEND_USER_KICK
    //}}
-	//{{ 2012. 11. 9	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 11. 9	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	CASE_NOPARAM( ERM_UPDATE_HENIR_REWARD_USER_NOT );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
-	//{{ 2013. 01. 09 ´øÀü °­Åð ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 01. 09 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 	_CASE( ERM_BAD_ATTITUDE_USER_CHECK_INFO_NOT, KEGS_BAD_ATTITUDE_USER_CHECK_INFO_NOT );
 	_CASE( ERM_DEFENCE_DUNGEON_WAVE_ID_NOT, KEGS_DEFENCE_DUNGEON_WAVE_ID_NOT );
 	_CASE( ERM_FORCED_EXIT_VOTE_REQ, KEGS_FORCED_EXIT_VOTE_REQ );
 #endif SERV_DUNGEON_FORCED_EXIT_SYSTEM
 	//}
-	//{{ 2013. 02. 01  ÀÌº¥Æ® ¹ß·»Å¸ÀÎ ´øÀü - ±è¹Î¼º
+	//{{ 2013. 02. 01  ï¿½Ìºï¿½Æ® ï¿½ß·ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
 	CASE_NOPARAM( ERM_SYNC_DUNGEON_TIMER_NOT );
 #endif SERV_EVENT_VALENTINE_DUNGEON
 	//}
-	//{{ 2013. 04. 15	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	CASE( ERM_PREPARE_FOR_DEFENCE_DUNGEON_ACK );
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
-	//{{ 2013. 04. 22	ÃÖÀ°»ç	¾îµÒÀÇ ¹® ÀÔÀå ·ÎÁ÷ º¯°æ
+	//{{ 2013. 04. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
 	_CASE( ERM_ENTER_DEFENCE_DUNGEON_POPUP_REPLY_NOT, KEGS_ENTER_DEFENCE_DUNGEON_POPUP_REPLY_NOT );
 #endif SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
@@ -662,7 +662,7 @@ void KDungeonRoom::ProcessNativeEvent( const KEventPtr& spEvent_ )
 #endif SERV_STAGE_CLEAR_IN_SERVER
 
     default:
-        START_LOG( cerr, L"ÀÌº¥Æ® ÇÚµé·¯°¡ Á¤ÀÇµÇÁö ¾Ê¾ÒÀ½ - " << spEvent_->GetIDStr() )
+        START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ - " << spEvent_->GetIDStr() )
             << BUILD_LOG( spEvent_->m_usEventID );
     }
 }
@@ -671,7 +671,7 @@ void KDungeonRoom::StartGame()
 {
     KRoom::StartGame();
 
-	//{{ 2012. 02. 06    ±è¹Î¼º    ´øÀü ¸ó½ºÅÍ UID ¹ß±Þ ¹æ½Ä º¯°æ
+	//{{ 2012. 02. 06    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UID ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_MAKE_MONSTER_UID_CHANGE
 //	m_nNPCUID = GetDungeonNpcRandomInitUid();
 //#else
@@ -679,18 +679,18 @@ void KDungeonRoom::StartGame()
 //#endif SERV_MAKE_MONSTER_UID_CHANGE
 	//}}
 
-	//{{ 2011. 10. 24	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2011. 10. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kDungeonMonsterManager.StartGame();
 	m_kDungeonSecurityManager.StartGame();
 #else
 	m_nNPCUID			= 1;
 	m_mapNPCData.clear();
-	m_mapSubStageNpcInfo.clear();	// NPCKILLALLÇØÅ·¹æÁö
+	m_mapSubStageNpcInfo.clear();	// NPCKILLALLï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 	m_nDropItemUID		= 1;
-	//{{ 2011. 06. 13	ÃÖÀ°»ç	½ºÅ×ÀÌÁö ·Î±×
+	//{{ 2011. 06. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DUNGEON_STAGE_LOG
 	m_iLoadingCompleteStageID = -1;
 #endif SERV_DUNGEON_STAGE_LOG
@@ -706,16 +706,16 @@ void KDungeonRoom::StartGame()
 	m_kDSSGoNextAllNot.m_iNextStageID	= -1;
 
 	m_mapDropItem.clear();
-	//{{ 2009. 5. 13  ÃÖÀ°»ç	¼­ºê½ºÅ×ÀÌÁöº° drop npc¼ö
+	//{{ 2009. 5. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ê½ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ drop npcï¿½ï¿½
 	m_mapSubStageExpNpcNum.clear();
 	//}}
-	m_mapAttribNpcData.clear(); // ¼Ó¼º ¸ó½ºÅÍ	
-	//{{ 2010. 11. 20	ÃÖÀ°»ç	Æ¯Á¤ ½Ã°¢ ¸ó½ºÅÍ ÃâÇö
+	m_mapAttribNpcData.clear(); // ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½	
+	//{{ 2010. 11. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TIME_DROP_MONSTER_EVENT
 	m_mapTimeDropEventMonster.clear();
 #endif SERV_TIME_DROP_MONSTER_EVENT
 	//}}
-	//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+	//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 #ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 	m_mapSubStageActiveNpcNum.clear();
 #endif SERV_SUB_STAGE_NPC_DIE_CHECK
@@ -723,7 +723,7 @@ void KDungeonRoom::StartGame()
 
 	m_usLoadingState	= 0;
 
-	//{{ 2010. 04. 07  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+	//{{ 2010. 04. 07  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
 	m_iExtraStageLoadCount	= 0;
 	m_bAdventExtraNpc		= false;	
@@ -734,22 +734,22 @@ void KDungeonRoom::StartGame()
     const int iPlayerCount = m_spRoomUserManager->GetNumPlaying();
     if( iPlayerCount < 1 || iPlayerCount > 4 )
     {
-        START_LOG( cerr, L"ÇÃ·¹ÀÌ ÁßÀÎ À¯Àú ¼ö°¡ ÀÌ»óÇÔ." )
+        START_LOG( cerr, L"ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½." )
             << BUILD_LOG( iPlayerCount )
             << END_LOG;
     }
 
-	// ´øÀü Å¸ÀÔ ¾ò±â
+	// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½
 	m_eDungeonType = SiCXSLDungeonManager()->GetDungeonType( GetDungeonIDAndDif() );
 	switch( m_eDungeonType )
 	{
 	case CXSLDungeon::DT_HENIR:
 		{
-			// Çì´Ï¸£ ½Ã°ø µµÀü¸ðµå¶ó¸é Ä³¸¯ÅÍ ½ºÅÈÀÌ 1·Î º¸Á¤µÇ±â ¶§¹®¿¡ À¯Àú ÃÖ°í·¹º§À» 1·Î µÐ´Ù
+			// ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ð´ï¿½
 			if( m_cDungeonMode == CXSLDungeon::DM_HENIR_CHALLENGE )
 			{
 				m_iHighestUserLevelAtDungeonStart = 1;
-				//{{ 2012. 05. 14	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+				//{{ 2012. 05. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
 				m_iAverageUserLevelAtDungeonStart = 1;
 #endif SERV_DUNGEON_NPC_LEVEL
@@ -759,9 +759,9 @@ void KDungeonRoom::StartGame()
 			{
 				m_iHighestUserLevelAtDungeonStart = m_spRoomUserManager->GetHighestUserLevel();
 
-				//{{ 2012. 05. 14	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+				//{{ 2012. 05. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
-				// Æò±Õ ·¹º§°ªÀ» ±¸ÇÏµÇ ÃÖ´ë·¹º§°úÀÇ Â÷ÀÌ°¡ 5·¾ÀÌ»óÀÎ À¯Àú´Â °è»ê¿¡ Æ÷ÇÔÇÏÁö ¸»ÀÚ
+				// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ ï¿½Ö´ë·¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ 5ï¿½ï¿½ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ê¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				m_iAverageUserLevelAtDungeonStart = m_spRoomUserManager->GetAverageUserLevel( CXSLDungeon::DE_CALC_AVERAGE_INCLUDE_LEVEL_GAP );
 #endif SERV_DUNGEON_NPC_LEVEL
 				//}}
@@ -773,9 +773,9 @@ void KDungeonRoom::StartGame()
 		{
 			m_iHighestUserLevelAtDungeonStart = m_spRoomUserManager->GetHighestUserLevel();
 
-			//{{ 2012. 05. 14	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+			//{{ 2012. 05. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
-			// Æò±Õ ·¹º§°ªÀ» ±¸ÇÏµÇ ÃÖ´ë·¹º§°úÀÇ Â÷ÀÌ°¡ 5·¾ÀÌ»óÀÎ À¯Àú´Â °è»ê¿¡ Æ÷ÇÔÇÏÁö ¸»ÀÚ
+			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ ï¿½Ö´ë·¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ 5ï¿½ï¿½ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ê¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			m_iAverageUserLevelAtDungeonStart = m_spRoomUserManager->GetAverageUserLevel( CXSLDungeon::DE_CALC_AVERAGE_INCLUDE_LEVEL_GAP );
 #endif SERV_DUNGEON_NPC_LEVEL
 			//}}
@@ -785,7 +785,7 @@ void KDungeonRoom::StartGame()
 
 	if( GetHighestUserLevelAtDungeonStart() <= 0 )
 	{
-		START_LOG( cerr, L"´øÀü ½ÃÀÛ½Ã¿¡ À¯Àú ÃÖ°í·¹º§ ¼öÄ¡°¡ ÀÌ»óÇÕ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 			<< BUILD_LOG( iPlayerCount )
 			<< BUILD_LOG( GetHighestUserLevelAtDungeonStart() )
 			<< BUILD_LOG( GetDungeonID() )
@@ -795,11 +795,11 @@ void KDungeonRoom::StartGame()
 		m_iHighestUserLevelAtDungeonStart = SiKGameSysVal()->GetLimitsLevel();
 	}
 
-	//{{ 2012. 05. 10	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+	//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
 	if( GetAverageUserLevelAtDungeonStart() <= 0 )
 	{
-		START_LOG( cerr, L"´øÀü ½ÃÀÛ½Ã¿¡ À¯Àú Æò±Õ·¹º§ ¼öÄ¡°¡ ÀÌ»óÇÕ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Õ·ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 			<< BUILD_LOG( iPlayerCount )
 			<< BUILD_LOG( GetAverageUserLevelAtDungeonStart() )
 			<< BUILD_LOG( GetDungeonID() )
@@ -812,7 +812,7 @@ void KDungeonRoom::StartGame()
 	//}}	
 
 	//////////////////////////////////////////////////////////////////////////
-	// [ÀÌº¥Æ®]	ÀÌº¥Æ® ¸ó½ºÅÍ µå·Ó
+	// [ï¿½Ìºï¿½Æ®]	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_EVENT_MONSTER
 	m_vecEventMonster.clear();
 
@@ -822,7 +822,7 @@ void KDungeonRoom::StartGame()
 	{
 		std::vector< int > vecEventID;
 		SiKGameEventManager()->CheckEventMonster( vecEventID );
-		//{{ 2012. 02. 03	¹Ú¼¼ÈÆ	ÀÌº¥Æ® °ü·ÃÁ¤º¸ Ã³¸®¹æ¹ý º¯°æ ( Script -> DB )
+		//{{ 2012. 02. 03	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( Script -> DB )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 		SiKEventMonsterRefreshManager()->GetAdventNpcEventInfo( vecEventID, m_vecEventMonster );
 #else
@@ -833,7 +833,7 @@ void KDungeonRoom::StartGame()
 #endif SERV_EVENT_MONSTER
 	//////////////////////////////////////////////////////////////////////////
 	
-	//{{ 2010. 04. 07  ÃÖÀ°»ç	¼Ó¼ºµå·Ó ÀÌº¥Æ® ¸÷
+	//{{ 2010. 04. 07  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
 	m_iAttribNpcStageCnt = 0;
 	m_iAttribNpcDropCnt = 0;
@@ -842,11 +842,11 @@ void KDungeonRoom::StartGame()
 	{
 	case CXSLDungeon::DT_NORMAL:
 		{
-			// ¿¤ÀÇ ³ª¹«¿¡¼­´Â ¼Ó¼º ¸ó½ºÅÍ ¾È³ª¿Â´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ï¿½Â´ï¿½.
 			if( CXSLDungeon::DI_RUBEN_EL_TREE_NORMAL != GetDungeonID() )
 			{
-				// ¼Ó¼º ¸ó½ºÅÍ µå·Ó Ä«¿îÆ®
-				//{{ 2011. 03. 21  ±è¹Î¼º	´øÀü ³­ÀÌµµ º¸Á¤
+				// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
+				//{{ 2011. 03. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_DIFFICULTY_REVISION
 				SiKAttribNpcTable()->GetAttribNpcDropCount( static_cast<char>(m_eDungeonType), m_cDifficultyLevel, iPlayerCount, m_iAttribNpcStageCnt, m_iAttribNpcDropCnt );
 #else
@@ -857,13 +857,13 @@ void KDungeonRoom::StartGame()
 		}
 		break;
 
-	case CXSLDungeon::DT_HENIR: // Çì´Ï¸£ ½Ã°ø¿¡¼­´Â ¼Ó¼º¸ó½ºÅÍ ¾È³ª¿È.
+	case CXSLDungeon::DT_HENIR: // ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½.
 		break;
 
 	case CXSLDungeon::DT_SECRET:
 		{
-			// ¼Ó¼º ¸ó½ºÅÍ µå·Ó Ä«¿îÆ®
-			//{{ 2011. 03. 21  ±è¹Î¼º	´øÀü ³­ÀÌµµ º¸Á¤
+			// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
+			//{{ 2011. 03. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_DIFFICULTY_REVISION
 			SiKAttribNpcTable()->GetAttribNpcDropCount( static_cast<char>(m_eDungeonType), m_cDungeonMode, iPlayerCount, m_iAttribNpcStageCnt, m_iAttribNpcDropCnt );
 #else
@@ -875,7 +875,7 @@ void KDungeonRoom::StartGame()
 
 	default:
 		{
-            START_LOG( cerr, L"Àß¸øµÈ ´øÀü Å¸ÀÔÀÔ´Ï´Ù." )
+            START_LOG( cerr, L"ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 				<< BUILD_LOG( m_eDungeonType )
 				<< END_LOG;
 		}
@@ -883,41 +883,41 @@ void KDungeonRoom::StartGame()
 	}
 #else
 #pragma ELSE_MESSAGE
-	// ¼Ó¼º ¸ó½ºÅÍ µå·Ó Ä«¿îÆ®
+	// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
 	//SiKAttribNpcTable()->GetAttribNpcDropCount( static_cast<int>(m_cDifficultyLevel), m_iAttribNpcStageCnt, m_iAttribNpcDropCnt );
 #endif SERV_SECRET_HELL
 	//}}
 
-	//{{ 2010. 10. 26	ÃÖÀ°»ç	Äù½ºÆ® Á¶°Ç Ãß°¡
+	//{{ 2010. 10. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_QUEST_CLEAR_EXPAND
-	// ÇØ´ç À¯Àú°¡ Æ¯Á¤ ¾ÆÀÌÅÛ Âø¿ë Äù½ºÆ®¸¦ ÁøÇàÁßÀÌ¸é¼­ ¾ÆÀÌÅÛÀ» Âø¿ëÇÏ°í ÀÖ´ÂÁö È®ÀÎÇÑ´Ù.
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸é¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½.
 	m_spRoomUserManager->CheckItemEquipQuestCondition( true );
 #endif SERV_QUEST_CLEAR_EXPAND
 	//}}
 
-	//{{ 2010. 06. 17  ÃÖÀ°»ç	¿ÀÅäÇÙ ¹æÁö
+	//{{ 2010. 06. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PROTECT_AUTO_HACK
-	m_iHackUserCheckCount = ( rand() % 6 ) + 5; // 5¿¡¼­ 10»çÀÌÀÇ Ã¼Å© ¼ýÀÚ ¾ò±â!
+	m_iHackUserCheckCount = ( rand() % 6 ) + 5; // 5ï¿½ï¿½ï¿½ï¿½ 10ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½!
 	m_iNpcDieHackCount = 0;
 	m_iGetItemHackCount = 0;
-	m_iStartedNumMember = iPlayerCount; // °ÔÀÓ ½ÃÀÛÇÒ ´ç½ÃÀÇ À¯Àú ¼ö ÀúÀå!
+	m_iStartedNumMember = iPlayerCount; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 #endif SERV_PROTECT_AUTO_HACK
 	//}}
 
-	//{{ 2010. 7. 28  ÃÖÀ°»ç	¿ÀÅäÇÙ Â÷´Ü NPC
+	//{{ 2010. 7. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ NPC
 #ifdef SERV_AUTO_HACK_CHECK_NPC
     m_setFindedHackUserUnitUID.clear();
 #endif SERV_AUTO_HACK_CHECK_NPC
 	//}}
 
-	//{{ 2010. 11. 18	ÃÖÀ°»ç	¿ÀÅä ÇÙ ½ºÅ×ÀÌÁö ·Îµù Ã¼Å©
+	//{{ 2010. 11. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ Ã¼Å©
 #ifdef SERV_AUTO_HACK_CHECK_STAGE_LOAD
 	m_mapStageLoadingCheck.clear();
 	m_iLastLoadingUnitUID = 0;
 #endif SERV_AUTO_HACK_CHECK_STAGE_LOAD
 	//}}
 
-	//{{ 2010. 12. 8	ÃÖÀ°»ç	ÀûÁ¤ ·¹º§ Àåºñ Åë°è
+	//{{ 2010. 12. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_APPROPRIATE_LEVEL_STAT
 	{
 		KELOG_APPROPRIATE_LEVEL_STATISTICS_NOT kPacketNot;
@@ -930,30 +930,30 @@ void KDungeonRoom::StartGame()
 #endif SERV_APPROPRIATE_LEVEL_STAT
 	//}}
 
-	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	m_iDefenseMainCrystalNpcUID = 0;
 	m_setDefenseSmallCrystalNpcUID.clear();
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
-	//{{ 2012. 02. 06    ±è¹Î¼º    ´øÀü ¸ó½ºÅÍ UID ¹ß±Þ ¹æ½Ä º¯°æ
+	//{{ 2012. 02. 06    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UID ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MAKE_MONSTER_UID_CHANGE
 	SetHackingNpcUid( false );
 #endif SERV_MAKE_MONSTER_UID_CHANGE	
 	//}}
-	//{{ 2013. 01. 09 ´øÀü °­Åð ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 01. 09 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 	m_kBadAttitudeManager.init( m_spRoomUserManager, GetDungeonIDAndDif() );
 #endif SERV_DUNGEON_FORCED_EXIT_SYSTEM
 	//}
 
-	//{{ 2013. 02. 01  ÀÌº¥Æ® ¹ß·»Å¸ÀÎ ´øÀü - ±è¹Î¼º
+	//{{ 2013. 02. 01  ï¿½Ìºï¿½Æ® ï¿½ß·ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
 	m_kValentineManager.Init();
 #endif SERV_EVENT_VALENTINE_DUNGEON
 	//}
-	//{{ 2013. 04. 09	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	m_kDefenceDungeonManager.StartGame();
 #endif SERV_NEW_DEFENCE_DUNGEON
@@ -980,12 +980,12 @@ void KDungeonRoom::StartGame()
 
 void KDungeonRoom::StartPlay()
 {
-	//{{ 2010. 8. 25	ÃÖÀ°»ç	´øÀü ÇÃ·¹ÀÌ »óÅÂ Ã¼Å©!
+	//{{ 2010. 8. 25	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 	if( GetStateID() == KRoomFSM::S_PLAY )
 	{
 		if( m_spRoomUserManager->GetNumMember() == 1 )
 		{
-			START_LOG( cout, L"ÀÌ¹Ì KRoomFSM::S_PLAY»óÅÂÀÎµ¥ ¶Ç StartPlay¸¦ ÇÏ·Á°í ÇÏ³×!? ÇØÅ·ÀÎ°¡?" )
+			START_LOG( cout, L"ï¿½Ì¹ï¿½ KRoomFSM::S_PLAYï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ StartPlayï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½!? ï¿½ï¿½Å·ï¿½Î°ï¿½?" )
 				<< BUILD_LOG( GetStateIDString() )
 				<< BUILD_LOG( GetTotalPlayTime() )
 				<< BUILD_LOG( m_kTimer[TM_PLAY].elapsed() )
@@ -997,7 +997,7 @@ void KDungeonRoom::StartPlay()
 			KRoomUserPtr spUser = m_spRoomUserManager->GetHostUser();
 			if( spUser != NULL )
 			{
-				START_LOG( cout, L"¾î¶² À¯Àú°¡ ÀÌ·¸°Ô ÀÌ»óÇÑ µ¿ÀÛÀ» ÇÏ´ÂÁö È®ÀÎÇØº¸ÀÚ!" )
+				START_LOG( cout, L"ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Øºï¿½ï¿½ï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 					<< BUILD_LOG( spUser->GetCID() );
 #else
@@ -1005,7 +1005,7 @@ void KDungeonRoom::StartPlay()
 					<< BUILD_LOG( spUser->GetNickName() );
 #endif SERV_PRIVACY_AGREEMENT
 
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				//KEGS_SERVER_CHECK_HACK_USER_NOT kNot;
 				//kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_NOT::HCT_DUNGEON_PLAY_START;
 				//SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
@@ -1016,18 +1016,18 @@ void KDungeonRoom::StartPlay()
 
     KRoom::StartPlay();
 
-	//°ÔÀÓÃÊ±â·Îµù½Ã ºÎ¸ðÅ¬·¡½º¿¡¼­ »ç¿ëµÇ´Â ·Îµù½Ã°£À» Ã¼Å©ÇÏ±âÀ§ÇØ
-	//ÀÌ°÷¿¡¼­ Ã¼Å©¸¦ ½ÃÀÛÇÑ´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Îµï¿½ï¿½ï¿½ ï¿½Î¸ï¿½Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½Îµï¿½ï¿½Ã°ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½
+	//ï¿½Ì°ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 
-	// ·Îµù Å¸ÀÌ¸Ó ½ÃÀÛ!
+	// ï¿½Îµï¿½ Å¸ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	if( m_LoadingTimer.IsStart() == true )
 	{
-		// ÀÌ¹Ì ½ÃÀÛµÈ »óÅÂ¶ó¸é Á¾·á »óÅÂ·Î ÃÊ±âÈ­ ÇÕ´Ï´Ù!
+		// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½Ûµï¿½ ï¿½ï¿½ï¿½Â¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â·ï¿½ ï¿½Ê±ï¿½È­ ï¿½Õ´Ï´ï¿½!
 		m_LoadingTimer.End();
 	}
 	m_LoadingTimer.Start();
 
-	// ´øÀü°ÔÀÓ Ã³À½ ½ÃÀÛÇÒ¶§ ÃÖÃÊ·Î µ¶´ë¹ÌÁö Å¸ÀÓÀ» º¸³½´Ù!
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ï¿½ ï¿½ï¿½ï¿½Ê·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	if( m_eDungeonType == CXSLDungeon::DT_SECRET  &&  m_fPoisonTimeLimit > 0.0f )
 	{
 		KEGS_DUNGEON_EFFECT_REMAINING_TIME_NOT kNot;
@@ -1051,10 +1051,10 @@ void KDungeonRoom::EndPlay()
 
     m_fTotalPlayTime = m_kTimer[TM_PLAY].elapsed() - GetLoadingTime();
 
-	// ÇÃ·¹ÀÌ Å¸ÀÓÀÌ Á¤»óÀûÀ¸·Î °è»êµÇ¾î ³ª¿À´ÂÁö È®ÀÎÇØº¸ÀÚ!
+	// ï¿½Ã·ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Øºï¿½ï¿½ï¿½!
 	if( GetTotalPlayTime() < 0.0 )
 	{
-		START_LOG( cout, L"·Îµù½Ã°£À» »« ½ÇÁ¦ ´øÀü ÇÃ·¹ÀÌ ½Ã°£ÀÌ ¸¶ÀÌ³Ê½º°ªÀÌ´Ù! ÀÖÀ» ¼ö ¾ø´Â ¿¡·¯!" )
+		START_LOG( cout, L"ï¿½Îµï¿½ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì³Ê½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetStateIDString() )
 			<< BUILD_LOG( GetTotalPlayTime() )
 			<< BUILD_LOG( m_kTimer[TM_PLAY].elapsed() )
@@ -1070,7 +1070,7 @@ void KDungeonRoom::EndPlay()
 
 void KDungeonRoom::EndGame()
 {
-	// ºÎÈ°¼® »ç¿ë Åë°è
+	// ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	int iPlayerCount = m_spRoomUserManager->GetUsedRessurectionStonePlayerCount();
 
 	KStatisticsKey kKey;
@@ -1079,35 +1079,35 @@ void KDungeonRoom::EndGame()
 
     KRoom::EndGame();
 
-	// ¼³¸¶ÇÏ´Â ¸¶À½¿¡ ÀÌ°÷¿¡¼­ ´Ù½Ã ÃÊ±âÈ­¸¦ ÇØº»´Ù.(07.12.28 demiahun)
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½Øºï¿½ï¿½ï¿½.(07.12.28 demiahun)
 	m_mapDropItem.clear();
-	//{{ 2011. 10. 24	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2011. 10. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	ReservedRegroupOldParty();
 	m_kDungeonMonsterManager.EndGame();
 	m_kDungeonSecurityManager.EndGame();
 #else
 	m_mapNPCData.clear();
-	m_mapSubStageNpcInfo.clear();	// NPCKILLALLÇØÅ·¹æÁö
+	m_mapSubStageNpcInfo.clear();	// NPCKILLALLï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 	
-	//{{ 2009. 5. 13  ÃÖÀ°»ç	¼­ºê½ºÅ×ÀÌÁöº° drop npc¼ö
+	//{{ 2009. 5. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ê½ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ drop npcï¿½ï¿½
 	m_mapSubStageExpNpcNum.clear();
 	//}}
-	m_mapAttribNpcData.clear(); // ¼Ó¼º ¸ó½ºÅÍ	
-	//{{ 2010. 11. 20	ÃÖÀ°»ç	Æ¯Á¤ ½Ã°¢ ¸ó½ºÅÍ ÃâÇö
+	m_mapAttribNpcData.clear(); // ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½	
+	//{{ 2010. 11. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TIME_DROP_MONSTER_EVENT
 	m_mapTimeDropEventMonster.clear();
 #endif SERV_TIME_DROP_MONSTER_EVENT
 	//}}
 
-	//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+	//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 #ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 	m_mapSubStageActiveNpcNum.clear();
 #endif SERV_SUB_STAGE_NPC_DIE_CHECK
 	//}}
-	//{{ 2013. 04. 09	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	m_kDefenceDungeonManager.EndGame();
 #endif SERV_NEW_DEFENCE_DUNGEON
@@ -1158,23 +1158,23 @@ void KDungeonRoom::HandleTimeOutUser( std::map< UidType, UidType >& mapUserCIDNG
     {
 		if( !m_spRoomUserManager->LeaveRoom( mit->first ) )
 		{
-			START_LOG( cerr, L"¹æ ³ª°¡±â ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( mit->first )
 				<< END_LOG;
 		}
 
-        // ¹®Á¦ À¯Àú¿¡°Ô ÆÐÅ¶À» ³¯¸°´Ù.
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
         SendToGSCharacter( mit->second, mit->first, ERM_GAME_LOADING_TIME_OUT_NOT );
     }
 
-    // ¹æÀÇ ¸ðµç À¯Àúµé¿¡°Ô ½½·Ô Á¤º¸¸¦ ³¯¸°´Ù.
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
     KEGS_LEAVE_ROOM_NOT kPacketNot;
     kPacketNot.m_cRoomState = GetStateID();
     kPacketNot.m_iUnitUID = mit->first;
     GetRoomSlotInfo( kPacketNot.m_vecSlot );
     BroadCast( ERM_LEAVE_ROOM_NOT, kPacketNot );
 
-	//{{ 2010. 11. 23	ÃÖÀ°»ç	¹æ ·Îµù ¿À·ù ¼öÁ¤ - Å©·¡½¬ ¹®Á¦°¡ ÀÖ¾î¼­ Àû¿ëÀº º¸·ùÇÕ´Ï´Ù.
+	//{{ 2010. 11. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾î¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
 #ifdef SERV_ROOM_LOADING_BUG_FIX
 	//////////////////////////////////////////////////////////////////////////
 	if( GetStateID() == KRoomFSM::S_LOAD )
@@ -1183,11 +1183,11 @@ void KDungeonRoom::HandleTimeOutUser( std::map< UidType, UidType >& mapUserCIDNG
 		{
 			BroadCastID( ERM_GAME_LOADING_ALL_UNIT_OK_NOT );
 
-			// ½ºÅ×ÀÌÁö¸¦ ÃÊ±âÈ­.
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 			StartPlay();
 
 			KEGS_PLAY_START_NOT kNot;
-			//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+			//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 			kNot.m_iDungeonID = GetDungeonIDAndDif();
 #endif SERV_CHAR_LOG
@@ -1195,13 +1195,13 @@ void KDungeonRoom::HandleTimeOutUser( std::map< UidType, UidType >& mapUserCIDNG
 			kNot.m_RoomState = GetStateID();
 			GetRoomSlotInfo( kNot.m_vecSlot );
 
-			// ¸ðµç À¯Àú¿¡°Ô ÇÃ·¹ÀÌ ½ÃÀÛÀ» ¾Ë¸².
+			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½.
 			BroadCast( ERM_PLAY_START_NOT, kNot );
 
-			// ¸ðµç °ÔÀÓ ¼­¹ö¿¡ ¹æ ¸®½ºÆ®¸¦ °»½ÅÇÏ¶ó°í ³¯¸°´Ù.
+			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			SendRoomListInfo( NetError::ERR_ROOM_15 );
 
-			//{{ 2009. 4. 23  ÃÖÀ°»ç	´ëÀüÀ¯Àú¸®½ºÆ®
+			//{{ 2009. 4. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 			SendAllPVPUserInfo();
 			//}}
 		}
@@ -1215,19 +1215,19 @@ void KDungeonRoom::HandleTimeOutUser( std::map< UidType, UidType >& mapUserCIDNG
 	//////////////////////////////////////////////////////////////////////////
 	if( GetStateID() == KRoomFSM::S_LOAD || GetStateID() == KRoomFSM::S_PLAY )
 	{
-		//// ¸ðµç À¯Àú°¡ ·Îµù ³¡³µÀ¸¸é not¸¦ ³¯¸°´Ù.
+		//// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ notï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		//if( m_spRoomUserManager->IsAllPlayerFinishLoading() )
 		//{
 		//    BroadCastID( ERM_GAME_LOADING_ALL_UNIT_OK_NOT );
 
-		//    // ½ºÅ×ÀÌÁö¸¦ ÃÊ±âÈ­.
+		//    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 		//    StartPlay();
 
 		//    KEGS_PLAY_START_NOT kNot;
 		//    kNot.m_RoomState = GetStateID();
 		//    GetRoomSlotInfo( kNot.m_vecSlot );
 
-		//    // ¸ðµç À¯Àú¿¡°Ô ÇÃ·¹ÀÌ ½ÃÀÛÀ» ¾Ë¸².
+		//    // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½.
 		//    BroadCast( ERM_PLAY_START_NOT, kNot );
 		//}
 		
@@ -1237,7 +1237,7 @@ void KDungeonRoom::HandleTimeOutUser( std::map< UidType, UidType >& mapUserCIDNG
 #endif SERV_ROOM_LOADING_BUG_FIX
 	//}}
 
-    // ½ºÅ×ÀÌÁö°¡ ³¡³ª°Ô µÇ´Â °æ¿ì Ã³¸®.
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½.
     if( GetStateID() == KRoomFSM::S_PLAY )
     {
         if( CheckIfPlayEnd() )
@@ -1246,7 +1246,7 @@ void KDungeonRoom::HandleTimeOutUser( std::map< UidType, UidType >& mapUserCIDNG
         }
 		else
 		{
-			//{{ 2009. 7. 27  ÃÖÀ°»ç	ºñ¹Ð½ºÅ×ÀÌÁö
+			//{{ 2009. 7. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 			{
 				CheckEnterSecretStageSuccess();
@@ -1255,12 +1255,12 @@ void KDungeonRoom::HandleTimeOutUser( std::map< UidType, UidType >& mapUserCIDNG
 		}
     }
 
-    // ¹æ¿¡¼­ ¸ðµç À¯Àú°¡ ³ª°¬À¸¸é ¹æÀ» ´Ý´Â´Ù.
+    // ï¿½æ¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ý´Â´ï¿½.
     if( IsEmpty() )
     {
         StateTransition( KRoomFSM::I_TO_CLOSE );
 
-		//{{ 2010. 06. 21  ÃÖÀ°»ç	Åë°è ½º·¹µå
+		//{{ 2010. 06. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_STATISTICS_THREAD
 		CTime kEndGameTime = CTime::GetCurrentTime();
 		//////////////////////////////////////////////////////////////////////////
@@ -1289,19 +1289,19 @@ void KDungeonRoom::HandleTimeOutUser( std::map< UidType, UidType >& mapUserCIDNG
 
 void KDungeonRoom::CloseRoom()
 {
-	// ¹æÀÌ ´ÝÈú¶§ Á¤¸®ÇÒ°ÍµéÀ» Á¤¸®ÇÏÀÚ.
-	//{{ 2011. 10. 26	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ò°Íµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+	//{{ 2011. 10. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kDungeonMonsterManager.OnCloseRoom();
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
-	//{{ 2013. 04. 09	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	m_kDefenceDungeonManager.OnCloseRoom();
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
 
-	//¹æ»ý¼ºÁß Á¶°ÇÀÌ ¾ÈµÇ¾î »ý¼ºÀ» ¸øÇÏ´Â °æ¿ì¶ó¸é
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 	if( GetStateID() == KRoomFSM::S_INIT )
 	{
 		StateTransition( KRoomFSM::I_TO_WAIT );
@@ -1309,9 +1309,9 @@ void KDungeonRoom::CloseRoom()
 
 	StateTransition( KRoomFSM::I_TO_CLOSE );
 
-	//{{ 2013. 01. 07	ÃÖÀ°»ç	¹æ¿¡¼­ ÇÊµå·Î µ¹¾Æ¿ÀÁö ¸øÇÏ´Â ¹ö±× ¼öÁ¤
+	//{{ 2013. 01. 07	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½æ¿¡ï¿½ï¿½ ï¿½Êµï¿½ï¿½ ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEVER_RETURN_TO_FIELD_BUG_FIX
-	// ¹æÀ» ´Ý±â Àü¿¡ ÃÊ±âÈ­ ÇÑ¹ø ÇØÁÖÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ý±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	m_spRoomUserManager->Reset();
 #endif SERV_NEVER_RETURN_TO_FIELD_BUG_FIX
 	//}}
@@ -1334,7 +1334,7 @@ void KDungeonRoom::SendDSSGoNextAllNot( KEGS_DUNGEON_SUB_STAGE_GO_NEXT_ALL_NOT& 
 	if( m_spRoomUserManager->IsAllPlayerStageID() == true )
 	{
 		m_spRoomUserManager->ResetStageID();
-		//{{ 2012. 04. 17	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+		//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 		m_spRoomUserManager->ResetSubStageID();
 #endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
@@ -1359,7 +1359,7 @@ void KDungeonRoom::BroadCastUpdateUnitInfoWithPartyCheck( std::vector< KRoomUser
 	}
 }
 
-//{{ 2011. 12.13    ±è¹Î¼º	´øÀü Å¬¸®¾î ½Ã ¾ÆÀÌÅÛ Áö±Þ ÀÌº¥Æ® - ÇöÀÚÀÇ ÁÖ¹®¼­(Áßº¹ Áö±Þ ±ÝÁö)
+//{{ 2011. 12.13    ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½(ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
 void KDungeonRoom::BroadCastUpdateUnitInfoWithPartyCheck( std::vector< KRoomUserPtr >& vecKRoomUserPtr,
 														 unsigned short usEventID, 
@@ -1373,7 +1373,7 @@ void KDungeonRoom::BroadCastUpdateUnitInfoWithPartyCheck( std::vector< KRoomUser
 		if( mit != mapHaveExpInDungeon.end() )
 		{
 			data[ui].m_bHaveExpInDungeon = mit->second;
-			// µ¥ÀÌÅÍ°¡ ¾øÀ¸¸é ±âº» false
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº» false
 		}
 
 		data[ui].m_iDungeonID	= iDungeonID;
@@ -1386,8 +1386,8 @@ void KDungeonRoom::BroadCastUpdateUnitInfoWithPartyCheck( std::vector< KRoomUser
 
 KDropItemData KDungeonRoom::CreateItemProcess( IN int iItemID, IN bool bIsGP /* = false */, IN int iED /* = 0  */ )
 {
-	KDropItemData	kDropItem;	//not ÆÐÅ¶À» µé¾î°¥ °³º° ¾ÆÀÌÅÛÁ¤º¸
-	ITEM_DATA		sItemData;	//¼­¹ö¿¡¼­ °¡Áö°íÀÖÀ» ¾ÆÀÌÅÛÁ¤º¸
+	KDropItemData	kDropItem;	//not ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½î°¥ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	ITEM_DATA		sItemData;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	int iDropItemUID = m_nDropItemUID++;
 
@@ -1401,7 +1401,7 @@ KDropItemData KDungeonRoom::CreateItemProcess( IN int iItemID, IN bool bIsGP /* 
 
 	kDropItem.m_fSpeed	= (float)(rand()%800) + 1.0f;
 
-	//¾ÆÀÌÅÛÀ» ¶³¾î¶ß¸®°í ¾ÆÁ÷ ¸ÔÁö ¾ÊÀº°ÍÀ¸·Î Ã¼Å©,.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©,.
 	sItemData.m_iItemID	 	 = iItemID;
 	sItemData.m_iDropItemUID = iDropItemUID;
 	sItemData.m_bIsGet		 = false;
@@ -1411,7 +1411,7 @@ KDropItemData KDungeonRoom::CreateItemProcess( IN int iItemID, IN bool bIsGP /* 
 	{
 		sItemData.m_iED = iED;
 	}
-	//{{ 2013. 1. 14	¹Ú¼¼ÈÆ	´øÀü ¹× ÇÊµå µå¶ø ¾ÆÀÌÅÛ¿¡ °­È­ ºÎ¿©
+	//{{ 2013. 1. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½È­ ï¿½Î¿ï¿½
 #ifdef SERV_ENCHANT_ITEM_DROP_EVENT
 	else
 	{
@@ -1436,21 +1436,21 @@ void KDungeonRoom::CheckLoadingSuccess()
 			{
 				if( m_spRoomUserManager->IsAllPlayerStageLoaded() )
 				{
-					// Loading º¯¼ö ¸®¼Â.
+					// Loading ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 					m_spRoomUserManager->ResetStageLoaded();
 
-					//¸ðµç ·ÎµùÃ³¸®¸¦ ³¡³»°í ½ÃÀÛÀ» ¾Ë·ÁÁÜ
+					//ï¿½ï¿½ï¿½ ï¿½Îµï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½
 					KEGS_DUNGEON_STAGE_START_NOT kPacketStartNot;
 					kPacketStartNot.m_iStageID = m_iStageID;
 					BroadCast( ERM_DUNGEON_STAGE_START_NOT, kPacketStartNot );
 
-					//{{ 2009. 12. 14  ÃÖÀ°»ç	Çì´Ï¸£ÀÓ½ÃÀÎº¥
+					//{{ 2009. 12. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ï¿½Ó½ï¿½ï¿½Îºï¿½
 					CheckTempInventoryClear();
 					//}}
 
-					//{{ 2011. 06. 13	ÃÖÀ°»ç	½ºÅ×ÀÌÁö ·Î±×
+					//{{ 2011. 06. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DUNGEON_STAGE_LOG
-					// ·Îµù ¿Ï·áµÈ ½ºÅ×ÀÌÁöID¸¦ ±â·ÏÇÑ´Ù!
+					// ï¿½Îµï¿½ ï¿½Ï·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½!
 					m_iLoadingCompleteStageID = GetStageID();
 #endif SERV_DUNGEON_STAGE_LOG
 					//}}
@@ -1479,10 +1479,10 @@ void KDungeonRoom::CheckLoadingSuccess()
 			{
 				if( m_spRoomUserManager->IsAllPlayerStageLoaded() == true )
 				{
-					//{{ 2010. 8. 16	ÃÖÀ°»ç	¼­¹ö ÄÚµå Á¤¸®
+					//{{ 2010. 8. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 					if( DungeonSubStageStartProcess( GetSubStageID() ) == false )
 					{
-						START_LOG( cerr, L"´øÀü ¼­ºê ½ºÅ×ÀÌÁö ½ÃÀÛ ¿¡·¯!" )
+						START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 							<< BUILD_LOG( GetSubStageID() )
 							<< END_LOG;
 					}
@@ -1500,20 +1500,20 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 	{
 		int iPassedStageCount = 0;
 		KEGS_END_GAME_DUNGEON_RESULT_DATA_NOT kUnitInfoNot;
-		//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+		//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 		kUnitInfoNot.m_bIsClearDefenceDungeon = false;
 		kUnitInfoNot.m_iProtectedSmallCrystal= 0;
 #endif SERV_INSERT_GLOBAL_SERVER
-		//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+		//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
 		std::vector< KRoomUserPtr > vecKRoomUserPtr;
 		std::vector< KERM_UPDATE_DUNGEON_UNIT_INFO_NOT > vecUpdateUnitInfo;
 		std::vector< KEGS_GET_ITEM_NOT > vecResultGetItem;
 
-		//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+		//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
-		const int iProtectedCrystalCount = GetProtectedSmallCrystalCount() + 1; // ÀÛÀº ¼öÁ¤ÀÇ ¼ö¸¸ ¾ò¾î ¿À±â ¶§¹® +1 Å« ¼öÁ¤
+		const int iProtectedCrystalCount = GetProtectedSmallCrystalCount() + 1; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ +1 Å« ï¿½ï¿½ï¿½ï¿½
 
 		if( CXSLDungeon::IsDefenceDungeon( m_iDungeonID ) == true )
 		{
@@ -1528,7 +1528,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 															(int)GetRemainingPlayTime(), 
 															m_nDropItemUID, 
 															m_iStartedNumMember, 
-															//{{ 2012. 04. 16	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+															//{{ 2012. 04. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 															IsStartedByAutoParty(),
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -1539,14 +1539,14 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 															vecUpdateUnitInfo,
 															iProtectedCrystalCount ) == false )
 			{
-				START_LOG( cerr, L"´øÀü°á°ú Ã³¸® ½ÇÆÐ.!" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 					<< END_LOG;
 				return;
 			}
 		}
 		else
 #endif SERV_INSERT_GLOBAL_SERVER
-			//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+			//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 		{
 			if( SiKResultProcess()->Result_DUNGEON( m_spRoomUserManager, 
 													m_kDungeonMonsterManager, 
@@ -1555,7 +1555,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 													m_cDungeonMode,
 													m_cDifficultyLevel, 
 													m_iDungeonID, 
-													//{{ 2011. 08. 22	ÃÖÀ°»ç	Çì´Ï¸£ ½Ã°ø °³Æí
+													//{{ 2011. 08. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_HENIR_TEST
 													GetStageID(),
 #endif SERV_NEW_HENIR_TEST
@@ -1564,7 +1564,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 													(int)GetRemainingPlayTime(), 
 													m_nDropItemUID, 
 													m_iStartedNumMember, 
-													//{{ 2012. 04. 16	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+													//{{ 2012. 04. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 													IsStartedByAutoParty(),
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -1574,13 +1574,13 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 													vecKRoomUserPtr, 
 													vecUpdateUnitInfo ) == false )
 			{
-				START_LOG( cerr, L"´øÀü°á°ú Ã³¸® ½ÇÆÐ.!" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 					<< END_LOG;
 				return;
 			}
 		}
 
-		//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+		//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 		if( CXSLDungeon::IsDefenceDungeon( m_iDungeonID ) == true )
 		{
@@ -1588,9 +1588,9 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 			kUnitInfoNot.m_iProtectedSmallCrystal= GetProtectedSmallCrystalCount();
 		}
 #endif SERV_INSERT_GLOBAL_SERVER
-		//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+		//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
-		//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+		//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM		
 		kUnitInfoNot.m_bComeBackUserInParty = m_spRoomUserManager->IsComeBackUserInRoom();
 #endif SERV_SERVER_BUFF_SYSTEM
@@ -1614,7 +1614,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 
 			if( spRoomUserCheck != NULL)
 			{
-				// »óÅÂ ÆÄ¾Ç
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¾ï¿½
 				for(int rc = 0; rc < m_iRoomUserCnt; rc++)
 				{
 					spRoomUserCheck = m_spRoomUserManager->GetUser(rc);
@@ -1626,7 +1626,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 					}
 
 #ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
-					// »óÅÂ ÆÄ¾Ç
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¾ï¿½
 					KRoomUserInfo kInfo;
 					spRoomUserCheck->GetRoomUserInfo( kInfo );
 
@@ -1636,7 +1636,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 					}
 #endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 
-					// »ó¼ö ÂüÁ¶ÇÏµµ·Ï ¼öÁ¤
+					// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					if( _CONST_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT_::cUnitType == 0 ||
 						_CONST_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT_::cUnitType == m_CheckType )
 					{
@@ -1654,14 +1654,14 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 #ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
 		kUnitInfoNot.m_vecRelation = vecRelation;
 #endif SERV_RELATIONSHIP_EVENT_SUBQUEST
-		kUnitInfoNot.m_bSpecChar1 = m_bSCHAR1; // ¿¤¼Òµå ÀÎÁö ÆÄ¾Ç
-		kUnitInfoNot.m_bSpecChar2 = m_bSCHAR2; // ½Ã½º³ªÀÌÆ® ÀÎÁö ÆÄ¾Ç
+		kUnitInfoNot.m_bSpecChar1 = m_bSCHAR1; // ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¾ï¿½
+		kUnitInfoNot.m_bSpecChar2 = m_bSCHAR2; // ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¾ï¿½
 #endif SERV_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT
 
 		BroadCast( ERM_END_GAME_DUNGEON_RESULT_DATA_NOT, kUnitInfoNot );
 
-		//°ÔÀÓ¼­¹ö·Î °¢ UNIT ÀÚ½ÅÀÇ °á°ú°ª ¾÷µ¥ÀÌÆ®
-		//{{ 2011. 12.13    ±è¹Î¼º	´øÀü Å¬¸®¾î ½Ã ¾ÆÀÌÅÛ Áö±Þ ÀÌº¥Æ® - ÇöÀÚÀÇ ÁÖ¹®¼­(Áßº¹ Áö±Þ ±ÝÁö)
+		//ï¿½ï¿½ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ UNIT ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+		//{{ 2011. 12.13    ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½(ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
 		BroadCastUpdateUnitInfoWithPartyCheck( vecKRoomUserPtr, ERM_UPDATE_DUNGEON_UNIT_INFO_NOT, vecUpdateUnitInfo, (m_iDungeonID + static_cast<int>(m_cDifficultyLevel)), kUnitInfoNot.m_mapHaveExpInDungeon );
 #else
@@ -1670,18 +1670,18 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 		//}}
 		m_spRoomUserManager->ResetDungeonUnitInfo();		
 
-		//{{ 2013. 04. 09	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+		//{{ 2013. 04. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
-		// ¾îµÒÀÇ ¹®ÀÌ ½ÃÀÛµÇ´Â Á¶°ÇÀ» ¸¸Á·ÇÏ´Â°¡?
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÛµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´Â°ï¿½?
 		if( m_kDefenceDungeonManager.IsEnterDefenceDungeon() == true  &&  CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == false )
 		{
-			// ±×·¸´Ù¸é ¾îµÒÀÇ ¹®À» ÁØºñÇÏÀÚ!
+			// ï¿½×·ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ï¿½ï¿½ï¿½ï¿½!
 			PrepareForEnterDefenceDungeon();
 		}
 #endif SERV_NEW_DEFENCE_DUNGEON
 		//}}
 
-		//{{ 2009. 7. 27  ÃÖÀ°»ç	Çì´Ï¸£ ½Ã°ø Å¬¸®¾î½Ã ÀüÃ¼°øÁö
+		//{{ 2009. 7. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½
 		if( m_eDungeonType == CXSLDungeon::DT_HENIR  &&  
 			m_cDungeonMode == CXSLDungeon::DM_HENIR_CHALLENGE  &&
 			SiKHenirResultTable()->IsClearNotifyStage( iPassedStageCount ) == true  &&
@@ -1691,7 +1691,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 #endif // SERV_HENIR_NO_NOTIFY
 			)
 		{
-			// ÀüÃ¼ °øÁö ³¯¸°´Ù!
+			// ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 			KEGS_NOTIFY_MSG_NOT kNotMsg;
 			kNotMsg.m_cNotifyType = KEGS_NOTIFY_MSG_NOT::NT_HENIR_CLEAR;
 			kNotMsg.m_Count = 1;
@@ -1700,7 +1700,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 			{
 				if( spRoomUser == NULL )
 				{
-					START_LOG( cerr, L"·ë À¯ÀúÀÇ Æ÷ÀÎÅÍ°¡ ÀÌ»óÇÔ." )
+					START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½." )
 						<< END_LOG;
 					continue;
 				}
@@ -1709,7 +1709,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 				kNotMsg.m_wstrMSG += spRoomUser->GetNickName();
 				kNotMsg.m_wstrMSG += L"]";
 
-				// Å¬¸®¾î ·Î±×
+				// Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 				KELOG_HENIR_DUNGEON_CLEAR_NOT kPacketLog;
 				kPacketLog.m_iUserUID = spRoomUser->GetUserUID();
 				kPacketLog.m_iUnitUID = spRoomUser->GetCID();
@@ -1717,12 +1717,12 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 				SendToLogDB( ELOG_HENIR_DUNGEON_CLEAR_NOT, kPacketLog );
 			}
 			
-			// ¼¾ÅÍ ¼­¹ö·Î ³¯¸²
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			KncSend( PI_CN_ROOM, GetUID(), PI_CN_SERVER, KBaseServer::GetKObj()->GetUID(), NULL, ECN_NOTIFY_MSG_NOT, kNotMsg );
 		}
 		//}}
 
-		// ´øÀü ÀÏÀÏ Åë°è µ¥ÀÌÅÍ ±â·Ï
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		for ( unsigned int iR = 0; iR < vecKRoomUserPtr.size(); ++iR )
 		{
 			const KERM_UPDATE_DUNGEON_UNIT_INFO_NOT& kUpdateUnitInfo = vecUpdateUnitInfo[iR];
@@ -1731,22 +1731,22 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 			KRoomUserPtr spRoomUser = vecKRoomUserPtr[iR];
 			if( spRoomUser == NULL )
 			{
-				START_LOG( cerr, L"·ë À¯ÀúÀÇ Æ÷ÀÎÅÍ°¡ ÀÌ»óÇÔ." )
+				START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½." )
 					<< END_LOG;
 				continue;
 			}
 
-			//{{ 2012. 11. 9	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+			//{{ 2012. 11. 9	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 			const int iClearValue = ( m_bIsWin ? KE_LOCAL_LOG_DUNGEON_NOT::DCT_SUCCESS : KE_LOCAL_LOG_DUNGEON_NOT::DCT_FAILED );
 			
-			// ´øÀü ·Î±×
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 			LogToDB_DungeonLog( spRoomUser, iClearValue, kUpdateUnitInfo, kDungeonUnitInfo );
 #else
-//			// ¿î¿µÀÚ´Â Åë°è¸¦ ³²±âÁö ¾Ê½À´Ï´Ù.
+//			// ï¿½î¿µï¿½Ú´ï¿½ ï¿½ï¿½è¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
 //			//if( spRoomUser->GetAuthLevel() >= SEnum::UAL_GM )
 //			//{
-//			//	START_LOG( cout, L"¿î¿µÀÚ´Â Åë°èµ¥ÀÌÅÍ¸¦ ³²±âÁö ¾Ê½À´Ï´Ù." )
+//			//	START_LOG( cout, L"ï¿½î¿µï¿½Ú´ï¿½ ï¿½ï¿½èµ¥ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." )
 //			//		<< BUILD_LOGc( spRoomUser->GetAuthLevel() )
 //			//		<< BUILD_LOG( spRoomUser->GetNickName() );
 //			//	continue;
@@ -1755,9 +1755,9 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 //			KRoomUserInfo kInfo;
 //			spRoomUser->GetRoomUserInfo( kInfo );
 //
-//			//{{ 2010. 06. 21  ÃÖÀ°»ç	Åë°è ½º·¹µå
+//			//{{ 2010. 06. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //			//#ifdef SERV_STATISTICS_THREAD
-//			//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+//			//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 //			//#ifdef SERV_DUNGEON_LOG_DB
 //			CTime kRegDate = CTime::GetCurrentTime();
 //			//#endif SERV_DUNGEON_LOG_DB
@@ -1788,17 +1788,17 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 //			kNot.m_iRessurectionStoneCount	= spRoomUser->GetUsedRessurectionStoneCount();
 //			kNot.m_iPassedStageCount		= spRoomUser->GetPassedStageCount();
 //			kNot.m_iPassedSubStageCount		= spRoomUser->GetPassedSubStageCount();
-//			//{{ 2010. 9. 14	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//			//{{ 2010. 9. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_PET_SYSTEM
 //			kNot.m_bIsWithPet				= spRoomUser->HavePet();
 //#endif SERV_PET_SYSTEM
 //			//}}
-//			//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+//			//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 //#ifdef SERV_DUNGEON_LOG_DB
 //			kNot.m_wstrRegDate				= (const wchar_t*)kRegDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 //#endif SERV_DUNGEON_LOG_DB
 //			//}}
-//			//{{ 2011. 03. 16	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+//			//{{ 2011. 03. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_ADD_DUNGEON_LOG_COLUMN
 //			kNot.m_sNpcDieCount				= spRoomUser->GetKillNPC_LUA();
 //			kNot.m_iGivenDamage				= spRoomUser->GetTotalGivenDamamge_LUA();
@@ -1809,12 +1809,12 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 //			kNot.m_cPetEvoStep				= spRoomUser->GetPetEvolutionStep();
 //#endif SERV_ADD_DUNGEON_LOG_COLUMN
 //			//}}
-//			//{{ 2012. 03. 05	±è¹Î¼º	´øÀü ´ë½Ã ·Î±×
+//			//{{ 2012. 03. 05	ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 //#ifdef SERV_DUNGEON_DASH_LOG
 //			kNot.m_iDashCount				= spRoomUser->GetDashCount();
 //#endif SERV_DUNGEON_DASH_LOG
 //			//}}
-//			//{{ 2012. 04. 17	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+//			//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 //			kNot.m_iBaseHP					= spRoomUser->GetBaseHP_LUA();
 //			kNot.m_iEndHP					= spRoomUser->GetLastUpdatedHP();
@@ -1827,19 +1827,19 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 //			kNot.m_wstrChannelIP			= spRoomUser->GetGameChannelIP();
 //#endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 //			//}}
-//			//{{ 2012. 07. 11 ±è¹Î¼º
+//			//{{ 2012. 07. 11 ï¿½ï¿½Î¼ï¿½
 //#ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_3
 //			kNot.m_iUserUID					= spRoomUser->GetUserUID();
 //#endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_3
 //			//}}
-//			//{{ 2012. 11. 6	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//			//{{ 2012. 11. 6	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //			kNot.m_cAutoPartyPlay			= ( IsStartedByAutoParty() ? 1 : 0 );
 //#endif SERV_BATTLE_FIELD_SYSTEM
 //			//}}
 //			KSIManager.QueueingEvent( E_LOCAL_LOG_DUNGEON_NOT, kNot );
 //			//////////////////////////////////////////////////////////////////////////
-//			//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+//			//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 //			//#ifdef SERV_DUNGEON_LOG_DB
 //			SendToLogDB( DBE_DB_LOG_DUNGEON_NOT, kNot );
 //			//#endif SERV_DUNGEON_LOG_DB
@@ -1849,19 +1849,19 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 #endif SERV_BATTLE_FIELD_SYSTEM
 			//}}			
 
-			//{{ 2011. 06. 13	ÃÖÀ°»ç	½ºÅ×ÀÌÁö ·Î±×
+			//{{ 2011. 06. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DUNGEON_STAGE_LOG			
 			{
 				KELOG_DUNGEON_STAGE_LOG_NOT kPacketToLog;
 				kPacketToLog.m_iDungeonID		  = GetDungeonID();
-				kPacketToLog.m_iStageID			  = m_iLoadingCompleteStageID; // ÀÌÀü ½ºÅ×ÀÌÁö
+				kPacketToLog.m_iStageID			  = m_iLoadingCompleteStageID; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				kPacketToLog.m_iUnitUID			  = spRoomUser->GetCID();
 				kPacketToLog.m_cLevel			  = spRoomUser->GetLevel();
 				kPacketToLog.m_cDifficulty		  = GetDifficultyLevel();
 				kPacketToLog.m_bIsChallenge 	  = ( m_cDungeonMode == CXSLDungeon::DM_HENIR_PRACTICE );
 				kPacketToLog.m_cUnitClass		  = spRoomUser->GetUnitClass_LUA();
-				kPacketToLog.m_iStagePlayTime	  = static_cast<int>(spRoomUser->GetStagePlayTime()); // ÇØ´ç ½ºÅ×ÀÌÁö¸¦ ÇÃ·¹ÀÌÇÑ ÇÃ·¹ÀÌ Å¸ÀÓ
-				kPacketToLog.m_iStageDamage		  = ( spRoomUser->GetTotalAttackedDamage_LUA() - spRoomUser->GetStageDamage() ); // ÇØ´ç ½ºÅ×ÀÌÁö µ¿¾È ¹ÞÀº ´ë¹ÌÁö
+				kPacketToLog.m_iStagePlayTime	  = static_cast<int>(spRoomUser->GetStagePlayTime()); // ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+				kPacketToLog.m_iStageDamage		  = ( spRoomUser->GetTotalAttackedDamage_LUA() - spRoomUser->GetStageDamage() ); // ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 				kPacketToLog.m_iResurrectionCount = spRoomUser->GetUsedRessurectionStoneCount();
 				kPacketToLog.m_wstrRegDate		  = KncUtil::GetCurrentTimeString();
 				SendToLogDB( ELOG_DUNGEON_STAGE_LOG_NOT, kPacketToLog );
@@ -1869,7 +1869,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 #endif SERV_DUNGEON_STAGE_LOG
 			//}}
 
-			//{{ 2007. 12. 18  ÃÖÀ°»ç  À¯Àú Åë°è [¼öÁ¤]
+			//{{ 2007. 12. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [ï¿½ï¿½ï¿½ï¿½]
 			{
 				KERM_DUNGEON_USER_STATISTICS_NOT kPacketNot;
 				kPacketNot.m_iDungeonID	   = m_iDungeonID + static_cast<int>(m_cDifficultyLevel);
@@ -1881,7 +1881,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 			}
 			//}}
 
-			//{{ 2010. 10. 05	ÃÖÀ°»ç	¼¾ÅÍ¼­¹ö ÇØÅ·Ã¼Å©
+			//{{ 2010. 10. 05	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©
 #ifdef SERV_CN_SERVER_HACKING_CHECK
 			if( SiKCnHackingCheckManager()->IsDungeonResultCheckEnable() == true )
 			{
@@ -1900,8 +1900,8 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 																		spRoomUser->HavePet()
 																		) == true )
 				{
-					// ÇØÅ· Ã¼Å©µÈ À¯Àú¿¡°Ô ÆÐÅ¶À» º¸³»ÀÚ!
-					//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+					// ï¿½ï¿½Å· Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+					//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 					KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 					kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_CLEAR_RESULT;
@@ -1913,7 +1913,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 	
 					SendToGSCharacter( spRoomUser->GetGSUID(), spRoomUser->GetCID(), ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 
-					START_LOG( clog, L"Dungeon Result ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+					START_LOG( clog, L"Dungeon Result ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOG( spRoomUser->GetGSUID() )
 						<< BUILD_LOG( spRoomUser->GetCID() )
 #ifndef SERV_PRIVACY_AGREEMENT
@@ -1936,7 +1936,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 			}
 #endif SERV_CN_SERVER_HACKING_CHECK
 			//}}
-			//{{ 2011. 01. 26	ÃÖÀ°»ç	´øÀü Å¬¸®¾î Å¸ÀÓ ÇÙÀ¯Àú Ã¼Å©
+			//{{ 2011. 01. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_DUNGEON_CLEAR_TIME_HACK_USER_CHECK
 			if( SiKCnHackingCheckManager()->IsDungeonClearTimeCheckEnable() == true )
 			{
@@ -1951,8 +1951,8 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 																				(int)spRoomUser->GetPlayTime()
 																				) == true )
 				{
-					// ÇØÅ· Ã¼Å©µÈ À¯Àú¿¡°Ô ÆÐÅ¶À» º¸³»ÀÚ!
-					//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+					// ï¿½ï¿½Å· Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+					//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 					KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 					kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_CLEAR_TIME;
@@ -1963,14 +1963,14 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 					//}}
 					SendToGSCharacter( spRoomUser->GetGSUID(), spRoomUser->GetCID(), ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 
-					// ÇØÅ· Ã¼Å©µÈ À¯Àú¸¦ DB¿¡ ·Î±×·Î ³²±âÀÚ!
+					// ï¿½ï¿½Å· Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½Î±×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 					CTime kCurTime = CTime::GetCurrentTime();
 					KDBE_REG_DUNGEON_CLEAR_TIME_HACK_USER_NOT kNotReg;
 					kNotReg.m_iUserUID = spRoomUser->GetUserUID();
 					kNotReg.m_wstrRegDate = (std::wstring)kCurTime.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 					SendToLogDB( DBE_REG_DUNGEON_CLEAR_TIME_HACK_USER_NOT, kNotReg );
 
-					START_LOG( clog, L"Dungeon Clear Time ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+					START_LOG( clog, L"Dungeon Clear Time ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOG( spRoomUser->GetGSUID() )
 						<< BUILD_LOG( spRoomUser->GetUserUID() )
 						<< BUILD_LOG( spRoomUser->GetCID() )
@@ -1990,7 +1990,7 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 			//}}
 		}
 
-		//{{ 2010. 06. 21  ÃÖÀ°»ç	Åë°è ½º·¹µå
+		//{{ 2010. 06. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_STATISTICS_THREAD
 		CTime kEndGameTime = CTime::GetCurrentTime();
 		//////////////////////////////////////////////////////////////////////////
@@ -2011,28 +2011,28 @@ void KDungeonRoom::CheckDungeonUnitInfoSuccess()
 	}
 }
 
-//{{ 2009. 7. 27  ÃÖÀ°»ç	Çì´Ï¸£ ½Ã°ø
+//{{ 2009. 7. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½
 void KDungeonRoom::CheckEnterSecretStageSuccess()
 {
 	if( GetStateID() != KRoomFSM::S_PLAY )
 		return;
 
-	// ¸ðµç À¯Àú°¡ ÀÇ»ç Ç¥½Ã¸¦ ÇÏ¿´´Â°¡?
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç»ï¿½ Ç¥ï¿½Ã¸ï¿½ ï¿½Ï¿ï¿½ï¿½Â°ï¿½?
 	if( m_spRoomUserManager->IsAllPlayerAgreed() == true )
 	{
-		// ±×·¸´Ù¸é ¹Ù·Î ÀÌµ¿Ã³¸®!
+		// ï¿½×·ï¿½ï¿½Ù¸ï¿½ ï¿½Ù·ï¿½ ï¿½Ìµï¿½Ã³ï¿½ï¿½!
 		KEGS_DUNGEON_SECRET_STAGE_ENTER_RESULT_NOT kNot;
-		kNot.m_bProceedToEnterSecretStage = m_spRoomUserManager->IsEnterSecretStage(); // ºñ¹Ð ½ºÅ×ÀÌÁö ÀÔÀå ¿©ºÎ
+		kNot.m_bProceedToEnterSecretStage = m_spRoomUserManager->IsEnterSecretStage(); // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		BroadCast( ERM_DUNGEON_SECRET_STAGE_ENTER_RESULT_NOT, kNot );
 
-		// À¯Àú ÀÇ°ß Á¤º¸ ÃÊ±âÈ­
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 		m_spRoomUserManager->ResetAgreeEnterSecretStage();
 
-		// À¯Àú ÀÇ°ß Å¸ÀÌ¸Ó »èÁ¦
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ Å¸ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 		//m_kEnterSecretStageTimer.KillTimer();
 
-		// ºñ¹Ð ½ºÅ×ÀÌÁö ÀÔÀå ¼º°øÀÌ¶ó¸é ÇÃ·¹ÀÌ ½Ã°£À» 5ºÐ ´õ ´Ã·ÁÁÖÀÚ!
-		//## des second(hoons) : ºñ¹Ð ½ºÅ×ÀÌÁö ¶ó°í Ãß°¡·Î ½Ã°£À» ÁÖ´Â ±â´É ¾ø¾îÁü.
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ 5ï¿½ï¿½ ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½!
+		//## des second(hoons) : ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		//if( kNot.m_bProceedToEnterSecretStage == true )
 		//{
 		//	SetRemainingPlayTime( m_fRemainingPlayTime + 300.f );
@@ -2042,12 +2042,12 @@ void KDungeonRoom::CheckEnterSecretStageSuccess()
 }
 //}}
 
-//{{ 2010. 8. 16	ÃÖÀ°»ç	¼­¹ö ÄÚµå Á¤¸®
+//{{ 2010. 8. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 bool KDungeonRoom::DungeonSubStageStartProcess( IN int iSubStageID )
 {
 	bool bSuccess = true;
 
-	// Loading º¯¼ö ¸®¼Â.
+	// Loading ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	m_spRoomUserManager->ResetStageLoaded();
 
 	KEGS_DUNGEON_SUB_STAGE_START_NOT kNot;
@@ -2055,12 +2055,12 @@ bool KDungeonRoom::DungeonSubStageStartProcess( IN int iSubStageID )
 	BroadCast( ERM_DUNGEON_SUB_STAGE_START_NOT, kNot );
 
 //////////////////////////////////////////////////////////////////////////
-	//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+	//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 #ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 	const int iDungeonMinLevel = SiCXSLDungeonManager()->GetDungeonMinLevel( GetDungeonIDAndDif() );
 	if( m_spRoomUserManager->GetNumMember() == 1 && GetHighestUserLevelAtDungeonStart() - iDungeonMinLevel < 10  )
 	{
-		// ÇöÀç ¼­ºê ½ºÅ×ÀÌÁöÀÇ ¾×Æ¼ºê ¸ó½ºÅÍ ¼ö ÃÊ±âÈ­
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­
 		m_iSubStageActiveNpc = 0;
 		std::map< int, int >::const_iterator mit;
 		mit = m_mapSubStageExpNpcNum.find( iSubStageID );
@@ -2068,10 +2068,10 @@ bool KDungeonRoom::DungeonSubStageStartProcess( IN int iSubStageID )
 		if( mit != m_mapSubStageExpNpcNum.end() )
 			m_iSubStageActiveNpc = mit->second;
 		
-		// ¼­ºê ½ºÅ×ÀÌÁö¿¡¼­ ÀâÀº ¸ó½ºÅÍ ¼ö¸¦ ÃÊ±âÈ­
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 		m_iSubStageKillActiveNpc = 0;
 
-		// ¼­ºê ½ºÅ×ÀÌÁö¿¡¼­ Ã³À½ ¸ó½ºÅÍ ÀâÀº ½Ã°£À» ÃÊ±âÈ­	
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­	
 		m_tSubStageFirstKillTime = CTime( 0 );
 	}
 	else
@@ -2085,14 +2085,14 @@ bool KDungeonRoom::DungeonSubStageStartProcess( IN int iSubStageID )
 //////////////////////////////////////////////////////////////////////////
 
 
-	//¿©±â±îÁö ·Îµù½Ã°£À» Ã¼Å©ÇÔ.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ã°ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½.
 	const double fLoadingTimerEnd = m_LoadingTimer.End();
 	m_fLoadingTime += fLoadingTimerEnd;	
 
-	// È¤½Ã³ª ·Îµù Å¸ÀÓÀÌ ÇÃ·¹ÀÌ Å¸ÀÓº¸´Ù ´õ Å©°Ô ³ª¿À´ÂÁö °Ë»çÇØº»´Ù!
+	// È¤ï¿½Ã³ï¿½ ï¿½Îµï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ Å¸ï¿½Óºï¿½ï¿½ï¿½ ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Øºï¿½ï¿½ï¿½!
 	if( m_kTimer[TM_PLAY].elapsed() < GetLoadingTime() )
 	{
-		START_LOG( cout, L"·Îµù Å¸ÀÓÀÌ ´øÀü ÇÃ·¹ÀÌ Å¸ÀÓº¸´Ù ´õ Å©°Ô ³ª¿À´Â ÀÌ»óÇÑ Çö»óÀÌ ¹ß»ýÇß´Ù!" )
+		START_LOG( cout, L"ï¿½Îµï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ Å¸ï¿½Óºï¿½ï¿½ï¿½ ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½ß´ï¿½!" )
 			<< BUILD_LOG( GetStateIDString() )
 			<< BUILD_LOG( m_kTimer[TM_PLAY].elapsed() )
 			<< BUILD_LOG( GetLoadingTime() )
@@ -2107,7 +2107,7 @@ bool KDungeonRoom::DungeonSubStageStartProcess( IN int iSubStageID )
 		bSuccess = false;
 	}	
 
-	//{{ 2012. 02. 28	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 	//if( IsFirstSubStage() == false )
 	//{
@@ -2118,7 +2118,7 @@ bool KDungeonRoom::DungeonSubStageStartProcess( IN int iSubStageID )
 //		m_spRoomUserManager->GetNumMember() > 1  &&  
 //		IsFirstSubStage() == false )
 //	{
-//		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( 0 ); // 0¹ø ÀÎµ¦½ºÀÇ À¯Àú
+//		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( 0 ); // 0ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //		if( spRoomUser != NULL )
 //		{
 //			KERM_INCREASE_PARTY_FEVER_NOT kNot;
@@ -2127,7 +2127,7 @@ bool KDungeonRoom::DungeonSubStageStartProcess( IN int iSubStageID )
 //		}
 //		else
 //		{
-//			START_LOG( cerr, L"À¯Àú°¡ ÇÑ¸íµµ ¾ø´Â¹æÀÎ°¨?" )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¹ï¿½ï¿½Î°ï¿½?" )
 //				<< BUILD_LOG( GetStateIDString() )
 //				<< END_LOG;
 //
@@ -2153,7 +2153,7 @@ bool KDungeonRoom::DungeonSubStageStartProcess( IN int iSubStageID )
 }
 //}}
 
-//{{ 2010. 03. 24  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+//{{ 2010. 03. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
 
 void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOAD_NOT& kNot )
@@ -2162,13 +2162,13 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 	bool bIsBossStage = false;
 	bool bDropAttribNpc = false;
 
-	// 1. ¼Ó¼ºNPC µå·ÓÄ«¿îÆ®°¡ 0ÀÌ¸é ÃâÇö½ÃÅ°Áö ¾Ê´Â´Ù.
+	// 1. ï¿½Ó¼ï¿½NPC ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ 0ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 	if( m_iAttribNpcStageCnt <= 0 )
 		return;
 
-	// 2. ÃÊº¸ÀÚ½£, Æ©Åä¸®¾ó, ÈÆ·Ã¼Ò¿¡¼­´Â ¿¤¸®Æ® ¸ó½ºÅÍ ¾È³ª¿È
+	// 2. ï¿½Êºï¿½ï¿½Ú½ï¿½, Æ©ï¿½ä¸®ï¿½ï¿½, ï¿½Æ·Ã¼Ò¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½
 	if( m_iDungeonID == CXSLDungeon::DI_EL_FOREST_GATE_NORMAL  ||
-		//{{ 2011. 09. 28  ÀÓ±Ô¼ö		ÇÒ·ÎÀ© ´øÀü
+		//{{ 2011. 09. 28  ï¿½Ó±Ô¼ï¿½		ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_STAGE_RANDOM_NPC_POS
 		m_iDungeonID == CXSLDungeon::DI_ELDER_HALLOWEEN_NORMAL ||
 #endif SERV_DUNGEON_STAGE_RANDOM_NPC_POS
@@ -2179,34 +2179,34 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 		return;
 	}
 
-	// 3. ÇØ´ç ½ºÅ×ÀÌÁö¿¡¼­ ÃâÇöÇÒÁö¸¦ °áÁ¤
+	// 3. ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bDropAttribNpc = ( (rand() % 2) == 0 );
 	if( bDropAttribNpc == false )
 	{
 		return;
 	}
 
-	// 4. ¾î´À ¼­ºê ½ºÅ×ÀÌÁö¿¡ ¿¤¸®Æ® ¸ó½ºÅÍ°¡ µîÀåÇÒÁö °áÁ¤
+	// 4. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( kNot.m_mapNPCData.size() > 0 )
 	{
 		iRandomSubStage = rand() % static_cast<int>(kNot.m_mapNPCData.size());
 	}
 
-	//{{ 2011. 03. 21  ±è¹Î¼º	´øÀü ³­ÀÌµµ º¸Á¤
+	//{{ 2011. 03. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_DIFFICULTY_REVISION
 	const int iPlayerCount = m_spRoomUserManager->GetNumPlaying();
-	int tempAttribNpcCnt = 0;				// m_iAttribNpcCnt ´Â °ÔÀÓ ½ÃÀÛ½Ã¿¡¸¸ Àû¿ë µÇ°Ô ÇÑ´Ù.
+	int tempAttribNpcCnt = 0;				// m_iAttribNpcCnt ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½Ã¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½Ñ´ï¿½.
 	switch( m_eDungeonType )
 	{
 	case CXSLDungeon::DT_NORMAL:
 		{
-			// ¿¤ÀÇ ³ª¹«¿¡¼­´Â ¼Ó¼º ¸ó½ºÅÍ ¾È³ª¿Â´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ï¿½Â´ï¿½.
 			if( CXSLDungeon::DI_RUBEN_EL_TREE_NORMAL != GetDungeonID() )
 			{
 				SiKAttribNpcTable()->GetAttribNpcDropCount( static_cast<char>(m_eDungeonType), m_cDifficultyLevel, iPlayerCount, tempAttribNpcCnt, m_iAttribNpcDropCnt );
 			}
 		}break;
-	case CXSLDungeon::DT_HENIR: // Çì´Ï¸£ ½Ã°ø¿¡¼­´Â ¼Ó¼º¸ó½ºÅÍ ¾È³ª¿È.
+	case CXSLDungeon::DT_HENIR: // ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½.
 		break;
 	case CXSLDungeon::DT_SECRET:
 		{
@@ -2214,7 +2214,7 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 		}break;
 	default:
 		{
-			START_LOG( cerr, L"Àß¸øµÈ ´øÀü Å¸ÀÔÀÔ´Ï´Ù." )
+			START_LOG( cerr, L"ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 				<< BUILD_LOG( m_eDungeonType )
 				<< END_LOG;
 		}
@@ -2223,11 +2223,11 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 #endif SERV_DUNGEON_DIFFICULTY_REVISION
 	//}}
 
-	// ¼Ó¼º ¸ó½ºÅÍ ¼³Á¤ÇÏ±â
+	// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
 	std::map< int, KNPCList >::const_iterator mit;
 	for( mit = kNot.m_mapNPCData.begin(); mit != kNot.m_mapNPCData.end(); ++mit )
 	{
-		// ¼Ó¼º ¸ó½ºÅÍ¸¦ °áÁ¤ÇÒ KNpcListÀÇ Index¸®½ºÆ®
+		// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ KNpcListï¿½ï¿½ Indexï¿½ï¿½ï¿½ï¿½Æ®
 		std::set< int > setAttribNpc;
 		
 		const KNPCList& kNPCList = mit->second;
@@ -2239,7 +2239,7 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 			const CXSLUnitManager::NPCUnitTemplet* pNpcTemplet = SiCXSLUnitManager()->GetNPCUnitTemplet( static_cast<CXSLUnitManager::NPC_UNIT_ID>(kNPCList.m_NPCList[ui].m_NPCID) );
 			if( pNpcTemplet == NULL )
 			{
-				START_LOG( cerr, L"npc templetÀ» Ã£À»¼ö ¾ø½À´Ï´Ù." )
+				START_LOG( cerr, L"npc templetï¿½ï¿½ Ã£ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 					<< BUILD_LOG( GetDungeonID() )
 					<< BUILD_LOGc( GetDifficultyLevel() )
 					<< BUILD_LOG( kNPCList.m_NPCList[ui].m_NPCID )
@@ -2251,7 +2251,7 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 			if( pNpcTemplet->m_ClassType != CXSLUnitManager::NCT_BASIC )
 				continue;
 
-			// ¼Ó¼ºNPC¸¦ ¼±ÅÃÇÏ±âÀ§ÇÑ Pool
+			// ï¿½Ó¼ï¿½NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ Pool
 			if( SiKAttribNpcTable()->IsNoDropNpc( kNPCList.m_NPCList[ui].m_NPCID ) )
 				continue;
 
@@ -2259,38 +2259,38 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 		}
 
 		//////////////////////////////////////////////////////////////////////////
-		// ¼Ó¼º NPC µå·Ó - npcUID ¹ß±ÞÈÄ¿¡ Ã³¸®ÇÒ°Í!
+		// ï¿½Ó¼ï¿½ NPC ï¿½ï¿½ï¿½ - npcUID ï¿½ß±ï¿½ï¿½Ä¿ï¿½ Ã³ï¿½ï¿½ï¿½Ò°ï¿½!
 
-		// 1. ÇÑ ½ºÅ×ÀÌÁö¿¡ ÇÑ¹ø¸¸..
+		// 1. ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½..
 		if( !bDropAttribNpc )
 			continue;
 
-		// 2. º¸½º ½ºÅ×ÀÌÁö¿¡¼­´Â ¼Ó¼º npc µîÀå ¾ÈÇÏµµ·Ï
+		// 2. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ npc ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½
 		if( bIsBossStage )
 			continue;
 
-		// 3. ¼Ó¼ºNPC µå·ÓÄ«¿îÆ®
+		// 3. ï¿½Ó¼ï¿½NPC ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®
 		if( m_iAttribNpcStageCnt <= 0 )
 			continue;
 
-		// 4. ÇØ´ç SubStage¿¡¼­ µå·Ó¿©ºÎ °áÁ¤
+		// 4. ï¿½Ø´ï¿½ SubStageï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ó¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( iRandomSubStage != mit->first )
 			continue;
 
-		// 5. ·£´ý ´ë»óÀÌ µÉ npc°¡ ÀÖ³ª °Ë»ç
+		// 5. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ npcï¿½ï¿½ ï¿½Ö³ï¿½ ï¿½Ë»ï¿½
 		if( setAttribNpc.empty() )
 			continue;
 
-		// 6. ¼Ó¼ºNPC °áÁ¤ m_iAttribNpcDropCnt : ¼Ó¼º NPC count
+		// 6. ï¿½Ó¼ï¿½NPC ï¿½ï¿½ï¿½ï¿½ m_iAttribNpcDropCnt : ï¿½Ó¼ï¿½ NPC count
 		for( int iDropCnt = 0; iDropCnt < m_iAttribNpcDropCnt; ++iDropCnt )
 		{
 			if( setAttribNpc.size() <= 0 )
 				break;
 
-			// 6-1. SubStageÀÇ Npc¸®½ºÆ®¿¡¼­ ·£´ý Ä«¿îÆ® ¾ò±â
+			// 6-1. SubStageï¿½ï¿½ Npcï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½
 			int iNpcIdx = rand() % static_cast<int>(setAttribNpc.size());
 
-			// 6-2. ÇØ´ç Npc Index¾ò±â
+			// 6-2. ï¿½Ø´ï¿½ Npc Indexï¿½ï¿½ï¿½
 			int iCnt = 0;
 			std::set< int >::const_iterator sit;
 			for( sit = setAttribNpc.begin(); sit != setAttribNpc.end(); ++sit )
@@ -2305,11 +2305,11 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 			}
 			setAttribNpc.erase( iNpcIdx );
 
-			// 6-3. ¿¹¿ÜÃ³¸®
+			// 6-3. ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 			if( iNpcIdx < 0  ||  iNpcIdx >= static_cast<int>(kNPCList.m_NPCList.size()) )
 				continue;
 
-			// 6-4. Attrib Npc Á¤º¸ ¾ò±â
+			// 6-4. Attrib Npc ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 			const KNPCUnitReq& kNpcInfo = kNPCList.m_NPCList[iNpcIdx];
 
 			KAttribEnchantNpcInfo kAttribNpcInfo;
@@ -2318,7 +2318,7 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 			{
 				if( SiKAttribNpcTable()->GetAttribNpcInfo( m_eDungeonType, m_cDifficultyLevel, kNpcInfo.m_Level, kNpcInfo.m_NPCID, kAttribNpcInfo ) == false )
 				{
-					START_LOG( cerr, L"¼Ó¼º NPCÁ¤º¸ ¾ò±â ½ÇÆÐ!" )
+					START_LOG( cerr, L"ï¿½Ó¼ï¿½ NPCï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOG( GetDungeonID() )
 						<< BUILD_LOG( m_eDungeonType )
 						<< BUILD_LOGc( m_cDifficultyLevel )
@@ -2332,7 +2332,7 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 			{
 				if( SiKAttribNpcTable()->GetAttribNpcInfo( m_eDungeonType, m_cDungeonMode, kNpcInfo.m_Level, kNpcInfo.m_NPCID, kAttribNpcInfo ) == false )
 				{
-					START_LOG( cerr, L"¼Ó¼º NPCÁ¤º¸ ¾ò±â ½ÇÆÐ!" )
+					START_LOG( cerr, L"ï¿½Ó¼ï¿½ NPCï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOG( GetDungeonID() )
 						<< BUILD_LOG( m_eDungeonType )
 						<< BUILD_LOGc( m_cDungeonMode )
@@ -2345,14 +2345,14 @@ void KDungeonRoom::NormalDungeonAttribMonsterDrop( IN OUT KEGS_DUNGEON_STAGE_LOA
 
 			kNot.m_mapAttribNpcInfo.insert( std::make_pair( kNpcInfo.m_UID, kAttribNpcInfo ) );
 
-			// 6-5. ÇØ´ç ¼Ó¼º ¸ó½ºÅÍÀÇ º¸»óÀ» À§ÇØ Á¤º¸ º¸°ü
+			// 6-5. ï¿½Ø´ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			m_mapAttribNpcData.insert( std::make_pair( kNpcInfo.m_UID, static_cast<int>(kNpcInfo.m_Level) ) );
 		}
 
-		// 7. ÇØ´ç SubStage¿¡ ¼Ó¼ºNPC µîÀå ½ÃÄ×À¸¹Ç·Î Ä«¿îÆ® 1»èÁ¦
+		// 7. ï¿½Ø´ï¿½ SubStageï¿½ï¿½ ï¿½Ó¼ï¿½NPC ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ Ä«ï¿½ï¿½Æ® 1ï¿½ï¿½ï¿½ï¿½
 		--m_iAttribNpcStageCnt;
 
-		// 8. ¿¤¸®Æ® ¸ó½ºÅÍ ÃâÇö½ÃÄÑ ÁáÀ¸´Ï ³ª¸ÓÁö ¼­ºê½ºÅ×ÀÌÁö´Â ÃâÇö ½ÃÅ°Áö ¸»ÀÚ~!
+		// 8. ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ê½ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½~!
 		bDropAttribNpc = false;
 
 		//////////////////////////////////////////////////////////////////////////
@@ -2363,11 +2363,11 @@ void KDungeonRoom::SecretDungeonExtraStageAttribMonsterDrop( IN OUT KEGS_DUNGEON
 {
 	bool bIsBossStage = false;
 
-	// ¼Ó¼º ¸ó½ºÅÍ ¼³Á¤ÇÏ±â
+	// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
 	std::map< int, KNPCList >::const_iterator mit;
 	for( mit = kNot.m_mapNPCData.begin(); mit != kNot.m_mapNPCData.end(); ++mit )
 	{
-		// ¼Ó¼º ¸ó½ºÅÍ¸¦ °áÁ¤ÇÒ KNpcListÀÇ Index¸®½ºÆ®
+		// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ KNpcListï¿½ï¿½ Indexï¿½ï¿½ï¿½ï¿½Æ®
 		std::set< int > setAttribNpc;
 
 		const KNPCList& kNPCList = mit->second;
@@ -2379,7 +2379,7 @@ void KDungeonRoom::SecretDungeonExtraStageAttribMonsterDrop( IN OUT KEGS_DUNGEON
 			const CXSLUnitManager::NPCUnitTemplet* pNpcTemplet = SiCXSLUnitManager()->GetNPCUnitTemplet( static_cast<CXSLUnitManager::NPC_UNIT_ID>(kNPCList.m_NPCList[ui].m_NPCID) );
 			if( pNpcTemplet == NULL )
 			{
-				START_LOG( cerr, L"npc templetÀ» Ã£À»¼ö ¾ø½À´Ï´Ù." )
+				START_LOG( cerr, L"npc templetï¿½ï¿½ Ã£ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 					<< BUILD_LOG( GetDungeonID() )
 					<< BUILD_LOGc( GetDifficultyLevel() )
 					<< BUILD_LOG( kNPCList.m_NPCList[ui].m_NPCID )
@@ -2390,33 +2390,37 @@ void KDungeonRoom::SecretDungeonExtraStageAttribMonsterDrop( IN OUT KEGS_DUNGEON
 			if( pNpcTemplet->m_ClassType != CXSLUnitManager::NCT_BASIC )
 				continue;
 
-			// ¼Ó¼ºNPC¸¦ ¼±ÅÃÇÏ±âÀ§ÇÑ Pool
+			// ï¿½Ó¼ï¿½NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ Pool
 			if( SiKAttribNpcTable()->IsNoDropNpc( kNPCList.m_NPCList[ui].m_NPCID ) )
 				continue;
 
 			setAttribNpc.insert( ui );
 		}
 
-		// 1. º¸½º ½ºÅ×ÀÌÁö¿¡¼­´Â ¼Ó¼º npc µîÀå ¾ÈÇÏµµ·Ï Á¤¸»?
+		// 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ npc ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?
 		if( bIsBossStage )
 			continue;
 
-		// 2. ·£´ý ´ë»óÀÌ µÉ npc°¡ ÀÖ³ª °Ë»ç
+		// 2. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ npcï¿½ï¿½ ï¿½Ö³ï¿½ ï¿½Ë»ï¿½
 		if( setAttribNpc.empty() )
 			continue;
 
-		// 3. ¼Ó¼ºNPC °áÁ¤
-		const iAttribNpcDropCnt = setAttribNpc.size() / 2; // ÇØ´ç ¼­ºê ½ºÅ×ÀÌÁöÀÇ npc¼ö¿¡¼­ 2ºÐÀÇ 1À» ¼Ó¼º¸ó½ºÅÍ·Î ¼³Á¤!
+		// 3. ï¿½Ó¼ï¿½NPC ï¿½ï¿½ï¿½ï¿½
+		//{{ Iruha : 2026-08-27 // VS2010 port: missing type specifier defaulted to int under
+		// VC7.1's lenient implicit-int rule; VC10 makes that a hard error (C4430). int matches
+		// how the value is compared against below (int iDropCnt).
+		const int iAttribNpcDropCnt = setAttribNpc.size() / 2; // ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ npcï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½Í·ï¿½ ï¿½ï¿½ï¿½ï¿½!
+		//}}
 
 		for( int iDropCnt = 0; iDropCnt < iAttribNpcDropCnt; ++iDropCnt )
 		{
 			if( setAttribNpc.size() <= 0 )
 				break;
 
-			// 4-1. SubStageÀÇ Npc¸®½ºÆ®¿¡¼­ ·£´ý Ä«¿îÆ® ¾ò±â
+			// 4-1. SubStageï¿½ï¿½ Npcï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½
 			int iNpcIdx = rand() % static_cast<int>(setAttribNpc.size());
 
-			// 4-2. ÇØ´ç Npc Index¾ò±â
+			// 4-2. ï¿½Ø´ï¿½ Npc Indexï¿½ï¿½ï¿½
 			int iCnt = 0;
 			std::set< int >::const_iterator sit;
 			for( sit = setAttribNpc.begin(); sit != setAttribNpc.end(); ++sit )
@@ -2431,17 +2435,17 @@ void KDungeonRoom::SecretDungeonExtraStageAttribMonsterDrop( IN OUT KEGS_DUNGEON
 			}
 			setAttribNpc.erase( iNpcIdx );
 
-			// 4-3. ¿¹¿ÜÃ³¸®
+			// 4-3. ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 			if( iNpcIdx < 0  ||  iNpcIdx >= static_cast<int>(kNPCList.m_NPCList.size()) )
 				continue;
 
-			// 4-4. Attrib Npc Á¤º¸ ¾ò±â
+			// 4-4. Attrib Npc ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 			const KNPCUnitReq& kNpcInfo = kNPCList.m_NPCList[iNpcIdx];
 
 			KAttribEnchantNpcInfo kAttribNpcInfo;
 			if( SiKAttribNpcTable()->GetAttribNpcInfoExtraStage( kNpcInfo.m_NPCID, kAttribNpcInfo ) == false )
 			{
-				START_LOG( cerr, L"¼Ó¼º NPCÁ¤º¸ ¾ò±â ½ÇÆÐ!" )
+				START_LOG( cerr, L"ï¿½Ó¼ï¿½ NPCï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( kNpcInfo.m_NPCID )
 					<< END_LOG;
 				continue;
@@ -2449,7 +2453,7 @@ void KDungeonRoom::SecretDungeonExtraStageAttribMonsterDrop( IN OUT KEGS_DUNGEON
 
 			kNot.m_mapAttribNpcInfo.insert( std::make_pair( kNpcInfo.m_UID, kAttribNpcInfo ) );
 
-			// 4-5. ÇØ´ç ¼Ó¼º ¸ó½ºÅÍÀÇ º¸»óÀ» À§ÇØ Á¤º¸ º¸°ü
+			// 4-5. ï¿½Ø´ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			m_mapAttribNpcData.insert( std::make_pair( kNpcInfo.m_UID, static_cast<int>(kNpcInfo.m_Level) ) );
 		}
 	}
@@ -2483,36 +2487,36 @@ bool KDungeonRoom::IsDropDieState( char cState )
 		return false;
 	}
 
-	START_LOG( cerr, L"npcÀ¯´ÖÀÌ Á×Àº »óÅÂ°¡ ÀÌ»óÇÕ´Ï´Ù." )
+	START_LOG( cerr, L"npcï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 		<< BUILD_LOGc( cState )
 		<< END_LOG;
 
 	return false;
 }
 
-//{{ 2009. 12. 14  ÃÖÀ°»ç	Çì´Ï¸£ÀÓ½ÃÀÎº¥
+//{{ 2009. 12. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ï¿½Ó½ï¿½ï¿½Îºï¿½
 void KDungeonRoom::CheckTempInventoryClear()
 {
-	// Çì´Ï¸£ ½Ã°øÀÌ¶ó¸é..
+	// ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½Ì¶ï¿½ï¿½..
 	if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 	{
-		// »óÀÚ½ºÅ×ÀÌÁö¿¡¼­ ´ÙÀ½ ½ºÅ×ÀÌÁö·Î ³Ñ¾î°¥¶§ ÀÓ½Ã ÀÎº¥ »èÁ¦
+		// ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾î°¥ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( SiKHenirResultTable()->IsClearTempInventoryStage( m_iStageID ) == true )
 		{
-			// ÀÓ½Ã ÀÎº¥ ºñ¿ì±â!
+			// ï¿½Ó½ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½!
 			BroadCastID( ERM_CLEAR_TEMP_INVENTORY_NOT );
 		}
 	}
-	// ÀÏ¹Ý ´øÀüÀÌ¶ó¸é..
+	// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½..
 	else
 	{
-		// ÀÓ½Ã ÀÎº¥ ºñ¿ì±â!
+		// ï¿½Ó½ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½!
 		BroadCastID( ERM_CLEAR_TEMP_INVENTORY_NOT );
 	}
 }
 //}}
 
-//{{ 2010. 01. 05  ÃÖÀ°»ç	³»±¸µµ°³Æí
+//{{ 2010. 01. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 short KDungeonRoom::GetSubStageExpNpcNum( IN int iSubStageID ) const
 {
 	std::map< int, int >::const_iterator mit;
@@ -2523,21 +2527,21 @@ short KDungeonRoom::GetSubStageExpNpcNum( IN int iSubStageID ) const
 	return mit->second;
 }
 //}}
-//{{ 2012. 07. 04	ÃÖÀ°»ç		Çì´Ï¸£ ½Ã°ø ÀÚµ¿ ºÎÈ° ½ÃÁ¡ º¯°æ
+//{{ 2012. 07. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½Úµï¿½ ï¿½ï¿½È° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_AUTO_RESURRECTION_BUG_FIX
 void KDungeonRoom::HenirAutoResurrection( IN const UidType iUnitUID )
 {
 	KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( iUnitUID );
 	if( IS_NULL( spRoomUser ) )
 	{
-		START_LOG( cerr, L"À¯Àú°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½" )
 			<< BUILD_LOG( iUnitUID )
 			<< END_LOG;
 		return;
 	}
 
-	// Æ¯Á¤ ½ºÅ×ÀÌÁö ¸¶´Ù ºÎÈ°!
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°!
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 	if( SiKHenirResultTable()->IsResurrectionStage( GetStageID() ) == true )
 #else
@@ -2545,10 +2549,10 @@ void KDungeonRoom::HenirAutoResurrection( IN const UidType iUnitUID )
 #endif SERV_NEW_HENIR_TEST
 		//}}
 	{
-		// Á×Àº À¯ÀúÀÎÁö È®ÀÎ!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½!
 		if( spRoomUser->IsDie() == true )
 		{
-			// µÇ»ì¸®ÀÚ!
+			// ï¿½Ç»ì¸®ï¿½ï¿½!
 			spRoomUser->SetDie( false );
 
 			KEGS_RESURRECT_TO_CONTINUE_DUNGEON_NOT kPacketNot;
@@ -2557,7 +2561,7 @@ void KDungeonRoom::HenirAutoResurrection( IN const UidType iUnitUID )
 			kPacketNot.m_iStartPosIndex = SiCXSLDungeonManager()->GetStartPosByRandom( (m_iDungeonID + static_cast<int>(m_cDifficultyLevel)), m_iStageID, m_iSubStageID );
 			BroadCast( EGS_RESURRECT_TO_CONTINUE_DUNGEON_NOT, kPacketNot );
 
-			//{{ 2008. 6. 17  ÃÖÀ°»ç  ½Ç½Ã°£ ºÎÈ°¼®
+			//{{ 2008. 6. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 			m_spRoomUserManager->SetEndPlay( spRoomUser->GetCID(), false );
 			//}}
 		}
@@ -2566,7 +2570,7 @@ void KDungeonRoom::HenirAutoResurrection( IN const UidType iUnitUID )
 #endif SERV_AUTO_RESURRECTION_BUG_FIX
 //}}
 
-//{{ 2012. 02. 28	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 02. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KDungeonRoom::IncreasePartyFever()
 {
@@ -2575,7 +2579,7 @@ void KDungeonRoom::IncreasePartyFever()
 
 	if( m_spRoomUserManager->GetNumMember() > 1 )
 	{
-		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetHostUser(); // ÆÄÆ¼Àå
+		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetHostUser(); // ï¿½ï¿½Æ¼ï¿½ï¿½
 		if( spRoomUser != NULL )
 		{
 			KERM_INCREASE_PARTY_FEVER_NOT kNot;
@@ -2586,7 +2590,7 @@ void KDungeonRoom::IncreasePartyFever()
 		}
 		else
 		{
-			START_LOG( cerr, L"À¯Àú°¡ ÇÑ¸íµµ ¾ø´Â¹æÀÎ°¨?" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¹ï¿½ï¿½Î°ï¿½?" )
 				<< BUILD_LOG( GetStateIDString() )
 				<< END_LOG;
 		}
@@ -2600,7 +2604,7 @@ void KDungeonRoom::MaxPartyFever()
 
 	if( m_spRoomUserManager->GetNumMember() > 1 )
 	{
-		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetHostUser(); // ÆÄÆ¼Àå
+		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetHostUser(); // ï¿½ï¿½Æ¼ï¿½ï¿½
 		if( spRoomUser != NULL )
 		{
 			KERM_MAX_PARTY_FEVER_NOT kNot;
@@ -2609,7 +2613,7 @@ void KDungeonRoom::MaxPartyFever()
 		}
 		else
 		{
-			START_LOG( cerr, L"À¯Àú°¡ ÇÑ¸íµµ ¾ø´Â¹æÀÎ°¨?" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¹ï¿½ï¿½Î°ï¿½?" )
 				<< BUILD_LOG( GetStateIDString() )
 				<< END_LOG;
 		}
@@ -2626,7 +2630,7 @@ void KDungeonRoom::ReservedRegroupOldParty()
 
 	if( m_spRoomUserManager->GetNumMember() > 1 )
 	{
-		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetHostUser(); // ÆÄÆ¼Àå
+		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetHostUser(); // ï¿½ï¿½Æ¼ï¿½ï¿½
 		if( spRoomUser != NULL )
 		{
 			m_vecReservedRegroupOldParty.clear();
@@ -2638,7 +2642,7 @@ void KDungeonRoom::ReservedRegroupOldParty()
 		}
 		else
 		{
-			START_LOG( cerr, L"À¯Àú°¡ ÇÑ¸íµµ ¾ø´Â¹æÀÎ°¨?" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¹ï¿½ï¿½Î°ï¿½?" )
 				<< BUILD_LOG( GetStateIDString() )
 				<< END_LOG;
 		}
@@ -2658,7 +2662,7 @@ void KDungeonRoom::CheckReserveRegroupOldParty()
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2012. 05. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 05. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KDungeonRoom::TimeCountFinishProcess( IN const u_short usEventID )
 {
@@ -2666,12 +2670,12 @@ void KDungeonRoom::TimeCountFinishProcess( IN const u_short usEventID )
 	{
 	case ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ:
 		{
-			// °ÔÀÓ ÃÊ±âÈ­.
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 			StartGame();	
 
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
-			// ¹æ »ý¼º ¿äÃ»ÀÚ¿¡°Ô ack¸¦ ³¯¸°´Ù.
+			// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ú¿ï¿½ï¿½ï¿½ ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			KERM_PARTY_OPEN_DUNGEON_ROOM_NOT kNot;
 			GetRoomInfo( kNot.m_RoomInfo );
 			GetRoomSlotInfo( kNot.m_vecSlot );
@@ -2682,13 +2686,13 @@ void KDungeonRoom::TimeCountFinishProcess( IN const u_short usEventID )
 				AutoPartyBuff( kNot.m_mapActivateBuff );
 			}
 
-			//{{ 2012. 12. 17	ÃÖÀ°»ç	¾Æ¶ó ÆÄÆ¼ ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡
+			//{{ 2012. 12. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 			PlayWithCharBuff( kNot.m_mapActivateBuff );
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 			//}}
 
-#ifdef SERV_CRAYON_POP_EVENT_BUFF// ÀÛ¾÷³¯Â¥: 2013-06-08	// ¹Ú¼¼ÈÆ
+#ifdef SERV_CRAYON_POP_EVENT_BUFF// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-08	// ï¿½Ú¼ï¿½ï¿½ï¿½
 			CrayonPopEventBuff( kNot.m_mapActivateBuff );
 #endif // SERV_CRAYON_POP_EVENT_BUFF
 
@@ -2704,12 +2708,12 @@ void KDungeonRoom::TimeCountFinishProcess( IN const u_short usEventID )
 
 	case ERM_PARTY_OPEN_DUNGEON_ROOM_REQ:
 		{
-			// °ÔÀÓ ÃÊ±âÈ­.
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 			StartGame();
 
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
-			// ¹æ »ý¼º ¿äÃ»ÀÚ¿¡°Ô ack¸¦ ³¯¸°´Ù.
+			// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ú¿ï¿½ï¿½ï¿½ ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			KERM_PARTY_OPEN_DUNGEON_ROOM_NOT kNot;
 			GetRoomInfo( kNot.m_RoomInfo );
 			GetRoomSlotInfo( kNot.m_vecSlot );
@@ -2723,13 +2727,13 @@ void KDungeonRoom::TimeCountFinishProcess( IN const u_short usEventID )
 				}
 			}
 
-			//{{ 2012. 12. 17	ÃÖÀ°»ç	¾Æ¶ó ÆÄÆ¼ ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡
+			//{{ 2012. 12. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 			PlayWithCharBuff( kNot.m_mapActivateBuff );
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 			//}}
 
-#ifdef SERV_CRAYON_POP_EVENT_BUFF// ÀÛ¾÷³¯Â¥: 2013-06-08	// ¹Ú¼¼ÈÆ
+#ifdef SERV_CRAYON_POP_EVENT_BUFF// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-08	// ï¿½Ú¼ï¿½ï¿½ï¿½
 			CrayonPopEventBuff( kNot.m_mapActivateBuff );
 #endif // SERV_CRAYON_POP_EVENT_BUFF
 
@@ -2745,7 +2749,7 @@ void KDungeonRoom::TimeCountFinishProcess( IN const u_short usEventID )
 
 	default:
 		{
-			START_LOG( cerr, L"¿©±â·Î ¿À¸é ¾ÈµÈ´Ù! ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÈ´ï¿½! ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( GetUID() )
 				<< BUILD_LOG( KEvent::GetIDStr( usEventID ) )
 				<< END_LOG;
@@ -2756,27 +2760,27 @@ void KDungeonRoom::TimeCountFinishProcess( IN const u_short usEventID )
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2013. 04. 09	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+//{{ 2013. 04. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 void KDungeonRoom::PrepareForEnterDefenceDungeon()
 {
-	// °ÔÀÓ Á¾·á Ã³¸®
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 	EndGame();
 
-	// ´øÀü ¼Ó¼ºÀ» ¾îµÒÀÇ ¹®À¸·Î ¹Ù²ÙÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½!
 	m_iDungeonID = CXSLDungeon::DI_DEFENCE_DUNGEON_ELDER_NORMAL;
 	m_cDifficultyLevel = 0;
 	m_eDungeonType = CXSLDungeon::DUNGEON_TYPE::DT_NORMAL;
 	m_cDungeonMode = CXSLDungeon::DUNGEON_MODE::DM_INVALID;
 
-	// ´øÀüÀÇ »óÅÂ¸¦ ¹Ù²ÙÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½!
 	StateTransition( KRoomFSM::I_TO_WAIT_FOR_DEFENCE );
 	m_kTimer[TM_WAIT_FOR_DEFENCE].restart();
 
-	// ¸ðµç À¯Àú »óÅÂ¸¦ ´ë±â »óÅÂ·Î ¹Ù²ÙÀÚ!
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â·ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½!
 	m_spRoomUserManager->SetAllPrepareForDefenceDungeon( false );
 
-	// ¹æ¾ÈÀÇ ¸ðµç À¯Àú¿¡°Ô ÇöÀç ´øÀü Á¤º¸¸¦ ¾îµÒÀÇ ¹®À¸·Î º¯°æÇÏµµ·Ï Ã³¸®ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ñ´ï¿½.
 	KERM_PREPARE_FOR_DEFENCE_DUNGEON_REQ kPacketReq;
 	kPacketReq.m_kDefenceDungeonInfo.m_iDungeonID = GetDungeonID();
 	kPacketReq.m_kDefenceDungeonInfo.m_cDifficulty = GetDifficultyLevel();
@@ -2784,37 +2788,37 @@ void KDungeonRoom::PrepareForEnterDefenceDungeon()
 	BroadCast( ERM_PREPARE_FOR_DEFENCE_DUNGEON_REQ, kPacketReq );
 }
 
-//{{ 2013. 04. 22	ÃÖÀ°»ç	¾îµÒÀÇ ¹® ÀÔÀå ·ÎÁ÷ º¯°æ
+//{{ 2013. 04. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
 void KDungeonRoom::EnterDefenceDungeon( IN const std::vector< UidType >& vecLeaveUnitUID )
 {
-	// ÀÏ´Ü ¸ÕÀú ÀÌÅ»ÀÚµéºÎÅÍ ÀÌÅ»Ã³¸®ÇÏÀÚ!
+	// ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»ï¿½Úµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	BOOST_TEST_FOREACH( const UidType, iUnitUID, vecLeaveUnitUID )
 	{
 		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( iUnitUID );
 		if( IS_NULL( spRoomUser ) )
 		{
-			START_LOG( cerr, L"À¯Àú°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." )
 				<< BUILD_LOG( iUnitUID )
 				<< END_LOG;
 			continue;
 		}
 
-		// ÇØ´ç ¸â¹ö´Â °­Á¦ÀÌÅ»!
+		// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å»!
 		if( m_spRoomUserManager->LeaveRoom( iUnitUID ) == false )
 		{
-			START_LOG( cerr, L"¹æ ³ª°¡±â ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( iUnitUID )
 				<< END_LOG;
 		}
 
-		// °ÅÀýÇÑ À¯Àú´Â ¾îµÒÀÇ ¹®À¸·Î ÀÔÀå ½ÃÅ°Áö ¸»°í ¹æÀ» ³ª°¡°Ô ÇÏÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		//KEGS_RESULT_ALL_UNIT_SUCCESS_NOT kNot;
 		//GetRoomInfo( kNot.m_RoomInfo );
 		//GetRoomSlotInfo( kNot.m_vecSlot );
 		SendToGSCharacter( spRoomUser->GetGSUID(), spRoomUser->GetCID(), ERM_LEAVE_ROOM_BEFORE_DEFENCE_DUNGEON_START_NOT, char() );
 
-		// ¹æÀÇ ¸ðµç À¯Àúµé¿¡°Ô ½½·Ô Á¤º¸¸¦ ³¯¸°´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		KEGS_LEAVE_ROOM_NOT kPacketNot;
 		kPacketNot.m_cRoomState = GetStateID();
 		kPacketNot.m_iUnitUID = iUnitUID;
@@ -2822,22 +2826,22 @@ void KDungeonRoom::EnterDefenceDungeon( IN const std::vector< UidType >& vecLeav
 		BroadCast( ERM_LEAVE_ROOM_NOT, kPacketNot );
 	}
 
-	// ÀÌÅ» ÇÏ°í³ª¼­ ¸¸¾à¿¡ ¹æ¿¡ ¾Æ¹«µµ ¾øÀ¸¸é ±×´ë·Î °ÔÀÓ Á¾·á ½ÃÅ°ÀÚ!
+	// ï¿½ï¿½Å» ï¿½Ï°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½à¿¡ ï¿½æ¿¡ ï¿½Æ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½!
 	if( IsEmpty() == true )
 	{
 		StateTransition( KRoomFSM::I_TO_CLOSE );
 		return;
 	}
 
-	// »óÅÂ º¯°æ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	StateTransition( KRoomFSM::I_TO_WAIT );
 
-	//¸ðµçÀ¯Àú»óÅÂ¸¦ ·¹µð·Î ¹Ù²Û´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²Û´ï¿½.
 	m_spRoomUserManager->SetAllReady( true );
 
-	// °ÔÀÓ ÃÊ±âÈ­.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 	StartGame();
-#ifdef SERV_CRAYON_POP_EVENT_BUFF// ÀÛ¾÷³¯Â¥: 2013-06-12	// ¹Ú¼¼ÈÆ
+#ifdef SERV_CRAYON_POP_EVENT_BUFF// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-12	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	{
 		KBuffInfo	kBuff;
 		KLottery	kLot;
@@ -2859,7 +2863,7 @@ void KDungeonRoom::EnterDefenceDungeon( IN const std::vector< UidType >& vecLeav
 	}
 #endif // SERV_CRAYON_POP_EVENT_BUFF
 
-	// ¹Ù²ï ¼Ó¼º´ë·Î °ÔÀÓÀ» ´Ù½Ã ½ÃÀÛÇÏÀÚ!
+	// ï¿½Ù²ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	KEGS_DEFENCE_DUNGEON_GAME_START_NOT kDefenceDungeonStart;
 	GetRoomInfo( kDefenceDungeonStart.m_RoomInfo );
 	GetRoomSlotInfo( kDefenceDungeonStart.m_vecSlot );
@@ -2869,16 +2873,16 @@ void KDungeonRoom::EnterDefenceDungeon( IN const std::vector< UidType >& vecLeav
 #else
 //void KDungeonRoom::EnterDefenceDungeon()
 //{
-//	// »óÅÂ º¯°æ
+//	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //	StateTransition( KRoomFSM::I_TO_WAIT );
 //
-//	//¸ðµçÀ¯Àú»óÅÂ¸¦ ·¹µð·Î ¹Ù²Û´Ù.
+//	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²Û´ï¿½.
 //	m_spRoomUserManager->SetAllReady( true );
 //
-//	// °ÔÀÓ ÃÊ±âÈ­.
+//	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 //	StartGame();
 //
-//	// ¹Ù²ï ¼Ó¼º´ë·Î °ÔÀÓÀ» ´Ù½Ã ½ÃÀÛÇÏÀÚ!
+//	// ï¿½Ù²ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 //	KEGS_DEFENCE_DUNGEON_GAME_START_NOT kDefenceDungeonStart;
 //	GetRoomInfo( kDefenceDungeonStart.m_RoomInfo );
 //	GetRoomSlotInfo( kDefenceDungeonStart.m_vecSlot );
@@ -2891,17 +2895,17 @@ void KDungeonRoom::EnterDefenceDungeon( IN const std::vector< UidType >& vecLeav
 //}}
 
 //////////////////////////////////////////////////////////////////////////
-// ÇöÀç·Î¼­´Â Æ©Åä¸®¾ó ´øÀü¸¸ ÀÌ ÆÐÅ¶À¸·Î °ÔÀÓÀ» ½ÃÀÛÇÏ°íÀÖ´Ù!
+// ï¿½ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ Æ©ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½Ö´ï¿½!
 //////////////////////////////////////////////////////////////////////////
 _IMPL_ON_FUNC( ERM_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 {
     VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_INIT ), ERM_OPEN_ROOM_ACK, KEGS_CREATE_ROOM_ACK );
 
-	//{{ 2013. 04. 16	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 16	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	if( CXSLDungeon::IsDefenceDungeon( kPacket_.m_kRoomInfo.m_iDungeonID ) == true )
 	{
-		START_LOG( cerr, L"ÆÐÅ¶ º¯Á¶ ÀÇ½É À¯Àú! ( ¾îµÒÀÇ ¹® ´øÀüÀ» Á÷Á¢ÀûÀ¸·Î »ý¼ºÇÏ·Á ÇÏ¿´´Ù )" )
+		START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ )" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( GetUID() )
 			<< END_LOG;
@@ -2913,23 +2917,23 @@ _IMPL_ON_FUNC( ERM_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
 
-	//{{ 2010. 03. 14  ÃÖÀ°»ç	¹æ ºÐ¹è ±â´É °³¼±
+	//{{ 2010. 03. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ð¹ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ROOM_COUNT
 	SendRoomCountInfo( CXSLRoom::RT_DUNGEON, true );
 #endif SERV_ROOM_COUNT
 	//}}
 
-    // ¹æ ¿É¼Ç Á¤º¸ ¼¼ÆÃ.
+    // ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	SetRoomInfo( kPacket_.m_kRoomInfo );
 
-    // ¹æ »ý¼ºÀÌ¹Ç·Î ½½·Ô Á¤º¸¸¦ ÃÊ±âÈ­ ÇÑ´Ù.
+    // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ñ´ï¿½.
     m_spRoomUserManager->Reset();
     m_spRoomUserManager->AssignTeam( -1 );
 
-    // ½½·Ô¿¡ »ý¼º ¿äÃ»ÀÚ¸¦ ³Ö´Â´Ù.
+    // ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ú¸ï¿½ ï¿½Ö´Â´ï¿½.
     if( m_spRoomUserManager->EnterRoom( kPacket_.m_kRoomUserInfo, false ) == false )
     {
-        START_LOG( cerr, L"¹æ ÀÔÀå ½ÇÆÐ." )
+        START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( FIRST_SENDER_UID )
             << BUILD_LOG( GetUID() )
             << END_LOG;
@@ -2939,21 +2943,21 @@ _IMPL_ON_FUNC( ERM_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
         return;
     }
 
-	//080409.hoons. Á¦ÀÚ ¸®½ºÆ®¸¦ ¼ÂÆÃÇÑ´Ù.
+	//080409.hoons. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	m_spRoomUserManager->SetTutorialUIDList( FIRST_SENDER_UID, kPacket_.m_vecStudentUnitUID );
 
-    // ¹æ »óÅÂ¸¦ wait ·Î ¹Ù²Û´Ù.
+    // ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ wait ï¿½ï¿½ ï¿½Ù²Û´ï¿½.
     StateTransition( KRoomFSM::I_TO_WAIT );
     m_kTimer[TM_WAIT].restart();
 
-	//gm ÀÌ»óÀÌ¸é ¼¾ÅÍ¼­¹öÀÇ ip¸¦ ³Ö¾îÁÖÀÚ.
+	//gm ï¿½Ì»ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ ipï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ï¿½.
 	//if( kPacket_.m_kUnitInfo.m_cAuthLevel >= SEnum::UAL_GM )
 	if( m_spRoomUserManager->CheckAuthLevel( FIRST_SENDER_UID ) == true )
 	{
 		kPacket.m_wstrCNIP = NetCommon::GetLocalIPW();
 	}
 
-    // ¹æ »ý¼º ¿äÃ»ÀÚ¿¡°Ô ack¸¦ ³¯¸°´Ù.
+    // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ú¿ï¿½ï¿½ï¿½ ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
     kPacket.m_iOK = NetError::NET_OK;
 	GetRoomInfo( kPacket.m_RoomInfo );
 
@@ -2962,7 +2966,7 @@ _IMPL_ON_FUNC( ERM_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 
     SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_OPEN_ROOM_ACK, kPacket );
 
-	//¹æ»ý¼ºÈÄ Á»ºñÀ¯Àú Ã¼Å©½ÃÀÛ.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½.
 	m_spRoomUserManager->ZU_CheckStart();
 }
 
@@ -2970,11 +2974,11 @@ IMPL_ON_FUNC( ERM_PARTY_OPEN_DUNGEON_ROOM_REQ )
 {
 	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_INIT ), ERM_PARTY_OPEN_DUNGEON_ROOM_ACK, KERM_PARTY_OPEN_DUNGEON_ROOM_ACK );
 
-	//{{ 2013. 04. 16	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 16	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	if( CXSLDungeon::IsDefenceDungeon( kPacket_.m_kRoomInfo.m_iDungeonID ) == true )
 	{
-		START_LOG( cerr, L"ÆÐÅ¶ º¯Á¶ ÀÇ½É À¯Àú! ( ¾îµÒÀÇ ¹® ´øÀüÀ» Á÷Á¢ÀûÀ¸·Î »ý¼ºÇÏ·Á ÇÏ¿´´Ù )" )
+		START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ )" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( GetUID() )
 			<< END_LOG;
@@ -2986,25 +2990,25 @@ IMPL_ON_FUNC( ERM_PARTY_OPEN_DUNGEON_ROOM_REQ )
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
 
-	//{{ 2010. 03. 14  ÃÖÀ°»ç	¹æ ºÐ¹è ±â´É °³¼±
+	//{{ 2010. 03. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ð¹ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ROOM_COUNT
 	SendRoomCountInfo( CXSLRoom::RT_DUNGEON, true );
 #endif SERV_ROOM_COUNT
 	//}}
 
-	// ¹æ ¿É¼Ç Á¤º¸ ¼¼ÆÃ.
+	// ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	SetRoomInfo( kPacket_.m_kRoomInfo );
 
-	// ¹æ »ý¼ºÀÌ¹Ç·Î ½½·Ô Á¤º¸¸¦ ÃÊ±âÈ­ ÇÑ´Ù.
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ñ´ï¿½.
 	m_spRoomUserManager->Reset();
 	m_spRoomUserManager->AssignTeam( -1 );
 
 	BOOST_TEST_FOREACH( const KPartyRoomUserInfo&, kInfo, kPacket_.m_vecUserInfo )
 	{
-		// ½½·Ô¿¡ À¯Àú ³Ö´Â´Ù.
+		// ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Â´ï¿½.
 		if( m_spRoomUserManager->EnterRoom( kInfo.m_kRoomUserInfo, false ) == false )
 		{
-			START_LOG( cerr, L"ÆÄÆ¼ ´øÀå¹æ ÀÔÀå ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( FIRST_SENDER_UID )
 				<< BUILD_LOG( GetUID() )
 				<< END_LOG;
@@ -3015,28 +3019,28 @@ IMPL_ON_FUNC( ERM_PARTY_OPEN_DUNGEON_ROOM_REQ )
 		}
 		
 		m_spRoomUserManager->SetTutorialUIDList( kInfo.m_kRoomUserInfo.m_nUnitUID, kInfo.m_vecStudentUnitUID );
-		//{{ 2009. 6. 10  ÃÖÀ°»ç	°ÔÀÓ ½ÃÀÛ½Ã EXP,ED
+		//{{ 2009. 6. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½ï¿½ EXP,ED
 		m_spRoomUserManager->UpdateetOldExpED( kInfo.m_kRoomUserInfo.m_nUnitUID, kInfo.m_iCurEXP, kInfo.m_iCurED );
 		//}}
-		//{{ 2012. 07. 03	ÃÖÀ°»ç		´øÀü ·Î±× ÄÃ·³ Ãß°¡
+		//{{ 2012. 07. 03	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 		m_spRoomUserManager->SetGameChannelIP( kInfo.m_kRoomUserInfo.m_nUnitUID, kInfo.m_wstrChannelIP );
 #endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 		//}}
-		//{{ 2012. 03. 26	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 03. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		m_spRoomUserManager->SetActivatedAutoPartyBonus( kInfo.m_kRoomUserInfo.m_nUnitUID, kInfo.m_bAutoPartyBonus );
 		m_spRoomUserManager->SetOldPartyInfo( kInfo.m_kRoomUserInfo.m_nUnitUID, kInfo.m_kOldPartyInfo );
 #endif SERV_BATTLE_FIELD_SYSTEM
 		//}}
-		//{{ ÀÚµ¿ ÆÄÆ¼·Î ´øÀü ½ÃÀÛ ½Ã ¸ÅÄª ´ë±â ½Ã°£ ·Î±× Ãß°¡ - ±è¹Î¼º
+		//{{ ï¿½Úµï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Äª ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Î±ï¿½ ï¿½ß°ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_AUTO_PARTY_MATCHING_REQUIRED_TIME_LOG
 		m_spRoomUserManager->SetAutoPartyWaitTime( kInfo.m_kRoomUserInfo.m_nUnitUID, kInfo.m_iAutoPartyWaitTime );
 #endif SERV_AUTO_PARTY_MATCHING_REQUIRED_TIME_LOG
 		//}
 	}
 
-	// ÀÎ¿øÁ¢¼ÓÃ³¸®°¡ Àß¸øµÇ¾î ÆÄÆ¼¸¦ ½ÃÀÛÇÒ¼ö ¾øÀ½.
+	// ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	if( true == IsEmpty() )
 	{
 		kPacket.m_iOK = NetError::ERR_PARTY_23;
@@ -3044,38 +3048,38 @@ IMPL_ON_FUNC( ERM_PARTY_OPEN_DUNGEON_ROOM_REQ )
 		return;
 	}
 
-	// ¹æ »óÅÂ¸¦ wait ·Î ¹Ù²Û´Ù.
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ wait ï¿½ï¿½ ï¿½Ù²Û´ï¿½.
 	StateTransition( KRoomFSM::I_TO_WAIT );
 	m_kTimer[TM_WAIT].restart();
 
-	//¸ðµçÀ¯Àú»óÅÂ¸¦ ·¹µð·Î ¹Ù²Û´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²Û´ï¿½.
 	m_spRoomUserManager->SetAllReady(true);
 
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2012. 05. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 05. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-	// 3ÃÊ Ä«¿îÆ®
+	// 3ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
 	TimeCountForStartGame( ERM_PARTY_OPEN_DUNGEON_ROOM_REQ );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 	//////////////////////////////////////////////////////////////////////////
 
-	//´øÀü¹æ ÁØºñ°¡ ¿Ï·áµÇ¾î´Ù°í ÆÄÆ¼Àå¿¡°Ô ¾Ë·ÁÁÜ.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ ï¿½Ï·ï¿½Ç¾ï¿½Ù°ï¿½ ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½.
 	kPacket.m_iOK = NetError::NET_OK;
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_PARTY_OPEN_DUNGEON_ROOM_ACK, kPacket );	
 }
 
-//{{ 2011. 12. 09	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2011. 12. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 _IMPL_ON_FUNC( ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 {
 	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_INIT ), ERM_SINGLE_OPEN_DUNGEON_ROOM_ACK, KERM_SINGLE_OPEN_DUNGEON_ROOM_ACK );
 
-	//{{ 2013. 04. 16	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 16	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	if( CXSLDungeon::IsDefenceDungeon( kPacket_.m_kRoomInfo.m_iDungeonID ) == true )
 	{
-		START_LOG( cerr, L"ÆÐÅ¶ º¯Á¶ ÀÇ½É À¯Àú! ( ¾îµÒÀÇ ¹® ´øÀüÀ» Á÷Á¢ÀûÀ¸·Î »ý¼ºÇÏ·Á ÇÏ¿´´Ù )" )
+		START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ )" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( GetUID() )
 			<< END_LOG;
@@ -3087,23 +3091,23 @@ _IMPL_ON_FUNC( ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
 
-	//{{ 2010. 03. 14  ÃÖÀ°»ç	¹æ ºÐ¹è ±â´É °³¼±
+	//{{ 2010. 03. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ð¹ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ROOM_COUNT
 	SendRoomCountInfo( CXSLRoom::RT_DUNGEON, true );
 #endif SERV_ROOM_COUNT
 	//}}
 
-	// ¹æ ¿É¼Ç Á¤º¸ ¼¼ÆÃ.
+	// ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	SetRoomInfo( kPacket_.m_kRoomInfo );
 
-	// ¹æ »ý¼ºÀÌ¹Ç·Î ½½·Ô Á¤º¸¸¦ ÃÊ±âÈ­ ÇÑ´Ù.
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ñ´ï¿½.
 	m_spRoomUserManager->Reset();
 	m_spRoomUserManager->AssignTeam( -1 );
 
-	// ½½·Ô¿¡ »ý¼º ¿äÃ»ÀÚ¸¦ ³Ö´Â´Ù.
+	// ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ú¸ï¿½ ï¿½Ö´Â´ï¿½.
 	if( m_spRoomUserManager->EnterRoom( kPacket_.m_kRoomUserInfo, false ) == false )
 	{
-		START_LOG( cerr, L"¹æ ÀÔÀå ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( GetUID() )
 			<< END_LOG;
@@ -3113,22 +3117,22 @@ _IMPL_ON_FUNC( ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 		return;
 	}
 
-	//080409.hoons. Á¦ÀÚ ¸®½ºÆ®¸¦ ¼ÂÆÃÇÑ´Ù.
+	//080409.hoons. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	m_spRoomUserManager->SetTutorialUIDList( FIRST_SENDER_UID, kPacket_.m_vecStudentUnitUID );
-	//{{ 2009. 6. 10  ÃÖÀ°»ç	°ÔÀÓ ½ÃÀÛ½Ã EXP,ED
+	//{{ 2009. 6. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½ï¿½ EXP,ED
 	m_spRoomUserManager->UpdateetOldExpED( kPacket_.m_kRoomUserInfo.m_nUnitUID, kPacket_.m_iCurEXP, kPacket_.m_iCurED );
 	//}}
-	//{{ 2012. 07. 03	ÃÖÀ°»ç		´øÀü ·Î±× ÄÃ·³ Ãß°¡
+	//{{ 2012. 07. 03	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 	m_spRoomUserManager->SetGameChannelIP( kPacket_.m_kRoomUserInfo.m_nUnitUID, kPacket_.m_wstrChannelIP );
 #endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 	//}}
 
-	// ¹æ »óÅÂ¸¦ wait ·Î ¹Ù²Û´Ù.
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ wait ï¿½ï¿½ ï¿½Ù²Û´ï¿½.
 	StateTransition( KRoomFSM::I_TO_WAIT );
 	m_kTimer[TM_WAIT].restart();
 
-	//gm ÀÌ»óÀÌ¸é ¼¾ÅÍ¼­¹öÀÇ ip¸¦ ³Ö¾îÁÖÀÚ.
+	//gm ï¿½Ì»ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ ipï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ï¿½.
 	//if( kPacket_.m_kUnitInfo.m_cAuthLevel >= SEnum::UAL_GM )
 	//if( m_spRoomUserManager->CheckAuthLevel( FIRST_SENDER_UID ) == true )
 	//{
@@ -3138,9 +3142,9 @@ _IMPL_ON_FUNC( ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 	m_spRoomUserManager->SetAllReady(true);
 
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2012. 05. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 05. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-	// 3ÃÊ Ä«¿îÆ®
+	// 3ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
 	TimeCountForStartGame( ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
@@ -3154,13 +3158,13 @@ _IMPL_ON_FUNC( ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 //{
 //	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_WAIT ), ERM_SINGLE_DUNGEON_GAME_REPLAY_ACK, KEGS_QUICK_START_DUNGEON_GAME_ACK );
 //
-//	// ¹æ ¿É¼Ç Á¤º¸ ¼¼ÆÃ.
+//	// ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 //	SetRoomInfo( kPacket_.m_kRoomInfo );
 //
-//	// ÇØ´ç À¯ÀúÁ¤º¸¸¦ ¾÷µ¥ÀÌÆ®ÇÑ´Ù.
+//	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ñ´ï¿½.
 //	if( m_spRoomUserManager->SetRoomUserInfo( kPacket_.m_kRoomUserInfo.m_nUnitUID, kPacket_.m_kRoomUserInfo ) == false )
 //	{
-//		START_LOG( cerr, L"ÆÄÆ¼ ´øÀå¹æ ¸®ÇÃ·¹ÀÌ ½ÇÆÐ. ¾÷µ¥ÀÌÆ® ÇÏ·Á´Â À¯Àú°¡ ¹æ¿¡ ¾øÀ½" )
+//		START_LOG( cerr, L"ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½" )
 //			<< BUILD_LOG( FIRST_SENDER_UID )
 //			<< BUILD_LOG( GetUID() )
 //			<< END_LOG;
@@ -3168,31 +3172,31 @@ _IMPL_ON_FUNC( ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 //		kPacket.m_iOK = NetError::ERR_ROOM_30;
 //		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SINGLE_DUNGEON_GAME_REPLAY_ACK, kPacket );
 //
-//		// [°í¹Î] ½ÇÆÐ Ã³¸®¸¦ ÇÒ±î? ¾÷µ¥ÀÌÆ® Àü¿¡ ÀÌÅ»ÇÑ°Å¶ó¸é ±×³à¼®Àº Á¦¿ÜÇÏ°í °ÔÀÓÀ» ½ÃÀÛÇØ¹ö¸±±î?
+//		// [ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ò±ï¿½? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»ï¿½Ñ°Å¶ï¿½ï¿½ ï¿½×³à¼®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ï¿½?
 //		return;
 //	}
 //	else
 //	{
 //		m_spRoomUserManager->SetTutorialUIDList( kPacket_.m_kRoomUserInfo.m_nUnitUID, kPacket_.m_vecStudentUnitUID );
-//		//{{ 2009. 6. 10  ÃÖÀ°»ç	°ÔÀÓ ½ÃÀÛ½Ã EXP,ED
+//		//{{ 2009. 6. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½ï¿½ EXP,ED
 //		m_spRoomUserManager->UpdateetOldExpED( kPacket_.m_kRoomUserInfo.m_nUnitUID, kPacket_.m_iCurEXP, kPacket_.m_iCurED );
 //		//}}
 //	}
 //
-//	//¸ðµçÀ¯Àú»óÅÂ¸¦ ·¹µð·Î ¹Ù²Û´Ù.
+//	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²Û´ï¿½.
 //	m_spRoomUserManager->SetAllReady(true);
 //
-//	//´øÀü¹æ ÁØºñ°¡ ¿Ï·áµÇ¾î´Ù°í ÆÄÆ¼Àå¿¡°Ô ¾Ë·ÁÁÜ.
+//	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ ï¿½Ï·ï¿½Ç¾ï¿½Ù°ï¿½ ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½.
 //	kPacket.m_iOK = NetError::NET_OK;
 //	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SINGLE_DUNGEON_GAME_REPLAY_ACK, kPacket );
 //
-//	// °ÔÀÓ ÃÊ±âÈ­.
+//	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 //	StartGame();
 //
-//	//´øÀå¹æ Àüº¸ & °ÔÀÓ½ÃÀÛÁ¤º¸¸¦ ±¸¼ºÇØ¼­ Not ¸¦ ³¯·ÁÁÜ.
+//	//ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ & ï¿½ï¿½ï¿½Ó½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ Not ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 //	KEGS_PARTY_GAME_START_NOT kNot;
 //
-//	//¼¾ÅÍ¼­¹öÀÇ ip¸¦ ³Ö¾îÁÖ°í gsuser¿¡¼­ °³¹ßÀÚ ÀÌ»óÀÌ ¾Æ´Ï¸é Áö¿ìÀÚ.
+//	//ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ ipï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½Ö°ï¿½ gsuserï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 //	if( m_spRoomUserManager->CheckAuthLevel( FIRST_SENDER_UID ) == true )
 //	{
 //		kNot.m_wstrCNIP = NetCommon::GetLocalIPW();
@@ -3214,11 +3218,11 @@ IMPL_ON_FUNC( ERM_GAME_START_REQ )
 
 	if( m_spRoomUserManager->IsObserver( FIRST_SENDER_UID ) == false )
 	{
-		// ¹æÀåÀÎÁö Ã¼Å©ÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
 		VERIFY_HOST( ERM_GAME_START_ACK );
 	}
 
-	// ¸ðµç ÇÃ·¹ÀÌ¾î°¡ ÁØºñ »óÅÂÀÎÁö Ã¼Å©ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½Øºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
 	if( !m_spRoomUserManager->IsAllPlayerReady() )
 	{
 		kPacket.m_iOK = NetError::ERR_ROOM_10;
@@ -3226,14 +3230,14 @@ IMPL_ON_FUNC( ERM_GAME_START_REQ )
 		return;
 	}
 
-	// °ÔÀÓ ÃÊ±âÈ­.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 	StartGame();
 
-	// ¹æÀå¿¡°Ô ack¸¦ ³¯¸°´Ù. ±Ù¼ºµµ °¨¼ÒÄ¡µµ Æ÷ÇÔ
+	// ï¿½ï¿½ï¿½å¿¡ï¿½ï¿½ ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	kPacket.m_iOK			  = NetError::NET_OK;
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_GAME_START_ACK, kPacket );
 
-	// ¹æÀÇ ¸ðµç À¯Àúµé¿¡°Ô not¸¦ ³¯¸°´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ notï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 	KERM_GAME_START_NOT kPacketNot;
 	kPacketNot.m_cRoomState = GetStateID();
 	kPacketNot.m_iGameType	= m_cGameType;
@@ -3243,7 +3247,7 @@ IMPL_ON_FUNC( ERM_GAME_START_REQ )
 	BroadCast( ERM_GAME_START_NOT, kPacketNot );
 }
 
-//{{ 2011. 10. 25	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2011. 10. 25	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 //////////////////////////////////////////////////////////////////////////
@@ -3266,8 +3270,8 @@ _IMPL_ON_FUNC( ERM_LEAVE_ROOM_FOR_ENTER_THE_VILLAGE_REQ, KERM_LEAVE_ROOM_REQ )
 _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 {
 	//////////////////////////////////////////////////////////////////////////
-	// »óÅÂ ¿À·ù ÄÉÀÌ½º
-	// 1. S_RESULT : 2¸íÀÌ»ó ÆÄÆ¼ÇÃÁß ÇÑ¸í Á×Àº»óÅÂ¿¡¼­ ´Ù¸¥ ÇÑ¸íÀÌ ½ºÅ×ÀÌÁö Å¬¸®¾î¿Í µ¿½Ã¿¡ ´øÀüÀÌÅ»À» ÇÏ¸é ¹ß»ý
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì½ï¿½
+	// 1. S_RESULT : 2ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å»ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ß»ï¿½
 	//////////////////////////////////////////////////////////////////////////
 
 	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_PLAY ), ERM_DUNGEON_STAGE_LOAD_ACK, KEGS_DUNGEON_STAGE_LOAD_ACK );
@@ -3281,8 +3285,8 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				m_kNextStageData.m_eClearType != CXSLDungeonSubStage::CT_STAGE_FORCE &&
 				m_kNextStageData.m_eClearType != CXSLDungeonSubStage::CT_STAGE_SECRET )
 			{
-				// ¼­¹ö°¡ °ñ¶óÁØ Å¬¸®¾î Å¸ÀÔÀÌ ¾Æ´Ô. Å¬¶óÀÌ¾ðÆ® ÇØÅ·ÀÌ´Ù. by ¹ÚÁø¿õ
-				START_LOG( cerr, L"Å¬¸®¾îÅ¸ÀÔÀº ¾Æ·¡¿Í °°Àºµ¥ ÀÌ ÆÐÅ¶ÀÌ ¿Ö ¿ÔÁö? ÇØÄ¿!" )
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½Å·ï¿½Ì´ï¿½. by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				START_LOG( cerr, L"Å¬ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½Ä¿!" )
 					<< BUILD_LOG( m_bFirstStage )
 					<< BUILD_LOG( m_kNextStageData.m_eClearType )
 					<< BUILD_LOG( m_kNextStageData.m_iStageIndex )
@@ -3293,39 +3297,39 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				return;
 			}
 
-			// Å¸ÀÔ ÀÚÃ¼´Â °°°í ½ºÅ×ÀÌÁö¸¸ ´Ù¸£´Ù¸é ¼ÂÆÃ¸¸ Á¦´ë·Î ÇØ¼­ Á¤»ó µ¿ÀÛÇÏ°Ô ÇÏÀÚ. by ¹ÚÁø¿õ
+			// Å¸ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½. by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			kPacket_.m_iStageID = m_kNextStageData.m_iStageIndex;
 		}
 		else
 		{
-			// ½ºÅ×ÀÌÁö ·Îµå Ã¼Å©¸¦ ¾È ÇØµµ µÇ´Â°Ç Ã³À½ ÇÑ¹ø »ÓÀÌ´Ù. by ¹ÚÁø¿õ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ ï¿½Øµï¿½ ï¿½Ç´Â°ï¿½ Ã³ï¿½ï¿½ ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½. by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			kPacket_.m_iStageID = 0;
 			m_bFirstStage = false;
 		}
 	}
 
-	// ½ºÅ×ÀÌÁö ¿ÀÇÂ ÈÄ¿£ ¹Ù·Î 0¹ø ¼­ºê ½ºÅ×ÀÌÁö¸¦ ¿­¾î¾ß ÇÏ¹Ç·Î ¼ÂÆÃ by ¹ÚÁø¿õ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¿ï¿½ ï¿½Ù·ï¿½ 0ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_bFirstSubStage = true;
 
-	// ´ÙÀ½¿¡ ´Ù½Ã ¸·±â À§ÇØ °ª ÃÊ±âÈ­.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 	m_kNextStageData.ClearData();
 #endif SERV_STAGE_CLEAR_IN_SERVER
 
-	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
-	// µðÆæ½º ´øÀü¿ë ÃÊ±âÈ­
+	// ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 	m_iDefenseMainCrystalNpcUID = 0;
 	m_setDefenseSmallCrystalNpcUID.clear();
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
-	//{{ 2012. 12. 03 ´øÀü ½ºÅ×ÀÌÁö Áßº¹ ·Îµù ¿¹¿Ü È®ÀÎ - ±è¹Î¼º
+	//{{ 2012. 12. 03 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_AUTO_HACK_CHECK_STAGE_LOAD_2
 	{
 		std::map< int, int >::iterator mitSLC = m_mapStageLoadingCheck.find( kPacket_.m_iStageID );
 		if( mitSLC != m_mapStageLoadingCheck.end() )
 		{
-			START_LOG( cout, L"¶È°°Àº ½ºÅ×ÀÌÁö ¶Ç ·ÎµùÇß³×? ÀÌ°Å ±¦ÂúÀº°ÅÀÓ?" )
+			START_LOG( cout, L"ï¿½È°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Îµï¿½ï¿½ß³ï¿½? ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?" )
 				<< BUILD_LOG( LAST_SENDER_UID )
 				<< BUILD_LOG( FIRST_SENDER_UID )
 				<< BUILD_LOG( GetDungeonIDAndDif() )
@@ -3338,18 +3342,18 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 
 			if( m_iLastLoadingUnitUID != FIRST_SENDER_UID )
 			{
-				START_LOG( cout, L"¹æÀåÀÌ ¹Ù²î¾ú³ª? ÀÌ Àü ½ºÅ×ÀÌÁö ·ÎµùÇÑ À¯Àú¿Í ´Ù¸¥ À¯Àú±º.." )					
+				START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.." )					
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( m_iLastLoadingUnitUID );
 			}
 
-			// µ¿ÀÏ ½ºÅ×ÀÌÁö ·Îµù Ä«¿îÆ®¸¦ 1 ¿Ã¸®ÀÚ!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ Ä«ï¿½ï¿½Æ®ï¿½ï¿½ 1 ï¿½Ã¸ï¿½ï¿½ï¿½!
 			++mitSLC->second;
 
-			// 5¹ø ÀÌ»ó ¶È°°Àº ½ºÅ×ÀÌÁö ·ÎµùÇÏ´Â °æ¿ì¶ó¸é ÇØÅ·À¯Àú·Î ÆÇº°!
+			// 5ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½È°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Çºï¿½!
 			if( mitSLC->second >= 5 )
 			{
-				START_LOG( cout, L"Stage Loading ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+				START_LOG( cout, L"Stage Loading ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( GetDungeonIDAndDif() )
@@ -3358,7 +3362,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 					<< BUILD_LOG( mitSLC->second )
 					<< BUILD_LOG( kPacket_.m_iStageID );
 
-#ifdef SERV_DUNGEON_STAGE_LOAD_LOG// ÀÛ¾÷³¯Â¥: 2013-05-15	// ¹Ú¼¼ÈÆ
+#ifdef SERV_DUNGEON_STAGE_LOAD_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-15	// ï¿½Ú¼ï¿½ï¿½ï¿½
 				if( SiKGameSysVal()->GetDungeonStageLoadLog() == true )
 				{
 					DungonStageLoadLog sDungonStageLoadLog;
@@ -3374,7 +3378,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 					sDungonStageLoadLog.m_cMemberNum				= m_spRoomUserManager->GetNumMember();
 					m_vecDungonStageLoadLog.push_back( sDungonStageLoadLog );
 
-					START_LOG( cout, L"Å×½ºÆ®·Î±×" )
+					START_LOG( cout, L"ï¿½×½ï¿½Æ®ï¿½Î±ï¿½" )
 						<< BUILD_LOG( GetStateID() )
 						<< BUILD_LOG( sDungonStageLoadLog.m_iNowStageID )
 						<< END_LOG;
@@ -3390,7 +3394,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				kPacket.m_iOK = NetError::ERR_ROOM_22;
 				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_STAGE_LOAD_ACK, kPacket );
 
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_STAGE_LOADING;
 				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
@@ -3398,7 +3402,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 			}
 			else
 			{
-#ifdef SERV_DUNGEON_STAGE_LOAD_LOG// ÀÛ¾÷³¯Â¥: 2013-05-15	// ¹Ú¼¼ÈÆ
+#ifdef SERV_DUNGEON_STAGE_LOAD_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-15	// ï¿½Ú¼ï¿½ï¿½ï¿½
 				if( SiKGameSysVal()->GetDungeonStageLoadLog() == true )
 				{
 					DungonStageLoadLog sDungonStageLoadLog;
@@ -3416,23 +3420,23 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				}
 #endif // SERV_DUNGEON_STAGE_LOAD_LOG
 
-				// ÇÑ¹ø¸¸ Ã³¸® ÇÏµµ·Ï ¼öÁ¤
+				// ï¿½Ñ¹ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				kPacket.m_iOK = NetError::ERR_ROOM_22;
 				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_STAGE_LOAD_ACK, kPacket );
 				return;
 			}
 		}
-		// NOT ¸¦ º¸³»¾ßÁö¸¸ ½ºÅ×ÀÌÁöID µî·ÏÀ» ÇÏÀÚ
+		// NOT ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	}	
 #else
 	/*
-	//{{ 2010. 11. 18	ÃÖÀ°»ç	¿ÀÅä ÇÙ ½ºÅ×ÀÌÁö ·Îµù Ã¼Å©
+	//{{ 2010. 11. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ Ã¼Å©
 #ifdef SERV_AUTO_HACK_CHECK_STAGE_LOAD
 	{
 		std::map< int, int >::iterator mitSLC = m_mapStageLoadingCheck.find( kPacket_.m_iStageID );
 		if( mitSLC != m_mapStageLoadingCheck.end() )
 		{
-			START_LOG( cout, L"¶È°°Àº ½ºÅ×ÀÌÁö ¶Ç ·ÎµùÇß³×? ÀÌ°Å ±¦ÂúÀº°ÅÀÓ?" )
+			START_LOG( cout, L"ï¿½È°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Îµï¿½ï¿½ß³ï¿½? ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?" )
 				<< BUILD_LOG( LAST_SENDER_UID )
 				<< BUILD_LOG( FIRST_SENDER_UID )
 				<< BUILD_LOG( GetDungeonIDAndDif() )
@@ -3445,21 +3449,21 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 
 			if( m_iLastLoadingUnitUID != FIRST_SENDER_UID )
 			{
-				START_LOG( cout, L"¹æÀåÀÌ ¹Ù²î¾ú³ª? ÀÌ Àü ½ºÅ×ÀÌÁö ·ÎµùÇÑ À¯Àú¿Í ´Ù¸¥ À¯Àú±º.." )					
+				START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.." )					
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( m_iLastLoadingUnitUID );
 			}
 
-			// µ¿ÀÏ ½ºÅ×ÀÌÁö ·Îµù Ä«¿îÆ®¸¦ 1 ¿Ã¸®ÀÚ!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ Ä«ï¿½ï¿½Æ®ï¿½ï¿½ 1 ï¿½Ã¸ï¿½ï¿½ï¿½!
 			++mitSLC->second;
 
-			// ¸¶Áö¸·À¸·Î ·Îµù ¼º°øÇÑ À¯ÀúÀÇ UnitUID¸¦ ÀúÀå!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UnitUIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			m_iLastLoadingUnitUID = FIRST_SENDER_UID;
 
-			// 5¹ø ÀÌ»ó ¶È°°Àº ½ºÅ×ÀÌÁö ·ÎµùÇÏ´Â °æ¿ì¶ó¸é ÇØÅ·À¯Àú·Î ÆÇº°!
+			// 5ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½È°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Çºï¿½!
 			if( mitSLC->second >= 5 )
 			{
-				START_LOG( cout, L"Stage Loading ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+				START_LOG( cout, L"Stage Loading ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( GetDungeonIDAndDif() )
@@ -3471,8 +3475,8 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				kPacket.m_iOK = NetError::ERR_ROOM_22;
 				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_STAGE_LOAD_ACK, kPacket );
 
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
-				//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+				//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_STAGE_LOADING;
@@ -3487,10 +3491,10 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 		}
 		else
 		{
-			// ·ÎµùÇÏÁö ¾ÊÀº StageID¸¦ ÀúÀåÇÑ´Ù.
+			// ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ StageIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 			m_mapStageLoadingCheck.insert( std::make_pair( kPacket_.m_iStageID, 1 ) );
 
-			// ¸¶Áö¸·À¸·Î ·Îµù ¼º°øÇÑ À¯ÀúÀÇ UnitUID¸¦ ÀúÀå!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UnitUIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			m_iLastLoadingUnitUID = FIRST_SENDER_UID;
 		}
 	}	
@@ -3501,14 +3505,14 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 	//}
 
 
-	//·Îµù½Ã°£ Ã¼Å©¸¦ ½ÃÀÛÇÔ..
-	//ÀÌ°÷¿¡¼­ ½ÃÀÛÀ» ÇÒ°æ¿ì 2°¡ÁöÀÇ °æ¿ì¿¡ ·Îµù½Ã°£À» Ã¼Å©ÇÏ°Ô µÈ´Ù.
-	//::1. °ÔÀÓÃÊ±â ·Îµù½Ã
-	//::2. ½ºÅ×ÀÌÁö ·Îµù
-	//## Àå¸··ÎµùÀº »©±â·Î ÇÔ.
+	//ï¿½Îµï¿½ï¿½Ã°ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
+	//ï¿½Ì°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½ 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ ï¿½Îµï¿½ï¿½Ã°ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï°ï¿½ ï¿½È´ï¿½.
+	//::1. ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ ï¿½Îµï¿½ï¿½ï¿½
+	//::2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½
+	//## ï¿½å¸·ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½.
 	m_LoadingTimer.Start();
 
-	//{{ 2010. 03. 24  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+	//{{ 2010. 03. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
 	const CXSLDungeonStage::STAGE_TYPE eStageType = SiCXSLDungeonManager()->GetStageType( GetDungeonIDAndDif(), kPacket_.m_iStageID );
 #endif SERV_SECRET_HELL
@@ -3517,19 +3521,19 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 	KEGS_DUNGEON_STAGE_LOAD_NOT kNot;
 	kNot.m_iNumMember = m_spRoomUserManager->GetNumMember();
 
-	//{{ 2012. 05. 10	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+	//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
-	int iRelativeMonsterLevel = GetAverageUserLevelAtDungeonStart(); // ´øÀü °ÔÀÓ ½ÃÀÛ½Ã À¯Àú Æò±Õ ·¹º§ÀÌ º¸Á¤ ´øÀüÀÇ ¸ó½ºÅÍ ·¹º§ÀÌ µÈ´Ù.
+	int iRelativeMonsterLevel = GetAverageUserLevelAtDungeonStart(); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È´ï¿½.
 #else
 	int iHighestUserLevelAtDungeonStart = GetHighestUserLevelAtDungeonStart();
 #endif SERV_DUNGEON_NPC_LEVEL
 	//}}	
 
-	//{{ 2010. 03. 24  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+	//{{ 2010. 03. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
 	if( m_eDungeonType == CXSLDungeon::DT_SECRET )
 	{
-		// ºñ¹Ð´øÀüÀÇ °æ¿ì ·¹º§ º¸Á¤ Àû¿ë
+		// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		{
 			const int iDungeonMinLevel = SiCXSLDungeonManager()->GetDungeonMinLevel( GetDungeonIDAndDif() );
 			if( iRelativeMonsterLevel < iDungeonMinLevel )
@@ -3546,7 +3550,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 
 		if( m_cDungeonMode == CXSLDungeon::DM_SECRET_HELL )
 		{
-			// ºñ¹Ð´øÀü Çï¸ðµå EXTRA STAGE
+			// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EXTRA STAGE
 			if( eStageType == CXSLDungeonStage::ST_EXTRA )
 			{
 				// Extra Stage Load Count
@@ -3554,7 +3558,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 
 				iRelativeMonsterLevel = iRelativeMonsterLevel + 5 + SiCXSLDungeonManager()->GetSecretDungeonExtraStageNpcLevel();
 			}
-			// ºñ¹Ð´øÀü Çï¸ðµå
+			// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			else
 			{
 				iRelativeMonsterLevel = iRelativeMonsterLevel + 5;
@@ -3562,7 +3566,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 		}
 	}
 #endif SERV_SECRET_HELL
-	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	else
 	{
@@ -3576,13 +3580,13 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 		}
 	}
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 	
-	// º¸½º ½ºÅ×ÀÌÁö ¿©ºÎ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bool bIsBossStage = false;
 
-	// NPCÁ¤º¸ ºÒ·¯¿À±â!
-	//{{ 2012. 05. 10	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+	// NPCï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½!
+	//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
 	if( SiCXSLDungeonManager()->GetNPCData( GetDungeonIDAndDif(), kPacket_.m_iStageID, iRelativeMonsterLevel, kNot, bIsBossStage ) == false )
 #else
@@ -3596,29 +3600,29 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 	}
 	else
 	{
-		// Á¤»óÀûÀÎ StageID¶ó°í ÆÇ´ÜµÇ¸é ÇöÀç ½ºÅ×ÀÌÁöID Á¤º¸·Î ¾÷µ¥ÀÌÆ® ÇÏÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ StageIDï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
 		SetStageID( kPacket_.m_iStageID );
 
-		// Á¤»óÀûÀÎ StageID°ªÀÌ¹Ç·Î Å¬¶óÀÌ¾ðÆ®·Î OK°ª º¸³¿.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ StageIDï¿½ï¿½ï¿½Ì¹Ç·ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ OKï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		kPacket.m_iOK = NetError::NET_OK;
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_STAGE_LOAD_ACK, kPacket );
 	}
 	//}}	
 
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2010. 07. 16  ÃÖÀ°»ç	ÀÌº¥Æ® ¸ó½ºÅÍ ½Ã½ºÅÛ	
+	//{{ 2010. 07. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½	
 #ifdef SERV_EVENT_MONSTER
 	if( CXSLDungeon::IsTutorialDungeon( GetDungeonID() ) == false  &&
 		CXSLDungeon::IsTCDungeon( GetDungeonID() ) == false  &&
 		CXSLDungeon::IsHenirDungeon( GetDungeonID() ) == false 
-		//{{ 2011. 07. 25    ±è¹Î¼º    ÀÌº¥Æ® ¸ó½ºÅÍ ÃâÇö ´øÀü Á¦ÇÑ
+		//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_EVENT_MONSTER_DUNGEON_RESTRICT
-		&& CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == false    // µðÆæ½º ´øÀü¿¡´Â ÀÌº¥Æ® ¸ó½ºÅÍ°¡ ÃâÇöÇÏÁö ¾Êµµ·ÏÇÑ´Ù.
+		&& CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == false    // ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 #endif SERV_EVENT_MONSTER_DUNGEON_RESTRICT
 		//}} 
 		)
 	{
-		//{{ 2012. 02. 03	¹Ú¼¼ÈÆ	ÀÌº¥Æ® °ü·ÃÁ¤º¸ Ã³¸®¹æ¹ý º¯°æ ( Script -> DB )
+		//{{ 2012. 02. 03	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( Script -> DB )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 		BOOST_TEST_FOREACH( KEventMonsterRefreshManager::KAdventNpcEventInfo&, kInfo, m_vecEventMonster )
 #else
@@ -3626,19 +3630,19 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 			//}}
 		{
-			// º¸½º ½ºÅ×ÀÌÁö¿¡¼­ µîÀå ½ÃÅ³Áö Ã¼Å©!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ Ã¼Å©!
 			if( kInfo.m_bIsAdventInBossStage == false  &&  bIsBossStage == true )
 			{
 				continue;
 			}
 
-			// ´õÀÌ»ó ÃâÇö ½ÃÅ³ Ä«¿îÆ®°¡ ³²¾ÆÀÖÁö ¾Ê´Ù¸é ÆÐ½º!
+			// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½ ï¿½Ð½ï¿½!
 			if( kInfo.m_iMonsterDropCount <= 0 )
 			{
 				continue;
 			}
 
-			// µîÀåÇÒ ¼ö ÀÖ´Â ´øÀüÀÎÁö Ã¼Å©!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 			if( kInfo.m_setAdventDungeon.empty() == false )
 			{
 				if( kInfo.m_setAdventDungeon.find( GetDungeonID() ) == kInfo.m_setAdventDungeon.end() )
@@ -3647,7 +3651,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				}
 			}
 
-			// µîÀå ÇÏ¸é ¾ÈµÇ´Â ´øÀüÀÎÁö Ã¼Å©!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 			if( kInfo.m_setNoAdventDungeon.empty() == false )
 			{
 				if( kInfo.m_setNoAdventDungeon.find( GetDungeonID() ) != kInfo.m_setNoAdventDungeon.end() )
@@ -3656,7 +3660,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				}
 			}
 
-			// µîÀå ÇÏ¸é ¾ÈµÇ´Â ½ºÅ×ÀÌÁö ÀÎÁö Ã¼Å©!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 			if( kInfo.m_setNoAdventStage.empty() == false )
 			{
 				if( kInfo.m_setNoAdventStage.find( GetStageID() ) != kInfo.m_setNoAdventStage.end() )
@@ -3665,15 +3669,15 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				}
 			}
 
-			// µîÀåÇÒ ¸ó½ºÅÍ¸¦ °áÁ¤ÇÏÀÚ!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 			const int iAdventNpcID = kInfo.m_kAdventNpcLot.Decision();
 			if( iAdventNpcID == KLottery::CASE_BLANK )
 			{
 				continue;
 			}
 
-			// ÀÌº¥Æ® ¸ó½ºÅÍ µîÀå Ã³¸®!
-			//{{ ÀÌº¥Æ® ¸ó½ºÅÍ ÃâÇö ( ¾Æ±º ¸ó½ºÅÍ	) - ±è¹Î¼º
+			// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!
+			//{{ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½Æ±ï¿½ ï¿½ï¿½ï¿½ï¿½	) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ALLY_EVENT_MONSTER
 #ifdef SERV_ACTIVE_EVENT_MONSTER
 			std::map<int, bool>::iterator mit = kInfo.m_mapMonsterActive.find( iAdventNpcID );
@@ -3693,7 +3697,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 #endif SERV_ALLY_EVENT_MONSTER
 			//}}
 			{
-				// ¸ó½ºÅÍ µîÀå ¼º°øÇß´Ù¸é Ä«¿îÆ® ÇÏ³ª ±ðÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´Ù¸ï¿½ Ä«ï¿½ï¿½Æ® ï¿½Ï³ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				--kInfo.m_iMonsterDropCount;
 			}
 		}
@@ -3701,7 +3705,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 #endif SERV_EVENT_MONSTER
 	//////////////////////////////////////////////////////////////////////////
 
-	//{{ 2010. 11. 20	ÃÖÀ°»ç	Æ¯Á¤ ½Ã°¢ ¸ó½ºÅÍ ÃâÇö
+	//{{ 2010. 11. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TIME_DROP_MONSTER_EVENT
 	if( CXSLDungeon::IsTutorialDungeon( GetDungeonID() ) == false  &&
 		CXSLDungeon::IsTCDungeon( GetDungeonID() ) == false  &&
@@ -3720,12 +3724,12 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 #endif SERV_TIME_DROP_MONSTER_EVENT
 	//}}
 
-	//{{ 2010. 03. 21  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+	//{{ 2010. 03. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
 	if( m_cDungeonMode == CXSLDungeon::DM_SECRET_HELL  &&  eStageType == CXSLDungeonStage::ST_EXTRA_NPC )
 	{
-		// ºñ¹Ð´øÀü extra ¸ó½ºÅÍ µîÀå Ã³¸®
-		//{{ 2012. 02. 28	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ extra ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+		//{{ 2012. 02. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		SecretDungeonExtraStageMonster( GetStageID(), kPacket_.m_sPartyFever, kNot );
 #else
@@ -3736,10 +3740,10 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 #endif SERV_SECRET_HELL
 	//}}
 
-	//{{ 2010. 07. 09  ÃÖÀ°»ç	µå·Ó·ü ÀÌº¥Æ® È®Àå
+	//{{ 2010. 07. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ó·ï¿½ ï¿½Ìºï¿½Æ® È®ï¿½ï¿½
 #ifdef SERV_PC_BANG_DROP_EVENT
 
-	//{{ 2012. 03. 28	¹Ú¼¼ÈÆ	µå·Ó·ü ¼³Á¤ ÀÌº¥Æ® °³Æí Merge ÀÛ¾÷ ( 2012.03.20 lygan_Á¶¼º¿í )
+	//{{ 2012. 03. 28	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½Ó·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ Merge ï¿½Û¾ï¿½ ( 2012.03.20 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
 #ifdef DROPEVENT_RENEWAL
 	std::vector<char> vecUintClass;
 	std::vector<char> vecUintType;
@@ -3749,7 +3753,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 		KRoomUserPtr spRoomUser = m_kRoomUserManager.GetUser( iU );
 		if( spRoomUser == NULL )
 		{
-			START_LOG( cerr, L"RoomUser°¡ Á¸ÀçÇÏÁö ¾ÊÀ½." )
+			START_LOG( cerr, L"RoomUserï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< END_LOG;
 			continue;
 		}
@@ -3763,12 +3767,12 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 	if( SiKGameEventManager()->CheckItemDropProbEvent( m_iItemDropEventProbCount, m_bWithPlayPcBangEvent ) == true )
 #endif //DROPEVENT_RENEWAL
 	{
-		// PC¹æ À¯Àú¿Í ÇÔ²² ÇÃ·¹ÀÌ ÇØ¾ß¸¸ ÀÌº¥Æ®°¡ Àû¿ëµÇ´Â °æ¿ì! ¹æ¾È¿¡ PC¹æ À¯Àú°¡ ÀÖ´ÂÁö Ã¼Å©ÇÏÀÚ!
+		// PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô²ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ø¾ß¸ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½! ï¿½ï¿½È¿ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½!
 		if( m_bWithPlayPcBangEvent )
 		{
 			if( m_spRoomUserManager->IsExistPcBangPlayer() == false )
 			{
-				// µðÆúÆ®°ª ³Ö¾îÁØ´Ù!
+				// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½Ø´ï¿½!
 				m_iItemDropEventProbCount = REE_DROP_EVENT_PROB_DEFAULT;
 				m_bWithPlayPcBangEvent = false;
 			}
@@ -3780,13 +3784,13 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 		m_bWithPlayPcBangEvent = false;
 	}
 
-	// NotÆÐÅ¶¿¡ ÀúÀå
+	// Notï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	kNot.m_iItemDropEventProbCount = m_iItemDropEventProbCount;
 	kNot.m_bWithPlayPcBangEvent = m_bWithPlayPcBangEvent;
 #endif SERV_PC_BANG_DROP_EVENT
 	//}}	
 
-	//{{ 2013. 03. 18	 Äù½ºÆ® µå·Ó È®·ü Áõ°¡ ÀÌº¥Æ® - ±è¹Î¼º
+	//{{ 2013. 03. 18	 ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_QUEST_ITEM_DROP_EVENT
 	float fQuestItemDropEventProbRate = 0.f;
 	if( SiKGameEventManager()->CheckQuestItemDropProbEvent( fQuestItemDropEventProbRate ) == true )
@@ -3800,18 +3804,18 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 	//}
 
 	//////////////////////////////////////////////////////////////////////////	
-	//{{ 2010. 03. 24  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+	//{{ 2010. 03. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//#ifdef SERV_SECRET_HELL
 	//////////////////////////////////////////////////////////////////////////
 
 	//////////////////////////////////////////////////////////////////////////
-	// NPC UID ¹ß±Þ Ã³¸®!
+	// NPC UID ï¿½ß±ï¿½ Ã³ï¿½ï¿½!
 
-	//{{ 2009. 5. 13  ÃÖÀ°»ç	¼­ºê½ºÅ×ÀÌÁöº° drop npc¼ö
+	//{{ 2009. 5. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ê½ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ drop npcï¿½ï¿½
 	m_mapSubStageExpNpcNum.clear();
 	//}}
 
-	//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+	//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 #ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 	m_mapSubStageActiveNpcNum.clear();
 #endif SERV_SUB_STAGE_NPC_DIE_CHECK
@@ -3824,7 +3828,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 		KNPCList& kNPCList = mit->second;
 
 		//////////////////////////////////////////////////////////////////////////	
-		//{{ 2010. 7. 28  ÃÖÀ°»ç	¿ÀÅäÇÙ Â÷´Ü NPC
+		//{{ 2010. 7. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ NPC
 #ifdef SERV_AUTO_HACK_CHECK_NPC
 		if( kNPCList.m_NPCList.empty() == false )
 		{
@@ -3847,7 +3851,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 			}
 			else
 			{
-				// ÃâÇö À§Ä¡°¡ -1ÀÌ¸é ÀÌ¹Ì ÃâÇö °áÁ¤µÈ NPCÀÇ À§Ä¡¸¦ ÁÖÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ -1ï¿½Ì¸ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NPCï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				BOOST_TEST_FOREACH( const KNPCUnitReq&, kNpc, kNPCList.m_NPCList )
 				{
 					kNPCData.m_nStartPos = kNpc.m_nStartPos;
@@ -3863,7 +3867,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 		
 		int iExpNpcNum = 0;
 
-		//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+		//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 #ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 		int iSubStageActiveNpc = 0;
 #endif SERV_SUB_STAGE_NPC_DIE_CHECK
@@ -3873,17 +3877,17 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 		{
 			const KNPCUnitReq& kNpcInfo = kNPCList.m_NPCList[i];
 
-			// ¸ó½ºÅÍ »ý¼º!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			LIF( m_kDungeonMonsterManager.CreateMonster( kNpcInfo, kNPCList.m_NPCList[i].m_UID ) );
 			const int iNpcUID = kNPCList.m_NPCList[i].m_UID;
 
-			//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+			//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 			if( kNPCList.m_NPCList[i].m_NPCID == CXSLUnitManager::NUI_DEFENCE_CRYSTAL )
 			{
 				if( m_iDefenseMainCrystalNpcUID != 0 )
 				{
-					START_LOG( cerr, L"Å« ¼öÁ¤ÀÌ 1 º¸´Ù ¸¹´Ù? Àý´ë·Î ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+					START_LOG( cerr, L"Å« ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOG( m_iDefenseMainCrystalNpcUID )
 						<< BUILD_LOG( kNPCList.m_NPCList[i].m_NPCID )
 						<< END_LOG;
@@ -3897,7 +3901,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 			{
 				if( m_setDefenseSmallCrystalNpcUID.size() > MAX_SMALL_CRYSTAL )
 				{
-					START_LOG( cerr, L"ÀÛ ¼öÁ¤ÀÌ 4 º¸´Ù ¸¹´Ù? Àý´ë·Î ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+					START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 4 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOG( m_setDefenseSmallCrystalNpcUID.size() )
 						<< END_LOG;
 				}
@@ -3907,17 +3911,17 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				}
 			}
 #endif SERV_INSERT_GLOBAL_SERVER
-			//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+			//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
 			//////////////////////////////////////////////////////////////////////////			
-			//{{ 2009. 5. 13  ÃÖÀ°»ç	¼­ºê½ºÅ×ÀÌÁöº° °æÇèÄ¡ ÁÖ´Â npc¼ö
+			//{{ 2009. 5. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ê½ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Ö´ï¿½ npcï¿½ï¿½
 			if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 			{
 				if( SiKDropTable()->IsHenirExpDropNpc( static_cast<CXSLDungeon::DUNGEON_MODE>(m_cDungeonMode), kNpcInfo.m_NPCID ) == true  /*&&  !npcData.m_bNoDrop*/ )
 				{
 					iExpNpcNum++;
 				}
-				//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+				//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 #ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 				if( kNpcInfo.m_bActive == true )
 				{
@@ -3932,7 +3936,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 				{
 					iExpNpcNum++;
 				}
-				//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+				//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 #ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 				if( kNpcInfo.m_bActive == true )
 				{
@@ -3945,13 +3949,13 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 			//////////////////////////////////////////////////////////////////////////
 		}
 
-		// ÇØÅ· Ã¼Å©¸¦ À§ÇØ ¼­ºê ½ºÅ×ÀÌÁö NPCÁ¤º¸¸¦ µî·ÏÇÏÀÚ!
+		// ï¿½ï¿½Å· Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NPCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 		m_kDungeonMonsterManager.InsertSubStageNpcList( GetStageID(), iSubStageID, kNPCList.m_NPCList );
 
-		// drop npc¼ö
+		// drop npcï¿½ï¿½
 		m_mapSubStageExpNpcNum.insert( std::make_pair( iSubStageID, iExpNpcNum ) );
 
-		//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+		//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 #ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 		m_mapSubStageActiveNpcNum.insert( std::make_pair( iSubStageID, iExpNpcNum ) );
 #endif SERV_SUB_STAGE_NPC_DIE_CHECK
@@ -3959,20 +3963,20 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¼Ó¼ºNPC ¼¼ÆÃ - NPC UID¹ß±Þ°ú´Â °ü°è ¾ø½À´Ï´Ù.
+	// ï¿½Ó¼ï¿½NPC ï¿½ï¿½ï¿½ï¿½ - NPC UIDï¿½ß±Þ°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 	if( eStageType == CXSLDungeonStage::ST_EXTRA )
 	{
-		// Ã¹¹øÂ° Extra StageÁøÀÔÀÎ°¡?
+		// Ã¹ï¿½ï¿½Â° Extra Stageï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 		if( m_iExtraStageLoadCount == 1 )
 		{
-			// ¾ËÅ×¶ó ºñ´øÀÇ °æ¿ì¿¡¸¸ ÇÃ·¹ÀÌ ½Ã°£ ÃÊ±âÈ­!
+			// ï¿½ï¿½ï¿½×¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ê±ï¿½È­!
 			if( CXSLDungeon::IsAlteraDungeon( GetDungeonIDAndDif() ) == true )
 			{
-				// ³²Àº ½Ã°£ ÃÊ±âÈ­
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ê±ï¿½È­
 				SetRemainingPlayTime( GetPlayTimeLimit() );
 				BroadCast( ERM_REMAINING_PLAY_TIME_NOT, GetRemainingPlayTime() );
 
-				// EXTRA STAGE Àü¿ë µ¶´ë¹ÌÁö Å¸ÀÓÀ» ¾òÀÚ!
+				// EXTRA STAGE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				m_fPoisonTimeLimit = SiCXSLDungeonManager()->GetExtraStagePoisonTimeLimit( GetDungeonIDAndDif() );
 
 				KEGS_DUNGEON_EFFECT_REMAINING_TIME_NOT kNot;
@@ -3995,14 +3999,14 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 
 	BroadCast( ERM_DUNGEON_STAGE_LOAD_NOT, kNot );
 
-	//{{ 2012. 12. 03 ´øÀü ½ºÅ×ÀÌÁö Áßº¹ ·Îµù ¿¹¿Ü È®ÀÎ - ±è¹Î¼º
+	//{{ 2012. 12. 03 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_AUTO_HACK_CHECK_STAGE_LOAD_2
-	// DUNGEON_STAGE_LOAD_NOT ¸¦ º¸³»¾ßÁö µî·ÏÇÑ´Ù.
+	// DUNGEON_STAGE_LOAD_NOT ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	{
-		// ·ÎµùÇÏÁö ¾ÊÀº StageID¸¦ ÀúÀåÇÑ´Ù.
+		// ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ StageIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 		m_mapStageLoadingCheck.insert( std::make_pair( kPacket_.m_iStageID, 1 ) );
 
-		// ¸¶Áö¸·À¸·Î ·Îµù ¼º°øÇÑ À¯ÀúÀÇ UnitUID¸¦ ÀúÀå!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UnitUIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		m_iLastLoadingUnitUID = FIRST_SENDER_UID;
 	}
 #endif SERV_AUTO_HACK_CHECK_STAGE_LOAD_2
@@ -4015,7 +4019,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 
 //IMPL_ON_FUNC( ERM_LEAVE_ROOM_REQ )
 //{
-//	// ÀÇµµÀûÀÎ Leave Room Á÷ÈÄ Á¢¼ÓÀÌ ²÷°åÀ» ¶§ ÇÑ ¹ø ´õ Leave Room ÇÏ°Ô µÇ´Â °æ¿ì°¡ ÀÖ´Ù.
+//	// ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ Leave Room ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ Leave Room ï¿½Ï°ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ì°¡ ï¿½Ö´ï¿½.
 //	KEGS_LEAVE_ROOM_ACK kPacket;
 //	if( GetStateID() == KRoomFSM::S_INIT || GetStateID() == KRoomFSM::S_CLOSE )
 //	{
@@ -4024,12 +4028,12 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		return;
 //	}
 //
-//	// ÀÌÅ»ÀÚ ±â·Ï.
+//	// ï¿½ï¿½Å»ï¿½ï¿½ ï¿½ï¿½ï¿½.
 //	if( GetStateID() == KRoomFSM::S_LOAD || GetStateID() == KRoomFSM::S_PLAY )
 //	{
 //
-//		//=== °ÔÀÓÁß ÀÌÅ» °á°úÃ³¸® ===
-//		START_LOG( clog, L"=== DUNGEON GAME : °ÔÀÓÁß ÀÌÅ»½Ã °á°úÃ³¸® ===" )
+//		//=== ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å» ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ ===
+//		START_LOG( clog, L"=== DUNGEON GAME : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»ï¿½ï¿½ ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ ===" )
 //			<< BUILD_LOG( FIRST_SENDER_UID )
 //			<< END_LOG;
 //
@@ -4042,7 +4046,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //
 //		if( !spRoomUser )
 //		{
-//			START_LOG( cerr, L"·ë À¯Àú Æ÷ÀÎÅÍ ÀÌ»ó" )
+//			START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½" )
 //				<< BUILD_LOG( FIRST_SENDER_UID )
 //				<< END_LOG;
 //		}
@@ -4050,7 +4054,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		{
 //			if( spRoomUser->IsObserver() == false )
 //			{
-//				//Æ©Åä¸®¾ó ¸ðµåÀÌ¸é ÆÐ³ÎÆ¼°¡ ¾øÀ½..
+//				//Æ©ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½Ð³ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 //				int iEXP = 0;
 //				int iED = 0;
 //				if( CXSLDungeon::IsTutorialDungeon( m_iDungeonID ) == false )
@@ -4064,25 +4068,25 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //
 //					if( spRoomUser->IsDie() == true )
 //					{
-//						// ½Ç½Ã°£ °æÇèÄ¡
+//						// ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 //						m_spRoomUserManager->GetRewardEXP( FIRST_SENDER_UID, iEXP );
 //						m_spRoomUserManager->GetRewardPartyEXP( FIRST_SENDER_UID, iEXP );
 //
-//						//°³ÀÎº° ¾ÆÀÌÅÛ Á¤º¸ÁÖ±â
+//						//ï¿½ï¿½ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½
 //						m_spRoomUserManager->GetItemList( FIRST_SENDER_UID, kPacket.m_mapGetItem );
 //					}
 //					else
 //					{
-//						// EDÆä³ÎÆ¼
+//						// EDï¿½ï¿½ï¿½Æ¼
 //						SiKResultProcess()->Result_DUNGEON_BREAK( spRoomUser, kPacket );
 //					}
 //
-//					// [Áß¿ä] Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ ¹× ÇØÅ·À¸·Î ÀÎÇÑ ¹æ ÀÌÅ»ÀÏ °æ¿ì °ÔÀÓ¼­¹ö·Î º¸»óÆÐÅ¶À» º¸³»Áö ¾Ê½À´Ï´Ù!
+//					// [ï¿½ß¿ï¿½] Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½!
 //					if( kPacket_.m_iReason != NetError::NOT_LEAVE_ROOM_REASON_23 )
 //					{
 //						SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_UPDATE_DUNGEON_UNIT_INFO_NOT, kPacket );
 //
-//						//{{ 2009. 5. 14  ÃÖÀ°»ç	³»±¸µµ °³Æí
+//						//{{ 2009. 5. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //						KERM_DECREASE_ENDURANCE_DUNGEON_NOT kNot;
 //						kNot.m_iEnduranceDamage = CXSLDungeon::DE_LEAVE_ROOM_ENDURANCE_DAMAGE;
 //						kNot.m_cPartyNumMember  = kPacket.m_iUserCount;
@@ -4094,11 +4098,11 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //				}
 //
 //				//////////////////////////////////////////////////////////////////////////
-//				// ´øÀü ÀÏÀÏ ÀÌÅ» ·Î±×
-//				// ¿î¿µÀÚ´Â Åë°è¸¦ ³²±âÁö ¾Ê½À´Ï´Ù.
+//				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å» ï¿½Î±ï¿½
+//				// ï¿½î¿µï¿½Ú´ï¿½ ï¿½ï¿½è¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
 //				if( spRoomUser->GetAuthLevel() >= SEnum::UAL_GM )
 //				{
-//					START_LOG( cout, L"¿î¿µÀÚ´Â Åë°èµ¥ÀÌÅÍ¸¦ ³²±âÁö ¾Ê½À´Ï´Ù." )
+//					START_LOG( cout, L"ï¿½î¿µï¿½Ú´ï¿½ ï¿½ï¿½èµ¥ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." )
 //						<< BUILD_LOGc( spRoomUser->GetAuthLevel() )
 //						<< BUILD_LOG( spRoomUser->GetNickName() );
 //				}
@@ -4107,20 +4111,20 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //					KRoomUserInfo kInfo;
 //					spRoomUser->GetRoomUserInfo( kInfo );
 //
-//					int iClear = ( spRoomUser->IsDie() ? KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_DIE_LEAVE_ROOM : KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_ALIVE_LEAVE_ROOM ); // 2. Ä³¸¯ÅÍ Á×°í ÀÌÅ»   3. Ä³¸¯ÅÍ ¾ÈÁ×°í ÀÌÅ»	
+//					int iClear = ( spRoomUser->IsDie() ? KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_DIE_LEAVE_ROOM : KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_ALIVE_LEAVE_ROOM ); // 2. Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½×°ï¿½ ï¿½ï¿½Å»   3. Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½×°ï¿½ ï¿½ï¿½Å»	
 //
-//					if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_23 ) // 4. Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ ÀÌÅ»
+//					if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_23 ) // 4. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»
 //					{
 //						iClear = KE_LOCAL_LOG_DUNGEON_NOT::DCT_CLIENT_CRASH_LEAVE_ROOM;
 //					}
-//					else if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_25 ) // 5. Å¬¶óÀÌ¾ðÆ® ÇØÅ·À¸·Î ÀÎÇÑ ÀÌÅ»
+//					else if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_25 ) // 5. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»
 //					{
 //						iClear = KE_LOCAL_LOG_DUNGEON_NOT::DCT_CLIENT_HACKING_LEAVE_ROOM;
 //					}
 //
-//					//{{ 2010. 06. 21  ÃÖÀ°»ç	Åë°è ½º·¹µå
+//					//{{ 2010. 06. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 ////#ifdef SERV_STATISTICS_THREAD
-//					//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+//					//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 ////#ifdef SERV_DUNGEON_LOG_DB
 //					CTime kRegDate = CTime::GetCurrentTime();
 ////#endif SERV_DUNGEON_LOG_DB
@@ -4151,17 +4155,17 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //					kNot.m_iRessurectionStoneCount	= spRoomUser->GetRessurectionStoneCount();
 //					kNot.m_iPassedStageCount		= spRoomUser->GetPassedStageCount();
 //					kNot.m_iPassedSubStageCount		= spRoomUser->GetPassedSubStageCount();
-//					//{{ 2010. 9. 14	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//					//{{ 2010. 9. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_PET_SYSTEM
 //					kNot.m_bIsWithPet				= spRoomUser->HavePet();
 //#endif SERV_PET_SYSTEM
 //					//}}
-//					//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+//					//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 //#ifdef SERV_DUNGEON_LOG_DB
 //					kNot.m_wstrRegDate				= (const wchar_t*)kRegDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 //#endif SERV_DUNGEON_LOG_DB
 //					//}}
-//					//{{ 2011. 03. 16	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+//					//{{ 2011. 03. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_ADD_DUNGEON_LOG_COLUMN
 //					kNot.m_sNpcDieCount				= spRoomUser->GetKillNPC_LUA();
 //					kNot.m_iGivenDamage				= 0;
@@ -4172,7 +4176,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //					kNot.m_cPetEvoStep				= spRoomUser->GetPetEvolutionStep();
 //#endif SERV_ADD_DUNGEON_LOG_COLUMN
 //					//}}
-//					//{{ 2012. 04. 17	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+//					//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 //					kNot.m_iBaseHP					= spRoomUser->GetBaseHP_LUA();
 //					kNot.m_iEndHP					= spRoomUser->GetLastUpdatedHP();
@@ -4185,19 +4189,19 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //					kNot.m_wstrChannelIP			= spRoomUser->GetGameChannelIP();
 //#endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 //					//}}
-//					//{{ 2012. 07. 11 ±è¹Î¼º
+//					//{{ 2012. 07. 11 ï¿½ï¿½Î¼ï¿½
 //#ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_3
 //					kNot.m_iUserUID					= spRoomUser->GetUserUID();
 //#endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_3
 //					//}}
-//					//{{ 2012. 11. 6	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//					//{{ 2012. 11. 6	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //					kNot.m_cAutoPartyPlay			= ( IsStartedByAutoParty() ? 1 : 0 );
 //#endif SERV_BATTLE_FIELD_SYSTEM
 //					//}}
 //					KSIManager.QueueingEvent( E_LOCAL_LOG_DUNGEON_NOT, kNot );
 //					//////////////////////////////////////////////////////////////////////////
-//					//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+//					//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 ////#ifdef SERV_DUNGEON_LOG_DB
 //					SendToLogDB( DBE_DB_LOG_DUNGEON_NOT, kNot );
 ////#endif SERV_DUNGEON_LOG_DB
@@ -4207,7 +4211,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //				}
 //				//////////////////////////////////////////////////////////////////////////
 //
-//				//{{ 2007. 12. 18  ÃÖÀ°»ç  À¯Àú Åë°è [¼öÁ¤]
+//				//{{ 2007. 12. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [ï¿½ï¿½ï¿½ï¿½]
 //				KERM_DUNGEON_USER_STATISTICS_NOT kPacketNot;
 //				kPacketNot.m_iDungeonID	   = m_iDungeonID + static_cast<int>(m_cDifficultyLevel);
 //				kPacketNot.m_cGameResult   = KERM_DUNGEON_USER_STATISTICS_NOT::UGR_DROP;
@@ -4217,7 +4221,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_USER_STATISTICS_NOT, kPacketNot );
 //				//}}
 //
-//				//{{ 2007. 12. 25  ÃÖÀ°»ç  ºÎÈ°¼® Åë°è
+//				//{{ 2007. 12. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½
 //				if( m_spRoomUserManager->GetRessurectionStoneCount( FIRST_SENDER_UID ) > 0 )
 //				{
 //					KStatisticsKey kKey;
@@ -4231,15 +4235,15 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //
 //	kPacket.m_iOK = NetError::NET_OK;
 //
-//	//{{ 2011. 02. 21  ±è¹Î¼º	Æ¯Á¤ ´øÀü ÀÔÀå ¾ÆÀÌÅÛ ¹ö±× ¼öÁ¤
+//	//{{ 2011. 02. 21  ï¿½ï¿½Î¼ï¿½	Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //	//#ifdef SERV_DUNGEON_REQUIRED_ITEM_BUG
-//	//´øÀü°ÔÀÓ ÁøÇà¾ÆÀÌÅÛÀÌ ¾øÀ»°æ¿ì Ã³¸®..
+//	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½..
 //	if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_22 )
 //	{
 //		kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_22;
 //		kPacket.m_iItemID = kPacket_.m_iItemID;
 //	}
-//	//{{ 2011. 11. 1	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//	//{{ 2011. 11. 1	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //	else if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_27 )
 //	{
@@ -4256,10 +4260,10 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //	//#endif SERV_DUNGEON_REQUIRED_ITEM_BUG
 //	//}}
 //
-//	// ½½·Ô Á¤º¸ º¯°æ.
+//	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 //	if( !m_spRoomUserManager->LeaveRoom( FIRST_SENDER_UID ) )
 //	{
-//		// ½½·Ô¿¡¼­ ³ª°¡±â ½ÇÆÐ.
+//		// ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 //		kPacket.m_iOK = NetError::ERR_SLOT_04;
 //		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_LEAVE_ROOM_ACK, kPacket );
 //		return;
@@ -4271,7 +4275,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //
 //	if( IsEmpty() == false || IsEmpty( KRoomUserManager::UT_OBSERVER ) == false )
 //	{
-//		// ¹æÀÇ ¸ðµç À¯Àúµé¿¡°Ô ½½·Ô Á¤º¸¸¦ ³¯¸°´Ù.
+//		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 //		KEGS_LEAVE_ROOM_NOT kPacketNot;
 //		kPacketNot.m_cRoomState = GetStateID();
 //		kPacketNot.m_iUnitUID = FIRST_SENDER_UID;
@@ -4282,7 +4286,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //
 //	if( (GetStateID() == KRoomFSM::S_LOAD || GetStateID() == KRoomFSM::S_PLAY) && IsEmpty() == false )
 //	{
-//		//{{ 2010. 11. 23	ÃÖÀ°»ç	¹æ ·Îµù ¿À·ù ¼öÁ¤ - Å©·¡½¬ ¹®Á¦°¡ ÀÖ¾î¼­ Àû¿ëÀº º¸·ùÇÕ´Ï´Ù.
+//		//{{ 2010. 11. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾î¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
 //#ifdef SERV_ROOM_LOADING_BUG_FIX
 //		//////////////////////////////////////////////////////////////////////////
 //		if( GetStateID() == KRoomFSM::S_LOAD )
@@ -4291,11 +4295,11 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //			{
 //				BroadCastID( ERM_GAME_LOADING_ALL_UNIT_OK_NOT );
 //
-//				// ½ºÅ×ÀÌÁö¸¦ ÃÊ±âÈ­.
+//				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 //				StartPlay();
 //
 //				KEGS_PLAY_START_NOT kNot;
-//				//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+//				//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_CHAR_LOG
 //				kNot.m_iDungeonID = GetDungeonIDAndDif();
 //#endif SERV_CHAR_LOG
@@ -4303,13 +4307,13 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //				kNot.m_RoomState = GetStateID();
 //				GetRoomSlotInfo( kNot.m_vecSlot );
 //
-//				// ¸ðµç À¯Àú¿¡°Ô ÇÃ·¹ÀÌ ½ÃÀÛÀ» ¾Ë¸².
+//				// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½.
 //				BroadCast( ERM_PLAY_START_NOT, kNot );
 //
-//				// ¸ðµç °ÔÀÓ ¼­¹ö¿¡ ¹æ ¸®½ºÆ®¸¦ °»½ÅÇÏ¶ó°í ³¯¸°´Ù.
+//				// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 //				SendRoomListInfo( NetError::ERR_ROOM_15 );
 //
-//				//{{ 2009. 4. 23  ÃÖÀ°»ç	´ëÀüÀ¯Àú¸®½ºÆ®
+//				//{{ 2009. 4. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 //				SendAllPVPUserInfo();
 //				//}}
 //			}
@@ -4327,7 +4331,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		//}}
 //	}
 //
-//	// ½ºÅ×ÀÌÁö°¡ ³¡³ª°Ô µÇ´Â °æ¿ì Ã³¸®.
+//	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½.
 //	if( GetStateID() == KRoomFSM::S_PLAY && IsEmpty() == false )
 //	{
 //		if( CheckIfPlayEnd() )
@@ -4336,7 +4340,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		}
 //		else
 //		{
-//			//{{ 2009. 7. 27  ÃÖÀ°»ç	ºñ¹Ð½ºÅ×ÀÌÁö
+//			//{{ 2009. 7. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //			if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 //			{
 //				CheckEnterSecretStageSuccess();
@@ -4345,18 +4349,18 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		}
 //	}
 //
-//	//°á°úÃ¢À» º¸°íÀÖÀ»¶§ ¹æÀ» ³ª°¥°æ¿ìÃ³¸®
+//	//ï¿½ï¿½ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //	if( GetStateID() == KRoomFSM::S_RESULT && IsEmpty() == false )
 //	{
 //		CheckResultSuccess();
 //	}
 //
-//	// ¹æ¿¡¼­ ¸ðµç À¯Àú°¡ ³ª°¬À¸¸é ¹æÀ» ´Ý´Â´Ù.
+//	// ï¿½æ¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ý´Â´ï¿½.
 //	if( IsEmpty() == true && IsEmpty( KRoomUserManager::UT_OBSERVER ) == true )
 //	{
 //		StateTransition( KRoomFSM::I_TO_CLOSE );
 //
-//		//{{ 2010. 06. 21  ÃÖÀ°»ç	Åë°è ½º·¹µå
+//		//{{ 2010. 06. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_STATISTICS_THREAD
 //		CTime kEndGameTime = CTime::GetCurrentTime();
 //		//////////////////////////////////////////////////////////////////////////
@@ -4386,27 +4390,27 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //_IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //{
 //	//////////////////////////////////////////////////////////////////////////
-//	// »óÅÂ ¿À·ù ÄÉÀÌ½º
-//	// 1. S_RESULT : 2¸íÀÌ»ó ÆÄÆ¼ÇÃÁß ÇÑ¸í Á×Àº»óÅÂ¿¡¼­ ´Ù¸¥ ÇÑ¸íÀÌ ½ºÅ×ÀÌÁö Å¬¸®¾î¿Í µ¿½Ã¿¡ ´øÀüÀÌÅ»À» ÇÏ¸é ¹ß»ý
+//	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì½ï¿½
+//	// 1. S_RESULT : 2ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å»ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ß»ï¿½
 //	//////////////////////////////////////////////////////////////////////////
 //
 //	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_PLAY ), ERM_DUNGEON_STAGE_LOAD_ACK, KEGS_DUNGEON_STAGE_LOAD_ACK );
 //
-//	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_INSERT_GLOBAL_SERVER
-//	// µðÆæ½º ´øÀü¿ë ÃÊ±âÈ­
+//	// ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 //	m_iDefenseMainCrystalNpcUID = 0;
 //	m_setDefenseSmallCrystalNpcUID.clear();
 //#endif SERV_INSERT_GLOBAL_SERVER
-//	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //
-//	//{{ 2010. 11. 18	ÃÖÀ°»ç	¿ÀÅä ÇÙ ½ºÅ×ÀÌÁö ·Îµù Ã¼Å©
+//	//{{ 2010. 11. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ Ã¼Å©
 //#ifdef SERV_AUTO_HACK_CHECK_STAGE_LOAD
 //	{
 //		std::map< int, int >::iterator mitSLC = m_mapStageLoadingCheck.find( kPacket_.m_iStageID );
 //		if( mitSLC != m_mapStageLoadingCheck.end() )
 //		{
-//			START_LOG( cout, L"¶È°°Àº ½ºÅ×ÀÌÁö ¶Ç ·ÎµùÇß³×? ÀÌ°Å ±¦ÂúÀº°ÅÀÓ?" )
+//			START_LOG( cout, L"ï¿½È°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Îµï¿½ï¿½ß³ï¿½? ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?" )
 //				<< BUILD_LOG( LAST_SENDER_UID )
 //				<< BUILD_LOG( FIRST_SENDER_UID )
 //				<< BUILD_LOG( GetDungeonIDAndDif() )
@@ -4420,21 +4424,21 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //
 //			if( m_iLastLoadingUnitUID != FIRST_SENDER_UID )
 //			{
-//				START_LOG( cout, L"¹æÀåÀÌ ¹Ù²î¾ú³ª? ÀÌ Àü ½ºÅ×ÀÌÁö ·ÎµùÇÑ À¯Àú¿Í ´Ù¸¥ À¯Àú±º.." )					
+//				START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.." )					
 //					<< BUILD_LOG( FIRST_SENDER_UID )
 //					<< BUILD_LOG( m_iLastLoadingUnitUID );
 //			}
 //
-//			// µ¿ÀÏ ½ºÅ×ÀÌÁö ·Îµù Ä«¿îÆ®¸¦ 1 ¿Ã¸®ÀÚ!
+//			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ Ä«ï¿½ï¿½Æ®ï¿½ï¿½ 1 ï¿½Ã¸ï¿½ï¿½ï¿½!
 //			++mitSLC->second;
 //
-//			// ¸¶Áö¸·À¸·Î ·Îµù ¼º°øÇÑ À¯ÀúÀÇ UnitUID¸¦ ÀúÀå!
+//			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UnitUIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //			m_iLastLoadingUnitUID = FIRST_SENDER_UID;
 //
-//			// 5¹ø ÀÌ»ó ¶È°°Àº ½ºÅ×ÀÌÁö ·ÎµùÇÏ´Â °æ¿ì¶ó¸é ÇØÅ·À¯Àú·Î ÆÇº°!
+//			// 5ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½È°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Çºï¿½!
 //			if( mitSLC->second >= 5 )
 //			{
-//				START_LOG( cout, L"Stage Loading ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+//				START_LOG( cout, L"Stage Loading ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 //					<< BUILD_LOG( LAST_SENDER_UID )
 //					<< BUILD_LOG( FIRST_SENDER_UID )
 //					<< BUILD_LOG( GetDungeonIDAndDif() )
@@ -4446,7 +4450,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //				kPacket.m_iOK = NetError::ERR_ROOM_22;
 //				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_STAGE_LOAD_ACK, kPacket );
 //
-//				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
+//				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 //				KEGS_SERVER_CHECK_HACK_USER_NOT kNot;
 //				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_NOT::HCT_DUNGEON_STAGE_LOADING;
 //				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
@@ -4455,24 +4459,24 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		}
 //		else
 //		{
-//			// ·ÎµùÇÏÁö ¾ÊÀº StageID¸¦ ÀúÀåÇÑ´Ù.
+//			// ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ StageIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 //			m_mapStageLoadingCheck.insert( std::make_pair( kPacket_.m_iStageID, 1 ) );
 //
-//			// ¸¶Áö¸·À¸·Î ·Îµù ¼º°øÇÑ À¯ÀúÀÇ UnitUID¸¦ ÀúÀå!
+//			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UnitUIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //			m_iLastLoadingUnitUID = FIRST_SENDER_UID;
 //		}
 //	}	
 //#endif SERV_AUTO_HACK_CHECK_STAGE_LOAD
 //	//}}
 //
-//	//·Îµù½Ã°£ Ã¼Å©¸¦ ½ÃÀÛÇÔ..
-//	//ÀÌ°÷¿¡¼­ ½ÃÀÛÀ» ÇÒ°æ¿ì 2°¡ÁöÀÇ °æ¿ì¿¡ ·Îµù½Ã°£À» Ã¼Å©ÇÏ°Ô µÈ´Ù.
-//	//::1. °ÔÀÓÃÊ±â ·Îµù½Ã
-//	//::2. ½ºÅ×ÀÌÁö ·Îµù
-//	//## Àå¸··ÎµùÀº »©±â·Î ÇÔ.
+//	//ï¿½Îµï¿½ï¿½Ã°ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
+//	//ï¿½Ì°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½ 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ ï¿½Îµï¿½ï¿½Ã°ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï°ï¿½ ï¿½È´ï¿½.
+//	//::1. ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ ï¿½Îµï¿½ï¿½ï¿½
+//	//::2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½
+//	//## ï¿½å¸·ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½.
 //	m_LoadingTimer.Start();
 //
-//	//{{ 2010. 03. 24  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+//	//{{ 2010. 03. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SECRET_HELL
 //	const CXSLDungeonStage::STAGE_TYPE eStageType = SiCXSLDungeonManager()->GetStageType( GetDungeonIDAndDif(), kPacket_.m_iStageID );
 //#endif SERV_SECRET_HELL
@@ -4483,11 +4487,11 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //
 //	int iHighestUserLevelAtDungeonStart = m_iHighestUserLevelAtDungeonStart;
 //
-//	//{{ 2010. 03. 24  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+//	//{{ 2010. 03. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SECRET_HELL
 //	if( m_eDungeonType == CXSLDungeon::DT_SECRET )
 //	{
-//		// ºñ¹Ð´øÀüÀÇ °æ¿ì ·¹º§ º¸Á¤ Àû¿ë
+//		// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //		{
 //			const int iDungeonMinLevel = SiCXSLDungeonManager()->GetDungeonMinLevel( GetDungeonIDAndDif() );
 //			if( iHighestUserLevelAtDungeonStart < iDungeonMinLevel )
@@ -4504,7 +4508,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //
 //		if( m_cDungeonMode == CXSLDungeon::DM_SECRET_HELL )
 //		{
-//			// ºñ¹Ð´øÀü Çï¸ðµå EXTRA STAGE
+//			// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EXTRA STAGE
 //			if( eStageType == CXSLDungeonStage::ST_EXTRA )
 //			{
 //				// Extra Stage Load Count
@@ -4512,7 +4516,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //
 //				iHighestUserLevelAtDungeonStart = iHighestUserLevelAtDungeonStart + 5 + SiCXSLDungeonManager()->GetSecretDungeonExtraStageNpcLevel();
 //			}
-//			// ºñ¹Ð´øÀü Çï¸ðµå
+//			// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //			else
 //			{
 //				iHighestUserLevelAtDungeonStart = iHighestUserLevelAtDungeonStart + 5;
@@ -4520,7 +4524,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		}
 //	}
 //#endif SERV_SECRET_HELL
-//	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_INSERT_GLOBAL_SERVER
 //	else
 //	{
@@ -4534,12 +4538,12 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		}
 //	}
 //#endif SERV_INSERT_GLOBAL_SERVER
-//	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //
-//	// º¸½º ½ºÅ×ÀÌÁö ¿©ºÎ
+//	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //	bool bIsBossStage = false;
 //
-//	// NPCÁ¤º¸ ºÒ·¯¿À±â!
+//	// NPCï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½!
 //	if( SiCXSLDungeonManager()->GetNPCData( GetDungeonIDAndDif(), kPacket_.m_iStageID, iHighestUserLevelAtDungeonStart, kNot, bIsBossStage ) == false )
 //	{
 //		kPacket.m_iOK = NetError::ERR_ROOM_22;
@@ -4548,68 +4552,68 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //	}
 //	else
 //	{
-//		// Á¤»óÀûÀÎ StageID¶ó°í ÆÇ´ÜµÇ¸é ÇöÀç ½ºÅ×ÀÌÁöID Á¤º¸·Î ¾÷µ¥ÀÌÆ® ÇÏÀÚ!
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ StageIDï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
 //		SetStageID( kPacket_.m_iStageID );
 //
-//		// Á¤»óÀûÀÎ StageID°ªÀÌ¹Ç·Î Å¬¶óÀÌ¾ðÆ®·Î OK°ª º¸³¿.
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ StageIDï¿½ï¿½ï¿½Ì¹Ç·ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ OKï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 //		kPacket.m_iOK = NetError::NET_OK;
 //		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_STAGE_LOAD_ACK, kPacket );
 //	}
 //	//}}	
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	//{{ 2010. 07. 16  ÃÖÀ°»ç	ÀÌº¥Æ® ¸ó½ºÅÍ ½Ã½ºÅÛ	
+//	//{{ 2010. 07. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½	
 //#ifdef SERV_EVENT_MONSTER
 //	if( CXSLDungeon::IsTutorialDungeon( GetDungeonID() ) == false  &&
 //		CXSLDungeon::IsTCDungeon( GetDungeonID() ) == false  &&
 //		CXSLDungeon::IsHenirDungeon( GetDungeonID() ) == false 
-//		//{{ 2011. 07. 25    ±è¹Î¼º    ÀÌº¥Æ® ¸ó½ºÅÍ ÃâÇö ´øÀü Á¦ÇÑ
+//		//{{ 2011. 07. 25    ï¿½ï¿½Î¼ï¿½    ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_EVENT_MONSTER_DUNGEON_RESTRICT
-//		&& CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == false    // µðÆæ½º ´øÀü¿¡´Â ÀÌº¥Æ® ¸ó½ºÅÍ°¡ ÃâÇöÇÏÁö ¾Êµµ·ÏÇÑ´Ù.
+//		&& CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == false    // ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 //#endif SERV_EVENT_MONSTER_DUNGEON_RESTRICT
 //		//}} 
 //		)
 //	{
 //		BOOST_TEST_FOREACH( KGameEventScriptManager::KAdventNpcEventInfo&, kInfo, m_vecEventMonster )
 //		{
-//			// º¸½º ½ºÅ×ÀÌÁö¿¡¼­ µîÀå ½ÃÅ³Áö Ã¼Å©!
+//			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ Ã¼Å©!
 //			if( kInfo.m_bIsAdventInBossStage == false  &&  bIsBossStage == true )
 //				continue;
 //
-//			// ´õÀÌ»ó ÃâÇö ½ÃÅ³ Ä«¿îÆ®°¡ ³²¾ÆÀÖÁö ¾Ê´Ù¸é ÆÐ½º!
+//			// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½ ï¿½Ð½ï¿½!
 //			if( kInfo.m_iMonsterDropCount <= 0 )
 //				continue;
 //
-//			// µîÀåÇÒ ¼ö ÀÖ´Â ´øÀüÀÎÁö Ã¼Å©!
+//			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 //			if( kInfo.m_setAdventDungeon.empty() == false )
 //			{
 //				if( kInfo.m_setAdventDungeon.find( GetDungeonID() ) == kInfo.m_setAdventDungeon.end() )
 //					continue;
 //			}
 //
-//			// µîÀå ÇÏ¸é ¾ÈµÇ´Â ´øÀüÀÎÁö Ã¼Å©!
+//			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 //			if( kInfo.m_setNoAdventDungeon.empty() == false )
 //			{
 //				if( kInfo.m_setNoAdventDungeon.find( GetDungeonID() ) != kInfo.m_setNoAdventDungeon.end() )
 //					continue;
 //			}
 //
-//			// µîÀå ÇÏ¸é ¾ÈµÇ´Â ½ºÅ×ÀÌÁö ÀÎÁö Ã¼Å©!
+//			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 //			if( kInfo.m_setNoAdventStage.empty() == false )
 //			{
 //				if( kInfo.m_setNoAdventStage.find( GetStageID() ) != kInfo.m_setNoAdventStage.end() )				
 //					continue;
 //			}
 //
-//			// µîÀåÇÒ ¸ó½ºÅÍ¸¦ °áÁ¤ÇÏÀÚ!
+//			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 //			const int iAdventNpcID = kInfo.m_kAdventNpcLot.Decision();
 //			if( iAdventNpcID == KLottery::CASE_BLANK )
 //				continue;
 //
-//			// ÀÌº¥Æ® ¸ó½ºÅÍ µîÀå Ã³¸®!
+//			// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!
 //			if( EventDropMonster( iAdventNpcID, GetStageID(), kNot ) == true )
 //			{
-//				// ¸ó½ºÅÍ µîÀå ¼º°øÇß´Ù¸é Ä«¿îÆ® ÇÏ³ª ±ðÀÚ!
+//				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´Ù¸ï¿½ Ä«ï¿½ï¿½Æ® ï¿½Ï³ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //				--kInfo.m_iMonsterDropCount;
 //			}
 //		}
@@ -4617,7 +4621,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //#endif SERV_EVENT_MONSTER
 //	//////////////////////////////////////////////////////////////////////////
 //
-//	//{{ 2010. 11. 20	ÃÖÀ°»ç	Æ¯Á¤ ½Ã°¢ ¸ó½ºÅÍ ÃâÇö
+//	//{{ 2010. 11. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_TIME_DROP_MONSTER_EVENT
 //	if( CXSLDungeon::IsTutorialDungeon( GetDungeonID() ) == false  &&
 //		CXSLDungeon::IsTCDungeon( GetDungeonID() ) == false  &&
@@ -4636,27 +4640,27 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //#endif SERV_TIME_DROP_MONSTER_EVENT
 //	//}}
 //
-//	//{{ 2010. 03. 21  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+//	//{{ 2010. 03. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SECRET_HELL
 //
 //	if( m_cDungeonMode == CXSLDungeon::DM_SECRET_HELL  &&  eStageType == CXSLDungeonStage::ST_EXTRA_NPC )
 //	{
-//		// ºñ¹Ð´øÀü extra ¸ó½ºÅÍ µîÀå Ã³¸®
+//		// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ extra ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 //		SecretDungeonExtraStageMonster( GetStageID(), kPacket_.m_cPartyFever, kNot );
 //	}
 //#endif SERV_SECRET_HELL
 //	//}}
 //
-//	//{{ 2010. 07. 09  ÃÖÀ°»ç	µå·Ó·ü ÀÌº¥Æ® È®Àå
+//	//{{ 2010. 07. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ó·ï¿½ ï¿½Ìºï¿½Æ® È®ï¿½ï¿½
 //#ifdef SERV_PC_BANG_DROP_EVENT	
 //	if( SiKGameEventManager()->CheckItemDropProbEvent( m_iItemDropEventProbCount, m_bWithPlayPcBangEvent ) == true )
 //	{
-//		// PC¹æ À¯Àú¿Í ÇÔ²² ÇÃ·¹ÀÌ ÇØ¾ß¸¸ ÀÌº¥Æ®°¡ Àû¿ëµÇ´Â °æ¿ì! ¹æ¾È¿¡ PC¹æ À¯Àú°¡ ÀÖ´ÂÁö Ã¼Å©ÇÏÀÚ!
+//		// PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô²ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ø¾ß¸ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½! ï¿½ï¿½È¿ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½!
 //		if( m_bWithPlayPcBangEvent )
 //		{
 //			if( m_spRoomUserManager->IsExistPcBangPlayer() == false )
 //			{
-//				// µðÆúÆ®°ª ³Ö¾îÁØ´Ù!
+//				// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½Ø´ï¿½!
 //				m_iItemDropEventProbCount = REE_DROP_EVENT_PROB_DEFAULT;
 //				m_bWithPlayPcBangEvent = false;
 //			}
@@ -4668,27 +4672,27 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		m_bWithPlayPcBangEvent = false;
 //	}
 //
-//	// NotÆÐÅ¶¿¡ ÀúÀå
+//	// Notï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //	kNot.m_iItemDropEventProbCount = m_iItemDropEventProbCount;
 //	kNot.m_bWithPlayPcBangEvent = m_bWithPlayPcBangEvent;
 //#endif SERV_PC_BANG_DROP_EVENT
 //	//}}	
 //
 //	//////////////////////////////////////////////////////////////////////////	
-//	//{{ 2010. 03. 24  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+//	//{{ 2010. 03. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //	//#ifdef SERV_SECRET_HELL
 //	//////////////////////////////////////////////////////////////////////////
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// NPC UID ¹ß±Þ Ã³¸®!
+//	// NPC UID ï¿½ß±ï¿½ Ã³ï¿½ï¿½!
 //
 //	NPC_DATA	npcData;
 //
-//	//{{ 2009. 5. 13  ÃÖÀ°»ç	¼­ºê½ºÅ×ÀÌÁöº° drop npc¼ö
+//	//{{ 2009. 5. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ê½ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ drop npcï¿½ï¿½
 //	m_mapSubStageExpNpcNum.clear();
 //	//}}
 //
-//	//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+//	//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 //#ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 //	m_mapSubStageActiveNpcNum.clear();
 //#endif SERV_SUB_STAGE_NPC_DIE_CHECK
@@ -4701,7 +4705,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		KNPCList& kNPCList = mit->second;
 //
 //		//////////////////////////////////////////////////////////////////////////	
-//		//{{ 2010. 7. 28  ÃÖÀ°»ç	¿ÀÅäÇÙ Â÷´Ü NPC
+//		//{{ 2010. 7. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ NPC
 //#ifdef SERV_AUTO_HACK_CHECK_NPC
 //		if( kNPCList.m_NPCList.empty() == false )
 //		{
@@ -4724,7 +4728,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //			}
 //			else
 //			{
-//				// ÃâÇö À§Ä¡°¡ -1ÀÌ¸é ÀÌ¹Ì ÃâÇö °áÁ¤µÈ NPCÀÇ À§Ä¡¸¦ ÁÖÀÚ!
+//				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ -1ï¿½Ì¸ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NPCï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //				BOOST_TEST_FOREACH( const KNPCUnitReq&, kNpc, kNPCList.m_NPCList )
 //				{
 //					kNPCData.m_nStartPos = kNpc.m_nStartPos;
@@ -4737,12 +4741,12 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		//}}
 //		//////////////////////////////////////////////////////////////////////////
 //
-//		//{{ 2009. 12. 29  ÃÖÀ°»ç	NPCKILLALLÇØÅ·¹æÁö
+//		//{{ 2009. 12. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	NPCKILLALLï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½
 //		SUB_STAGE_NPC_INFO sSubStageNpcInfo;
 //		//}}
 //		int iExpNpcNum = 0;
 //
-//		//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+//		//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 //#ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 //		int iSubStageActiveNpc = 0;
 //#endif SERV_SUB_STAGE_NPC_DIE_CHECK
@@ -4750,31 +4754,31 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //		
 //		for( int i = 0; i < (int)kNPCList.m_NPCList.size(); ++i )
 //		{
-//			// 1. NPC UID ¹ß±Þ
+//			// 1. NPC UID ï¿½ß±ï¿½
 //			const int nNPCUID = m_nNPCUID++;
 //
-//			// 2. NPC UID ÀúÀå
+//			// 2. NPC UID ï¿½ï¿½ï¿½ï¿½
 //			kNPCList.m_NPCList[i].m_UID = nNPCUID;
 //
-//			// 3. NPC(Monster) °ü¸®¸¦ À§ÇÑ data º¸°ü
+//			// 3. NPC(Monster) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ data ï¿½ï¿½ï¿½ï¿½
 //			npcData.m_bDie		= false;
 //			npcData.m_cLevel	= kNPCList.m_NPCList[i].m_Level;
 //			npcData.m_iNPCID	= kNPCList.m_NPCList[i].m_NPCID;
 //			npcData.m_bActive	= kNPCList.m_NPCList[i].m_bActive;
 //			npcData.m_bNoDrop	= kNPCList.m_NPCList[i].m_bNoDrop;
-//			npcData.m_bIsBoss	= ( kNPCList.m_NPCList[i].m_cMonsterGrade == CXSLUnitManager::MG_BOSS_NPC );	// ¸ó½ºÅÍ µî±ÞÀ¸·Î º¸½º¸ó½ºÅÍÀÎÁö Ã¼Å©.
-//			//npcData.m_bIsBoss	= kNPCList.m_NPCList[i].m_bHasBossGage;	//º¸½º¸ó½ºÅÍÀÎÁö Ã¼Å©.
-//			//{{ 2009. 12. 18  ÃÖÀ°»ç	´øÀü°æÇèÄ¡°³Æí
-//			npcData.m_cMonsterGrade = kNPCList.m_NPCList[i].m_cMonsterGrade; //ÀÏ¹Ý¸÷ÀÎÁö Áß°£º¸½ºÀÎÁö º¸½ºÀÎÁö Ã¼Å©.
+//			npcData.m_bIsBoss	= ( kNPCList.m_NPCList[i].m_cMonsterGrade == CXSLUnitManager::MG_BOSS_NPC );	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©.
+//			//npcData.m_bIsBoss	= kNPCList.m_NPCList[i].m_bHasBossGage;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©.
+//			//{{ 2009. 12. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½
+//			npcData.m_cMonsterGrade = kNPCList.m_NPCList[i].m_cMonsterGrade; //ï¿½Ï¹Ý¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©.
 //			//}}
 //
-//			//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//			//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_INSERT_GLOBAL_SERVER
 //			if( kNPCList.m_NPCList[i].m_NPCID == CXSLUnitManager::NUI_DEFENCE_CRYSTAL )
 //			{
 //				if( m_iDefenseMainCrystalNpcUID != 0 )
 //				{
-//					START_LOG( cerr, L"Å« ¼öÁ¤ÀÌ 1 º¸´Ù ¸¹´Ù? Àý´ë·Î ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+//					START_LOG( cerr, L"Å« ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //						<< BUILD_LOG( m_iDefenseMainCrystalNpcUID )
 //						<< BUILD_LOG( kNPCList.m_NPCList[i].m_NPCID )
 //						<< END_LOG;
@@ -4788,7 +4792,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //			{
 //				if( m_setDefenseSmallCrystalNpcUID.size() > MAX_SMALL_CRYSTAL )
 //				{
-//					START_LOG( cerr, L"ÀÛ ¼öÁ¤ÀÌ 4 º¸´Ù ¸¹´Ù? Àý´ë·Î ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+//					START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 4 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //						<< BUILD_LOG( m_setDefenseSmallCrystalNpcUID.size() )
 //						<< END_LOG;
 //				}
@@ -4798,11 +4802,11 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //				}
 //			}
 //#endif SERV_INSERT_GLOBAL_SERVER
-//			//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//			//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //
 //			m_mapNPCData.insert( std::make_pair( nNPCUID, npcData ) );
 //			
-//			// 4. NPCKILLALLÇØÅ·¹æÁö
+//			// 4. NPCKILLALLï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½
 //			if( npcData.m_cMonsterGrade == CXSLUnitManager::MG_BOSS_NPC )
 //			{
 //				sSubStageNpcInfo.m_setBossNpcUID.insert( nNPCUID );
@@ -4817,14 +4821,14 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //			}
 //
 //			//////////////////////////////////////////////////////////////////////////			
-//			//{{ 2009. 5. 13  ÃÖÀ°»ç	¼­ºê½ºÅ×ÀÌÁöº° °æÇèÄ¡ ÁÖ´Â npc¼ö
+//			//{{ 2009. 5. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ê½ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Ö´ï¿½ npcï¿½ï¿½
 //			if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 //			{
 //				if( SiKDropTable()->IsHenirExpDropNpc( static_cast<CXSLDungeon::DUNGEON_MODE>(m_cDungeonMode), npcData.m_iNPCID ) == true  /*&&  !npcData.m_bNoDrop*/ )
 //				{
 //					iExpNpcNum++;
 //				}
-//				//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+//				//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 //#ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 //				if( npcData.m_bActive == true )
 //				{
@@ -4839,7 +4843,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //				{
 //					iExpNpcNum++;
 //				}
-//				//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+//				//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 //#ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 //				if( npcData.m_bActive == true )
 //				{
@@ -4852,15 +4856,15 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //			//////////////////////////////////////////////////////////////////////////
 //		}
 //
-//		//{{ 2009. 12. 29  ÃÖÀ°»ç	NPCKILLALLÇØÅ·¹æÁö
+//		//{{ 2009. 12. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	NPCKILLALLï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½
 //		KSubStageKey kSubStageKey( kNot.m_iStageID, iSubStageID );
 //		m_mapSubStageNpcInfo.insert( std::make_pair( kSubStageKey, sSubStageNpcInfo ) );
 //		//}}
 //
-//		// drop npc¼ö
+//		// drop npcï¿½ï¿½
 //		m_mapSubStageExpNpcNum.insert( std::make_pair( iSubStageID, iExpNpcNum ) );
 //
-//		//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+//		//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 //#ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 //		m_mapSubStageActiveNpcNum.insert( std::make_pair( iSubStageID, iExpNpcNum ) );
 //#endif SERV_SUB_STAGE_NPC_DIE_CHECK
@@ -4868,20 +4872,20 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //	}
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// ¼Ó¼ºNPC ¼¼ÆÃ - NPC UID¹ß±Þ°ú´Â °ü°è ¾ø½À´Ï´Ù.
+//	// ï¿½Ó¼ï¿½NPC ï¿½ï¿½ï¿½ï¿½ - NPC UIDï¿½ß±Þ°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 //	if( eStageType == CXSLDungeonStage::ST_EXTRA )
 //	{
-//		// Ã¹¹øÂ° Extra StageÁøÀÔÀÎ°¡?
+//		// Ã¹ï¿½ï¿½Â° Extra Stageï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 //		if( m_iExtraStageLoadCount == 1 )
 //		{
-//			// ¾ËÅ×¶ó ºñ´øÀÇ °æ¿ì¿¡¸¸ ÇÃ·¹ÀÌ ½Ã°£ ÃÊ±âÈ­!
+//			// ï¿½ï¿½ï¿½×¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ê±ï¿½È­!
 //			if( CXSLDungeon::IsAlteraDungeon( GetDungeonIDAndDif() ) == true )
 //			{
-//				// ³²Àº ½Ã°£ ÃÊ±âÈ­
+//				// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ê±ï¿½È­
 //				SetRemainingPlayTime( GetPlayTimeLimit() );
 //				BroadCast( ERM_REMAINING_PLAY_TIME_NOT, GetRemainingPlayTime() );
 //
-//				// EXTRA STAGE Àü¿ë µ¶´ë¹ÌÁö Å¸ÀÓÀ» ¾òÀÚ!
+//				// EXTRA STAGE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //				m_fPoisonTimeLimit = SiCXSLDungeonManager()->GetExtraStagePoisonTimeLimit( GetDungeonIDAndDif() );
 //
 //				KEGS_DUNGEON_EFFECT_REMAINING_TIME_NOT kNot;
@@ -4910,7 +4914,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_REQ, KEGS_DUNGEON_STAGE_LOAD_REQ )
 //////////////////////////////////////////////////////////////////////////
 //}}
 
-//{{ ÀÌº¥Æ® ¸ó½ºÅÍ ÃâÇö ( ¾Æ±º ¸ó½ºÅÍ	) - ±è¹Î¼º
+//{{ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½Æ±ï¿½ ï¿½ï¿½ï¿½ï¿½	) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ALLY_EVENT_MONSTER
 #ifdef SERV_ACTIVE_EVENT_MONSTER
 bool KDungeonRoom::EventDropMonster( IN int iNpcID, IN bool bAllyNpc, IN int iStageID, IN bool bActiveNpc, IN OUT KEGS_DUNGEON_STAGE_LOAD_NOT& kNot )
@@ -4922,10 +4926,10 @@ bool KDungeonRoom::EventDropMonster( IN int iNpcID, IN int iStageID, IN OUT KEGS
 #endif SERV_ALLY_EVENT_MONSTER
 //}}
 {
-	// µîÀåÇÏ´Â ¸ó½ºÅÍ°¡ ÇÑ¸¶¸®µµ ¾øÀ¸¸é ÀÌº¥Æ® ¸ó½ºÅÍµµ ÃâÇö½ÃÅ°Áö ¾Ê´Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 	if( kNot.m_mapNPCData.size() <= 0 )
 	{
-		START_LOG( cerr, L"ÀÌº¥Æ® ¸ó½ºÅÍ ÃâÇö °áÁ¤Áß ¸ó½ºÅÍ Á¤º¸°¡ ¾ø´Ù?" )
+		START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 			<< BUILD_LOG( iNpcID )
 			<< BUILD_LOG( iStageID )
 			<< BUILD_LOG( kNot.m_mapNPCData.size() )
@@ -4933,7 +4937,7 @@ bool KDungeonRoom::EventDropMonster( IN int iNpcID, IN int iStageID, IN OUT KEGS
 		return false;
 	}
 
-	// ¸î¹øÂ° SubStage¿¡ µîÀå½ÃÅ³Áö ·£´ýÇÏ°Ô °áÁ¤!
+	// ï¿½ï¿½ï¿½Â° SubStageï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	int iRandomSubStage = rand() % static_cast<int>(kNot.m_mapNPCData.size());
 
 	std::map< int, KNPCList >::const_iterator mit;
@@ -4948,13 +4952,13 @@ bool KDungeonRoom::EventDropMonster( IN int iNpcID, IN int iStageID, IN OUT KEGS
 		++iSubStageCount;
 	}
 
-	// ·£´ýÀ¸·Î ÀÌº¥Æ® ¸ó½ºÅÍ µå·Ó
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	bool bEventMonDrop = false;
 	if( ( rand() % 2 ) == 0 )
 	{
 		bEventMonDrop = true;
 	}
-	// ·£´ýÀ¸·Î µå·ÓÇÏÁö ¸øÇßÀ» °æ¿ì º¸½º ½ºÅ×ÀÌÁö¿¡¼­ ¹«Á¶°Ç µå·ÓÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	else
 	{
 		std::map< int, KNPCList >::const_iterator mit;
@@ -4991,7 +4995,7 @@ bool KDungeonRoom::EventDropMonster( IN int iNpcID, IN int iStageID, IN OUT KEGS
 		kNPCData.m_AddPos.x			= 0.0f;
 		kNPCData.m_AddPos.y			= 0.0f;
 		kNPCData.m_AddPos.z			= 0.0f;
-		//{{ 2012. 05. 10	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+		//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
 		kNPCData.m_Level			= SiCXSLDungeonManager()->GetDungeonNpcLevel( m_iDungeonID );
 #else
@@ -5006,7 +5010,7 @@ bool KDungeonRoom::EventDropMonster( IN int iNpcID, IN int iStageID, IN OUT KEGS
 		kNPCData.m_bNoDrop			= false;
 		kNPCData.m_fUnitScale		= -1.0f;
 
-		//{{ ÀÌº¥Æ® ¸ó½ºÅÍ ÃâÇö ( ¾Æ±º ¸ó½ºÅÍ	) - ±è¹Î¼º
+		//{{ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½Æ±ï¿½ ï¿½ï¿½ï¿½ï¿½	) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ALLY_EVENT_MONSTER
 		kNPCData.m_cTeamNum = ( bAllyNpc == true ) ? CXSLRoom::TN_RED : CXSLRoom::TN_MONSTER;
 		kNPCData.m_cAIType = ( bAllyNpc == true ) ? CXSLUnit::NAT_ALLY : CXSLUnit::NAT_NORMAL;
@@ -5014,7 +5018,7 @@ bool KDungeonRoom::EventDropMonster( IN int iNpcID, IN int iStageID, IN OUT KEGS
 #endif SERV_ALLY_EVENT_MONSTER
 		//}}
 
-		//{{ 2008. 9. 12  ÃÖÀ°»ç	npc¾ø´Â ½ºÅ×ÀÌÁö¸é?
+		//{{ 2008. 9. 12  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	npcï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?
 		if( kNPCData.m_nStartPos == -1 )
 		{
 			bEventMonDrop = false;
@@ -5029,7 +5033,7 @@ bool KDungeonRoom::EventDropMonster( IN int iNpcID, IN int iStageID, IN OUT KEGS
 	return bEventMonDrop;
 }
 
-//{{ 2012. 02. 28	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 02. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KDungeonRoom::SecretDungeonExtraStageMonster( IN const int iStageID, IN const short sPartyFever, IN OUT KEGS_DUNGEON_STAGE_LOAD_NOT& kNot )
 #else
@@ -5037,28 +5041,28 @@ void KDungeonRoom::SecretDungeonExtraStageMonster( IN int iStageID, IN char cPar
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 {
-	// ÀÌ¹Ì µîÀåÇÑÀûÀÌ ÀÖ´Ù¸é?
+	// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½?
 	if( m_bAdventExtraNpc == true )
 		return;
 
 	if( kNot.m_mapNPCData.size() <= 0 )
 	{
-		START_LOG( cerr, L"ÀÌº¥Æ® ¸ó½ºÅÍ ÃâÇö °áÁ¤Áß ¸ó½ºÅÍ Á¤º¸°¡ ¾ø´Ù?" )
+		START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 			<< BUILD_LOG( iStageID )
 			<< BUILD_LOG( kNot.m_mapNPCData.size() )
 			<< END_LOG;
 		return;
 	}
 
-	// µîÀåÇÒÁö ¾ÈÇÒÁö °áÁ¤
-	//{{ 2012. 05. 10	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
 	const char cLevel = static_cast<char>(GetAverageUserLevelAtDungeonStart());
 #else
 	const char cLevel = static_cast<char>(m_iHighestUserLevelAtDungeonStart);
 #endif SERV_DUNGEON_NPC_LEVEL
 	//}}	
-	//{{ 2012. 02. 28	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	float fExtraNpcRate = static_cast<float>(sPartyFever) * SiCXSLDungeonManager()->GetExtraStageFactor() * SiCXSLDungeonManager()->GetExtraStageConditionFactor( cLevel );
 #else
@@ -5077,11 +5081,11 @@ void KDungeonRoom::SecretDungeonExtraStageMonster( IN int iStageID, IN char cPar
 	}
 	else
 	{
-		// extra npc µîÀå Ã³¸®!
+		// extra npc ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!
 		m_bAdventExtraNpc = true;
 	}
 
-	// µîÀå À§Ä¡ °áÁ¤
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 	int iRandomSubStage = rand() % static_cast<int>(kNot.m_mapNPCData.size());
 
 	std::map<int, KNPCList>::iterator mit;
@@ -5096,7 +5100,7 @@ void KDungeonRoom::SecretDungeonExtraStageMonster( IN int iStageID, IN char cPar
 		++iCount;
 	}
 
-	// Extra½ºÅ×ÀÌÁö ¸ó½ºÅÍ µå·Ó
+	// Extraï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	{
 		KNPCUnitReq kNPCData;
 		kNPCData.Init();
@@ -5110,7 +5114,7 @@ void KDungeonRoom::SecretDungeonExtraStageMonster( IN int iStageID, IN char cPar
 		kNPCData.m_AddPos.x			= 0.0f;
 		kNPCData.m_AddPos.y			= 0.0f;
 		kNPCData.m_AddPos.z			= 0.0f;
-		//{{ 2012. 05. 10	ÃÖÀ°»ç	´øÀü ¸ó½ºÅÍ ·¹º§ ÁöÁ¤
+		//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_NPC_LEVEL
 		kNPCData.m_Level			= GetAverageUserLevelAtDungeonStart() + 5 + SiCXSLDungeonManager()->GetSecretDungeonExtraStageNpcLevel();
 #else
@@ -5124,13 +5128,13 @@ void KDungeonRoom::SecretDungeonExtraStageMonster( IN int iStageID, IN char cPar
 		kNPCData.m_bNoDrop			= true;
 		kNPCData.m_fUnitScale		= -1.0f;
 
-		// ´øÀü ½ºÅ©¸³Æ®¿¡¼­ EXTRA NPCÁ¤º¸ ¾ò±â
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ EXTRA NPCï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		SiCXSLDungeonManager()->GetExtraNpcInfo( (m_iDungeonID + static_cast<int>(m_cDifficultyLevel)), iStageID, iRandomSubStage, kNPCData.m_nStartPos, kNPCData.m_bIsRight );
 
-		//{{ 2008. 9. 12  ÃÖÀ°»ç	npc¾ø´Â ½ºÅ×ÀÌÁö¸é?
+		//{{ 2008. 9. 12  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	npcï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?
 		if( kNPCData.m_nStartPos == -1 )
 		{
-			START_LOG( cwarn, L"Npc°¡ ¾ø´Â ½ºÅ×ÀÌÁö´Ù?" )
+			START_LOG( cwarn, L"Npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?" )
 				<< BUILD_LOG( iStageID )
 				<< BUILD_LOG( iRandomSubStage )
 				<< END_LOG;
@@ -5149,7 +5153,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_STAGE_LOAD_COMP
 
 	m_usLoadingState = ERM_DUNGEON_STAGE_LOAD_COMPLETE_REQ;
 
-    // loading »óÅÂ¸¦ º¯È­½ÃÅ²´Ù.
+    // loading ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½ï¿½È­ï¿½ï¿½Å²ï¿½ï¿½.
     if( !m_spRoomUserManager->SetStageLoaded( FIRST_SENDER_UID, true ) )
     {
         kPacket.m_iOK = NetError::ERR_ROOM_13;
@@ -5157,7 +5161,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_STAGE_LOAD_COMP
         return;
     }
 
-    // ·Îµù »óÅÂ°¡ º¯°æµÈ ½½·Ô ID¸¦ ¾Ë¾Æ³½´Ù.    
+    // ï¿½Îµï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½Ë¾Æ³ï¿½ï¿½ï¿½.    
 	KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( FIRST_SENDER_UID );
     if( spRoomUser == NULL )
     {
@@ -5167,43 +5171,43 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_STAGE_LOAD_COMP
     }
 	const int iSlotID = spRoomUser->GetSlotID();
 
-	//{{ 2009. 7. 21  ÃÖÀ°»ç	Åë°úÇÑ ½ºÅ×ÀÌÁö Ä«¿îÆ®
+	//{{ 2009. 7. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
 	if( m_eDungeonType == CXSLDungeon::DT_NORMAL  ||  kPacket_.m_bIsSecretStage == false )
 	{
 		spRoomUser->IncreasePassedStageCount();
 	}
 	//}}
 
-	//{{ 2011. 06. 13	ÃÖÀ°»ç	½ºÅ×ÀÌÁö ·Î±×
+	//{{ 2011. 06. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DUNGEON_STAGE_LOG
-	// Ã¹¹øÂ° ½ºÅ×ÀÌÁö°¡ ¾Æ´Ñ °æ¿ì¿¡¸¸ ³²±âÀÚ!
+	// Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	if( m_iLoadingCompleteStageID != -1 )
 	{
 		KELOG_DUNGEON_STAGE_LOG_NOT kPacketToLog;
 		kPacketToLog.m_iDungeonID		  = GetDungeonID();
-		kPacketToLog.m_iStageID			  = m_iLoadingCompleteStageID; // ÀÌÀü ½ºÅ×ÀÌÁö
+		kPacketToLog.m_iStageID			  = m_iLoadingCompleteStageID; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		kPacketToLog.m_iUnitUID			  = spRoomUser->GetCID();
 		kPacketToLog.m_cLevel			  = spRoomUser->GetLevel();
 		kPacketToLog.m_cDifficulty		  = GetDifficultyLevel();
 		kPacketToLog.m_bIsChallenge 	  = ( m_cDungeonMode == CXSLDungeon::DM_HENIR_PRACTICE );
 		kPacketToLog.m_cUnitClass		  = spRoomUser->GetUnitClass_LUA();
-		kPacketToLog.m_iStagePlayTime	  = static_cast<int>(spRoomUser->GetStagePlayTime()); // ÇØ´ç ½ºÅ×ÀÌÁö¸¦ ÇÃ·¹ÀÌÇÑ ÇÃ·¹ÀÌ Å¸ÀÓ
-		kPacketToLog.m_iStageDamage		  = ( kPacket_.m_iDamage - spRoomUser->GetStageDamage() ); // ÇØ´ç ½ºÅ×ÀÌÁö µ¿¾È ¹ÞÀº ´ë¹ÌÁö
+		kPacketToLog.m_iStagePlayTime	  = static_cast<int>(spRoomUser->GetStagePlayTime()); // ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+		kPacketToLog.m_iStageDamage		  = ( kPacket_.m_iDamage - spRoomUser->GetStageDamage() ); // ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 		kPacketToLog.m_iResurrectionCount = spRoomUser->GetUsedRessurectionStoneCount();
 		kPacketToLog.m_wstrRegDate		  = KncUtil::GetCurrentTimeString();
 		SendToLogDB( ELOG_DUNGEON_STAGE_LOG_NOT, kPacketToLog );
 
-		// ½ºÅ×ÀÌÁö ´ÜÀ§ ´ë¹ÌÁö Á¤º¸ ±â·Ï
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
         spRoomUser->SetStageDamage( kPacket_.m_iDamage );
 	}
 #endif SERV_DUNGEON_STAGE_LOG
 	//}}
 
-    // º¸³½ »ç¶÷¿¡°Ô ack¸¦ ³¯¸°´Ù.
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
     kPacket.m_iOK = NetError::NET_OK;
     SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_STAGE_LOAD_COMPLETE_ACK, kPacket );
 
-	// ¾î¶² À¯Àú°¡ ·Îµù¿Ï·á µÇ¾ú´ÂÁö ºê·ÎµåÄ³½ºÆÃ
+	// ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ï·ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Îµï¿½Ä³ï¿½ï¿½ï¿½ï¿½
 	KEGS_DUNGEON_STAGE_LOAD_COMPLETE_NOT kPacketNot;
 	kPacketNot.m_iSlotID = iSlotID;
 #ifdef  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
@@ -5211,24 +5215,24 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_STAGE_LOAD_COMP
 #endif  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
 	BroadCast( ERM_DUNGEON_STAGE_LOAD_COMPLETE_NOT, kPacketNot );
 
-    // ¸ðµç À¯Àú°¡ ·Îµù ³¡³µÀ¸¸é not¸¦ ³¯¸°´Ù.
+    // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ notï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
     if( m_spRoomUserManager->IsAllPlayerStageLoaded() )
     {
-        // Loading º¯¼ö ¸®¼Â.
+        // Loading ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
         m_spRoomUserManager->ResetStageLoaded();
 
-		//¸ðµç ·ÎµùÃ³¸®¸¦ ³¡³»°í ½ÃÀÛÀ» ¾Ë·ÁÁÜ
+		//ï¿½ï¿½ï¿½ ï¿½Îµï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½
 		KEGS_DUNGEON_STAGE_START_NOT kPacketStartNot;
 		kPacketStartNot.m_iStageID = m_iStageID;
 		BroadCast( ERM_DUNGEON_STAGE_START_NOT, kPacketStartNot );
 
-		//{{ 2009. 12. 14  ÃÖÀ°»ç	Çì´Ï¸£ÀÓ½ÃÀÎº¥
+		//{{ 2009. 12. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ï¿½Ó½ï¿½ï¿½Îºï¿½
 		CheckTempInventoryClear();
 		//}}
 
-		//{{ 2011. 06. 13	ÃÖÀ°»ç	½ºÅ×ÀÌÁö ·Î±×
+		//{{ 2011. 06. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DUNGEON_STAGE_LOG
-		// ·Îµù ¿Ï·áµÈ ½ºÅ×ÀÌÁöID¸¦ ±â·ÏÇÑ´Ù!
+		// ï¿½Îµï¿½ ï¿½Ï·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½!
 		m_iLoadingCompleteStageID = GetStageID();
 #endif SERV_DUNGEON_STAGE_LOG
 		//}}
@@ -5244,15 +5248,15 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_STAGE_LOAD_COMP
 
     }
 
-	//{{ 2012. 07. 04	ÃÖÀ°»ç		ÀÚµ¿ºÎÈ° ¹ö±× ¼öÁ¤
+	//{{ 2012. 07. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Úµï¿½ï¿½ï¿½È° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_AUTO_RESURRECTION_BUG_FIX
 #else
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2009. 7. 3  ÃÖÀ°»ç		Çì´Ï¸£ ½Ã°ø	
+	//{{ 2009. 7. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½	
 	if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 	{
-		// Æ¯Á¤ ½ºÅ×ÀÌÁö ¸¶´Ù ºÎÈ°!
-		//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+		// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°!
+		//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 		if( SiKHenirResultTable()->IsResurrectionStage( GetStageID() ) == true )
 #else
@@ -5260,10 +5264,10 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_STAGE_LOAD_COMP
 #endif SERV_NEW_HENIR_TEST
 		//}}
 		{
-			// Á×Àº À¯ÀúÀÎÁö È®ÀÎ!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½!
 			if( spRoomUser->IsDie() == true )
 			{
-				// µÇ»ì¸®ÀÚ!
+				// ï¿½Ç»ì¸®ï¿½ï¿½!
 				spRoomUser->SetDie( false );
 
 				KEGS_RESURRECT_TO_CONTINUE_DUNGEON_NOT kPacketNot;
@@ -5272,7 +5276,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_STAGE_LOAD_COMP
 				kPacketNot.m_iStartPosIndex = SiCXSLDungeonManager()->GetStartPosByRandom( (m_iDungeonID + static_cast<int>(m_cDifficultyLevel)), m_iStageID, m_iSubStageID );
 				BroadCast( EGS_RESURRECT_TO_CONTINUE_DUNGEON_NOT, kPacketNot );
 
-				//{{ 2008. 6. 17  ÃÖÀ°»ç  ½Ç½Ã°£ ºÎÈ°¼®
+				//{{ 2008. 6. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 				m_spRoomUserManager->SetEndPlay( spRoomUser->GetCID(), false );
 				//}}
 			}
@@ -5293,8 +5297,8 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_CLEAR_REQ, KEGS_DUNGEON_SUB_STAGE_CLEAR_REQ
 
 	if( SiCXSLDungeonManager()->GetNextStage( m_kNextStageData, GetDungeonIDAndDif(), GetStageID(), GetSubStageID(), kPacket_.m_iClearConditionIndex ) == false )
 	{
-		// ´ÙÀ½ ½ºÅ×ÀÌÁö¸¦ Ã£´Âµ¥ ½ÇÆÐ. ÇØÅ·ÀÌ´Ù by ¹ÚÁø¿õ
-		START_LOG( cerr, L"´ÙÀ½ ½ºÅ×ÀÌÁö¸¦ Ã£´Âµ¥ ½ÇÆÐ. ÇØÅ·ÀÌ´Ù." )
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½Å·ï¿½Ì´ï¿½ by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½Å·ï¿½Ì´ï¿½." )
 			<< BUILD_LOG( GetDungeonIDAndDif() )
 			<< BUILD_LOG( GetStageID() )
 			<< BUILD_LOG( GetSubStageID() )
@@ -5311,7 +5315,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_CLEAR_REQ, KEGS_DUNGEON_SUB_STAGE_CLEAR_REQ
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_SUB_STAGE_CLEAR_ACK, kPacket );
 		return;
 	}
-	// ºñ´ø ¶§ Àç»ç¿ëÀ» À§ÇØ º¸°üÇÔ
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_iClearConditionIndex = kPacket_.m_iClearConditionIndex;
 
 	kPacket.m_iClearType = static_cast<int>( m_kNextStageData.m_eClearType );
@@ -5326,8 +5330,8 @@ _IMPL_ON_FUNC( ERM_SECRET_STAGE_LOAD_REQ, KEGS_SECRET_STAGE_LOAD_REQ )
 
 	if( m_kNextStageData.m_eClearType != CXSLDungeonSubStage::CT_STAGE_SECRET )
 	{
-		// ¼­¹ö°¡ °ñ¶óÁØ Å¬¸®¾î Å¸ÀÔÀÌ ¾Æ´Ô. Å¬¶óÀÌ¾ðÆ® ÇØÅ·ÀÌ´Ù. by ¹ÚÁø¿õ
-		START_LOG( cerr, L"Å¬¸®¾îÅ¸ÀÔÀº ¾Æ·¡¿Í °°Àºµ¥ ÀÌ ÆÐÅ¶ÀÌ ¿Ö ¿ÔÁö? ÇØÄ¿!" )
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½Å·ï¿½Ì´ï¿½. by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		START_LOG( cerr, L"Å¬ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½Ä¿!" )
 			<< BUILD_LOG( m_kNextStageData.m_eClearType )
 			<< BUILD_LOG( m_iClearConditionIndex )
 			<< END_LOG;
@@ -5339,8 +5343,8 @@ _IMPL_ON_FUNC( ERM_SECRET_STAGE_LOAD_REQ, KEGS_SECRET_STAGE_LOAD_REQ )
 
 	if( SiCXSLDungeonManager()->GetNextStage( m_kNextStageData, GetDungeonIDAndDif(), GetStageID(), GetSubStageID(), m_iClearConditionIndex, kPacket_.m_iPadID ) == false )
 	{
-		// ´ÙÀ½ ½ºÅ×ÀÌÁö¸¦ Ã£´Âµ¥ ½ÇÆÐ. ÇØÅ·ÀÌ´Ù by ¹ÚÁø¿õ
-		START_LOG( cerr, L"´ÙÀ½ ½ºÅ×ÀÌÁö¸¦ Ã£´Âµ¥ ½ÇÆÐ. ÇØÅ·ÀÌ´Ù." )
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½Å·ï¿½Ì´ï¿½ by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½Å·ï¿½Ì´ï¿½." )
 			<< BUILD_LOG( GetDungeonIDAndDif() )
 			<< BUILD_LOG( GetStageID() )
 			<< BUILD_LOG( GetSubStageID() )
@@ -5372,8 +5376,8 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_OPEN_REQ, KEGS_DUNGEON_SUB_STAGE_OPEN_REQ )
 		{
 			if( m_kNextStageData.m_eClearType != CXSLDungeonSubStage::CT_SUB_STAGE )
 			{
-				// ¼­¹ö°¡ °ñ¶óÁØ Å¬¸®¾î Å¸ÀÔÀÌ ¾Æ´Ô. Å¬¶óÀÌ¾ðÆ® ÇØÅ·ÀÌ´Ù. by ¹ÚÁø¿õ
-				START_LOG( cerr, L"Å¬¸®¾îÅ¸ÀÔÀº ¾Æ·¡¿Í °°Àºµ¥ ÀÌ ÆÐÅ¶ÀÌ ¿Ö ¿ÔÁö? ÇØÄ¿!" )
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½Å·ï¿½Ì´ï¿½. by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				START_LOG( cerr, L"Å¬ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½Ä¿!" )
 					<< BUILD_LOG( m_bFirstStage )
 					<< BUILD_LOG( m_kNextStageData.m_eClearType )
 					<< BUILD_LOG( m_kNextStageData.m_iStageIndex )
@@ -5384,30 +5388,30 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_OPEN_REQ, KEGS_DUNGEON_SUB_STAGE_OPEN_REQ )
 				return;
 			}
 
-			// Å¸ÀÔ ÀÚÃ¼´Â °°°í ¼­ºê ½ºÅ×ÀÌÁö¸¸ ´Ù¸£´Ù¸é ¼ÂÆÃ¸¸ Á¦´ë·Î ÇØ¼­ Á¤»ó µ¿ÀÛÇÏ°Ô ÇÏÀÚ. by ¹ÚÁø¿õ
+			// Å¸ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½. by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			kPacket_.m_iSubStageID = m_kNextStageData.m_iSubStageIndex;
 		}
 		else
 		{
-			// ¼­ºê½ºÅ×ÀÌÁö Ã¼Å©¸¦ ¾È ÇØµµ µÇ´Â°Ç ½ºÅ×ÀÌÁö ¿ÀÇÂ ÈÄ Ã³À½ ÇÑ¹ø »ÓÀÌ´Ù. by ¹ÚÁø¿õ
+			// ï¿½ï¿½ï¿½ê½ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ ï¿½Øµï¿½ ï¿½Ç´Â°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½. by ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			kPacket_.m_iSubStageID = 0;
 			m_bFirstSubStage = false;
 		}
 	}
 
-	// ´ÙÀ½¿¡ ´Ù½Ã ¸·±â À§ÇØ °ª ÃÊ±âÈ­.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 	m_kNextStageData.ClearData();
 #endif SERV_STAGE_CLEAR_IN_SERVER
 	
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_SUB_STAGE_OPEN_ACK, kPacket );
 
-	// ¸ðµç À¯Àú¿¡°Ô ¼­ºê½ºÅ×ÀÌÁö ¿ÀÇÂÁØºñ¸¦ ÇÏ¶ó°í ¾Ë¸°´Ù. 
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ê½ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øºï¿½ ï¿½Ï¶ï¿½ï¿½ ï¿½Ë¸ï¿½ï¿½ï¿½. 
 	KEGS_DUNGEON_SUB_STAGE_OPEN_NOT kNot;
 	kNot.m_iSubStageID = kPacket_.m_iSubStageID;
 	m_iSubStageID = kPacket_.m_iSubStageID;
 	BroadCast( ERM_DUNGEON_SUB_STAGE_OPEN_NOT, kNot );
 
-	//{{ 2012. 07. 04	ÃÖÀ°»ç		ÀÚµ¿ ºÎÈ° ¹ö±× ¼öÁ¤
+	//{{ 2012. 07. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Úµï¿½ ï¿½ï¿½È° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_AUTO_RESURRECTION_BUG_FIX
 	if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 	{
@@ -5416,7 +5420,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_OPEN_REQ, KEGS_DUNGEON_SUB_STAGE_OPEN_REQ )
 			KRoomUserPtr spRoomUser  = m_kRoomUserManager.GetUser( idx );
 			if( IS_NULL( spRoomUser ) )
 			{
-				START_LOG( cerr, L"·ë À¯ÀúÀÇ Æ÷ÀÎÅÍ°¡ ÀÌ»óÇÔ." )
+				START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½." )
 					<< END_LOG;
 				continue;
 			}
@@ -5436,7 +5440,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_GO_NEXT_REQ, KEGS_DUNGEON_SUB_STAGE_GO_NEXT
 
 	if( m_spRoomUserManager->SetStageID( FIRST_SENDER_UID, kPacket_.m_iNextStageID ) == false )
 	{
-		START_LOG( cerr, L"½ºÅ×ÀÌÁö ÀÌµ¿ µ¥ÀÌÅÍ ÀúÀå ½ÇÆÐ.!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 			<< BUILD_LOGc( kPacket_.m_iNextStageID )
 			<< BUILD_LOGc( kPacket_.m_iBeforeStageID )
 			<< END_LOG;
@@ -5445,7 +5449,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_GO_NEXT_REQ, KEGS_DUNGEON_SUB_STAGE_GO_NEXT
 	kPacket.m_iOK = NetError::NET_OK;
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_SUB_STAGE_GO_NEXT_ACK, kPacket );
 
-	//°ÔÀÓÁ¶°Ç¿¡ µû¶ó ÇÑ¸íÀÌ»óÀÇ User UnitÀÌ Á×À»°æ¿ì ³²Àº °ÔÀÓÀ» ÁøÇàÇÏ±âÀ§ÇØ ´ã¾ÆµÐ´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¸ï¿½ï¿½Ì»ï¿½ï¿½ï¿½ User Unitï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ÆµÐ´ï¿½.
 	m_kDSSGoNextAllNot.m_iBeforeStageID	= kPacket_.m_iBeforeStageID;
 	m_kDSSGoNextAllNot.m_iNextStageID	= kPacket_.m_iNextStageID;
 
@@ -5458,7 +5462,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_SUB_STAGE_L
 
 	m_usLoadingState = ERM_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ;
 
-	// loading »óÅÂ¸¦ º¯È­½ÃÅ²´Ù.
+	// loading ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½ï¿½È­ï¿½ï¿½Å²ï¿½ï¿½.
 	if( !m_spRoomUserManager->SetStageLoaded( FIRST_SENDER_UID, true ) )
 	{
 		kPacket.m_iOK = NetError::ERR_ROOM_13;
@@ -5466,11 +5470,11 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_SUB_STAGE_L
 		return;
 	}
 
-	//{{ 2012. 04. 17	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+	//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 	if( m_spRoomUserManager->SetSubStageID( FIRST_SENDER_UID, kPacket_.m_iSubStageID ) == false )
 	{
-		START_LOG( cerr, L"SubStageID°ª ÀúÀåÇÒ À¯Àú°¡ ¾ø´Ù! À§¿¡¼­ °Ë»çÇß´Âµ¥?" )
+		START_LOG( cerr, L"SubStageIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½ß´Âµï¿½?" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_iSubStageID )
 			<< END_LOG;
@@ -5478,32 +5482,32 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_SUB_STAGE_L
 #endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 	//}}
 
-	// º¸³½ »ç¶÷¿¡°Ô ack¸¦ ³¯¸°´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 	kPacket.m_iOK = NetError::NET_OK;
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_SUB_STAGE_LOAD_COMPLETE_ACK, kPacket );
 
-	// ¸ðµç À¯Àú°¡ ·Îµù ³¡³µÀ¸¸é not¸¦ ³¯¸°´Ù.
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ notï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 	if( m_spRoomUserManager->IsAllPlayerStageLoaded() == true )
 	{
-		//{{ 2010. 8. 16	ÃÖÀ°»ç	¼­¹ö ÄÚµå Á¤¸®
+		//{{ 2010. 8. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( DungeonSubStageStartProcess( kPacket_.m_iSubStageID ) == false )
 		{
-			START_LOG( cerr, L"´øÀü ¼­ºê ½ºÅ×ÀÌÁö ½ÃÀÛ ¿¡·¯!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket_.m_iSubStageID )
 				<< END_LOG;
 		}
 		//}}
 	}
 
-	//{{ 2008. 9. 17  ÃÖÀ°»ç	¼­ºê ½ºÅ×ÀÌÁö ·Îµù Ä«¿îÆ®
+	//{{ 2008. 9. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ Ä«ï¿½ï¿½Æ®
 	KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( FIRST_SENDER_UID );
 	if( spRoomUser != NULL )
 	{
 		spRoomUser->IncreasePassedSubStageCount();
 
-		//{{ QUEST °³Æí - ±è¹Î¼º
+		//{{ QUEST ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_QUEST
-		// ¼­ºê ½ºÅ×ÀÌÁö npc Á¤º¸
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ npc ï¿½ï¿½ï¿½ï¿½
 		KERM_UPDATE_QUEST_INFO_NOT kNot;
 		m_kDungeonMonsterManager.GetSubStageNpcList( GetStageID(), kPacket_.m_iSubStageID, kNot.m_vecNPC );
 
@@ -5523,32 +5527,32 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ, KEGS_DUNGEON_SUB_STAGE_L
 	//}}
 }
 
-//{{ 2009. 7. 20  ÃÖÀ°»ç	ºñ¹Ð½ºÅ×ÀÌÁö
+//{{ 2009. 7. 20  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_SECRET_STAGE_ENTER_CHECK_REQ )
 {
 	KEGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_ACK kPacket;
 
 	if( GetStateID() != KRoomFSM::S_PLAY )
 	{
-		START_LOG( cerr, L"»óÅÂ ¿À·ù. Name : " << m_strName )
-			<< L"    ÇöÀç »óÅÂ : " << GetStateIDString() << dbg::endl
-			<< L"    Çã¿ë »óÅÂ : KRoomFSM::S_PLAY" << END_LOG;
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. Name : " << m_strName )
+			<< L"    ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : " << GetStateIDString() << dbg::endl
+			<< L"    ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : KRoomFSM::S_PLAY" << END_LOG;
 
 		kPacket.m_bCanEnterSecretStage = false;
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_SECRET_STAGE_ENTER_CHECK_ACK, kPacket );
 		return;
 	}
 
-	// Çì´Ï¸£ ½Ã°øÀÌ ¸Â³ª?
+	// ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Â³ï¿½?
 	if( m_eDungeonType != CXSLDungeon::DT_HENIR )
 	{
-		START_LOG( cerr, L"Çì´Ï¸£ ½Ã°øÀÌ ¾Æ´Ñµ¥ ÀÌ ÀÌº¥Æ®°¡ ¿Ö¿ÔÁö? ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+		START_LOG( cerr, L"ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Æ´Ñµï¿½ ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Ö¿ï¿½ï¿½ï¿½? ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( m_eDungeonType )
 			<< END_LOG;
 	}
 
-	// ¸ðµç À¯Àú°¡ »ì¾ÆÀÖ´Â°¡?
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´Â°ï¿½?
 	if( m_spRoomUserManager->IsAllPlayerAlive() == false )
 	{
 		kPacket.m_bCanEnterSecretStage = false;
@@ -5556,17 +5560,17 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_SECRET_STAGE_ENTER_CHECK_REQ )
 		return;
 	}
 
-	// À¯Àú ÀÇ°ß ÃÊ±âÈ­
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½Ê±ï¿½È­
 	m_spRoomUserManager->ResetAgreeEnterSecretStage();
 
-	// ºñ¹Ð ½ºÅ×ÀÌÁö ÀÇ°ß Å¸ÀÌ¸Ó ÀÛµ¿!
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ Å¸ï¿½Ì¸ï¿½ ï¿½Ûµï¿½!
 	//m_kEnterSecretStageTimer.CreateTimer();
 
-	// ºñ¹Ð ½ºÅ×ÀÌÁö ÀÔÀå Á¶°Ç ¸¸Á·ÇÔ!
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	kPacket.m_bCanEnterSecretStage = true;
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_SECRET_STAGE_ENTER_CHECK_ACK, kPacket );
 
-	// ¸ðµç À¯Àú¿¡°Ô ºñ¹Ð ½ºÅ×ÀÌÁö ÀÔÀå ¿©ºÎ È®ÀÎÇÏ±â
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï±ï¿½
 #ifdef SERV_STAGE_CLEAR_IN_SERVER
 	KEGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT kPacketNot;
 	kPacketNot.m_iStartSecretStageEnteringEvent = SiCXSLDungeonManager()->GetSecretStageEnteringEvent( GetDungeonIDAndDif(), GetStageID(), GetSubStageID(), m_iClearConditionIndex );
@@ -5581,22 +5585,22 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SECRET_STAGE_ENTER_SELECT_NOT, KEGS_DUNGEON_SECRET_ST
 {
 	VERIFY_STATE( ( 1, KRoomFSM::S_PLAY ) );
 
-	// Çì´Ï¸£ ½Ã°øÀÌ ¸Â³ª?
+	// ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Â³ï¿½?
 	if( m_eDungeonType != CXSLDungeon::DT_HENIR )
 	{
-		START_LOG( cerr, L"Çì´Ï¸£ ½Ã°øÀÌ ¾Æ´Ñµ¥ ÀÌ ÀÌº¥Æ®°¡ ¿Ö¿ÔÁö? ÀÏ¾î³ª¼­´Â ¾ÈµÇ´Â ¿¡·¯!" )
+		START_LOG( cerr, L"ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Æ´Ñµï¿½ ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Ö¿ï¿½ï¿½ï¿½? ï¿½Ï¾î³ªï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( m_eDungeonType )
 			<< END_LOG;
 	}
 
-	// ÀÇ»ç Ç¥½Ã Å¸ÀÌ¸Ó°¡ »ì¾ÆÀÖ´Â°¡?
+	// ï¿½Ç»ï¿½ Ç¥ï¿½ï¿½ Å¸ï¿½Ì¸Ó°ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´Â°ï¿½?
 	//if( m_kEnterSecretStageTimer.IsExist() == false )
 	//{	
 	//	return;
 	//}
 
-    // µ¿ÀÇ Ã³¸®
+    // ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 	if( kPacket_.m_bWantToEnterSecretStage )
 	{
 		m_spRoomUserManager->AgreeEnterSecretStage( FIRST_SENDER_UID, CXSLRoom::ESS_AGREE );
@@ -5606,12 +5610,12 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SECRET_STAGE_ENTER_SELECT_NOT, KEGS_DUNGEON_SECRET_ST
 		m_spRoomUserManager->AgreeEnterSecretStage( FIRST_SENDER_UID, CXSLRoom::ESS_NOT_AGREE );
 	}
 	
-	// ¸ðµç À¯Àú°¡ ÀÇ»ç Ç¥½Ã¸¦ ÇÏ¿´´Â°¡?
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç»ï¿½ Ç¥ï¿½Ã¸ï¿½ ï¿½Ï¿ï¿½ï¿½Â°ï¿½?
 	CheckEnterSecretStageSuccess();
 }
 //}}
 
-//{{ 2011. 10. 25	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2011. 10. 25	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 //////////////////////////////////////////////////////////////////////////
@@ -5624,11 +5628,11 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 
 	KEGS_NPC_UNIT_CREATE_NOT kPacketNot;	
 
-	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	KEGS_CREATE_ATTRIB_NPC_NOT kAttribNPCNot;
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
 
 	BOOST_TEST_FOREACH( KNPCUnitReq&, kCreateNpcInfo, kPacket_.m_vecNPCUnitReq )
@@ -5639,7 +5643,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 		{
 		case CXSLUnitManager::NUI_EVENT_TEACHER_ECHO:
 			{
-				kCreateNpcInfo.m_bNoDrop = false; // ED ´ë·® µå·Ó 
+				kCreateNpcInfo.m_bNoDrop = false; // ED ï¿½ë·® ï¿½ï¿½ï¿½ 
 				
 				if( m_eDungeonType == CXSLDungeon::DT_NORMAL )
 				{
@@ -5660,17 +5664,17 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 		default:
 			{
 				//////////////////////////////////////////////////////////////////////////				
-				// Å¬¶óÀÌ¾ðÆ®¿¡¼­ NoDrop = false¸¦ ÇØ¼­ µå·ÓÀ» ½ÃÄÑ¾ßÇÏ´Â ¸ó½ºÅÍ°¡ Á¸ÀçÇÑ´Ù. µû¶ó¼­ ÀÌ ÄÚµå´Â ´Ù½Ã ÁÖ¼®Ã³¸®ÇÔ. -- À°»ç
+				// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ NoDrop = falseï¿½ï¿½ ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Úµï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½Ö¼ï¿½Ã³ï¿½ï¿½ï¿½ï¿½. -- ï¿½ï¿½ï¿½ï¿½
 				//////////////////////////////////////////////////////////////////////////
 
-				//kCreateNpcInfo.m_bNoDrop = true; // Å¬¶óÀÌ¾ðÆ®°¡ »ý¼º ¿äÃ» º¸³»´Â ¸ó½ºÅÍ´Â º¸¾È»ó ¹Ýµå½Ã NoDropÀ¸·Î Ã³¸®ÇÑ´Ù!
+				//kCreateNpcInfo.m_bNoDrop = true; // Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í´ï¿½ ï¿½ï¿½ï¿½È»ï¿½ ï¿½Ýµï¿½ï¿½ NoDropï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ñ´ï¿½!
 			}break;	
 		}
 
 		kNPCInfo.m_kNPCUnitReq = kCreateNpcInfo;
 
 #ifdef SERV_CREATED_NPC_LIMITED_DROPS
-		// ÀÏ´ÜÀº ¹«Á¶°Ç ³ëµå¶ø Ã³¸® // ÀÏ´Ü ÀúÀåÇØµÒ
+		// ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ // ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½
 		bool bTempNoDrop = kCreateNpcInfo.m_bNoDrop;
 		kCreateNpcInfo.m_bNoDrop = true;
 
@@ -5683,7 +5687,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 			npcInfoQuadruple.iSubStageID	= GetSubStageID();
 			npcInfoQuadruple.iNpcID			= kCreateNpcInfo.m_NPCID;
 
-			// ¼ÒÈ¯¿äÃ»µÇ¾ú´ø ¼ö°¡ ÀüÃ¼ µå¶ø°¡´ÉÇÑ ¼ö ¹Ì¸¸ÀÏ ¶§¸¸ µå¶ø °¡´É
+			// ï¿½ï¿½È¯ï¿½ï¿½Ã»ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			if( m_mapDroppedTimes[npcInfoQuadruple] < iNpcDropTime )
 			{
 				m_mapDroppedTimes[npcInfoQuadruple] = m_mapDroppedTimes[npcInfoQuadruple] + 1;
@@ -5692,7 +5696,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 		}
 #endif SERV_CREATED_NPC_LIMITED_DROPS
 
-		// ¸ó½ºÅÍ »ý¼º!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		LIF( m_kDungeonMonsterManager.CreateMonster( kCreateNpcInfo, kNPCInfo.m_kNPCUnitReq.m_UID ) );
 		const int iNpcUID = kNPCInfo.m_kNPCUnitReq.m_UID;
 
@@ -5701,9 +5705,9 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 			m_spRoomUserManager->AddAllyNPC( kCreateNpcInfo.m_iAllyUID, kNPCInfo.m_kNPCUnitReq );
 #endif SERV_PAYMENT_ITEM_WITH_ALLY_NPC
 
-		//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+		//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
-		if( kCreateNpcInfo.m_bAttributeNpc == true &&  CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == true ) // µðÆæ½º ´øÀü, ¿¤¸®Æ® ¸ó½ºÅÍ
+		if( kCreateNpcInfo.m_bAttributeNpc == true &&  CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == true ) // ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 		{
 			KAttribNpcUnitInfo kAttribNpcInfo;
 			kAttribNpcInfo.m_sNPCUnitReq = kNPCInfo.m_kNPCUnitReq;
@@ -5711,7 +5715,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 
 			if( SiKAttribNpcTable()->GetAttribNpcInfo( m_eDungeonType, GetDifficultyLevel(), kCreateNpcInfo.m_Level, kCreateNpcInfo.m_NPCID, kAttribNpcInfo.m_sAttribEnchantNpcInfo ) == false )
 			{
-				START_LOG( cerr, L"¼Ó¼º NPCÁ¤º¸ ¾ò±â ½ÇÆÐ!" )
+				START_LOG( cerr, L"ï¿½Ó¼ï¿½ NPCï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( GetDungeonID() )
 					<< BUILD_LOG( m_eDungeonType )
 					<< BUILD_LOGc( GetDifficultyLevel() )
@@ -5725,9 +5729,9 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 			continue;
 		}
 #endif SERV_INSERT_GLOBAL_SERVER
-		//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+		//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
-		//{{ 2013. 01. 09 ´øÀü °­Åð ½Ã½ºÅÛ - ±è¹Î¼º
+		//{{ 2013. 01. 09 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 		if( CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == true )
 		{
@@ -5738,15 +5742,15 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 		//}
 		kPacketNot.m_vecNPCUnitAck.push_back( kNPCInfo );
 
-		//{{ 2013. 04. 15	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+		//{{ 2013. 04. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
-		// ¾îµÒÀÇ ¹® ´øÀüÀÎ °æ¿ì
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		if( CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == true )
 		{
-			// Á×Àº ¸ó½ºÅÍ°¡ ¼öÈ£½Å ¸ó½ºÅÍ¶ó¸é ÆäÀÌÁî¸¦ ÇÏ³ª ¿Ã¸°´Ù!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½Í¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½î¸¦ ï¿½Ï³ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½!
 			if( m_kDefenceDungeonManager.IncreaseDefenceDungeonPhase( kCreateNpcInfo.m_NPCID ) == true )
 			{
-				// ÆäÀÌÁî 2´Ü°è°¡ µÉ¶§ºÎÅÍ Äü½½·Ô ¾ÆÀÌÅÛÀ» °»½Å ÇÏÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2ï¿½Ü°è°¡ ï¿½É¶ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				switch( m_kDefenceDungeonManager.GetDefenceDungeonPhase() )
 				{
 				case CXSLDefenceDungeonManager::DDP_PHASE_2:
@@ -5766,17 +5770,17 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 
 	BroadCast( ERM_NPC_UNIT_CREATE_NOT, kPacketNot );
 
-	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	if( kAttribNPCNot.m_vecAttribNPCUnit.size() > 0 )
 	{
 		BroadCast( ERM_CREATE_ATTRIB_NPC_NOT, kAttribNPCNot );
 	}
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 }
 
-//{{ ÇÊµå µå·Ó °³Æí - ±è¹Î¼º
+//{{ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_ITEM_DROP
 _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 {
@@ -5789,15 +5793,15 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 		kPacket.m_iNPCID	= kPacket_.m_nDieNPCUID;
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_NPC_UNIT_DIE_ACK, kPacket );
 
-		// std::set ¿¡¼­ »èÁ¦
+		// std::set ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		m_setDefenseSmallCrystalNpcUID.erase( sit );
 
-		START_LOG( clog, L"µðÆæ½º ´øÀü ÀÛÀº ¼öÁ¤ÀÌ ±úÁ³À½!!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!!" )
 			<< END_LOG;
 		return;
 	}
 
-	// ¸ó½ºÅÍ°¡ ÇöÀç »ì¾ÆÀÖ´ÂÁö Ã¼Å©!
+	// ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ Ã¼Å©!
 	if( m_kDungeonMonsterManager.IsMonsterAlive( kPacket_.m_nDieNPCUID ) == false )
 	{
 		kPacket.m_iOK = NetError::ERR_ROOM_21;
@@ -5805,7 +5809,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 		return;
 	}
 
-	// ¸ó½ºÅÍ°¡ ¾ÆÁ÷ »ì¾ÆÀÖ´Ù¸é ¸ó½ºÅÍ Á¤º¸ ¿äÃ»!
+	// ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»!
 	KRoomMonsterManager::NPC_DATA kDieNpcInfo;
 	if( m_kDungeonMonsterManager.GetNpcData( kPacket_.m_nDieNPCUID, kDieNpcInfo ) == false )
 	{
@@ -5814,7 +5818,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 		return;
 	}
 
-	// ¾ÆÁ÷ »ì¾ÆÀÖ´Ù¸é Á×ÀÎ»ç¶÷°ú Á×Àº°ÍÀ¸·Î ¼³Á¤..
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 	LIF( m_kDungeonMonsterManager.SetMonsterDie( kPacket_.m_nDieNPCUID, kPacket_.m_uiAttUnit ) );
 
 	kPacket.m_iOK		= NetError::NET_OK;
@@ -5826,24 +5830,24 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 		m_spRoomUserManager->DeleteAllyNPC( kPacket_.m_nDieNPCUID );
 #endif SERV_PAYMENT_ITEM_WITH_ALLY_NPC
 
-	//{{ 2013. 04. 09	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
-	// Á×Àº ¸ó½ºÅÍ°¡ º¸½º ¸ó½ºÅÍ¶ó¸é ¾îµÒÀÇ ¹® ÀÔÀå Á¶°Ç Ã¼Å©
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 	if( kDieNpcInfo.m_cMonsterGrade == CXSLUnitManager::MG_BOSS_NPC  &&  CXSLDungeon::IsDefenceDungeon( GetDungeonID() ) == false )
 	{
-		// ÇöÀç ¸ðµç º¸½º ¸ó½ºÅÍ°¡ Á×¾ú´Â°¡?
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½×¾ï¿½ï¿½Â°ï¿½?
 		if( m_kDungeonMonsterManager.IsAllBossMonstersDead() == true )
 		{
-			// ¾îµÒÀÇ ¹® ÀÔÀå È®·ü ÀÌº¥Æ®
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 			float fAddDefenseDungeonOpenRate = 0.0f;
 			SiKGameEventManager()->GetDefenseDungeonOpenRate( fAddDefenseDungeonOpenRate );
 
-			// °¢ ÆÄÆ¼¿øº° Ä³¸¯ÅÍ ·¹º§ Á¤º¸°¡ ÀÖ¾î¾ß ÇÑ´Ù.
+			// ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ ï¿½Ñ´ï¿½.
 			std::map< UidType, int > mapUnitLevelList;
 			m_spRoomUserManager->GetUnitLevelList( mapUnitLevelList );
 
-			// ¾îµÒÀÇ ¹® ÀÔÀå °áÁ¤!
-			//{{ 2013. 04. 29	ÃÖÀ°»ç	¾îµÒÀÇ ¹® ÀÔÀå ·ÎÁ÷ º¯°æ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
+			//{{ 2013. 04. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MODIFY_DEFENCE_DUNGEON_ENTER_LOGIC_IN_SECRET_DUNGEON
 #ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_100_PERCENT_EVENT
 			bool b100PercentCheck = false;
@@ -5861,7 +5865,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 #endif SERV_MODIFY_DEFENCE_DUNGEON_ENTER_LOGIC_IN_SECRET_DUNGEON
 			//}}			
 			{
-				// ¹æ¾ÈÀÇ ¸ðµç À¯Àú¿¡°Ô ¾îµÒÀÇ ¹® ÀÔÀå ½ÃÀÛÀ» ¾Ë¸®ÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ï¿½ï¿½!
 				KEGS_DECISION_ENTER_DEFENCE_DUNGEON_NOT kPacketNot;
 				kPacketNot.m_DieBossPos = kPacket_.m_DiePos;
 				BroadCast( ERM_DECISION_ENTER_DEFENCE_DUNGEON_NOT, kPacketNot );
@@ -5871,7 +5875,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
 
-	//{{ 2009. 5. 11  ÃÖÀ°»ç	npcÁ×Àº»óÅÂ
+	//{{ 2009. 5. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	npcï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	const bool bDropDieState = IsDropDieState( kPacket_.m_cNpcDieState );
 	const bool bAddRoomUserKillCount = ( bDropDieState  &&  kPacket_.m_cNpcDieState != KEGS_NPC_UNIT_DIE_REQ::NDS_KILL_SELF );
 	//}}
@@ -5879,7 +5883,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 	const CXSLUnitManager::NPCUnitTemplet* pNPCTemplet = SiCXSLUnitManager()->GetNPCUnitTemplet( (CXSLUnitManager::NPC_UNIT_ID)kDieNpcInfo.m_iNPCID );
 	if( pNPCTemplet == NULL )
 	{
-		START_LOG( cwarn, L"NPC Unit Templet ÀÐ±â ¿À·ù.!" )
+		START_LOG( cwarn, L"NPC Unit Templet ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 			<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 			<< END_LOG;
 		return;
@@ -5896,7 +5900,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			kPacketToLog.m_tNpcDieDate = CTime::GetCurrentTime().GetTime();
 			SendToLogDB( DBE_UPDATE_EVENT_MONSTER_KILL_INFO_NOT, kPacketToLog );
 
-			// ÀÌº¥Æ® ¸ó½ºÅÍ Á¤º¸¸¦ ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+			// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Õ´Ï´ï¿½.
 			m_mapTimeDropEventMonster.clear();
 		}
 	}
@@ -5911,17 +5915,17 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 		case CXSLUnitManager::NUI_DUNGEON_CHECKER4:
 		case CXSLUnitManager::NUI_DUNGEON_CHECKER5:
 			{
-				// ÇÙÀ¯Àú¸¦ Á¢¼Ó Á¾·á½ÃÅ°±â À§ÇØ ¿¹¾à ÇØ³õÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø³ï¿½ï¿½ï¿½!
 				m_setFindedHackUserUnitUID.insert( FIRST_SENDER_UID );
 
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_CANT_KILL_NPC_FIND;
 				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 #ifdef SERV_MINIMUM_LOG_HAKC_USER
 				START_LOG( cout, L"Cant Kill Npc pos3. UID : " << FIRST_SENDER_UID );
 #else //SERV_MINIMUM_LOG_HAKC_USER
-				START_LOG( cout, L"Cant Kill Npc ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+				START_LOG( cout, L"Cant Kill Npc ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( kPacket_.m_nDieNPCUID )
@@ -5942,7 +5946,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 	//////////////////////////////////////////////////////////////////////////
 	if( SiKGameSysVal()->GetSubStageNpcDieCheck() == true )
 	{
-		// ¼ÖÇÃ ÀÎ°¡? // ¾×Æ¼ºê NPC °¡ 5¸¶¸® ÀÌ»óÀÎ°¡?
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½? // ï¿½ï¿½Æ¼ï¿½ï¿½ NPC ï¿½ï¿½ 5ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Î°ï¿½?
 		if( m_spRoomUserManager->GetNumMember() == 1 
 			&& m_iSubStageActiveNpc >= 5 
 			&& kDieNpcInfo.m_bActive == true )
@@ -5951,23 +5955,23 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 
 			if( m_iSubStageKillActiveNpc == 1 )
 			{
-				// ¼­ºê ½ºÅ×ÀÌÁö¿¡¼­ Ã³À½ ¾×Æ¼ºê ¸ó½ºÅÍ¸¦ ÀâÀº ½Ã°£
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 				m_tSubStageFirstKillTime = CTime::GetCurrentTime();
 			}
 			else
 			{
-				if( m_iSubStageActiveNpc <= m_iSubStageKillActiveNpc ) // ¸¶Áö¸· ¸ó½ºÅÍ¸¦ Àâ¾Ò´Ù!
+				if( m_iSubStageActiveNpc <= m_iSubStageKillActiveNpc ) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½Ò´ï¿½!
 				{
 					CTime tLastKillTime = CTime::GetCurrentTime();
 					CTimeSpan tSpan = CTimeSpan( 0, 0, 0, 1);
-					if( tLastKillTime <= m_tSubStageFirstKillTime + tSpan ) 		// Ã³À½ ¸ó½ºÅÍ¸¦ ÀâÀº ½Ã°£¿¡¼­ 1ÃÊÀÌÇÏ ¹Û¿¡ °É¸®Áö ¾Ê¾Ò´Ù
+					if( tLastKillTime <= m_tSubStageFirstKillTime + tSpan ) 		// Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Û¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´ï¿½
 					{
-						// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
+						// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 						KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 						kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_CHECK_NPC_DIE_TIME;
 						SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 
-						START_LOG( cout, L"Sub StageÀÇ ¸ðµç Npc¸¦ Á×ÀÎ ½Ã°£ÀÌ 1ÃÊ¹Û¿¡ °É¸®Áö ¾Ê´Â´Ù." )
+						START_LOG( cout, L"Sub Stageï¿½ï¿½ ï¿½ï¿½ï¿½ Npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ 1ï¿½Ê¹Û¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½." )
 							<< BUILD_LOG( LAST_SENDER_UID )
 							<< BUILD_LOG( FIRST_SENDER_UID )
 							<< BUILD_LOG( m_tSubStageFirstKillTime.GetMinute() )
@@ -5983,39 +5987,39 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 		}
 	}
 	//////////////////////////////////////////////////////////////////////////
-	// ¼Ó¼º ¸ó½ºÅÍÀÎÁö ¿©ºÎ °Ë»ç	
+	// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½	
 	int iNpcLv = 0;
 	const bool bIsAttribNpc = IsAttribNpc( kPacket_.m_nDieNPCUID, iNpcLv );
 
-	// ¸ó½ºÅÍ Å¸ÀÔ »ó¼ö ¾ò±â
+	// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	const char cMonsterTypeFactor = static_cast<char>( CXSLUnitManager::GetMonsterTypeFactor( bIsAttribNpc, GetDifficultyLevel(), kDieNpcInfo.m_cMonsterGrade ) );
 
-	// ÆÄÆ¼ ÇÃ·¹ÀÌÀÏ °æ¿ì ¾ÆÀÌÅÛ µå·Ó È®·ü »ó¼ö
+	// ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½
 	const float fPartyFactor = GetDungeonPartyBonusRate() + 1.0f;
-	// ´øÀü »ó¼ö µå·Ó È®·ü »ó¼ö
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½
 	const float fDungeonFactor = static_cast<float>(cMonsterTypeFactor);
 	//////////////////////////////////////////////////////////////////////////
-	// uiAttUnit°ªÀÌ -1ÀÌ¸é À¯ÀúÀÇ °ø°ÝÀ» ¹ÞÁö ¾Ê°í npc°¡ ÀÚ»ìÇÑ°ÍÀÓ. [¿¹:Áö·ÚÇÔÁ¤]
+	// uiAttUnitï¿½ï¿½ï¿½ï¿½ -1ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ npcï¿½ï¿½ ï¿½Ú»ï¿½ï¿½Ñ°ï¿½ï¿½ï¿½. [ï¿½ï¿½:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]
 
-	// ÇÃ·¹ÀÌ¾î°¡ ¸ó½ºÅÍ¸¦ Á×ÀÎ°Å¶ó¸é ÇØ´ç ÇÃ·¹ÀÌ¾îÀÇ Å³¸ó½ºÅÍ¼ö Ã¼Å©
+	// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½Î°Å¶ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ Å³ï¿½ï¿½ï¿½Í¼ï¿½ Ã¼Å©
 	if( pNPCTemplet->m_bIsNPC  &&  bAddRoomUserKillCount == true  &&  kPacket_.m_uiAttUnit != -1 )
 	{
 		if( m_spRoomUserManager->AddKillNPC( kPacket_.m_uiAttUnit ) == false )
 		{
 			if( m_kDungeonMonsterManager.IsExistMonster( static_cast<int>(kPacket_.m_uiAttUnit) ) == true )
 			{
-				START_LOG( clog, L"¸÷³¢¸® Á×¿´³×!!" )
+				START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×¿ï¿½ï¿½ï¿½!!" )
 					<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 					<< BUILD_LOG( kPacket_.m_uiAttUnit );
 
-				// ¸ó½ºÅÍ°¡ ÇÔÁ¤¿¡ °É·Á Á×´Â°æ¿ìÀÓ : ¾ÆÀÌÅÛÀº ±×´ë·Î µå·ÓÃ³¸®ÇÔ.
+				// ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É·ï¿½ ï¿½×´Â°ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½.
 			}
 			else
 			{
-				// ´øÀü °ÔÀÓ ½ÃÀÛÇÒ ´ç½Ã¿¡ À¯Àú ¼ö¿Í ÇöÀç À¯Àú ¼ö°¡ ¸ðµÎ 1¸íÀÏ °æ¿ì¸¸ Ã¼Å©!
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¸¸ Ã¼Å©!
 				if( m_iStartedNumMember == 1  &&  m_spRoomUserManager->GetNumMember() == 1 )
 				{
-					START_LOG( cerr, L"¸÷³¢¸® Á×ÀÎ°Ô ¾Æ´Ï³×? ÇØÅ·À¯Àú·Î ÀÇ½ÉµÈ´Ù!" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î°ï¿½ ï¿½Æ´Ï³ï¿½? ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç½ÉµÈ´ï¿½!" )
 						<< BUILD_LOG( LAST_SENDER_UID )
 						<< BUILD_LOG( FIRST_SENDER_UID )
 						<< BUILD_LOG( kPacket_.m_nDieNPCUID )
@@ -6029,18 +6033,18 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 						<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 						<< END_LOG;
 
-					// ¿ÀÅäÇÙ Ã¼Å© Ä«¿îÆ® Áõ°¡!
+					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
 					++m_iNpcDieHackCount;
 
-					// ÀÌ ¿¡·¯°¡ 5È¸ ÀÌ»ó ¹ß»ýÇÑ´Ù¸é ±×°ÍÀº Àß¸øµÈ °ÍÀÌ´Ù!
+					// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 5È¸ ï¿½Ì»ï¿½ ï¿½ß»ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½×°ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½!
 					if( m_iNpcDieHackCount == m_iHackUserCheckCount )
 					{
-						// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
+						// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 						KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 						kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_NPC_UNIT_DIE;
 						SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 
-						START_LOG( cout, L"NpcDie ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+						START_LOG( cout, L"NpcDie ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 							<< BUILD_LOG( LAST_SENDER_UID )
 							<< BUILD_LOG( FIRST_SENDER_UID )
 							<< BUILD_LOG( m_iNpcDieHackCount );
@@ -6056,7 +6060,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 		if( pNPCTemplet->m_bIsNPC == true  &&  kDieNpcInfo.m_bActive == true )
 		{
 			m_kDungeonMonsterManager.IncreaseMonsterDieCount( cMonsterTypeFactor );
-			//{{ 2013. 01. 09 ´øÀü °­Åð ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ 2013. 01. 09 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 			if( CXSLDungeon::IsDefenceDungeon( GetDungeonIDAndDif() ) == false )
 			{
@@ -6066,7 +6070,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			//}
 		}
 
-		// ¹æ¾ÈÀÇ ÀÎ¿ø¿¡°Ô ¾Ë·ÁÁÙ µ¥ÀÌÅÍ ¼ÂÆÃ ½ÃÀÛ..
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 		KERM_NPC_UNIT_DIE_NOT kNpcDietNot;
 		kNpcDietNot.m_iDungeonID		 = GetDungeonID();
 		kNpcDietNot.m_cDifficulty		 = GetDifficultyLevel();
@@ -6082,7 +6086,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 		kNpcDietNot.m_EXPList.clear();
 		kNpcDietNot.m_bQuestComplete	 = true;
 
-		// ÆÄÆ¼ ±â¿©µµ
+		// ï¿½ï¿½Æ¼ ï¿½â¿©ï¿½ï¿½
 		float fPartyContribution = 0.f;
 		float fPartyTotalDamage = 0.f;
 
@@ -6100,14 +6104,14 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 		if( fPartyContribution > 1.5f )
 			fPartyContribution = 1.5f;
 
-		// °³ÀÎ ±â¿©µµ
-		// ´øÀüÀº ÆÄÆ¼ ±â¿©µµ°¡ °³ÀÎ ±â¿©µµ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½â¿©ï¿½ï¿½
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ ï¿½â¿©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½â¿©ï¿½ï¿½
 		const float fContribution = fPartyContribution;
 		
-		// »ì¾ÆÀÖ´Â ÆÄÆ¼¿ø ¼ö
+		// ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½
 		int iPartyUserCount = m_spRoomUserManager->GetLiveMember();
 
-		// À¯Àúº°·Î EXP, ED, DropItem °è»ê
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ EXP, ED, DropItem ï¿½ï¿½ï¿½
 		std::vector< UidType > vecLiveMember;
 		m_spRoomUserManager->GetLiveMemberList( vecLiveMember );
 
@@ -6116,25 +6120,25 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( iPartyUserUID );
 			if( IS_NULL( spRoomUser ) )
 			{
-				START_LOG( cerr, L"À¯Àú Æ÷ÀÎÅÍ°ªÀÌ ÀÌ»óÇÕ´Ï´Ù" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½" )
 					<< BUILD_LOG( iPartyUserUID )
 					<< END_LOG;
 				continue;
 			}
 
-			// ·¹º§ factor°ª ±¸ÇÏ±â
+			// ï¿½ï¿½ï¿½ï¿½ factorï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½
 			const float fLevelFactor = CXSLDungeon::GetMonsterLevelBalanceRate( spRoomUser->GetLevel(), kDieNpcInfo.m_cLevel );
 
-			// °³º° ¾ÆÀÌÅÛ È®·ü·Î ¾ÆÀÌÅÛ µå·Ó
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 			KDropTable::DROP_DATA sDropDataNpc;
 
 			//////////////////////////////////////////////////////////////////////////			
-			// ¾ÆÀÌÅÛ°ú ±âº» °æÇèÄ¡ °ª ¾ò±â
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Û°ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ ï¿½ï¿½ï¿½
 			switch( GetDungeonType() )
 			{
 			case CXSLDungeon::DT_HENIR:
 				{
-					//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
+					//{{ 2012. 12. 16  ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ITEM_DROP_EVENT
 					if( SiKDropTable()->HenirNpcDropItem( static_cast<CXSLDungeon::DUNGEON_MODE>(m_cDungeonMode), 
 						kDieNpcInfo.m_iNPCID,
@@ -6161,24 +6165,24 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 #endif SERV_ITEM_DROP_EVENT
 					//}}
 					{
-						START_LOG( cerr, L"Henir Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+						START_LOG( cerr, L"Henir Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 							<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 							<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 							<< BUILD_LOGc( m_cDungeonMode )
 							<< END_LOG;
 					}
 
-					// µå·ÓÅ×ÀÌºí¿¡ EXP°¡ ¼¼ÆÃµÇ¾îÀÖ´Â ¸ó½ºÅÍ¶ó¸é ³»±¸µµ °¨¼Ò Ã¼Å©¸¦ ÇÑ´Ù.
+					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ EXPï¿½ï¿½ ï¿½ï¿½ï¿½ÃµÇ¾ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Í¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ñ´ï¿½.
 					if( sDropDataNpc.m_iExp > 0 )
 					{
-						sDropDataNpc.m_iExp = 0; // Çì´Ï¸£ ½Ã°øÀº °æÇèÄ¡ È¹µæÀ» ÇÏ¸é ¾ÈµÇ±â ¶§¹®¿¡ 0À¸·Î º¯°æÇÑ´Ù.
+						sDropDataNpc.m_iExp = 0; // ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ÈµÇ±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 					}
 				}
 				break;
 
 			case CXSLDungeon::DT_SECRET:
 				{
-					// EXTRA STAGEÀÎ °æ¿ì..
+					// EXTRA STAGEï¿½ï¿½ ï¿½ï¿½ï¿½..
 					if( IsEnteredExtraStage() == true )
 					{
 						if( SiKDropTable()->ExtraStageNpcDropItem( kDieNpcInfo.m_iNPCID,
@@ -6188,7 +6192,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 							fContribution,
 							fPartyFactor,
 							iPartyUserCount,
-							//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
+							//{{ 2012. 12. 16  ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ITEM_DROP_EVENT
 							m_iItemDropEventProbCount,
 #endif SERV_ITEM_DROP_EVENT
@@ -6197,7 +6201,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 							sDropDataNpc,
 							kDieNpcInfo.m_bIsBoss ) == false )
 						{
-							START_LOG( cerr, L"Henir Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+							START_LOG( cerr, L"Henir Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 								<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 								<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 								<< END_LOG;
@@ -6213,7 +6217,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 							fContribution,
 							fPartyFactor,
 							iPartyUserCount,
-							//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
+							//{{ 2012. 12. 16  ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ITEM_DROP_EVENT
 							m_iItemDropEventProbCount,
 #endif SERV_ITEM_DROP_EVENT
@@ -6222,7 +6226,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 							sDropDataNpc,
 							kDieNpcInfo.m_bIsBoss ) == false )
 						{
-							START_LOG( cerr, L"Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+							START_LOG( cerr, L"Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 								<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 								<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 								<< BUILD_LOGc( GetDifficultyLevel() )
@@ -6242,7 +6246,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 						fContribution,
 						fPartyFactor,
 						iPartyUserCount,
-						//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
+						//{{ 2012. 12. 16  ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ITEM_DROP_EVENT
 						m_iItemDropEventProbCount,
 #endif SERV_ITEM_DROP_EVENT
@@ -6251,7 +6255,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 						sDropDataNpc,
 						kDieNpcInfo.m_bIsBoss ) == false )
 					{
-						START_LOG( cerr, L"Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+						START_LOG( cerr, L"Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 							<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 							<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 							<< BUILD_LOGc( GetDifficultyLevel() )
@@ -6261,12 +6265,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 				break;
 			}
 
-			//{{ 2012. 11. 12	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+			//{{ 2012. 11. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-			// ¸¶³ª ÀÌÅÍ, ºí·¯µå ÀÌÅÍ, Áß°£º¸½º, º¸½º ½ºÆä¼È µå·Ó
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 			SiKDropTable()->NpcSpecialDropItem( kDieNpcInfo.m_iNPCID, kDieNpcInfo.m_cMonsterGrade, kPacket_.m_cNpcDieState, sDropDataNpc.m_vecItemID );
 #else
-//			//{{ 2009. 5. 18  ÃÖÀ°»ç	¸¶³ªÀÌÅÍ
+//			//{{ 2009. 5. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //			switch( kDieNpcInfo.m_iNPCID )
 //			{
 //			case CXSLUnitManager::NUI_MANA_EATER:
@@ -6275,7 +6279,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //				{
 //					if( kPacket_.m_cNpcDieState == KEGS_NPC_UNIT_DIE_REQ::NDS_BONUS_DROP )
 //					{
-//						// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
+//						// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
 //						sDropDataNpc.m_vecItemID.push_back( 70055 ); // 70055
 //					}
 //				}
@@ -6286,7 +6290,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //				{
 //					if( kPacket_.m_cNpcDieState == KEGS_NPC_UNIT_DIE_REQ::NDS_BONUS_DROP )
 //					{
-//						// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
+//						// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
 //						sDropDataNpc.m_vecItemID.push_back( 70056 ); // 70055
 //					}
 //				}
@@ -6294,20 +6298,20 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			}		
 //			//}}
 //
-//			//{{ º¸½º, Áßº¸ ÀâÀ» ¶§ ¾ÆÀÌÅÛ µå·Ó µÇ´Â ±â´É(MonsterGrade ±âÁØ) - ±è¹Î¼º
+//			//{{ ï¿½ï¿½ï¿½ï¿½, ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½(MonsterGrade ï¿½ï¿½ï¿½ï¿½) - ï¿½ï¿½Î¼ï¿½
 //#ifdef SERV_KILL_BOSS_MIDDLE_BOSS_DROP_ITEM
 //			
 //			if( kDieNpcInfo.m_cMonsterGrade == CXSLUnitManager::MG_MIDDLE_BOSS_NPC )
 //			{
-//				// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
-//				if( rand() % 100 < 50 )	// Áßº¸½º´Â 50% È®·ü·Î¸¸ µå¶ø
+//				// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
+//				if( rand() % 100 < 50 )	// ï¿½ßºï¿½ï¿½ï¿½ï¿½ï¿½ 50% È®ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ï¿½ï¿½
 //				{
 //					sDropDataNpc.m_vecItemID.push_back( 70057 ); // 70057
 //				}
 //			}
 //			else if( kDieNpcInfo.m_cMonsterGrade == CXSLUnitManager::MG_BOSS_NPC )
 //			{
-//				// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
+//				// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
 //				sDropDataNpc.m_vecItemID.push_back( 70058 ); // 70057
 //			}
 //#endif SERV_KILL_BOSS_MIDDLE_BOSS_DROP_ITEM
@@ -6321,43 +6325,43 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 				m_spRoomUserManager->AddDungeonRewardEXP( spRoomUser->GetCID(), sDropDataNpc.m_iExp, GetDungeonIDAndDif(), GetDifficultyLevel(), fLevelFactor, kNpcDietNot );
 			}
 
-			//{{ 2012. 11. 15	ÃÖÀ°»ç		ÇÇ¹ö Áõ°¡ ¹ö±× ¼öÁ¤
+			//{{ 2012. 11. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_FEVER_INCREASE_BUG_FIX
 			//////////////////////////////////////////////////////////////////////////
-			// ³»±¸µµ¸¦ ±ð´Â ¸ó½ºÅÍ´Â °æÇèÄ¡¸¦ ÁÖ´Â ¸ó½ºÅÍ ÀÌ¹Ç·Î ÆÄÆ¼ feverµµ Áõ°¡½ÃÅ°ÀÚ!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í´ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½Æ¼ feverï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½!
 			if( kNpcDietNot.m_bDecreaseEndurance )
 			{
-				// ÇÑ¹ø¸¸ ¿Ã·ÁÁÖ¾î¾ß ÇÑ´Ù.
+				// ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ö¾ï¿½ï¿½ ï¿½Ñ´ï¿½.
 				if( spRoomUser->GetCID() == FIRST_SENDER_UID )
 				{
-					IncreasePartyFever(); // °æÇèÄ¡ º¸»óÀ» ÁÖ´Â ¸ó½ºÅÍ¸¦ Á×ÀÎ°æ¿ì party fever¼öÄ¡¸¦ ¿Ã¸°´Ù!
+					IncreasePartyFever(); // ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½Î°ï¿½ï¿½ party feverï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½!
 				}
 			}
 #endif SERV_FEVER_INCREASE_BUG_FIX
 			//}}
 
 			//////////////////////////////////////////////////////////////////////////
-			// ´øÀü ÆÄÆ¼¿øµé¿¡°Ô °¢ÀÚ ¾ò°Ô µÇ´Â Á¤º¸ Àü´Þ ( °æÇèÄ¡ Á¤º¸ Æ÷ÇÔ )
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
 			SendToGSCharacter( spRoomUser->GetGSUID(), spRoomUser->GetCID(), ERM_NPC_UNIT_DIE_NOT, kNpcDietNot );
 
-			// µå·ÓÀ» ÇÏÁö ¾Ê´Â npc¶ó¸é µå·ÓÀ» ÇÏÁö ¾Ê´Â´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ npcï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 			if( kDieNpcInfo.m_bNoDrop == true )
 				continue;
 
-			// µå·Ó»óÅÂ°¡ ¾Æ´ÑÃ¤·Î Á×Àºnpc¶ó¸é ¾ÆÀÌÅÛ µå·ÓÀ» ÇÏÁö ¾Ê´Â´Ù.
+			// ï¿½ï¿½Ó»ï¿½ï¿½Â°ï¿½ ï¿½Æ´ï¿½Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½npcï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 			if( bDropDieState == false )
 				continue;
 
-			// °³ÀÎ ±â¿©µµ * ÆÄÆ¼ º¸³Ê½º
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½â¿©ï¿½ï¿½ * ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½Ê½ï¿½
 			const float fTotalDropRate = fContribution;// * fPartyFactor;
 
 			//////////////////////////////////////////////////////////////////////////
-			// 2. ´øÀüÀ» ±âÁØÀ¸·Î µå·Ó ¾ÆÀÌÅÛÀÌ °áÁ¤µÇ´Â ´øÀü µå·Ó
+			// 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 			KDropTable::DROP_DATA sDropDataStatic;
 
 			if( SiKDropTable()->StaticDropItem( GetDungeonIDAndDif(), sDropDataStatic, fTotalDropRate ) == false )
 			{
-				START_LOG( cerr, L"Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+				START_LOG( cerr, L"Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 					<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 					<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 					<< BUILD_LOG( GetDungeonID() )
@@ -6366,19 +6370,19 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			}
 
 			//////////////////////////////////////////////////////////////////////////	
-			// 3. ÀÌº¥Æ® ¾ÆÀÌÅÛ µå·Ó Ã¼Å©
+			// 3. ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã¼Å©
 			KDropTable::DROP_DATA sDropDataEvent;
 
 			if( kDieNpcInfo.m_bActive == true )
 			{
-				// ÀÌº¥Æ® ¾ÆÀÌÅÛÀº ÃÊ½ÉÀÚ½£, Æ©Åä¸®¾ó, ÈÆ·Ã¼Ò¿¡¼­ µå·ÓµÇ¼­´Â ¾ÈµÈ´Ù!
+				// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ú½ï¿½, Æ©ï¿½ä¸®ï¿½ï¿½, ï¿½Æ·Ã¼Ò¿ï¿½ï¿½ï¿½ ï¿½ï¿½ÓµÇ¼ï¿½ï¿½ï¿½ ï¿½ÈµÈ´ï¿½!
 				if( CXSLDungeon::DI_EL_FOREST_GATE_NORMAL != GetDungeonID()  &&
 					CXSLDungeon::IsTutorialDungeon( GetDungeonID() ) == false &&
 					CXSLDungeon::IsTCDungeon( GetDungeonID() ) == false )
 				{
 					if( SiKDropTable()->EventDropItem( fTotalDropRate, sDropDataEvent ) == false )
 					{
-						START_LOG( cerr, L"Event Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+						START_LOG( cerr, L"Event Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 							<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 							<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 							<< BUILD_LOGc( GetDifficultyLevel() )
@@ -6388,14 +6392,14 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			}
 
 			//////////////////////////////////////////////////////////////////////////
-			// 4. ¼Ó¼º ¸ó½ºÅÍ µå·Ó ¾ÆÀÌÅÛ
+			// 4. ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			KDropTable::DROP_DATA sDropDataAttribNpc;
 
 			if( bIsAttribNpc == true  /*&&  bDropDieState == true*/ )
 			{
 				char cDifficultyLevel = GetDifficultyLevel();
 
-				// ºñ¹Ð´øÀüÀÎ°¡?
+				// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 				if( m_eDungeonType == CXSLDungeon::DT_SECRET )
 				{
 					if( m_cDungeonMode == CXSLDungeon::DM_SECRET_NORMAL )
@@ -6404,7 +6408,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 					}
 					else if( m_cDungeonMode == CXSLDungeon::DM_SECRET_HELL )
 					{
-						// Extra StageÀÎ°¡?
+						// Extra Stageï¿½Î°ï¿½?
 						if( IsEnteredExtraStage() == true )
 						{
 							cDifficultyLevel = CXSLDungeon::DL_NORMAL;
@@ -6416,7 +6420,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 					}
 				}
 
-				//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
+				//{{ 2012. 12. 16  ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ITEM_DROP_EVENT
 				if( SiKAttribNpcTable()->AttribNpcDropItem( static_cast<int>(cDifficultyLevel), iNpcLv, fTotalDropRate, m_iItemDropEventProbCount, sDropDataAttribNpc.m_vecItemID ) == false )
 #else
@@ -6424,7 +6428,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 #endif SERV_ITEM_DROP_EVENT
 				//}}
 				{
-					START_LOG( cerr, L"¼Ó¼º ¸ó½ºÅÍ ¾ÆÀÌÅÛ µå·Ó ½ÇÆÐ!" )
+					START_LOG( cerr, L"ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOGc( cDifficultyLevel )
 						<< BUILD_LOG( iNpcLv )
 						<< END_LOG;
@@ -6446,7 +6450,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 					break;
 
 				default:
-					START_LOG( cerr, L"´øÀü ³­ÀÌµµ°¡ ÀÌ»óÇÕ´Ï´Ù." )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 						<< BUILD_LOGc( cDifficultyLevel )
 						<< END_LOG;
 					break;
@@ -6454,19 +6458,19 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 
 				if( SiKDropTable()->AttribNpcSpecialDrop( cDifficultyLevel, fTotalDropRate, sDropDataAttribNpc.m_vecItemID ) == false )
 				{
-					START_LOG( cerr, L"¼Ó¼º ¸ó½ºÅÍ ½ºÆä¼È ¾ÆÀÌÅÛ µå·Ó ½ÇÆÐ!" )
+					START_LOG( cerr, L"ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOGc( cDifficultyLevel )
 						<< END_LOG;
 				}
 			}	
 
 			//////////////////////////////////////////////////////////////////////////
-			// 5. Äù½ºÆ® µå·Ó ¾ÆÀÌÅÛ Ã³¸®
+			// 5. ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 
 			std::vector< KRoomUser::QUEST_ITEM_DROP_INFO > vecDropInfo;
 
-			// ÇØ´ç Ä³¸¯ÅÍ°¡ Äù½ºÆ® µå·Ó ¾ÆÀÌÅÛÀÌ ÀÖ´ÂÁö °Ë»ç..
-			//{{ 2013. 03. 18	 Äù½ºÆ® µå·Ó È®·ü Áõ°¡ ÀÌº¥Æ® - ±è¹Î¼º
+			// ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½..
+			//{{ 2013. 03. 18	 ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_QUEST_ITEM_DROP_EVENT
 			if( m_spRoomUserManager->GetQuestDropItem( spRoomUser->GetCID(), GetDungeonID(), GetDifficultyLevel(), m_cDungeonMode, kDieNpcInfo.m_iNPCID, vecDropInfo, m_fQuestItemDropEventProbRate ) == true )
 #else
@@ -6476,7 +6480,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			{
 				BOOST_TEST_FOREACH( const KRoomUser::QUEST_ITEM_DROP_INFO&, kDropInfo, vecDropInfo )
 				{
-					//µå·ÓµÈ ¾ÆÀÌÅÛ ¼ö¸¸Å­ Ã³¸®¸¦ ½ÃÀÛ..
+					//ï¿½ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å­ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 					BOOST_TEST_FOREACH( const int, iDropQuestItemID, kDropInfo.m_vecDropQuestItem )
 					{
 						KEGS_GET_ITEM_NOT kDropNot;
@@ -6492,7 +6496,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			{
 				if( NetError::GetLastError() != NetError::NET_OK )
 				{
-					START_LOG( cerr, L"Äù½ºÆ® µå·Ó ¾ÆÀÌÅÛ ¹Þ¾Æ¿À±â ½ÇÆÐ.!" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 						<< BUILD_LOG( kPacket_.m_uiAttUnit )
 						<< BUILD_LOG( m_iDungeonID )
 						<< BUILD_LOG( NetError::GetLastErrMsg() )
@@ -6501,12 +6505,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			}
 
 			//////////////////////////////////////////////////////////////////////////
-			// 6. Çì´Ï¸£ ½Ã°ø ½ºÆä¼È µå·Ó Ã³¸®
+			// 6. ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 			KDropTable::DROP_DATA sDropDataHenir;
 
 			if( CXSLDungeon::IsHenirDungeon( GetDungeonID() ) == true )
 			{
-				//{{ ÇÊµå µå·Ó °³Æí - ±è¹Î¼º
+				//{{ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_ITEM_DROP
 				SiKDropTable()->GetHenirSpecialNpcDropInfo( kDieNpcInfo.m_iNPCID, fTotalDropRate, sDropDataHenir );
 #else
@@ -6516,14 +6520,14 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			}
 
 			//////////////////////////////////////////////////////////////////////////	
-			// À§¿¡¼­ °áÁ¤µÈ µå·Ó ¾ÆÀÌÅÛ ¸®½ºÆ®¸¦ ½ÇÁ¦ À¯Àú¿¡°Ô º¸³»±â À§ÇÑ Ã³¸®
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 			KEGS_DROP_ITEM_NOT kDropItemNot;
 			kDropItemNot.m_CreatePos = kPacket_.m_DiePos;
 
-			// Çì´Ï¸£ ´øÀüÀÌ¶ó¸é µå·Ó °¡´ÉÇÑ ¾ÆÀÌÅÛÀÎÁö È®ÀÎ ÇÏÀÚ.
+			// ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 			if( CXSLDungeon::IsHenirDungeon( GetDungeonID() ) == true )
 			{
-				// º¸»ó ¹ÞÀ» ¼ö ÀÖ´Â À¯Àú°¡ ¾ø´Ù.
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 				if( spRoomUser->IsHenirRewardUser() == false )
 				{
 					CheckDeleteHenirDropItem( sDropDataNpc, sDropDataStatic, sDropDataEvent, sDropDataAttribNpc, sDropDataHenir );
@@ -6540,8 +6544,8 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 						{
 							if( SiKDropTable()->GetComeBackBuffDropCount( m_spRoomUserManager->GetNumMember() ) == true )
 							{
-								// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
-								kDropItemNot.m_DropItemDataList.push_back( CreateItemProcess( 127260 ) );		// »õ·Î¿î ¸ðÇèÀÇ Â¡Ç¥
+								// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
+								kDropItemNot.m_DropItemDataList.push_back( CreateItemProcess( 127260 ) );		// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Â¡Ç¥
 							}
 						}
 					}
@@ -6549,14 +6553,14 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 					{
 						if( SiKDropTable()->GetComeBackBuffDropCount( m_spRoomUserManager->GetNumMember() ) == true )
 						{
-							// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
-							kDropItemNot.m_DropItemDataList.push_back( CreateItemProcess( 127260 ) );		// »õ·Î¿î ¸ðÇèÀÇ Â¡Ç¥
+							// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
+							kDropItemNot.m_DropItemDataList.push_back( CreateItemProcess( 127260 ) );		// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Â¡Ç¥
 						}
 					}
 				}
 			}
 			
-			//1.ED µå·ÓÃ³¸®
+			//1.ED ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 			if( sDropDataNpc.m_iED != -1 )
 			{
 				for( int i = 0; i < sDropDataNpc.m_nGPNum; ++i )
@@ -6565,12 +6569,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 				}
 			}
 
-			//2.NPC ITEM µå·ÓÃ³¸®	
+			//2.NPC ITEM ï¿½ï¿½ï¿½Ã³ï¿½ï¿½	
 			if( sDropDataNpc.m_vecItemID.empty() == false )
 			{
 				BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataNpc.m_vecItemID )
 				{
-					// Æ¯Á¤ ¾ÆÀÌÅÛÀÌ Æ¯Á¤´øÀü¿¡¼­ µå·ÓµÇÁö ¾Êµµ·Ï ÇÏ´Â ÄÚµå
+					// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Óµï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Úµï¿½
 					if( !CXSLDungeon::IsItemDropDungeon( iDropItemID, m_iDungeonID ) )
 						continue;
 
@@ -6578,12 +6582,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 				}
 			}
 
-			//{{ 2009. 4. 22  ÃÖÀ°»ç	ÀüÃ¼µå·Ó
+			//{{ 2009. 4. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½
 			if( sDropDataStatic.m_vecItemID.empty() == false )
 			{
 				BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataStatic.m_vecItemID )
 				{
-					// Æ¯Á¤ ¾ÆÀÌÅÛÀÌ Æ¯Á¤´øÀü¿¡¼­ µå·ÓµÇÁö ¾Êµµ·Ï ÇÏ´Â ÄÚµå
+					// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Óµï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Úµï¿½
 					if( !CXSLDungeon::IsItemDropDungeon( iDropItemID, m_iDungeonID ) )
 						continue;
 
@@ -6592,12 +6596,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 			}
 			//}}
 
-			//3.EVENT ITEM µå·ÓÃ³¸®
+			//3.EVENT ITEM ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 			if( kDieNpcInfo.m_bActive == true && sDropDataEvent.m_vecItemID.empty() == false )
 			{
 				BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataEvent.m_vecItemID )
 				{
-					// Æ¯Á¤ ¾ÆÀÌÅÛÀÌ Æ¯Á¤´øÀü¿¡¼­ µå·ÓµÇÁö ¾Êµµ·Ï ÇÏ´Â ÄÚµå
+					// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Óµï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Úµï¿½
 					if( !CXSLDungeon::IsItemDropDungeon( iDropItemID, m_iDungeonID ) )
 						continue;
 
@@ -6605,7 +6609,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 				}
 			}
 
-			//4.ATTRIB NPC ITEM µå·ÓÃ³¸®
+			//4.ATTRIB NPC ITEM ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 			if( kDieNpcInfo.m_bActive == true && sDropDataAttribNpc.m_vecItemID.empty() == false )
 			{
 				BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataAttribNpc.m_vecItemID )
@@ -6614,7 +6618,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 				}
 			}
 
-			//5.HENIR NPC SPECIAL µå·ÓÃ³¸®
+			//5.HENIR NPC SPECIAL ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 			if( sDropDataHenir.m_vecItemID.empty() == false )
 			{
 				BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataHenir.m_vecItemID )
@@ -6623,25 +6627,25 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 				}
 			}
 
-			//µå·ÓÃ³¸®ÇÑ ¾ÆÀÌÅÛÀÌ ÀÖÀ¸¸é ÆÐÅ¶À» º¸³½´Ù.
+			//ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			if( kDropItemNot.m_DropItemDataList.empty() == false )
 			{	
 				SendToGSCharacter( spRoomUser->GetGSUID(), spRoomUser->GetCID(), ERM_DROP_ITEM_NOT, kDropItemNot );
 			}
-		}	// for ¹® end
+		}	// for ï¿½ï¿½ end
 
 
 		//////////////////////////////////////////////////////////////////////////
-		// Æ¯Á¤ ½Ã°¢ ¾ÆÀÌÅÛ µå·Ó ÀÌº¥Æ®
+		// Æ¯ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 		if( kDieNpcInfo.m_bActive == true )
 		{
-			// ÀÌº¥Æ® ¾ÆÀÌÅÛÀº ÃÊ½ÉÀÚ½£, Æ©Åä¸®¾ó, ÈÆ·Ã¼Ò¿¡¼­ µå·ÓµÇ¼­´Â ¾ÈµÈ´Ù!
+			// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ú½ï¿½, Æ©ï¿½ä¸®ï¿½ï¿½, ï¿½Æ·Ã¼Ò¿ï¿½ï¿½ï¿½ ï¿½ï¿½ÓµÇ¼ï¿½ï¿½ï¿½ ï¿½ÈµÈ´ï¿½!
 			if( CXSLDungeon::DI_EL_FOREST_GATE_NORMAL != GetDungeonID()  &&
 				CXSLDungeon::IsTutorialDungeon( GetDungeonID() ) == false &&
 				CXSLDungeon::IsTCDungeon( GetDungeonID() ) == false )
 			{
 				//////////////////////////////////////////////////////////////////////////
-				// Æ¯Á¤ ½Ã°£¿¡ NPC¶§·ÁÀâÀ¸¸é º¸»óÁÖ´Â ±â´É
+				// Æ¯ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ NPCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½
 				if( kPacket_.m_cNpcDieState == KEGS_NPC_UNIT_DIE_REQ::NDS_KILL_BY_USER )
 				{
 					KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( kPacket_.m_uiAttUnit );
@@ -6654,7 +6658,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 							const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( iTimeDropItemID );
 							if( pItemTemplet != NULL )
 							{
-								// ÀÏ´Ü DB·Î °¡¼­ ÀÌ À¯Àú°¡ º¸»ó ¹Þ¾Æµµ µÇ´Â À¯ÀúÀÎÁö È®ÀÎÇÏÀÚ!
+								// ï¿½Ï´ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æµï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 								KDBE_CHECK_TIME_DROP_RESULT_REQ kGetTimeDrop;
 								kGetTimeDrop.m_iGSUID		 = spRoomUser->GetGSUID();
 								kGetTimeDrop.m_iUserUID		 = spRoomUser->GetUserUID();
@@ -6668,7 +6672,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 							}
 							else
 							{
-								START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â itemidÀÌ´Ù. ¼¼ÆÃ¿À·ùÀÎ°¡?" )
+								START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ itemidï¿½Ì´ï¿½. ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½Î°ï¿½?" )
 									<< BUILD_LOG( iTimeDropItemID )
 									<< END_LOG;
 							}
@@ -6676,7 +6680,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 					}
 					else
 					{
-						START_LOG( cwarn, L"ÀÌº¥Æ® ¾ÆÀÌÅÛ È¹µæ Ã³¸® ÇÏ·Á´Âµ¥ À¯ÀúÁ¤º¸°¡ ¾ø´Ù!" )
+						START_LOG( cwarn, L"ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 							<< BUILD_LOG( kPacket_.m_uiAttUnit )
 							<< END_LOG;
 					}
@@ -6688,8 +6692,8 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 	else
 	{
 		//////////////////////////////////////////////////////////////////////////
-		// ´øÀü ÆÄÆ¼¿øµé¿¡°Ô ÇØ´ç npc°¡ Á×Àº°Í¿¡ ´ëÇÑ Á¤º¸¸¦ ºê·Îµå Ä³½ºÆÃ ÇÑ´Ù! ( °æÇèÄ¡ Á¤º¸ Æ÷ÇÔ )
-		// ¹æ¾ÈÀÇ ÀÎ¿ø¿¡°Ô ¾Ë·ÁÁÙ µ¥ÀÌÅÍ ¼ÂÆÃ ½ÃÀÛ..
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½Ø´ï¿½ npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Îµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½! ( ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 		KERM_NPC_UNIT_DIE_NOT kNpcDietNot;
 		kNpcDietNot.m_iDungeonID	= GetDungeonID();
 		kNpcDietNot.m_cDifficulty	= GetDifficultyLevel();
@@ -6717,7 +6721,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //{
 //	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_PLAY ), ERM_NPC_UNIT_DIE_ACK, KERM_NPC_UNIT_DIE_ACK );
 //
-//	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_INSERT_GLOBAL_SERVER
 //	std::set< int >::iterator sit = m_setDefenseSmallCrystalNpcUID.find( kPacket_.m_nDieNPCUID );
 //	if( sit != m_setDefenseSmallCrystalNpcUID.end() )
@@ -6726,33 +6730,33 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		kPacket.m_iNPCID	= kPacket_.m_nDieNPCUID;
 //		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_NPC_UNIT_DIE_ACK, kPacket );
 //
-//		// std::set ¿¡¼­ »èÁ¦
+//		// std::set ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //		m_setDefenseSmallCrystalNpcUID.erase( sit );
 //
-//		START_LOG( clog, L"µðÆæ½º ´øÀü ÀÛÀº ¼öÁ¤ÀÌ ±úÁ³À½!!" )
+//		START_LOG( clog, L"ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!!" )
 //			<< END_LOG;
 //		return;
 //	}
 //#endif SERV_INSERT_GLOBAL_SERVER
-//	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //
-//	//»ý¼ºµÈ ¸ó½ºÅÍ ¸®½ºÆ®¿¡¼­ Ã£´Âµ¥ ¾øÀ» °æ¿ì..
+//	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½..
 //	KRoomMonsterManager::NPC_DATA kDieNpcInfo;
 //	if( m_kDungeonMonsterManager.GetNpcData( kPacket_.m_nDieNPCUID, kDieNpcInfo ) == false )
 //	{
 //		kPacket.m_iOK = NetError::ERR_ROOM_20;
 //		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_NPC_UNIT_DIE_ACK, kPacket );
 //
-//		//{{ 2012. 02. 06    ±è¹Î¼º    ´øÀü ¸ó½ºÅÍ UID ¹ß±Þ ¹æ½Ä º¯°æ
+//		//{{ 2012. 02. 06    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UID ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_MAKE_MONSTER_UID_CHANGE
-//		// ¹ß±Þ µÇÁö ¾Ê´Â NPC UID ¸¦ Å¬¶óÀÌ¾ðÆ®°¡ º¸³Â´Ù! 
-//		// ÇØÅ·À¸·Î °£ÁÖÇÏ¿© ¸ÞÀÏÀ» ½î°Ô ÇÏÀÚ! 
-//		// ÇØ´ç ·ë¿¡¼­ ÇÑ¹ø¸¸....
+//		// ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ NPC UID ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Â´ï¿½! 
+//		// ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! 
+//		// ï¿½Ø´ï¿½ ï¿½ë¿¡ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½....
 //		if( GetHackingNpcUid() == false )
 //		{
 //			SetHackingNpcUid( true );
 //
-//			//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+//			//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 //			KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 //			kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_VERIFY_DUNGEON_NPC_UID;
@@ -6763,7 +6767,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			//}}
 //			SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 //
-//			START_LOG( clog, L"¹ß±Þ µÇÁö ¾Ê´Â NPC UID ¸¦ Å¬¶óÀÌ¾ðÆ®°¡ º¸³Â´Ù!" )
+//			START_LOG( clog, L"ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ NPC UID ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Â´ï¿½!" )
 //				<< BUILD_LOG( LAST_SENDER_UID )
 //				<< BUILD_LOGc( kNot.m_cHackingCheckType )
 //				<< END_LOG;
@@ -6774,7 +6778,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		return;
 //	}
 //
-//	//ÀÖ´Ù¸é ÀÌ¹Ì Á×¾ú´ÂÁö Ã¼Å©..
+//	//ï¿½Ö´Ù¸ï¿½ ï¿½Ì¹ï¿½ ï¿½×¾ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©..
 //	if( m_kDungeonMonsterManager.IsMonsterAlive( kPacket_.m_nDieNPCUID ) == false )
 //	{
 //		kPacket.m_iOK = NetError::ERR_ROOM_21;
@@ -6782,14 +6786,14 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		return;
 //	}
 //
-//	//¾ÆÁ÷ »ì¾ÆÀÖ´Ù¸é Á×ÀÎ»ç¶÷°ú Á×Àº°ÍÀ¸·Î ¼³Á¤..
+//	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 //	LIF( m_kDungeonMonsterManager.SetMonsterDie( kPacket_.m_nDieNPCUID, kPacket_.m_uiAttUnit ) );
 //
 //	kPacket.m_iOK		= NetError::NET_OK;
 //	kPacket.m_iNPCID	= kDieNpcInfo.m_iNPCID;
 //	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_NPC_UNIT_DIE_ACK, kPacket );
 //
-//	//¹æ¾ÈÀÇ ÀÎ¿ø¿¡°Ô ¾Ë·ÁÁÙ µ¥ÀÌÅÍ ¼ÂÆÃ ½ÃÀÛ..
+//	//ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 //	KERM_NPC_UNIT_DIE_NOT kNpcDietNot;
 //	kNpcDietNot.m_iDungeonID	= m_iDungeonID;
 //	kNpcDietNot.m_cDifficulty	= m_cDifficultyLevel;
@@ -6802,18 +6806,18 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //	kNpcDietNot.m_cUserCount	= static_cast<char>( m_spRoomUserManager->GetNumMember() );
 //	kNpcDietNot.m_bNoDrop		= kDieNpcInfo.m_bNoDrop;
 //
-//	//{{ 2009. 12. 31  ÃÖÀ°»ç	³»±¸µµ¼Ò¸ð°³Æí
+//	//{{ 2009. 12. 31  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½
 //	kNpcDietNot.m_sSubStageExpNpcNum = GetSubStageExpNpcNum( m_iSubStageID );
 //	kNpcDietNot.m_bDecreaseEndurance = false;
 //	//}}
 //
-//	//{{ 2011. 08. 31  ±è¹Î¼º	ºñ¹Ð´øÀü Çï¸ðµå
+//	//{{ 2011. 08. 31  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_RANDOM_DAY_QUEST
 //	kNpcDietNot.m_cDungeonMode	= m_cDungeonMode;
 //#endif SERV_RANDOM_DAY_QUEST
 //	//}}
 //
-//	//{{ 2009. 5. 11  ÃÖÀ°»ç	npcÁ×Àº»óÅÂ
+//	//{{ 2009. 5. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	npcï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //	const bool bDropDieState = IsDropDieState( kPacket_.m_cNpcDieState );
 //	const bool bAddRoomUserKillCount = ( bDropDieState  &&  kPacket_.m_cNpcDieState != KEGS_NPC_UNIT_DIE_REQ::NDS_KILL_SELF );
 //	//}}
@@ -6821,14 +6825,14 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //	const CXSLUnitManager::NPCUnitTemplet* pNPCTemplet = SiCXSLUnitManager()->GetNPCUnitTemplet( (CXSLUnitManager::NPC_UNIT_ID)kDieNpcInfo.m_iNPCID );
 //	if( pNPCTemplet == NULL )
 //	{
-//		START_LOG( cwarn, L"NPC Unit Templet ÀÐ±â ¿À·ù.!" )
+//		START_LOG( cwarn, L"NPC Unit Templet ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 //			<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 //			<< END_LOG;
 //		return;
 //	}
 //
 //	//////////////////////////////////////////////////////////////////////////	
-//	//{{ 2010. 11. 20	ÃÖÀ°»ç	Æ¯Á¤ ½Ã°¢ ¸ó½ºÅÍ ÃâÇö
+//	//{{ 2010. 11. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_TIME_DROP_MONSTER_EVENT
 //	{
 //		std::map< int, int >::const_iterator mitTDM = m_mapTimeDropEventMonster.find( kDieNpcInfo.m_iNPCID );
@@ -6840,7 +6844,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			kPacketToLog.m_tNpcDieDate = CTime::GetCurrentTime().GetTime();
 //			SendToLogDB( DBE_UPDATE_EVENT_MONSTER_KILL_INFO_NOT, kPacketToLog );
 //
-//			// ÀÌº¥Æ® ¸ó½ºÅÍ Á¤º¸¸¦ ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+//			// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Õ´Ï´ï¿½.
 //			m_mapTimeDropEventMonster.clear();
 //		}
 //	}
@@ -6848,7 +6852,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //	//}}
 //
 //	//////////////////////////////////////////////////////////////////////////	
-//	//{{ 2010. 7. 28  ÃÖÀ°»ç	¿ÀÅäÇÙ Â÷´Ü NPC
+//	//{{ 2010. 7. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ NPC
 //#ifdef SERV_AUTO_HACK_CHECK_NPC
 //	if( kNpcDietNot.m_cUserCount == 1 )
 //	{
@@ -6860,11 +6864,11 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		case CXSLUnitManager::NUI_DUNGEON_CHECKER4:
 //		case CXSLUnitManager::NUI_DUNGEON_CHECKER5:
 //			{
-//				// ÇÙÀ¯Àú¸¦ Á¢¼Ó Á¾·á½ÃÅ°±â À§ÇØ ¿¹¾à ÇØ³õÀÚ!
+//				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø³ï¿½ï¿½ï¿½!
 //				m_setFindedHackUserUnitUID.insert( FIRST_SENDER_UID );
 //
-//				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
-//				//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+//				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+//				//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 //				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 //				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_CANT_KILL_NPC_FIND;
@@ -6875,7 +6879,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //				//}}
 //				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 //
-//				START_LOG( cout, L"Cant Kill Npc ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+//				START_LOG( cout, L"Cant Kill Npc ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 //					<< BUILD_LOG( LAST_SENDER_UID )
 //					<< BUILD_LOG( FIRST_SENDER_UID )
 //					<< BUILD_LOG( kPacket_.m_nDieNPCUID )
@@ -6895,11 +6899,11 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //	//////////////////////////////////////////////////////////////////////////	
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	//{{ 2011. 09. 07  ±è¹Î¼º	¼­ºê ½ºÅ×ÀÌÁö DIE NPC ½Ã°£ Ã¼Å© ±â´É
+//	//{{ 2011. 09. 07  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DIE NPC ï¿½Ã°ï¿½ Ã¼Å© ï¿½ï¿½ï¿½
 //#ifdef SERV_SUB_STAGE_NPC_DIE_CHECK
 //	if( SiKGameSysVal()->GetSubStageNpcDieCheck() == true )
 //	{
-//		// ¼ÖÇÃ ÀÎ°¡? // ¾×Æ¼ºê NPC °¡ 5¸¶¸® ÀÌ»óÀÎ°¡?
+//		// ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½? // ï¿½ï¿½Æ¼ï¿½ï¿½ NPC ï¿½ï¿½ 5ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Î°ï¿½?
 //		if( m_spRoomUserManager->GetNumMember() == 1 
 //			&& m_iSubStageActiveNpc >= 5 
 //			&& kDieNpcInfo.m_bActive == true )
@@ -6908,19 +6912,19 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //
 //			if( m_iSubStageKillActiveNpc == 1 )
 //			{
-//				// ¼­ºê ½ºÅ×ÀÌÁö¿¡¼­ Ã³À½ ¾×Æ¼ºê ¸ó½ºÅÍ¸¦ ÀâÀº ½Ã°£
+//				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 //				m_tSubStageFirstKillTime = CTime::GetCurrentTime();
 //			}
 //			else
 //			{
-//				if( m_iSubStageActiveNpc <= m_iSubStageKillActiveNpc ) // ¸¶Áö¸· ¸ó½ºÅÍ¸¦ Àâ¾Ò´Ù!
+//				if( m_iSubStageActiveNpc <= m_iSubStageKillActiveNpc ) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½Ò´ï¿½!
 //				{
 //					CTime tLastKillTime = CTime::GetCurrentTime();
 //					CTimeSpan tSpan = CTimeSpan( 0, 0, 0, 1);
-//					if( tLastKillTime <= m_tSubStageFirstKillTime + tSpan ) 		// Ã³À½ ¸ó½ºÅÍ¸¦ ÀâÀº ½Ã°£¿¡¼­ 1ÃÊÀÌÇÏ ¹Û¿¡ °É¸®Áö ¾Ê¾Ò´Ù
+//					if( tLastKillTime <= m_tSubStageFirstKillTime + tSpan ) 		// Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Û¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´ï¿½
 //					{
-//						// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
-//						//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+//						// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+//						//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 //						KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 //						kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_CHECK_NPC_DIE_TIME;
@@ -6931,7 +6935,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //						//}}
 //						SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 //
-//						START_LOG( cout, L"Sub StageÀÇ ¸ðµç Npc¸¦ Á×ÀÎ ½Ã°£ÀÌ 1ÃÊ¹Û¿¡ °É¸®Áö ¾Ê´Â´Ù." )
+//						START_LOG( cout, L"Sub Stageï¿½ï¿½ ï¿½ï¿½ï¿½ Npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ 1ï¿½Ê¹Û¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½." )
 //							<< BUILD_LOG( LAST_SENDER_UID )
 //							<< BUILD_LOG( FIRST_SENDER_UID )
 //							<< BUILD_LOG( m_tSubStageFirstKillTime.GetMinute() )
@@ -6951,46 +6955,46 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //	//////////////////////////////////////////////////////////////////////////
 //
 //
-//	// ÆÄÆ¼ ÇÃ·¹ÀÌÀÏ °æ¿ì ¾ÆÀÌÅÛ µå·Ó Ä«¿îÆ® Áõ°¡
+//	// ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 //	const int iDropItemNum = ( m_spRoomUserManager->GetLiveMember() >= 3 ? 2 : 1 );
-//	//{{ 2010. 07. 09  ÃÖÀ°»ç	µå·Ó·ü ÀÌº¥Æ® È®Àå
+//	//{{ 2010. 07. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ó·ï¿½ ï¿½Ìºï¿½Æ® È®ï¿½ï¿½
 //#ifdef SERV_PC_BANG_DROP_EVENT
 //	const int iEventDropItemNum = m_iItemDropEventProbCount * iDropItemNum;
 //#endif SERV_PC_BANG_DROP_EVENT
 //	//}}
 //
-//	// ¼Ó¼º ¸ó½ºÅÍÀÎÁö ¿©ºÎ °Ë»ç	
+//	// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½	
 //	int iNpcLv = 0;
 //	const bool bIsAttribNpc = IsAttribNpc( kPacket_.m_nDieNPCUID, iNpcLv );
 //
-//	// ¸ó½ºÅÍ Å¸ÀÔ »ó¼ö ¾ò±â
+//	// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 //	const char cMonsterTypeFactor = static_cast<char>( CXSLUnitManager::GetMonsterTypeFactor( bIsAttribNpc, GetDifficultyLevel(), kDieNpcInfo.m_cMonsterGrade ) );	
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// uiAttUnit°ªÀÌ -1ÀÌ¸é À¯ÀúÀÇ °ø°ÝÀ» ¹ÞÁö ¾Ê°í npc°¡ ÀÚ»ìÇÑ°ÍÀÓ. [¿¹:Áö·ÚÇÔÁ¤]
+//	// uiAttUnitï¿½ï¿½ï¿½ï¿½ -1ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ npcï¿½ï¿½ ï¿½Ú»ï¿½ï¿½Ñ°ï¿½ï¿½ï¿½. [ï¿½ï¿½:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]
 //
-//	// ÇÃ·¹ÀÌ¾î°¡ ¸ó½ºÅÍ¸¦ Á×ÀÎ°Å¶ó¸é ÇØ´ç ÇÃ·¹ÀÌ¾îÀÇ Å³¸ó½ºÅÍ¼ö Ã¼Å©
+//	// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½Î°Å¶ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ Å³ï¿½ï¿½ï¿½Í¼ï¿½ Ã¼Å©
 //	if( pNPCTemplet->m_bIsNPC  &&  bAddRoomUserKillCount == true  &&  kPacket_.m_uiAttUnit != -1 )
 //	{
 //		if( m_spRoomUserManager->AddKillNPC( kPacket_.m_uiAttUnit ) == false )
 //		{
 //			if( m_kDungeonMonsterManager.IsExistMonster( static_cast<int>(kPacket_.m_uiAttUnit) ) == true )
 //			{
-//				START_LOG( clog, L"¸÷³¢¸® Á×¿´³×!!" )
+//				START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×¿ï¿½ï¿½ï¿½!!" )
 //					<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 //					<< BUILD_LOG( kPacket_.m_uiAttUnit );
 //
-//				// ¸ó½ºÅÍ°¡ ÇÔÁ¤¿¡ °É·Á Á×´Â°æ¿ìÀÓ : ¾ÆÀÌÅÛÀº ±×´ë·Î µå·ÓÃ³¸®ÇÔ.
+//				// ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É·ï¿½ ï¿½×´Â°ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½.
 //			}
 //			else
 //			{
-//				//{{ 2010. 06. 17  ÃÖÀ°»ç	¿ÀÅäÇÙ ¹æÁö
+//				//{{ 2010. 06. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_PROTECT_AUTO_HACK
 //
-//				// ´øÀü °ÔÀÓ ½ÃÀÛÇÒ ´ç½Ã¿¡ À¯Àú ¼ö¿Í ÇöÀç À¯Àú ¼ö°¡ ¸ðµÎ 1¸íÀÏ °æ¿ì¸¸ Ã¼Å©!
+//				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¸¸ Ã¼Å©!
 //				if( m_iStartedNumMember == 1  &&  kNpcDietNot.m_cUserCount == 1 )
 //				{
-//					START_LOG( cerr, L"¸÷³¢¸® Á×ÀÎ°Ô ¾Æ´Ï³×? ÇØÅ·À¯Àú·Î ÀÇ½ÉµÈ´Ù!" )
+//					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î°ï¿½ ï¿½Æ´Ï³ï¿½? ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç½ÉµÈ´ï¿½!" )
 //						<< BUILD_LOG( LAST_SENDER_UID )
 //						<< BUILD_LOG( FIRST_SENDER_UID )
 //						<< BUILD_LOG( kPacket_.m_nDieNPCUID )
@@ -7004,14 +7008,14 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //						<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 //						<< END_LOG;
 //
-//					// ¿ÀÅäÇÙ Ã¼Å© Ä«¿îÆ® Áõ°¡!
+//					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
 //					++m_iNpcDieHackCount;
 //
-//					// ÀÌ ¿¡·¯°¡ 5È¸ ÀÌ»ó ¹ß»ýÇÑ´Ù¸é ±×°ÍÀº Àß¸øµÈ °ÍÀÌ´Ù!
+//					// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 5È¸ ï¿½Ì»ï¿½ ï¿½ß»ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½×°ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½!
 //					if( m_iNpcDieHackCount == m_iHackUserCheckCount )
 //					{
-//						// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
-//						//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+//						// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+//						//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 //						KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 //						kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_NPC_UNIT_DIE;
@@ -7022,7 +7026,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //						//}}
 //						SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 //
-//						START_LOG( cout, L"NpcDie ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+//						START_LOG( cout, L"NpcDie ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 //							<< BUILD_LOG( LAST_SENDER_UID )
 //							<< BUILD_LOG( FIRST_SENDER_UID )
 //							<< BUILD_LOG( m_iNpcDieHackCount );
@@ -7035,12 +7039,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //	}	
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// 1. ¸ó½ºÅÍ Á¾·ù¿¡ µû¶ó µå·Ó ¾ÆÀÌÅÛÀÌ °áÁ¤µÇ´Â ¸ó½ºÅÍ µå·Ó
+//	// 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 //	KDropTable::DROP_DATA sDropDataNpc;
 //
 //	if( kDieNpcInfo.m_bNoDrop == false  &&  bDropDieState == true )
 //	{
-//		//{{ 2011. 01. 20	ÃÖÀ°»ç	´øÀü ·©Å© °³Æí
+//		//{{ 2011. 01. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_DUNGEON_RANK_NEW
 //		if( pNPCTemplet->m_bIsNPC == true  &&  kDieNpcInfo.m_bActive == true )
 //		{
@@ -7049,7 +7053,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //#endif SERV_DUNGEON_RANK_NEW
 //		//}}
 //
-//		//{{ 2009. 7. 26  ÃÖÀ°»ç	Çì´Ï¸£ ½Ã°ø
+//		//{{ 2009. 7. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½
 //		//ITEM
 //		switch( m_eDungeonType )
 //		{
@@ -7057,35 +7061,35 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			{
 //				if( SiKDropTable()->HenirNpcDropItem( static_cast<CXSLDungeon::DUNGEON_MODE>(m_cDungeonMode), kDieNpcInfo.m_iNPCID, kDieNpcInfo.m_cLevel, cMonsterTypeFactor, sDropDataNpc, iEventDropItemNum, kDieNpcInfo.m_bIsBoss ) == false )
 //				{
-//					START_LOG( cerr, L"Henir Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+//					START_LOG( cerr, L"Henir Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 //						<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 //						<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 //						<< BUILD_LOGc( m_cDungeonMode )
 //						<< END_LOG;
 //				}
 //
-//				//{{ 2010. 01. 05  ÃÖÀ°»ç	³»±¸µµ°³Æí
-//				// µå·ÓÅ×ÀÌºí¿¡ EXP°¡ ¼¼ÆÃµÇ¾îÀÖ´Â ¸ó½ºÅÍ¶ó¸é ³»±¸µµ °¨¼Ò Ã¼Å©¸¦ ÇÑ´Ù.
+//				//{{ 2010. 01. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ EXPï¿½ï¿½ ï¿½ï¿½ï¿½ÃµÇ¾ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Í¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ñ´ï¿½.
 //				if( sDropDataNpc.m_iExp > 0 )
 //				{
 //					kNpcDietNot.m_bDecreaseEndurance = true;
 //
-//					sDropDataNpc.m_iExp = 0; // Çì´Ï¸£ ½Ã°øÀº °æÇèÄ¡ È¹µæÀ» ÇÏ¸é ¾ÈµÇ±â ¶§¹®¿¡ 0À¸·Î º¯°æÇÑ´Ù.
+//					sDropDataNpc.m_iExp = 0; // ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ÈµÇ±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 //				}
 //				//}}			
 //			}
 //			break;
 //
-//			//{{ 2010. 05. 02  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+//			//{{ 2010. 05. 02  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SECRET_HELL
 //		case CXSLDungeon::DT_SECRET:
 //			{
-//				// EXTRA STAGEÀÎ °æ¿ì..
+//				// EXTRA STAGEï¿½ï¿½ ï¿½ï¿½ï¿½..
 //				if( IsEnteredExtraStage() == true )
 //				{
 //					if( SiKDropTable()->ExtraStageNpcDropItem( kDieNpcInfo.m_iNPCID, kDieNpcInfo.m_cLevel, cMonsterTypeFactor, sDropDataNpc, iEventDropItemNum, kDieNpcInfo.m_bIsBoss ) == false )
 //					{
-//						START_LOG( cerr, L"Henir Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+//						START_LOG( cerr, L"Henir Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 //							<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 //							<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 //							<< END_LOG;
@@ -7095,7 +7099,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //				{
 //					if( SiKDropTable()->NormalNpcDropItem( (m_iDungeonID + static_cast<int>(m_cDifficultyLevel)), kDieNpcInfo.m_iNPCID, kDieNpcInfo.m_cLevel, cMonsterTypeFactor, sDropDataNpc, iEventDropItemNum, kDieNpcInfo.m_bIsBoss ) == false )
 //					{
-//						START_LOG( cerr, L"Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+//						START_LOG( cerr, L"Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 //							<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 //							<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 //							<< BUILD_LOGc( GetDifficultyLevel() )
@@ -7103,8 +7107,8 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //					}
 //				}
 //
-//				//{{ 2010. 01. 05  ÃÖÀ°»ç	³»±¸µµ°³Æí
-//				// µå·ÓÅ×ÀÌºí¿¡ EXP°¡ ¼¼ÆÃµÇ¾îÀÖ´Â ¸ó½ºÅÍ¶ó¸é ³»±¸µµ °¨¼Ò Ã¼Å©¸¦ ÇÑ´Ù.
+//				//{{ 2010. 01. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ EXPï¿½ï¿½ ï¿½ï¿½ï¿½ÃµÇ¾ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Í¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ñ´ï¿½.
 //				if( sDropDataNpc.m_iExp > 0 )
 //				{
 //					kNpcDietNot.m_bDecreaseEndurance = true;
@@ -7119,15 +7123,15 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			{
 //				if( SiKDropTable()->NormalNpcDropItem( GetDungeonIDAndDif(), kDieNpcInfo.m_iNPCID, kDieNpcInfo.m_cLevel, cMonsterTypeFactor, sDropDataNpc, iEventDropItemNum, kDieNpcInfo.m_bIsBoss ) == false )
 //				{
-//					START_LOG( cerr, L"Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+//					START_LOG( cerr, L"Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 //						<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 //						<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 //						<< BUILD_LOGc( GetDifficultyLevel() )
 //						<< END_LOG;
 //				}
 //
-//				//{{ 2010. 01. 05  ÃÖÀ°»ç	³»±¸µµ°³Æí
-//				// µå·ÓÅ×ÀÌºí¿¡ EXP°¡ ¼¼ÆÃµÇ¾îÀÖ´Â ¸ó½ºÅÍ¶ó¸é ³»±¸µµ °¨¼Ò Ã¼Å©¸¦ ÇÑ´Ù.
+//				//{{ 2010. 01. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ EXPï¿½ï¿½ ï¿½ï¿½ï¿½ÃµÇ¾ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Í¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ñ´ï¿½.
 //				if( sDropDataNpc.m_iExp > 0 )
 //				{
 //					kNpcDietNot.m_bDecreaseEndurance = true;
@@ -7137,12 +7141,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		}
 //		//}}
 //
-//		//{{ 2009. 5. 18  ÃÖÀ°»ç	¸¶³ªÀÌÅÍ
+//		//{{ 2009. 5. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //		switch( kDieNpcInfo.m_iNPCID )
 //		{
 //		case CXSLUnitManager::NUI_MANA_EATER:
 //		case CXSLUnitManager::NUI_HALLOWEEN_MANA_EATER:
-//			//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//			//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_INSERT_GLOBAL_SERVER
 //		case CXSLUnitManager::NUI_DEFENCE_MANA_EATER:
 //#endif SERV_INSERT_GLOBAL_SERVER
@@ -7150,14 +7154,14 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			{
 //				if( kPacket_.m_cNpcDieState == KEGS_NPC_UNIT_DIE_REQ::NDS_BONUS_DROP )
 //				{
-//					// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
+//					// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
 //					sDropDataNpc.m_vecItemID.push_back( 70055 ); // 70055
 //				}
 //			}
 //			break;
 //
 //		case CXSLUnitManager::NUI_BLOOD_EATER:
-//			//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//			//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_INSERT_GLOBAL_SERVER
 //		case CXSLUnitManager::NUI_DEFENCE_BLOOD_EATER:
 //#endif SERV_INSERT_GLOBAL_SERVER
@@ -7165,7 +7169,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			{
 //				if( kPacket_.m_cNpcDieState == KEGS_NPC_UNIT_DIE_REQ::NDS_BONUS_DROP )
 //				{
-//					// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
+//					// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
 //					sDropDataNpc.m_vecItemID.push_back( 70056 ); // 70055
 //				}
 //			}
@@ -7173,29 +7177,29 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		}		
 //		//}}
 //
-//		//{{ 2011. 01. 19	ÃÖÀ°»ç	¸¶À» ÀÌµ¿ ´øÀü
+//		//{{ 2011. 01. 19	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SHIP_DUNGEON
 //		if( CXSLDungeon::IsShipDungeon( GetDungeonID() ) == true )
 //		{
-//			// ¸¶À» ÀÌµ¿ ´øÀü¿¡¼­ ÀâÀº ¸ó½ºÅÍ´Â °æÇèÄ¡°¡ ¾ø½À´Ï´Ù.
+//			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í´ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 //			sDropDataNpc.m_iExp = 0;
 //		}
 //#endif SERV_SHIP_DUNGEON
 //		//}}
 //
 //		//////////////////////////////////////////////////////////////////////////		
-//		//{{ 2009. 12. 18  ÃÖÀ°»ç	´øÀü°æÇèÄ¡°³Æí
+//		//{{ 2009. 12. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½
 //#ifdef DUNGEON_EXP_NEW
 //		if( sDropDataNpc.m_iExp > 0 )
 //		{
-//			// »õ·Î ¸¸µç Å×ÀÌºí·ÎºÎÅÍ °æÇèÄ¡ µ¥ÀÌÅÍ¸¦ °¡Á®¿Í¾ßÇÔ!
+//			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¾ï¿½ï¿½ï¿½!
 //			const int nTotalExp = SiKDropTable()->GetNpcExp( kDieNpcInfo.m_cLevel ) * static_cast<int>(cMonsterTypeFactor);
 //
-//			//{{ 2011. 03. 21  ±è¹Î¼º	´øÀü ³­ÀÌµµ º¸Á¤
+//			//{{ 2011. 03. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
 //			//#ifdef SERV_DUNGEON_DIFFICULTY_REVISION
 //			m_spRoomUserManager->AddDungeonRewardEXP( nTotalExp, GetDungeonIDAndDif(), kDieNpcInfo.m_cLevel, kNpcDietNot, GetDifficultyLevel() );
 //			//#else
-//			//			//{{ 2010. 04. 30  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+//			//			//{{ 2010. 04. 30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //			//#ifdef SERV_SECRET_HELL
 //			//			m_spRoomUserManager->AddDungeonRewardEXP( nTotalExp, GetDungeonIDAndDif(), mit->second.m_cLevel, kNpcDietNot );
 //			//#endif SERV_SECRET_HELL
@@ -7203,9 +7207,9 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			//#endif SERV_DUNGEON_DIFFICULTY_REVISION
 //			//}}
 //
-//			//{{ 2012. 02. 28	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//			//{{ 2012. 02. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
-//			IncreasePartyFever(); // °æÇèÄ¡ º¸»óÀ» ÁÖ´Â ¸ó½ºÅÍ¸¦ Á×ÀÎ°æ¿ì party fever¼öÄ¡¸¦ ¿Ã¸°´Ù!
+//			IncreasePartyFever(); // ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½Î°ï¿½ï¿½ party feverï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½!
 //#endif SERV_BATTLE_FIELD_SYSTEM
 //			//}}
 //		}
@@ -7216,28 +7220,28 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// ´øÀü ÆÄÆ¼¿øµé¿¡°Ô ÇØ´ç npc°¡ Á×Àº°Í¿¡ ´ëÇÑ Á¤º¸¸¦ ºê·Îµå Ä³½ºÆÃ ÇÑ´Ù! ( °æÇèÄ¡ Á¤º¸ Æ÷ÇÔ )
+//	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½Ø´ï¿½ npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Îµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½! ( ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
 //	BroadCast( ERM_NPC_UNIT_DIE_NOT, kNpcDietNot );
 //
 //
-//	// µå·ÓÀ» ÇÏÁö ¾Ê´Â npc¶ó¸é µå·ÓÀ» ÇÏÁö ¾Ê´Â´Ù.
+//	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ npcï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 //	if( kDieNpcInfo.m_bNoDrop == true )
 //		return;
 //
-//	// µå·Ó»óÅÂ°¡ ¾Æ´ÑÃ¤·Î Á×Àºnpc¶ó¸é ¾ÆÀÌÅÛ µå·ÓÀ» ÇÏÁö ¾Ê´Â´Ù.
+//	// ï¿½ï¿½Ó»ï¿½ï¿½Â°ï¿½ ï¿½Æ´ï¿½Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½npcï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 //	if( bDropDieState == false )
 //		return;
 //
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// 2. ´øÀüÀ» ±âÁØÀ¸·Î µå·Ó ¾ÆÀÌÅÛÀÌ °áÁ¤µÇ´Â ´øÀü µå·Ó
+//	// 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 //	KDropTable::DROP_DATA sDropDataStatic;
 //
 //	//if( mit->second.m_bNoDrop == false  &&  bDropDieState == true )
 //	{
 //		if( SiKDropTable()->StaticDropItem( (m_iDungeonID + static_cast<int>(m_cDifficultyLevel)), sDropDataStatic, iDropItemNum ) == false )
 //		{
-//			START_LOG( cerr, L"Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+//			START_LOG( cerr, L"Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 //				<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 //				<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 //				<< BUILD_LOG( m_iDungeonID )
@@ -7248,21 +7252,21 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //
 //
 //	//////////////////////////////////////////////////////////////////////////	
-//	// 3. ÀÌº¥Æ® ¾ÆÀÌÅÛ µå·Ó Ã¼Å©
+//	// 3. ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã¼Å©
 //	KDropTable::DROP_DATA sDropDataEvent;
 //
 //	if( /*mit->second.m_bNoDrop == false  &&*/
 //		kDieNpcInfo.m_bActive == true  /*&&*/
 //		/*bDropDieState == true*/ )
 //	{
-//		// ÀÌº¥Æ® ¾ÆÀÌÅÛÀº ÃÊ½ÉÀÚ½£, Æ©Åä¸®¾ó, ÈÆ·Ã¼Ò¿¡¼­ µå·ÓµÇ¼­´Â ¾ÈµÈ´Ù!
+//		// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ú½ï¿½, Æ©ï¿½ä¸®ï¿½ï¿½, ï¿½Æ·Ã¼Ò¿ï¿½ï¿½ï¿½ ï¿½ï¿½ÓµÇ¼ï¿½ï¿½ï¿½ ï¿½ÈµÈ´ï¿½!
 //		if( CXSLDungeon::DI_EL_FOREST_GATE_NORMAL != m_iDungeonID  &&
 //			CXSLDungeon::IsTutorialDungeon( m_iDungeonID ) == false &&
 //			CXSLDungeon::IsTCDungeon( m_iDungeonID ) == false )
 //		{
 //			if( SiKDropTable()->EventDropItem( iDropItemNum, sDropDataEvent ) == false )
 //			{
-//				START_LOG( cerr, L"Event Drop Item Data ¾ò¾î¿À±â ½ÇÆÐ ===" )
+//				START_LOG( cerr, L"Event Drop Item Data ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===" )
 //					<< BUILD_LOG( kPacket_.m_nDieNPCUID )
 //					<< BUILD_LOG( kDieNpcInfo.m_iNPCID )
 //					<< BUILD_LOGc( m_cDifficultyLevel )
@@ -7270,13 +7274,13 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			}
 //
 //			//////////////////////////////////////////////////////////////////////////
-//			// Æ¯Á¤ ½Ã°£¿¡ NPC¶§·ÁÀâÀ¸¸é º¸»óÁÖ´Â ±â´É
+//			// Æ¯ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ NPCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½
 //			if( kPacket_.m_cNpcDieState == KEGS_NPC_UNIT_DIE_REQ::NDS_KILL_BY_USER )
 //			{
 //				KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( kPacket_.m_uiAttUnit );
 //				if( spRoomUser != NULL )
 //				{
-//					// Ã¼ÇèID°¡ ¾Æ´Ñ À¯Àú¸¸ º¸»óÃ³¸®
+//					// Ã¼ï¿½ï¿½IDï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //					if( spRoomUser->IsGuestUser() == false )
 //					{
 //						int iTimeDropItemID = 0;
@@ -7286,7 +7290,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //							const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( iTimeDropItemID );
 //							if( pItemTemplet != NULL )
 //							{
-//								// ÀÏ´Ü DB·Î °¡¼­ ÀÌ À¯Àú°¡ º¸»ó ¹Þ¾Æµµ µÇ´Â À¯ÀúÀÎÁö È®ÀÎÇÏÀÚ!
+//								// ï¿½Ï´ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æµï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 //								KDBE_CHECK_TIME_DROP_RESULT_REQ kGetTimeDrop;
 //								kGetTimeDrop.m_iGSUID		 = spRoomUser->GetGSUID();
 //								kGetTimeDrop.m_iUserUID		 = spRoomUser->GetUserUID();
@@ -7300,7 +7304,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //							}
 //							else
 //							{
-//								START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â itemidÀÌ´Ù. ¼¼ÆÃ¿À·ùÀÎ°¡?" )
+//								START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ itemidï¿½Ì´ï¿½. ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½Î°ï¿½?" )
 //									<< BUILD_LOG( iTimeDropItemID )
 //									<< END_LOG;
 //							}
@@ -7309,7 +7313,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //				}
 //				else
 //				{
-//					START_LOG( cwarn, L"ÀÌº¥Æ® ¾ÆÀÌÅÛ È¹µæ Ã³¸® ÇÏ·Á´Âµ¥ À¯ÀúÁ¤º¸°¡ ¾ø´Ù!" )
+//					START_LOG( cwarn, L"ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //						<< BUILD_LOG( kPacket_.m_uiAttUnit )
 //						<< END_LOG;
 //				}
@@ -7320,16 +7324,16 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// 4. ¼Ó¼º ¸ó½ºÅÍ µå·Ó ¾ÆÀÌÅÛ
+//	// 4. ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //	KDropTable::DROP_DATA sDropDataAttribNpc;
 //
 //	if( bIsAttribNpc == true  /*&&  bDropDieState == true*/ )
 //	{
 //		char cDifficultyLevel = GetDifficultyLevel();
 //
-//		//{{ 2010. 05. 02  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+//		//{{ 2010. 05. 02  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_SECRET_HELL
-//		// ºñ¹Ð´øÀüÀÎ°¡?
+//		// ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 //		if( m_eDungeonType == CXSLDungeon::DT_SECRET )
 //		{
 //			if( m_cDungeonMode == CXSLDungeon::DM_SECRET_NORMAL )
@@ -7338,7 +7342,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			}
 //			else if( m_cDungeonMode == CXSLDungeon::DM_SECRET_HELL )
 //			{
-//				// Extra StageÀÎ°¡?
+//				// Extra Stageï¿½Î°ï¿½?
 //				if( IsEnteredExtraStage() == true )
 //				{
 //					cDifficultyLevel = CXSLDungeon::DL_NORMAL;
@@ -7354,7 +7358,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //
 //		if( SiKAttribNpcTable()->AttribNpcDropItem( static_cast<int>(cDifficultyLevel), iNpcLv, iEventDropItemNum, sDropDataAttribNpc.m_vecItemID ) == false )
 //		{
-//			START_LOG( cerr, L"¼Ó¼º ¸ó½ºÅÍ ¾ÆÀÌÅÛ µå·Ó ½ÇÆÐ!" )
+//			START_LOG( cerr, L"ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOGc( cDifficultyLevel )
 //				<< BUILD_LOG( iNpcLv )
 //				<< END_LOG;
@@ -7376,18 +7380,18 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			break;
 //
 //		default:
-//			START_LOG( cerr, L"´øÀü ³­ÀÌµµ°¡ ÀÌ»óÇÕ´Ï´Ù." )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 //				<< BUILD_LOGc( cDifficultyLevel )
 //				<< END_LOG;
 //			break;
 //		}
 //
-//		//{{ 2009. 12. 18  ÃÖÀ°»ç	´øÀü»ç¿ë¾ÆÀÌÅÛ
+//		//{{ 2009. 12. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //#ifdef DUNGEON_ITEM
 //
 //		if( SiKDropTable()->AttribNpcSpecialDrop( cDifficultyLevel, sDropDataAttribNpc.m_vecItemID ) == false )
 //		{
-//			START_LOG( cerr, L"¼Ó¼º ¸ó½ºÅÍ ½ºÆä¼È ¾ÆÀÌÅÛ µå·Ó ½ÇÆÐ!" )
+//			START_LOG( cerr, L"ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 //				<< BUILD_LOGc( cDifficultyLevel )
 //				<< END_LOG;
 //		}
@@ -7399,14 +7403,14 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //
 //
 //	//////////////////////////////////////////////////////////////////////////
-//	// 5. Äù½ºÆ® µå·Ó ¾ÆÀÌÅÛ Ã³¸®
+//	// 5. ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 //
 //	//if( mit->second.m_bNoDrop == false )
 //	{
 //		std::vector< KRoomUser::QUEST_ITEM_DROP_INFO > vecDropInfo;
 //
-//		//À¯´Öº° Äù½ºÆ® µå·Ó ¾ÆÀÌÅÛÀÌ ÀÖ´ÂÁö °Ë»ç..
-//		//{{ 2011. 08. 31  ±è¹Î¼º	ºñ¹Ð´øÀü Çï¸ðµå
+//		//ï¿½ï¿½ï¿½Öºï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½..
+//		//{{ 2011. 08. 31  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_RANDOM_DAY_QUEST
 //		if( m_spRoomUserManager->GetQuestDropItem( m_iDungeonID, m_cDifficultyLevel, m_cDungeonMode, kDieNpcInfo.m_iNPCID, vecDropInfo ) == true )
 //#else
@@ -7414,17 +7418,17 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //#endif SERV_RANDOM_DAY_QUEST
 //			//}}
 //		{
-//			//ÀÖ´Ù¸é À¯´Öº°·Î ·çÇª¸¦ µ¹¸é¼­..
+//			//ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½Öºï¿½ï¿½ï¿½ ï¿½ï¿½Çªï¿½ï¿½ ï¿½ï¿½ï¿½é¼­..
 //			BOOST_TEST_FOREACH( const KRoomUser::QUEST_ITEM_DROP_INFO&, kDropInfo, vecDropInfo )
 //			{
-//				//µå·ÓµÈ ¾ÆÀÌÅÛ ¼ö¸¸Å­ Ã³¸®¸¦ ½ÃÀÛ..
+//				//ï¿½ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å­ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 //				BOOST_TEST_FOREACH( const int, iDropQuestItemID, kDropInfo.m_vecDropQuestItem )
 //				{
 //					KEGS_GET_ITEM_NOT kDropNot;
 //					kDropNot.m_cGetItemType = KEGS_GET_ITEM_NOT::GIT_QUEST_ITEM;
 //					kDropNot.m_GetUnitUID	= kDropInfo.m_iUnitUID;
 //					kDropNot.m_iItemID		= iDropQuestItemID;
-//					//{{ 2009. 7. 9  ÃÖÀ°»ç		ÀÓ½Ã ÀÎº¥Åä¸®
+//					//{{ 2009. 7. 9  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ó½ï¿½ ï¿½Îºï¿½ï¿½ä¸®
 //					kDropNot.m_iDropItemUID = m_nDropItemUID++;
 //					//}}
 //					SendToGSCharacter( kDropInfo.m_iGSUID, kDropInfo.m_iUnitUID, ERM_GET_ITEM_INSERT_TO_INVENTORY_NOT, kDropNot );
@@ -7435,7 +7439,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		{
 //			if( NetError::GetLastError() != NetError::NET_OK )
 //			{
-//				START_LOG( cerr, L"Äù½ºÆ® µå·Ó ¾ÆÀÌÅÛ ¹Þ¾Æ¿À±â ½ÇÆÐ.!" )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 //					<< BUILD_LOG( kPacket_.m_uiAttUnit )
 //					<< BUILD_LOG( m_iDungeonID )
 //					<< BUILD_LOG( NetError::GetLastErrMsg() )
@@ -7446,9 +7450,9 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //
 //
 //	//////////////////////////////////////////////////////////////////////////	
-//	//{{ 2011. 08. 23	ÃÖÀ°»ç	Çì´Ï¸£ ½Ã°ø °³Æí
+//	//{{ 2011. 08. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_NEW_HENIR_TEST
-//	// 6. Çì´Ï¸£ ½Ã°ø ½ºÆä¼È µå·Ó Ã³¸®
+//	// 6. ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 //	KDropTable::DROP_DATA sDropDataHenir;
 //
 //	if( CXSLDungeon::IsHenirDungeon( GetDungeonID() ) == true )
@@ -7460,16 +7464,16 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //
 //
 //	//////////////////////////////////////////////////////////////////////////	
-//	// À§¿¡¼­ °áÁ¤µÈ µå·Ó ¾ÆÀÌÅÛ ¸®½ºÆ®¸¦ ½ÇÁ¦ À¯Àú¿¡°Ô º¸³»±â À§ÇÑ Ã³¸®
+//	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 //	KEGS_DROP_ITEM_NOT kDropItemNot;
 //	kDropItemNot.m_CreatePos = kPacket_.m_DiePos;
 //
-//	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+//	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 //#ifdef SERV_NEW_HENIR_TEST
-//	// Çì´Ï¸£ ´øÀüÀÌ¶ó¸é µå·Ó °¡´ÉÇÑ ¾ÆÀÌÅÛÀÎÁö È®ÀÎ ÇÏÀÚ.
+//	// ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 //	if( CXSLDungeon::IsHenirDungeon( GetDungeonID() ) == true )
 //	{
-//		// º¸»ó ¹ÞÀ» ¼ö ÀÖ´Â À¯Àú°¡ ¾ø´Ù.
+//		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 //		if( m_spRoomUserManager->GetHenirRewardUserNum() <= 0 )
 //		{
 //			CheckDeleteHenirDropItem( sDropDataNpc, sDropDataStatic, sDropDataEvent, sDropDataAttribNpc, sDropDataHenir );
@@ -7478,13 +7482,13 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //#endif SERV_NEW_HENIR_TEST
 //	//}}
 //
-//	//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó µå·Ó ¾ÆÀÌÅÛ
+//	//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_COME_BACK_USER_REWARD
 //	if( m_spRoomUserManager->IsComeBackUserInRoom() == true )
 //	{
 //		if( m_cRoomType == CXSLRoom::RT_DUNGEON )
 //		{
-//			//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+//			//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 //#ifdef SERV_NEW_HENIR_TEST
 //			if( CXSLDungeon::IsHenirDungeon( m_iDungeonID )  == true)
 //			{
@@ -7492,8 +7496,8 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //				{
 //					if( SiKDropTable()->GetComeBackBuffDropCount( m_spRoomUserManager->GetNumMember() ) == true )
 //					{
-//						// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
-//						kDropItemNot.m_DropItemDataList.push_back( CreateItemProcess( 127260 ) );		// »õ·Î¿î ¸ðÇèÀÇ Â¡Ç¥
+//						// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
+//						kDropItemNot.m_DropItemDataList.push_back( CreateItemProcess( 127260 ) );		// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Â¡Ç¥
 //					}
 //				}
 //			}
@@ -7503,8 +7507,8 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //			{
 //				if( SiKDropTable()->GetComeBackBuffDropCount( m_spRoomUserManager->GetNumMember() ) == true )
 //				{
-//					// µå·Ó Å×ÀÌºíÀ» È®ÀåÇØ¼­ 'Special Drop'±â´ÉÀ¸·Î ´ëÃ¼ÇÒ¿¹Á¤
-//					kDropItemNot.m_DropItemDataList.push_back( CreateItemProcess( 127260 ) );		// »õ·Î¿î ¸ðÇèÀÇ Â¡Ç¥
+//					// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¼ï¿½ 'Special Drop'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ò¿ï¿½ï¿½ï¿½
+//					kDropItemNot.m_DropItemDataList.push_back( CreateItemProcess( 127260 ) );		// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Â¡Ç¥
 //				}
 //			}
 //		}
@@ -7512,7 +7516,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //#endif SERV_COME_BACK_USER_REWARD
 //	//}} 
 //
-//	//1.ED µå·ÓÃ³¸®
+//	//1.ED ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //	if( sDropDataNpc.m_iED != -1 )
 //	{
 //		for( int i = 0; i < sDropDataNpc.m_nGPNum; ++i )
@@ -7521,12 +7525,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		}
 //	}
 //
-//	//2.NPC ITEM µå·ÓÃ³¸®	
+//	//2.NPC ITEM ï¿½ï¿½ï¿½Ã³ï¿½ï¿½	
 //	if( sDropDataNpc.m_vecItemID.empty() == false )
 //	{
 //		BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataNpc.m_vecItemID )
 //		{
-//			// Æ¯Á¤ ¾ÆÀÌÅÛÀÌ Æ¯Á¤´øÀü¿¡¼­ µå·ÓµÇÁö ¾Êµµ·Ï ÇÏ´Â ÄÚµå
+//			// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Óµï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Úµï¿½
 //			if( !CXSLDungeon::IsItemDropDungeon( iDropItemID, m_iDungeonID ) )
 //				continue;
 //
@@ -7534,12 +7538,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		}
 //	}
 //
-//	//{{ 2009. 4. 22  ÃÖÀ°»ç	ÀüÃ¼µå·Ó
+//	//{{ 2009. 4. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½
 //	if( sDropDataStatic.m_vecItemID.empty() == false )
 //	{
 //		BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataStatic.m_vecItemID )
 //		{
-//			// Æ¯Á¤ ¾ÆÀÌÅÛÀÌ Æ¯Á¤´øÀü¿¡¼­ µå·ÓµÇÁö ¾Êµµ·Ï ÇÏ´Â ÄÚµå
+//			// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Óµï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Úµï¿½
 //			if( !CXSLDungeon::IsItemDropDungeon( iDropItemID, m_iDungeonID ) )
 //				continue;
 //
@@ -7548,12 +7552,12 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //	}
 //	//}}
 //
-//	//3.EVENT ITEM µå·ÓÃ³¸®
+//	//3.EVENT ITEM ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //	if( /*mit->second.m_bNoDrop == false &&*/ kDieNpcInfo.m_bActive == true && sDropDataEvent.m_vecItemID.empty() == false )
 //	{
 //		BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataEvent.m_vecItemID )
 //		{
-//			// Æ¯Á¤ ¾ÆÀÌÅÛÀÌ Æ¯Á¤´øÀü¿¡¼­ µå·ÓµÇÁö ¾Êµµ·Ï ÇÏ´Â ÄÚµå
+//			// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Óµï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Úµï¿½
 //			if( !CXSLDungeon::IsItemDropDungeon( iDropItemID, m_iDungeonID ) )
 //				continue;
 //
@@ -7561,7 +7565,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		}
 //	}
 //
-//	//4.ATTRIB NPC ITEM µå·ÓÃ³¸®
+//	//4.ATTRIB NPC ITEM ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //	if( /*mit->second.m_bNoDrop == false &&*/ kDieNpcInfo.m_bActive == true && sDropDataAttribNpc.m_vecItemID.empty() == false )
 //	{
 //		BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataAttribNpc.m_vecItemID )
@@ -7570,9 +7574,9 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //		}
 //	}
 //
-//	//{{ 2011. 08. 23	ÃÖÀ°»ç	Çì´Ï¸£ ½Ã°ø °³Æí
+//	//{{ 2011. 08. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_NEW_HENIR_TEST
-//	//5.HENIR NPC SPECIAL µå·ÓÃ³¸®
+//	//5.HENIR NPC SPECIAL ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //	if( /*mit->second.m_bNoDrop == false &&*/ sDropDataHenir.m_vecItemID.empty() == false )
 //	{
 //		BOOST_TEST_FOREACH( const int, iDropItemID, sDropDataHenir.m_vecItemID )
@@ -7583,7 +7587,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 //#endif SERV_NEW_HENIR_TEST
 //	//}}
 //
-//	//µå·ÓÃ³¸®ÇÑ ¾ÆÀÌÅÛÀÌ ÀÖÀ¸¸é ÆÐÅ¶À» º¸³½´Ù.
+//	//ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 //	if( kDropItemNot.m_DropItemDataList.empty() == false )
 //	{	
 //		BroadCast( ERM_DROP_ITEM_NOT, kDropItemNot );
@@ -7598,7 +7602,7 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_REQ, KEGS_NPC_UNIT_DIE_REQ )
 
 _IMPL_ON_FUNC( ERM_USER_UNIT_DIE_REQ, KEGS_USER_UNIT_DIE_REQ )
 {
-	//{{ 2011. 09. 19  ±è¹Î¼º	ÄªÈ£ È¹µæ Á¶°Ç Ãß°¡
+	//{{ 2011. 09. 19  ï¿½ï¿½Î¼ï¿½	ÄªÈ£ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_TITLE_CONDITION
 	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_PLAY ), ERM_USER_UNIT_DIE_ACK, KERM_USER_UNIT_DIE_ACK );
 #else
@@ -7610,7 +7614,7 @@ _IMPL_ON_FUNC( ERM_USER_UNIT_DIE_REQ, KEGS_USER_UNIT_DIE_REQ )
 	if( !m_spRoomUserManager->SetDie( FIRST_SENDER_UID, true ) )
 	{
 		kPacket.m_iOK = NetError::ERR_SLOT_07;
-		//{{ 2011. 09. 19  ±è¹Î¼º	ÄªÈ£ È¹µæ Á¶°Ç Ãß°¡
+		//{{ 2011. 09. 19  ï¿½ï¿½Î¼ï¿½	ÄªÈ£ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_TITLE_CONDITION
 		KERM_USER_UNIT_DIE_ACK kAck;
 		kAck.m_iOK = kPacket.m_iOK;
@@ -7626,10 +7630,10 @@ _IMPL_ON_FUNC( ERM_USER_UNIT_DIE_REQ, KEGS_USER_UNIT_DIE_REQ )
 		return;
 	}
 
-	// ¼º°øÇÏ¸é ¼º°øÆÐÅ¶À» ÇØ´çÀ¯Àú¿¡°Ô º¸³»°í
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	kPacket.m_iOK = NetError::NET_OK;
 
-	//{{ 2011. 09. 19  ±è¹Î¼º	ÄªÈ£ È¹µæ Á¶°Ç Ãß°¡
+	//{{ 2011. 09. 19  ï¿½ï¿½Î¼ï¿½	ÄªÈ£ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_TITLE_CONDITION
 	KERM_USER_UNIT_DIE_ACK kAck;
 	kAck.m_iOK = kPacket.m_iOK;
@@ -7645,20 +7649,20 @@ _IMPL_ON_FUNC( ERM_USER_UNIT_DIE_REQ, KEGS_USER_UNIT_DIE_REQ )
 
 	
 
-	// ¹æÀÇ ¸ðµç À¯Àú¿¡°Ô Á¤º¸¸¦ ¾Ë¸°´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ï¿½ï¿½.
 	KERM_USER_UNIT_DIE_NOT kPacketNot;
 	kPacketNot.m_iGameType			= m_cGameType;
 	kPacketNot.m_KillerNPCUID = kPacket_.m_KillerNPCUID;
 	kPacketNot.m_KilledUserUnitUID = FIRST_SENDER_UID;
 	BroadCast( ERM_USER_UNIT_DIE_NOT, kPacketNot );
 
-	//{{ 2008. 6. 17  ÃÖÀ°»ç  ½Ç½Ã°£ ºÎÈ°¼®
+	//{{ 2008. 6. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 	m_spRoomUserManager->ReserveEndPlay( FIRST_SENDER_UID );
 	//}}
 
     if( !CheckIfPlayEnd() )
 	{
-		//³ª¸ÓÁö ´Ù¸¥ À¯ÀúÀÇ °ÔÀÓ ÁøÇàÀ» À§ÇØ ½ºÅ×ÀÌÁö Ã¼Å©¸¦ ÇÑ´Ù.
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ñ´ï¿½.
 		if( m_kDSSGoNextAllNot.m_iBeforeStageID != -1 &&
 			m_kDSSGoNextAllNot.m_iNextStageID	!= -1 )
 			SendDSSGoNextAllNot( m_kDSSGoNextAllNot );
@@ -7680,7 +7684,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_USER_UNIT_DIE_COMPLETE_REQ )
 	BroadCast( ERM_USER_UNIT_DIE_COMPLETE_NOT, kNot );
 }
 
-//{{ ÇÊµå µå·Ó °³Æí - ±è¹Î¼º
+//{{ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_ITEM_DROP
 _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 {
@@ -7695,27 +7699,27 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 	std::map< int, ITEM_DATA >::iterator mit;
 	mit = m_mapDropItem.find( kPacket_.m_iDropItemUID );
 
-	// 1. ½ÀµæÇÒ·Á´Â itemÀÌ ¾ø´Â°æ¿ì
+	// 1. ï¿½ï¿½ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½ itemï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ï¿½
 	if( mit == m_mapDropItem.end() )
 	{
-		START_LOG( cerr, L"½ÀµæÇÒ·Á´Â ¾ÆÀÌÅÛÀÌ ¾øÀ½" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket_.m_iDropItemUID )
 			<< BUILD_LOG( kPacket_.m_kItemInfo.m_iItemID )
 			<< END_LOG;
 
-		// Àý´ë·Î ÀÏ¾î³¯ ¼ö ¾ø´Â ¿¡·¯!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³¯ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		if( kPacket_.m_iDropItemUID == -1  &&  kPacket_.m_kItemInfo.m_iItemID == -1 )
 		{
 			++m_iGetItemHackCount;
 
 			if( m_iGetItemHackCount == m_iHackUserCheckCount )
 			{
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_GET_ITEM;
 				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 
-				START_LOG( cout, L"GetItem ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+				START_LOG( cout, L"GetItem ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( m_iGetItemHackCount );
@@ -7729,30 +7733,30 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 
 	ITEM_DATA& sItemData = mit->second;
 
-	// 2. ¾ÆÀÌÅÛ Á¾·ù °Ë»ç
+	// 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	if( kPacket_.m_kItemInfo.m_iItemID != sItemData.m_iItemID )
 	{
-		START_LOG( cerr, L"½ÀµæÇÒ·Á´Â ¾ÆÀÌÅÛÀÇ Á¾·ù°¡ Àß¸øµÇ¾úÀ½." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_iDropItemUID )
 			<< BUILD_LOG( kPacket_.m_kItemInfo.m_iItemID )
 			<< BUILD_LOG( sItemData.m_iItemID )
 			<< END_LOG;
 
-		// Àý´ë·Î ÀÏ¾î³¯ ¼ö ¾ø´Â ¿¡·¯!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³¯ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		if( kPacket_.m_kItemInfo.m_iItemID == -1 )
 		{
 			++m_iGetItemHackCount;
 
 			if( m_iGetItemHackCount == m_iHackUserCheckCount )
 			{
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_GET_ITEM;
 
 				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 
-				START_LOG( cout, L"GetItem ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+				START_LOG( cout, L"GetItem ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( m_iGetItemHackCount );
@@ -7763,7 +7767,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 		goto end_proc;
 	}
 
-	// 3. ´Ù¸¥ À¯Àú°¡ ÀÌ¹Ì ½ÀµæÇÑ°Ç°¡
+	// 3. ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ°Ç°ï¿½
 	if( sItemData.m_bIsGet == true )
 	{
 		kPacket.m_iOK = NetError::ERR_ITEM_01;
@@ -7772,15 +7776,15 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 
 	kNot.m_iDropItemUID	= kPacket_.m_iDropItemUID;
 	kNot.m_iItemID		= kPacket_.m_kItemInfo.m_iItemID;
-	//{{ 2013. 1. 14	¹Ú¼¼ÈÆ	´øÀü ¹× ÇÊµå µå¶ø ¾ÆÀÌÅÛ¿¡ °­È­ ºÎ¿©
+	//{{ 2013. 1. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½È­ ï¿½Î¿ï¿½
 #ifdef SERV_ENCHANT_ITEM_DROP_EVENT
 	kNot.m_cEnchantLevel= sItemData.m_cEnchantLevel;
 #endif SERV_ENCHANT_ITEM_DROP_EVENT
 	//}}
 
-	// ¼ø°£¼Òºñ ¾ÆÀÌÅÛ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Òºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	bool bNotCreateItem = false;
-	UidType iGSUID = LAST_SENDER_UID; // ServerUIDÀúÀå
+	UidType iGSUID = LAST_SENDER_UID; // ServerUIDï¿½ï¿½ï¿½ï¿½
 
 // 	const bool bIsGetItemDistribute = ( kPacket_.m_kItemInfo.m_iItemID == CXSLItem::HDR_TIMESPACE_PIECE );
 // 	if( bIsGetItemDistribute == true )
@@ -7789,16 +7793,16 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 // 	}
 // 	else
 	{
-		// 4. ¸ÔÀº ¾ÆÀÌÅÛÀÌ EDÀÎ°¡? ItemÀÎ°¡?
+		// 4. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ EDï¿½Î°ï¿½? Itemï¿½Î°ï¿½?
 		if( sItemData.m_bIsGP == true )
 		{
 			kNot.m_iTotalED = sItemData.m_iED;
-			kNot.m_GetUnitUID = FIRST_SENDER_UID; // Å¬¶óÀÌ¾ðÆ® È­¸é¿¡ ¾î¶²³ðÀÌ ED¸Ô¾ú³ª Ç¥½ÃÇØÁÙ¶§ »ç¿ë
+			kNot.m_GetUnitUID = FIRST_SENDER_UID; // Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® È­ï¿½é¿¡ ï¿½î¶²ï¿½ï¿½ï¿½ï¿½ EDï¿½Ô¾ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ ï¿½ï¿½ï¿½
 			const float fPartyBonusRate = GetDungeonPartyBonusRate();
 			if( !m_spRoomUserManager->AddDungeonRewardED( sItemData.m_iED, FIRST_SENDER_UID, fPartyBonusRate, GetDungeonID(), GetDifficultyLevel(), kNot ) )
 
 			{
-				START_LOG( cerr, L"EDº¸»óÃ³¸®°¡ ÀÌ»óÇÕ´Ï´Ù!" )
+				START_LOG( cerr, L"EDï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½!" )
 					<< BUILD_LOG( sItemData.m_iED )
 					<< END_LOG;
 
@@ -7808,26 +7812,26 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 
 			bNotCreateItem = true;
 		}
-		else		// ¾ÆÀÌÅÛ
+		else		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		{
 			const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( sItemData.m_iItemID );
 			if( pItemTemplet == NULL )
 			{
-				START_LOG( cerr, L"Item Templet Á¤º¸°¡ ¾øÀ½. ÀÌ»óÇÑ ¾ÆÀÌÅÛ ¸Ô¾ú³×." )
+				START_LOG( cerr, L"Item Templet ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¾ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( sItemData.m_iItemID )
 					<< END_LOG;
 
 				kPacket.m_iOK = NetError::ERR_ITEM_04;
 
-				sItemData.m_bIsGet = true; // ¸ÔÀº°É·Î Ã³¸®
+				sItemData.m_bIsGet = true; // ï¿½ï¿½ï¿½ï¿½ï¿½É·ï¿½ Ã³ï¿½ï¿½
 				goto end_proc;
 			}
 			else
 			{
 				kNot.m_GetUnitUID	= FIRST_SENDER_UID;
 
-				// ¼ø°£¼Òºñ ¾ÆÀÌÅÛÀÌ¸é ÀÎº¥¿¡ ³ÖÁö ¾Ê±âÀ§ÇØ
+				// ï¿½ï¿½ï¿½ï¿½ï¿½Òºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½
 				if( pItemTemplet->m_ItemType == CXSLItem::IT_OUTLAY )
 				{
 					bNotCreateItem = true;
@@ -7836,9 +7840,9 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 		}
 	}
 
-	sItemData.m_bIsGet	= true;	//¿À·ù°¡ ¾ø¾î¾ß ¾ÆÀÌÅÛÀ» ¸ÔÀº°ÍÀ¸·Î Ã¼Å©
+	sItemData.m_bIsGet	= true;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 
-	// ack¸¦ ¸ÕÀú º¸³½´Ù
+	// ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_GET_ITEM_ACK, kPacket );
 
 	//////////////////////////////////////////////////////////////////////////	
@@ -7846,10 +7850,10 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 	{
 		if( m_spRoomUserManager->GetNumMember() == 1 )
 		{
-			// ÇÙÀ¯Àú°¡ ¸Â´ÂÁö °Ë»ç!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Â´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½!
 			if( m_setFindedHackUserUnitUID.find( FIRST_SENDER_UID ) != m_setFindedHackUserUnitUID.end() )
 			{
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_CANT_KILL_NPC_KICK;
 
@@ -7858,7 +7862,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 #ifdef SERV_MINIMUM_LOG_HAKC_USER
 				START_LOG( cout, L"Cant Kill Npc pos1. UnitUID : " << FIRST_SENDER_UID  );
 #else //SERV_MINIMUM_LOG_HAKC_USER
-				START_LOG( cout, L"Cant Kill Npc ÇØÅ·À¯Àú·Î ÆÇ´ÜµÈ À¯Àú¸¦ ¼­¹ö¿¡¼­ Á¢¼ÓÁ¾·á½ÃÅ°±â À§ÇÑ ÆÐÅ¶ Àü¼Û!" )
+				START_LOG( cout, L"Cant Kill Npc ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´Üµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( kPacket_.m_iDropItemUID )
@@ -7878,10 +7882,10 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 // 		{
 // 			kNot.m_GetUnitUID = mit->first;
 // 
-// 			// À¯Àúµé¿¡°Ô ¾ÆÀÌÅÛ È¹µæÀ» ¾Ë¸²
+// 			// ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½
 //			BroadCast( ERM_GET_ITEM_NOT, kNot );
 //
-//			// ½ÇÁ¦·Î ¾ÆÀÌÅÛ È¹µæ Ã³¸®¸¦ ÇÒ ÆÐÅ¶À» È¹µæ À¯Àú¿¡°Ô Àü¼Û
+//			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //			SendToGSCharacter( mit->second, kNot.m_GetUnitUID, ERM_GET_ITEM_INSERT_TO_INVENTORY_NOT, kNot );
 //			//}}
 // 		}
@@ -7889,21 +7893,21 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 // 	else
 
 	{
-		// ¾ÆÀÌÅÛ È¹µæ °á°ú º¸³»±â
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		if( bNotCreateItem == false )
 		{
-			// ½ÇÁ¦·Î È¹µæÇÑ À¯Àú¿¡°Ô º¸³¿
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-			// À¯Àúµé¿¡°Ô ¾ÆÀÌÅÛ È¹µæÀ» ¾Ë¸²
+			// ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½
 			BroadCast( ERM_GET_ITEM_NOT, kNot );
 
-			// ½ÇÁ¦·Î ¾ÆÀÌÅÛ È¹µæ Ã³¸®¸¦ ÇÒ ÆÐÅ¶À» È¹µæ À¯Àú¿¡°Ô Àü¼Û
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			SendToGSCharacter( iGSUID, kNot.m_GetUnitUID, ERM_GET_ITEM_INSERT_TO_INVENTORY_NOT, kNot );
 			//}}
 
 
-			//{{ µå·Ó È¹µæ °øÁö ¾ÆÀÌÅÛ - ºñ´ø¾ÆÀÌÅÛ, ¸Å·Â¾ÆÀÌÅÛ
-			//{{ 2013. 1. 14	¹Ú¼¼ÈÆ	´øÀü ¹× ÇÊµå µå¶ø ¾ÆÀÌÅÛ¿¡ °­È­ ºÎ¿©
+			//{{ ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Å·Â¾ï¿½ï¿½ï¿½ï¿½ï¿½
+			//{{ 2013. 1. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½È­ ï¿½Î¿ï¿½
 #ifdef SERV_ENCHANT_ITEM_DROP_EVENT
 			if(		( sItemData.m_bNotify == true )
 				||	( SiKDropTable()->IsNotifyDropItem( sItemData.m_iItemID ) )
@@ -7920,11 +7924,11 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 					if( pItemTemplet != NULL )
 					{
 						KEGS_NOTIFY_MSG_NOT	kPacket;
-						kPacket.m_cNotifyType = KEGS_NOTIFY_MSG_NOT::NT_DROP_GET_ITEM; // ¾ÆÀÌÅÛ È¹µæ °øÁö
+						kPacket.m_cNotifyType = KEGS_NOTIFY_MSG_NOT::NT_DROP_GET_ITEM; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 						kPacket.m_Count = 1;
 						kPacket.m_wstrMSG = spRoomUser->GetNickName();
 						kPacket.m_wstrMSG += L";";
-						//{{ 2012. 1. 17	¹Ú¼¼ÈÆ	´øÀü ¹× ÇÊµå µå¶ø ¾ÆÀÌÅÛ¿¡ °­È­ ºÎ¿©
+						//{{ 2012. 1. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½È­ ï¿½Î¿ï¿½
 #ifdef SERV_ENCHANT_ITEM_DROP_EVENT
 						if( sItemData.m_bNotify == true )
 						{
@@ -7945,7 +7949,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 					}
 					else
 					{
-						START_LOG( cerr, L"µå·Ó È¹µæ ¾ÆÀÌÅÛ °øÁö¸¦ ³¯¸®·Á´Âµ¥ Á¸ÀçÇÏÁö ¾Ê´Â ¾ÆÀÌÅÛÀÔ´Ï´Ù" )
+						START_LOG( cerr, L"ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½" )
 							<< BUILD_LOG( kNot.m_GetUnitUID )
 							<< BUILD_LOG( sItemData.m_iItemID )
 							<< END_LOG;
@@ -7953,7 +7957,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 				}
 				else
 				{
-					START_LOG( cerr, L"µå·Ó È¹µæ ¾ÆÀÌÅÛ °øÁö¸¦ ³¯¸®·Á´Âµ¥ ¹æ¿¡ À¯Àú°¡ ¾ø½À´Ï´Ù" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½" )
 						<< BUILD_LOG( kNot.m_GetUnitUID )
 						<< END_LOG;
 				}
@@ -7968,7 +7972,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 					kNot.m_bIsItemSuccess = true;
 			}
 
-			// ¼ø°£¼Òºñ ¾ÆÀÌÅÛ°ú ED¾ÆÀÌÅÛÀº ºê·ÎµåÄ³½ºÆÃ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Òºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û°ï¿½ EDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Îµï¿½Ä³ï¿½ï¿½ï¿½ï¿½
 			BroadCast( ERM_GET_ITEM_NOT, kNot );
 		}
 	}
@@ -7989,7 +7993,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 
 	KEGS_GET_ITEM_NOT kNot;
 
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 	std::map< UidType, UidType > mapHenirRewardUserList;
 #endif SERV_NEW_HENIR_TEST
@@ -7998,25 +8002,25 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 	std::map< int, ITEM_DATA >::iterator mit;
 	mit = m_mapDropItem.find( kPacket_.m_iDropItemUID );
 
-	// 1. ½ÀµæÇÒ·Á´Â itemÀÌ ¾ø´Â°æ¿ì
+	// 1. ï¿½ï¿½ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½ itemï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ï¿½
 	if( mit == m_mapDropItem.end() )
 	{
-		START_LOG( cerr, L"½ÀµæÇÒ·Á´Â ¾ÆÀÌÅÛÀÌ ¾øÀ½" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket_.m_iDropItemUID )
 			<< BUILD_LOG( kPacket_.m_kItemInfo.m_iItemID )
 			<< END_LOG;
 
-		//{{ 2010. 06. 17  ÃÖÀ°»ç	¿ÀÅäÇÙ ¹æÁö
+		//{{ 2010. 06. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PROTECT_AUTO_HACK
-		// Àý´ë·Î ÀÏ¾î³¯ ¼ö ¾ø´Â ¿¡·¯!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³¯ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		if( kPacket_.m_iDropItemUID == -1  &&  kPacket_.m_kItemInfo.m_iItemID == -1 )
 		{
 			++m_iGetItemHackCount;
 
 			if( m_iGetItemHackCount == m_iHackUserCheckCount )
 			{
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
-				//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+				//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_GET_ITEM;
@@ -8027,7 +8031,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 				//}}
 				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 
-				START_LOG( cout, L"GetItem ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+				START_LOG( cout, L"GetItem ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( m_iGetItemHackCount );
@@ -8042,27 +8046,27 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 
 	ITEM_DATA& sItemData = mit->second;
 
-	// 2. ¾ÆÀÌÅÛ Á¾·ù °Ë»ç
+	// 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	if( kPacket_.m_kItemInfo.m_iItemID != sItemData.m_iItemID )
 	{
-		START_LOG( cerr, L"½ÀµæÇÒ·Á´Â ¾ÆÀÌÅÛÀÇ Á¾·ù°¡ Àß¸øµÇ¾úÀ½." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_iDropItemUID )
 			<< BUILD_LOG( kPacket_.m_kItemInfo.m_iItemID )
 			<< BUILD_LOG( sItemData.m_iItemID )
 			<< END_LOG;
 
-		//{{ 2010. 06. 17  ÃÖÀ°»ç	¿ÀÅäÇÙ ¹æÁö
+		//{{ 2010. 06. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PROTECT_AUTO_HACK
-		// Àý´ë·Î ÀÏ¾î³¯ ¼ö ¾ø´Â ¿¡·¯!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾î³¯ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		if( kPacket_.m_kItemInfo.m_iItemID == -1 )
 		{
 			++m_iGetItemHackCount;
 
 			if( m_iGetItemHackCount == m_iHackUserCheckCount )
 			{
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
-				//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+				//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_GET_ITEM;
@@ -8073,7 +8077,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 				//}}
 				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_SERVER_CHECK_HACK_USER_NOT, kNot );
 
-				START_LOG( cout, L"GetItem ÇØÅ·À¯Àú·Î ÆÇ´ÜµÇ¾î Ã¼Å© °á°ú¸¦ Å¬¶óÀÌ¾ðÆ® Àü¼ÛÇÏ¿´À½!" )
+				START_LOG( cout, L"GetItem ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ÜµÇ¾ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( m_iGetItemHackCount );
@@ -8086,7 +8090,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 		goto end_proc;
 	}
 
-	// 3. ´Ù¸¥ À¯Àú°¡ ÀÌ¹Ì ½ÀµæÇÑ°Ç°¡
+	// 3. ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ°Ç°ï¿½
 	if( sItemData.m_bIsGet == true )
 	{
 		kPacket.m_iOK = NetError::ERR_ITEM_01;
@@ -8096,11 +8100,11 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 	kNot.m_iDropItemUID	= kPacket_.m_iDropItemUID;
 	kNot.m_iItemID		= kPacket_.m_kItemInfo.m_iItemID;
 
-	// ¼ø°£¼Òºñ ¾ÆÀÌÅÛ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Òºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	bool bNotCreateItem = false;
-	UidType iGSUID = LAST_SENDER_UID; // ServerUIDÀúÀå
+	UidType iGSUID = LAST_SENDER_UID; // ServerUIDï¿½ï¿½ï¿½ï¿½
 
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 	const bool bIsGetItemDistribute = ( kPacket_.m_kItemInfo.m_iItemID == CXSLItem::HDR_TIMESPACE_PIECE );
 	if( bIsGetItemDistribute == true )
@@ -8111,13 +8115,13 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 #endif SERV_NEW_HENIR_TEST
 		//}}
 	{
-		// 4. ¸ÔÀº ¾ÆÀÌÅÛÀÌ EDÀÎ°¡? ItemÀÎ°¡?
+		// 4. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ EDï¿½Î°ï¿½? Itemï¿½Î°ï¿½?
 		if( sItemData.m_bIsGP == true )
 		{
 			kNot.m_iTotalED = sItemData.m_iED;
-			kNot.m_GetUnitUID = FIRST_SENDER_UID; // Å¬¶óÀÌ¾ðÆ® È­¸é¿¡ ¾î¶²³ðÀÌ ED¸Ô¾ú³ª Ç¥½ÃÇØÁÙ¶§ »ç¿ë
+			kNot.m_GetUnitUID = FIRST_SENDER_UID; // Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® È­ï¿½é¿¡ ï¿½î¶²ï¿½ï¿½ï¿½ï¿½ EDï¿½Ô¾ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ ï¿½ï¿½ï¿½
 
-			//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+			//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 			if( !m_spRoomUserManager->AddDungeonRewardED( sItemData.m_iED, GetDungeonID(), kNot ) )
 #else
@@ -8125,7 +8129,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 #endif SERV_NEW_HENIR_TEST
 				//}}
 			{
-				START_LOG( cerr, L"EDº¸»óÃ³¸®°¡ ÀÌ»óÇÕ´Ï´Ù!" )
+				START_LOG( cerr, L"EDï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½!" )
 					<< BUILD_LOG( sItemData.m_iED )
 					<< END_LOG;
 
@@ -8135,33 +8139,33 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 
 			bNotCreateItem = true;
 		}
-		else		// ¾ÆÀÌÅÛ
+		else		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		{
 			const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( sItemData.m_iItemID );
 			if( pItemTemplet == NULL )
 			{
-				START_LOG( cerr, L"Item Templet Á¤º¸°¡ ¾øÀ½. ÀÌ»óÇÑ ¾ÆÀÌÅÛ ¸Ô¾ú³×." )
+				START_LOG( cerr, L"Item Templet ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¾ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( sItemData.m_iItemID )
 					<< END_LOG;
 
 				kPacket.m_iOK = NetError::ERR_ITEM_04;
 
-				sItemData.m_bIsGet = true; // ¸ÔÀº°É·Î Ã³¸®
+				sItemData.m_bIsGet = true; // ï¿½ï¿½ï¿½ï¿½ï¿½É·ï¿½ Ã³ï¿½ï¿½
 				goto end_proc;
 			}
 			else
 			{
 				kNot.m_GetUnitUID	= FIRST_SENDER_UID;
 
-				//¼ø°£¼Òºñ ¾ÆÀÌÅÛÀÌ¸é ÀÎº¥¿¡ ³ÖÁö ¾Ê±âÀ§ÇØ
+				//ï¿½ï¿½ï¿½ï¿½ï¿½Òºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½
 				if( pItemTemplet->m_ItemType != CXSLItem::IT_OUTLAY )
 				{
-					//¾ÆÀÌÅÛ ½Àµæ¹æ½Ä¿¡ µû¶ó..
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½..
 					if( m_cGetItemType == CXSLRoom::DGIT_RANDOM )
 					{
-						// ItemÀ» ´©°¡ ¹ÞÀ»Áö ¾Ë ¼ö ¾ø±â ¶§¹®¿¡ ½ÇÁ¦·Î ¹ÞÀº UnitÀÇ UID¸¦ ¹ÝÈ¯ÇØÁØ´Ù.
-						//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+						// Itemï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Unitï¿½ï¿½ UIDï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ï¿½Ø´ï¿½.
+						//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 						if( m_spRoomUserManager->GetItemWithRandom( sItemData.m_iItemID, GetDungeonID(), kNot.m_GetUnitUID, iGSUID ) == false )
 #else
@@ -8182,23 +8186,23 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 		}
 	}
 
-	sItemData.m_bIsGet	= true;	//¿À·ù°¡ ¾ø¾î¾ß ¾ÆÀÌÅÛÀ» ¸ÔÀº°ÍÀ¸·Î Ã¼Å©
+	sItemData.m_bIsGet	= true;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 
-	// ack¸¦ ¸ÕÀú º¸³½´Ù
+	// ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_GET_ITEM_ACK, kPacket );
 
 	//////////////////////////////////////////////////////////////////////////	
-	//{{ 2010. 7. 28  ÃÖÀ°»ç	¿ÀÅäÇÙ Â÷´Ü NPC
+	//{{ 2010. 7. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ NPC
 #ifdef SERV_AUTO_HACK_CHECK_NPC
 	if( m_setFindedHackUserUnitUID.empty() == false )
 	{
 		if( m_spRoomUserManager->GetNumMember() == 1 )
 		{
-			// ÇÙÀ¯Àú°¡ ¸Â´ÂÁö °Ë»ç!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Â´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½!
 			if( m_setFindedHackUserUnitUID.find( FIRST_SENDER_UID ) != m_setFindedHackUserUnitUID.end() )
 			{
-				// ÆÄÆ¼Àå¿¡°Ô ÇØÅ·Ã¼Å©ÆÐÅ¶À» º¸³»ÀÚ!
-				//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+				// ï¿½ï¿½Æ¼ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½Å·Ã¼Å©ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
+				//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 				KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 				kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DUNGEON_CANT_KILL_NPC_KICK;
@@ -8212,7 +8216,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 #ifdef SERV_MINIMUM_LOG_HAKC_USER
 				START_LOG( cout, L"Cant Kill Npc pos2. UnitUID : " << FIRST_SENDER_UID  );
 #else //SERV_MINIMUM_LOG_HAKC_USER
-				START_LOG( cout, L"Cant Kill Npc ÇØÅ·À¯Àú·Î ÆÇ´ÜµÈ À¯Àú¸¦ ¼­¹ö¿¡¼­ Á¢¼ÓÁ¾·á½ÃÅ°±â À§ÇÑ ÆÐÅ¶ Àü¼Û!" )
+				START_LOG( cout, L"Cant Kill Npc ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´Üµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( LAST_SENDER_UID )
 					<< BUILD_LOG( FIRST_SENDER_UID )
 					<< BUILD_LOG( kPacket_.m_iDropItemUID )
@@ -8226,7 +8230,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 	//}}
 	//////////////////////////////////////////////////////////////////////////	
 
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 	if( bIsGetItemDistribute )
 	{
@@ -8235,10 +8239,10 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 		{
 			kNot.m_GetUnitUID = mit->first;
 
-			// À¯Àúµé¿¡°Ô ¾ÆÀÌÅÛ È¹µæÀ» ¾Ë¸²
+			// ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½
 			BroadCast( ERM_GET_ITEM_NOT, kNot );
 
-			// ½ÇÁ¦·Î ¾ÆÀÌÅÛ È¹µæ Ã³¸®¸¦ ÇÒ ÆÐÅ¶À» È¹µæ À¯Àú¿¡°Ô Àü¼Û
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			SendToGSCharacter( mit->second, kNot.m_GetUnitUID, ERM_GET_ITEM_INSERT_TO_INVENTORY_NOT, kNot );
 			//}}
 		}
@@ -8247,18 +8251,18 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 #endif SERV_NEW_HENIR_TEST
 		//}}
 	{
-		// ¾ÆÀÌÅÛ È¹µæ °á°ú º¸³»±â
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		if( bNotCreateItem == false )
 		{
-			// ½ÇÁ¦·Î È¹µæÇÑ À¯Àú¿¡°Ô º¸³¿
-			//{{ 2010. 03. 03  ÃÖÀ°»ç	Ã¤³Î ÅëÇÕ ÆÄÆ¼
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//{{ 2010. 03. 03  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼
 #ifdef SERV_CHANNEL_PARTY
-			//{{ 2010. 03. 18  ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ ÄÚµå °³¼±
+			//{{ 2010. 03. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 
-			// À¯Àúµé¿¡°Ô ¾ÆÀÌÅÛ È¹µæÀ» ¾Ë¸²
+			// ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½
 			BroadCast( ERM_GET_ITEM_NOT, kNot );
 
-			// ½ÇÁ¦·Î ¾ÆÀÌÅÛ È¹µæ Ã³¸®¸¦ ÇÒ ÆÐÅ¶À» È¹µæ À¯Àú¿¡°Ô Àü¼Û
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			SendToGSCharacter( iGSUID, kNot.m_GetUnitUID, ERM_GET_ITEM_INSERT_TO_INVENTORY_NOT, kNot );
 			//}}
 
@@ -8268,7 +8272,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 #endif SERV_CHANNEL_PARTY
 			//}}
 
-			//{{ 2009. 6. 23  ÃÖÀ°»ç	µå·Ó È¹µæ °øÁö ¾ÆÀÌÅÛ - ºñ´ø¾ÆÀÌÅÛ, ¸Å·Â¾ÆÀÌÅÛ
+			//{{ 2009. 6. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Å·Â¾ï¿½ï¿½ï¿½ï¿½ï¿½
 			if( SiKDropTable()->IsNotifyDropItem( sItemData.m_iItemID ) )
 			{
 				KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( kNot.m_GetUnitUID );
@@ -8278,7 +8282,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 					if( pItemTemplet != NULL )
 					{
 						KEGS_NOTIFY_MSG_NOT	kPacket;
-						kPacket.m_cNotifyType = KEGS_NOTIFY_MSG_NOT::NT_DROP_GET_ITEM; // ¾ÆÀÌÅÛ È¹µæ °øÁö
+						kPacket.m_cNotifyType = KEGS_NOTIFY_MSG_NOT::NT_DROP_GET_ITEM; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 						kPacket.m_Count = 1;
 						kPacket.m_wstrMSG = spRoomUser->GetNickName();
 						kPacket.m_wstrMSG += L";";
@@ -8291,7 +8295,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 					}
 					else
 					{
-						START_LOG( cerr, L"µå·Ó È¹µæ ¾ÆÀÌÅÛ °øÁö¸¦ ³¯¸®·Á´Âµ¥ Á¸ÀçÇÏÁö ¾Ê´Â ¾ÆÀÌÅÛÀÔ´Ï´Ù" )
+						START_LOG( cerr, L"ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½" )
 							<< BUILD_LOG( kNot.m_GetUnitUID )
 							<< BUILD_LOG( sItemData.m_iItemID )
 							<< END_LOG;
@@ -8299,7 +8303,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 				}
 				else
 				{
-					START_LOG( cerr, L"µå·Ó È¹µæ ¾ÆÀÌÅÛ °øÁö¸¦ ³¯¸®·Á´Âµ¥ ¹æ¿¡ À¯Àú°¡ ¾ø½À´Ï´Ù" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½" )
 						<< BUILD_LOG( kNot.m_GetUnitUID )
 						<< END_LOG;
 				}
@@ -8315,17 +8319,17 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_REQ, KEGS_GET_ITEM_REQ )
 					kNot.m_bIsItemSuccess = true;
 			}
 #endif DUNGEON_ITEM
-			// ¼ø°£¼Òºñ ¾ÆÀÌÅÛ°ú ED¾ÆÀÌÅÛÀº ºê·ÎµåÄ³½ºÆÃ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Òºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û°ï¿½ EDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Îµï¿½Ä³ï¿½ï¿½ï¿½ï¿½
 			BroadCast( ERM_GET_ITEM_NOT, kNot );
 		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2009. 7. 3  ÃÖÀ°»ç		Çì´Ï¸£ ½Ã°ø	
-	//## des second(hoons) : ½Ã°£À» Ãß°¡·Î ÁÖ´Â ¾ÆÀÌÅÛÀÌ ¾ø¾îÁü.
+	//{{ 2009. 7. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½	
+	//## des second(hoons) : ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 	//if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 	//{
-	//	if( kPacket.m_iOK == NetError::NET_OK  &&  sItemData.m_iItemID == 70085 ) // ¸¶¹ýÀÇ ¸ð·¡½Ã°è
+	//	if( kPacket.m_iOK == NetError::NET_OK  &&  sItemData.m_iItemID == 70085 ) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ð·¡½Ã°ï¿½
 	//	{
 	//		SetRemainingPlayTime( m_fRemainingPlayTime + 300.f );
 	//		BroadCast( ERM_REMAINING_PLAY_TIME_NOT, GetRemainingPlayTime() );
@@ -8341,7 +8345,7 @@ end_proc:
 #endif SERV_REFORM_ITEM_DROP
 //}}
 
-//{{ 2009. 5. 11  ÃÖÀ°»ç	½Ç½Ã°£¾ÆÀÌÅÛ
+//{{ 2009. 5. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ç½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( ERM_GET_ITEM_COMPLETE_NOT )
 {
 	if( GetStateID() != KRoomFSM::S_PLAY  &&
@@ -8355,7 +8359,7 @@ IMPL_ON_FUNC( ERM_GET_ITEM_COMPLETE_NOT )
 	{
 		if( !m_spRoomUserManager->AddItem( kPacket_.m_iUnitUID, mit->first ) )
 		{
-			START_LOG( cerr, L"¾ÆÀÌÅÛ È¹µæ Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kPacket_.m_iUnitUID )
 				<< BUILD_LOG( mit->first )
 				<< END_LOG;
@@ -8366,10 +8370,10 @@ IMPL_ON_FUNC( ERM_GET_ITEM_COMPLETE_NOT )
 
 IMPL_ON_FUNC( ERM_MY_USER_UNIT_INFO_TO_SERVER_REQ )
 {
-	//¼­¹ö·ëÀÇ ºÎ¸ð roomÀÇ end_game ¿¡¼­ waitÀ¸·Î ±³Ã¼¸¦ ÇÏ±â¶§¹®¿¡
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¸ï¿½ roomï¿½ï¿½ end_game ï¿½ï¿½ï¿½ï¿½ waitï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½Ï±â¶§ï¿½ï¿½ï¿½ï¿½
 	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_RESULT ), ERM_MY_USER_UNIT_INFO_TO_SERVER_ACK, KPacketOK );
 
-	//{{ 2010. 05. 12  ÃÖÀ°»ç	´ëÀü ´øÀü ¼­¹ö±º ÅëÇÕ
+	//{{ 2010. 05. 12  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_INTEGRATION
 	if( m_spRoomUserManager->SetRoomUserInfo( FIRST_SENDER_UID, kPacket_.m_kRoomUserInfo ) == false )
 	{
@@ -8377,7 +8381,7 @@ IMPL_ON_FUNC( ERM_MY_USER_UNIT_INFO_TO_SERVER_REQ )
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_MY_USER_UNIT_INFO_TO_SERVER_ACK, kPacket );
 	}
 
-	// RoomUserInfoÀÇ º¯°æÁ¤º¸¸¦ ³¯¸®ÀÚ
+	// RoomUserInfoï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	BroadCast( ERM_CHANGE_ROOM_USER_INFO_NOT, kPacket_.m_kRoomUserInfo );
 #endif SERV_INTEGRATION
 	//}}
@@ -8396,12 +8400,12 @@ IMPL_ON_FUNC( ERM_MY_USER_UNIT_INFO_TO_SERVER_REQ )
 	CheckDungeonUnitInfoSuccess();
 }
 
-//{{ 2008. 9. 19  ÃÖÀ°»ç		Åë°è
+//{{ 2008. 9. 19  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½
 _IMPL_ON_FUNC( ERM_DUNGEON_PLAY_INFO_TO_SERVER_NOT, KEGS_DUNGEON_PLAY_INFO_TO_SERVER_NOT )
 {
 	if( GetStateID() != KRoomFSM::S_PLAY )
 	{
-		START_LOG( cwarn, L"ÆÐÅ¶ÀÌ Çã¿ëµÇ´Â ¹æ »óÅÂ°¡ ¾Æ´Ô." )
+		START_LOG( cwarn, L"ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´ï¿½." )
 			<< BUILD_LOG( GetStateIDString() )
 			<< END_LOG;
 
@@ -8410,7 +8414,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_PLAY_INFO_TO_SERVER_NOT, KEGS_DUNGEON_PLAY_INFO_TO_SE
 
 	if( !m_spRoomUserManager->SetDungeonPlayInfo( FIRST_SENDER_UID, kPacket_ ) )
 	{
-		START_LOG( cwarn, L"¾÷µ¥ÀÌÆ® ½ÇÆÐÇß³×?" )
+		START_LOG( cwarn, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½?" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< END_LOG;
 	}
@@ -8421,10 +8425,10 @@ _IMPL_ON_FUNC( ERM_END_GAME_REQ, KEGS_END_GAME_REQ )
 {
 	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_PLAY ), ERM_END_GAME_ACK, KPacketOK );
 
-	// ¹æÀåÀÎÁö Ã¼Å©ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
 	VERIFY_HOST( ERM_END_GAME_ACK );
 
-	// º¸³½ »ç¶÷¿¡°Ô ack¸¦ ³¯¸°´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 	kPacket.m_iOK = NetError::NET_OK;
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_END_GAME_ACK, kPacket );
 
@@ -8433,8 +8437,8 @@ _IMPL_ON_FUNC( ERM_END_GAME_REQ, KEGS_END_GAME_REQ )
         m_bIsWin = true;
 
 		//////////////////////////////////////////////////////////////////////////
-		//{{ 2009. 7. 3  ÃÖÀ°»ç		Çì´Ï¸£ ½Ã°ø
-		// ÀÌº¥Æ® ´øÀüÀ» Å¬¸®¾îÇÏ¸é Á×¾ú´ø ¸ðµç À¯Àú¸¦ ´Ù½Ã µÇ»ì¸°´Ù!
+		//{{ 2009. 7. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½
+		// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½×¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½Ç»ì¸°ï¿½ï¿½!
 		if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 		{
 			for( int iU = 0; iU < m_spRoomUserManager->GetNumMember(); ++iU )
@@ -8442,16 +8446,16 @@ _IMPL_ON_FUNC( ERM_END_GAME_REQ, KEGS_END_GAME_REQ )
 				KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( iU );
 				if( spRoomUser == NULL )
 				{
-					START_LOG( cerr, L"RoomUser°¡ Á¸ÀçÇÏÁö ¾ÊÀ½." )
+					START_LOG( cerr, L"RoomUserï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 						<< END_LOG;
 					continue;
 				}
 
-				// »ì¾ÆÀÖ´Â À¯Àú´Â ÆÐ½º~
+				// ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½ï¿½~
 				if( spRoomUser->IsDie() == false )
 					continue;
 
-				// µÇ»ì¸®ÀÚ!
+				// ï¿½Ç»ì¸®ï¿½ï¿½!
 				spRoomUser->SetDie( false );
 
 				KEGS_RESURRECT_TO_CONTINUE_DUNGEON_NOT kPacketNot;
@@ -8460,21 +8464,21 @@ _IMPL_ON_FUNC( ERM_END_GAME_REQ, KEGS_END_GAME_REQ )
 				kPacketNot.m_iStartPosIndex = SiCXSLDungeonManager()->GetStartPosByRandom( (m_iDungeonID + static_cast<int>(m_cDifficultyLevel)), m_iStageID, m_iSubStageID );
 				BroadCast( EGS_RESURRECT_TO_CONTINUE_DUNGEON_NOT, kPacketNot );
 
-				//{{ 2008. 6. 17  ÃÖÀ°»ç  ½Ç½Ã°£ ºÎÈ°¼®
+				//{{ 2008. 6. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 				m_spRoomUserManager->SetEndPlay( spRoomUser->GetCID(), false );
 				//}}
 			}
 		}
 		//}}
 
-		//{{ 2012. 02. 28	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 02. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //		IncreasePartyFever();
 //#else
 //		if( m_iPartyUID > 0  &&  
 //			m_spRoomUserManager->GetNumMember() > 1 )
 //		{
-//			KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( 0 ); // 0¹ø ÀÎµ¦½ºÀÇ À¯Àú
+//			KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( 0 ); // 0ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //			if( spRoomUser != NULL )
 //			{
 //				KERM_INCREASE_PARTY_FEVER_NOT kNot;
@@ -8483,7 +8487,7 @@ _IMPL_ON_FUNC( ERM_END_GAME_REQ, KEGS_END_GAME_REQ )
 //			}
 //			else
 //			{
-//				START_LOG( cerr, L"À¯Àú°¡ ÇÑ¸íµµ ¾ø´Â¹æÀÎ°¨?" )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¹ï¿½ï¿½Î°ï¿½?" )
 //					<< BUILD_LOG( GetStateIDString() )
 //					<< END_LOG;
 //			}
@@ -8493,7 +8497,7 @@ _IMPL_ON_FUNC( ERM_END_GAME_REQ, KEGS_END_GAME_REQ )
 		//////////////////////////////////////////////////////////////////////////
     }
 
-	// °ÔÀÓÀ» ³¡³½´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 	EndPlay();
 }
 
@@ -8507,15 +8511,15 @@ _IMPL_ON_FUNC( ERM_USE_QUICK_SLOT_NOT, KEGS_USE_QUICK_SLOT_NOT )
 	for ( int iR = 0; iR < m_spRoomUserManager->GetNumMember(); ++iR )
 	{
 		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser(iR);
-		// À¯´Ö UID °¡Á®¿Í¼­ Ã¼Å© ÈÄ, µ¿ÀÏ À¯´Ö¿¡°Ô¸¸ ¼Â ½ÃÄÑ ÁÖ½Ê¤¤.´Ù
+		// ï¿½ï¿½ï¿½ï¿½ UID ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ Ã¼Å© ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ö¿ï¿½ï¿½Ô¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½Ê¤ï¿½.ï¿½ï¿½
 		if( spRoomUser->GetCID() == kPacket_.m_UnitUID )
 		{
-			// ¿ì¼± »ç¿ëÇÑ ¾ÆÀÌÅÛÀÌ ¿Ã¹Ù¸¥ ¾ÆÀÌÅÛÀÎ°¡ Ã¼Å©
+			// ï¿½ì¼± ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¹Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½ Ã¼Å©
 			if(SiKDropTable()->CheckPaymentUseItem(kPacket_.m_ItemID) == true)
 			{
 				//spRoomUser->SetUseItemForPayment( true );
 				kPacket_.m_bUseItemNeedPayment = true;
-				START_LOG(clog, L"ÁöÇå·Î±×-Å×½ºÆ® : ¾ÆÀÌÅÛ »ç¿ë Ã¼Å© ¿Ï·á!")
+				START_LOG(clog, L"ï¿½ï¿½ï¿½ï¿½Î±ï¿½-ï¿½×½ï¿½Æ® : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã¼Å© ï¿½Ï·ï¿½!")
 					<< BUILD_LOG(kPacket_.m_bUseItemNeedPayment)
 					<< END_LOG;
 				break;
@@ -8538,7 +8542,7 @@ _IMPL_ON_FUNC( ERM_CHECK_INVALID_USER_NOT, UidType )
 		<< BUILD_LOG( iCount )
 		<< BUILD_LOG( m_spRoomUserManager->GetNumMember() );
 
-	//ÇöÀç¹æ¿¡¼­ »èÁ¦µÈ À¯Àú°¡ ¾øÀ¸¸é Á¾·á.
+	//ï¿½ï¿½ï¿½ï¿½æ¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	if( iCount == 0 )
 		return;
 
@@ -8551,7 +8555,7 @@ _IMPL_ON_FUNC( ERM_CHECK_INVALID_USER_NOT, UidType )
 	{
 		if( IsEmpty() == false )
 		{
-			// ¹æÀÇ ¸ðµç À¯Àúµé¿¡°Ô ½½·Ô Á¤º¸¸¦ ³¯¸°´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			KEGS_LEAVE_ROOM_NOT kPacketNot;
 			kPacketNot.m_cRoomState		= GetStateID();
 			kPacketNot.m_iUnitUID		= vecDelUserUID[i].m_iUnitUID;
@@ -8566,7 +8570,7 @@ _IMPL_ON_FUNC( ERM_CHECK_INVALID_USER_NOT, UidType )
 		CheckLoadingSuccess();
 	}
 
-	// ½ºÅ×ÀÌÁö°¡ ³¡³ª°Ô µÇ´Â °æ¿ì Ã³¸®.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½.
 	if( GetStateID() == KRoomFSM::S_PLAY && IsEmpty() == false )
 	{
 		if( CheckIfPlayEnd() )
@@ -8575,7 +8579,7 @@ _IMPL_ON_FUNC( ERM_CHECK_INVALID_USER_NOT, UidType )
 		}
 		else
 		{
-			//{{ 2009. 7. 27  ÃÖÀ°»ç	ºñ¹Ð½ºÅ×ÀÌÁö
+			//{{ 2009. 7. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 			{
 				CheckEnterSecretStageSuccess();
@@ -8584,18 +8588,18 @@ _IMPL_ON_FUNC( ERM_CHECK_INVALID_USER_NOT, UidType )
 		}
 	}
 
-	//°á°úÃ¢À» º¸°íÀÖÀ»¶§ ¹æÀ» ³ª°¥°æ¿ìÃ³¸®
+	//ï¿½ï¿½ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 	if( GetStateID() == KRoomFSM::S_RESULT && IsEmpty() == false )
 	{
 		CheckResultSuccess();
 	}
 
-	// ¹æ¿¡¼­ ¸ðµç À¯Àú°¡ ³ª°¬À¸¸é ¹æÀ» ´Ý´Â´Ù.
+	// ï¿½æ¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ý´Â´ï¿½.
 	if( IsEmpty() == true )
 	{
 		StateTransition( KRoomFSM::I_TO_CLOSE );
 
-		//{{ 2010. 06. 21  ÃÖÀ°»ç	Åë°è ½º·¹µå
+		//{{ 2010. 06. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_STATISTICS_THREAD
 		CTime kEndGameTime = CTime::GetCurrentTime();
 		//////////////////////////////////////////////////////////////////////////
@@ -8616,7 +8620,7 @@ _IMPL_ON_FUNC( ERM_CHECK_INVALID_USER_NOT, UidType )
 	}
 	else
 	{
-		//´øÀü¿¡ ³²¾ÆÀÖ´Â À¯ÀúµéÀÇ ´ÙÀ½½ºÅ×ÀÌÁö ÀÌµ¿À» ½ÃÅ°±â À§ÇØ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( m_kDSSGoNextAllNot.m_iBeforeStageID != -1 &&
 			m_kDSSGoNextAllNot.m_iNextStageID	!= -1 )
 			SendDSSGoNextAllNot( m_kDSSGoNextAllNot );
@@ -8662,17 +8666,17 @@ _IMPL_ON_FUNC( ERM_RESURRECT_TO_CONTINUE_DUNGEON_REQ, KEGS_RESURRECT_TO_CONTINUE
 	KRoomUserPtr roomSlotPtr = m_spRoomUserManager->GetUser( kPacketNot.m_iUnitUID );
 	if( roomSlotPtr == NULL )
 	{
-		START_LOG( cerr, L"¹æ¿¡ ·ëÀ¯Àú °´Ã¼°¡ Á¸ÀçÇÏÁö ¾ÊÀ½." )
+		START_LOG( cerr, L"ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( m_cRoomType )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< END_LOG;
 	}
 	else
 	{
-		//{{ 2007. 11. 5  ÃÖÀ°»ç  ºÎÈ°¼® »ç¿ë Ä«¿îÆ®
+		//{{ 2007. 11. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
 		roomSlotPtr->IncreaseUsedResurrectionStoneCount();
 		//}}
-		//{{ 2007. 12. 25  ÃÖÀ°»ç  ºÎÈ°¼® »ç¿ë Åë°è
+		//{{ 2007. 12. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		KStatisticsKey kKey;
 		kKey.m_vecIntKey.push_back( 0 );
 		KSIManager.IncreaseCount( KStatistics::SI_RES_STONE, kKey, KStatistics::eSIColResStone_UseCount, 1 );
@@ -8683,7 +8687,7 @@ _IMPL_ON_FUNC( ERM_RESURRECT_TO_CONTINUE_DUNGEON_REQ, KEGS_RESURRECT_TO_CONTINUE
 	kPacketNot.m_iStartPosIndex = SiCXSLDungeonManager()->GetStartPosByRandom( (m_iDungeonID + static_cast<int>(m_cDifficultyLevel)), m_iStageID, m_iSubStageID );
 	BroadCast( EGS_RESURRECT_TO_CONTINUE_DUNGEON_NOT, kPacketNot );
 
-	//{{ 2008. 6. 17  ÃÖÀ°»ç  ½Ç½Ã°£ ºÎÈ°¼®
+	//{{ 2008. 6. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 	m_spRoomUserManager->SetEndPlay( kPacket_.m_iUnitUID, false );
 	//}}
 }
@@ -8692,14 +8696,14 @@ IMPL_ON_FUNC_NOPARAM( ERM_SKIP_CONTINUE_DUNGEON_NOT )
 {
 	if( GetStateID() != KRoomFSM::S_PLAY )
 	{
-		START_LOG( cwarn, L"ÆÐÅ¶ÀÌ Çã¿ëµÇ´Â ¹æ »óÅÂ°¡ ¾Æ´Ô." )
+		START_LOG( cwarn, L"ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´ï¿½." )
 			<< BUILD_LOG( GetStateIDString() )
 			<< END_LOG;
 
 		return;
 	}
 
-	//{{ 2008. 6. 17  ÃÖÀ°»ç  ½Ç½Ã°£ ºÎÈ°¼®
+	//{{ 2008. 6. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 	if( m_spRoomUserManager->CheckEndPlayAnotherMember( FIRST_SENDER_UID ) )
 		EndPlay();
 	//}}
@@ -8709,7 +8713,7 @@ IMPL_ON_FUNC( ERM_TUTORIAL_DUNGEON_ROOM_UPDATE_NOT )
 {
 	if( GetStateID() != KRoomFSM::S_WAIT )
 	{
-		START_LOG( cwarn, L"ÆÐÅ¶ÀÌ Çã¿ëµÇ´Â ¹æ »óÅÂ°¡ ¾Æ´Ô." )
+		START_LOG( cwarn, L"ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´ï¿½." )
 			<< BUILD_LOG( GetStateIDString() )
 			<< END_LOG;
 		//return;
@@ -8718,12 +8722,12 @@ IMPL_ON_FUNC( ERM_TUTORIAL_DUNGEON_ROOM_UPDATE_NOT )
 	m_spRoomUserManager->SetTutorialUIDList( FIRST_SENDER_UID, kPacket_.m_vecStudentUnitUID );
 }
 
-//{{ 2008. 6. 16  ÃÖÀ°»ç  ½Ç½Ã°£ ºÎÈ°¼®
+//{{ 2008. 6. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 _IMPL_ON_FUNC( ERM_STOP_DUNGEON_CONTINUE_TIME_REQ, KEGS_STOP_DUNGEON_CONTINUE_TIME_REQ )
 {
 	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_PLAY ), ERM_STOP_DUNGEON_CONTINUE_TIME_ACK, KEGS_STOP_DUNGEON_CONTINUE_TIME_ACK );
 
-	// ÄÁÆ¼´º ½Ã°£ ¸ØÃß±â or Ç®±â
+	// ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ß±ï¿½ or Ç®ï¿½ï¿½
 	m_spRoomUserManager->StopDungeonContinueTime( FIRST_SENDER_UID, kPacket_.m_bIsStop );
 
 	kPacket.m_iOK	  = NetError::NET_OK;
@@ -8732,12 +8736,12 @@ _IMPL_ON_FUNC( ERM_STOP_DUNGEON_CONTINUE_TIME_REQ, KEGS_STOP_DUNGEON_CONTINUE_TI
 }
 //}}
 
-//{{ 2009. 2. 4  ÃÖÀ°»ç	´øÀü ¸®ÇÃ·¹ÀÌ¹æ ½ÌÅ©
+//{{ 2009. 2. 4  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã·ï¿½ï¿½Ì¹ï¿½ ï¿½ï¿½Å©
 _IMPL_ON_FUNC( ERM_FIELD_UNIT_SYNC_DATA_NOT, KEGS_FIELD_UNIT_SYNC_DATA_NOT )
 {
 	if( GetStateID() != KRoomFSM::S_WAIT )
 	{
-		START_LOG( cwarn, L"ÆÐÅ¶ÀÌ Çã¿ëµÇ´Â ¹æ »óÅÂ°¡ ¾Æ´Ô." )
+		START_LOG( cwarn, L"ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´ï¿½." )
 			<< BUILD_LOG( GetStateIDString() )
 			<< END_LOG;
 		return;
@@ -8752,16 +8756,16 @@ _IMPL_ON_FUNC( ERM_FIELD_UNIT_SYNC_DATA_NOT, KEGS_FIELD_UNIT_SYNC_DATA_NOT )
 }
 //}}
 
-//{{ 2009. 3. 18  ÃÖÀ°»ç	ÆÄÆ¼À¯Àú¹ê
+//{{ 2009. 3. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC_NOPARAM( ERM_PARTY_BAN_USER_REQ )
 {
 	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_WAIT ), ERM_PARTY_BAN_USER_ACK, KERM_PARTY_BAN_USER_ACK );
 
-	// ¹æ¿¡ ÀÖ´Â À¯ÀúÀÎ°¡?
+	// ï¿½æ¿¡ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 	KRoomUserPtr pkRoomUser = m_spRoomUserManager->GetUser( FIRST_SENDER_UID );	
 	if( pkRoomUser == NULL )
 	{
-		START_LOG( cerr, L"°­Åð½ÃÅ³ ·ëÀ¯Á® Ã£±â½ÇÆÐ" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< END_LOG;
 
@@ -8770,29 +8774,29 @@ IMPL_ON_FUNC_NOPARAM( ERM_PARTY_BAN_USER_REQ )
 		return;
 	}
 
-	// ¹æ ½½·Ô Á¤º¸ º¯°æ.
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	if( !m_spRoomUserManager->LeaveRoom( FIRST_SENDER_UID ) )
 	{
-		START_LOG( cerr, L"¹æ ÀÌÅ» ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< END_LOG;
 
-		// °­Åð ½ÇÆÐ.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		kPacket.m_iOK = NetError::ERR_SLOT_05;
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_PARTY_BAN_USER_ACK, kPacket );
 		return;
 	}
 
-	// °­Åð ´ë»óÀÚ¿¡°Ô not¸¦ ³¯¸°´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ notï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 	kPacket.m_iOK = NetError::NET_OK;
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_PARTY_BAN_USER_ACK, kPacket );
 
-	//¸¸ÀÏÀÇ °æ¿ì °­Åð·Î ÀÎÇÑ ¸ðµç À¯Àú°¡ ³ª°¥½Ã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if( IsEmpty() )
 	{
 		StateTransition( KRoomFSM::I_TO_CLOSE );
 
-		//{{ 2010. 06. 21  ÃÖÀ°»ç	Åë°è ½º·¹µå
+		//{{ 2010. 06. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_STATISTICS_THREAD
 		CTime kEndGameTime = CTime::GetCurrentTime();
 		//////////////////////////////////////////////////////////////////////////
@@ -8814,14 +8818,14 @@ IMPL_ON_FUNC_NOPARAM( ERM_PARTY_BAN_USER_REQ )
 }
 //}}
 
-//{{ 2011. 10. 25	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2011. 10. 25	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 //////////////////////////////////////////////////////////////////////////
 
 IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 {
-#ifdef SERV_FIX_NONE_NPC_DUNGEON_LINES// ÀÛ¾÷³¯Â¥: 2013-05-22	// ¹Ú¼¼ÈÆ
+#ifdef SERV_FIX_NONE_NPC_DUNGEON_LINES// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-22	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	if( IsHost( FIRST_SENDER_UID ) == false )
 	{
 		return;
@@ -8830,7 +8834,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 
 	if( GetStateID() != KRoomFSM::S_PLAY )
 	{
-		START_LOG( cerr, L"ÆÐÅ¶ÀÌ Çã¿ëµÇ´Â ¹æ »óÅÂ°¡ ¾Æ´Ô." )
+		START_LOG( cerr, L"ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´ï¿½." )
 			<< BUILD_LOG( GetStateIDString() )
 			<< END_LOG;
 		return;
@@ -8839,11 +8843,11 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 	KEGS_DUNGEON_KILLALLNPC_CHECK_ACK kPacket;
 	kPacket.m_bResult = true;
 
-	//{{ 2010. 12. 28	ÃÖÀ°»ç	ÇÏ¸á ¸¶À» Ãß°¡
+	//{{ 2010. 12. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_SHIP_DUNGEON
 	if( CXSLDungeon::IsShipDungeon( GetDungeonID() ) == true )
 	{
-		START_LOG( clog, L"¸¶À» ÀÌµ¿ ´øÀüÀÌ¸é ±×³É ¼º°ø Ã³¸® ÇÑ´Ù!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ñ´ï¿½!" )
 			<< BUILD_LOG( GetDungeonID() );
 
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_KILLALLNPC_CHECK_ACK, kPacket );
@@ -8851,11 +8855,11 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 	}
 #endif SERV_SHIP_DUNGEON
 	//}}
-	//{{ 2013. 02. 01  ÀÌº¥Æ® ¹ß·»Å¸ÀÎ ´øÀü - ±è¹Î¼º
+	//{{ 2013. 02. 01  ï¿½Ìºï¿½Æ® ï¿½ß·ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
 	if( CXSLDungeon::IsValentineDungeon( GetDungeonID() ) == true )
 	{
-		START_LOG( clog, L"ÀÌº¥Æ® ¹ß·»Å¸ÀÎ ´øÀüÀÌ¸é ±×³É ¼º°ø Ã³¸® ÇÑ´Ù!" )
+		START_LOG( clog, L"ï¿½Ìºï¿½Æ® ï¿½ß·ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ñ´ï¿½!" )
 			<< BUILD_LOG( GetDungeonID() );
 
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_KILLALLNPC_CHECK_ACK, kPacket );
@@ -8864,10 +8868,10 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 #endif SERV_EVENT_VALENTINE_DUNGEON
 	//}
 
-	// ÇØ´ç ¼­ºê ½ºÅ×ÀÌÁö¿¡ ¸ðµç ¸ó½ºÅÍ°¡ Á×¾ú´ÂÁö Ã¼Å©ÇÏÀÚ!
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½×¾ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½!
 	if( m_kDungeonMonsterManager.IsAllSubStageNpcDie( GetStageID(), GetSubStageID() ) == false )
 	{
-		START_LOG( cerr, L"Npc°¡ ¾ø´Â ½ºÅ×ÀÌÁöÀÎµ¥ ¸ðµçNPC Á×¿©´Þ¶ó°í ¿äÃ»ÆÐÅ¶ÀÌ ¿Ô³×? ÇØÅ·ÀÎ°¡?" )
+		START_LOG( cerr, L"Npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½NPC ï¿½×¿ï¿½ï¿½Þ¶ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ô³ï¿½? ï¿½ï¿½Å·ï¿½Î°ï¿½?" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( GetStageID() )
 			<< BUILD_LOG( GetSubStageID() )
@@ -8878,11 +8882,11 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 		return;
 	}
 
-	// Å¬¶óÀÌ¾ðÆ®·Î °á°ú Àü¼Û
+	// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_KILLALLNPC_CHECK_ACK, kPacket );
 
-#ifdef SERV_FIX_NONE_NPC_DUNGEON_LINES// ÀÛ¾÷³¯Â¥: 2013-05-22	// ¹Ú¼¼ÈÆ
-	// È¤½Ã³ª ¸ð¸£´Ï °á°ú Ã¼Å© ÇÏÀÚ
+#ifdef SERV_FIX_NONE_NPC_DUNGEON_LINES// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-22	// ï¿½Ú¼ï¿½ï¿½ï¿½
+	// È¤ï¿½Ã³ï¿½ ï¿½ð¸£´ï¿½ ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½
 	if( kPacket.m_bResult == true )
 	{
 		BroadCastID( ERM_DUNGEON_KILLALLNPC_CHECK_NOT );
@@ -8898,7 +8902,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //{
 //	if( GetStateID() != KRoomFSM::S_PLAY )
 //	{
-//		START_LOG( cerr, L"ÆÐÅ¶ÀÌ Çã¿ëµÇ´Â ¹æ »óÅÂ°¡ ¾Æ´Ô." )
+//		START_LOG( cerr, L"ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´ï¿½." )
 //			<< BUILD_LOG( GetStateIDString() )
 //			<< END_LOG;
 //		return;
@@ -8907,14 +8911,14 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //	KEGS_DUNGEON_KILLALLNPC_CHECK_ACK kPacket;
 //	kPacket.m_bResult = true;
 //
-//	// ¸ðµç NPC¸¦ Á×¿©´Þ¶ó´Â ¿äÃ»ÀÌ µé¾î¿Â ½ºÅ×ÀÌÁö°¡ º¸½º°¡ ÀÖ´Â ¼­ºê ½ºÅ×ÀÌÁöÀÎÁö È®ÀÎÇÏÀÚ!
+//	// ï¿½ï¿½ï¿½ NPCï¿½ï¿½ ï¿½×¿ï¿½ï¿½Þ¶ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 //	KSubStageKey kSubStageKey( m_iStageID, m_iSubStageID );
 //
 //	std::map< KSubStageKey, SUB_STAGE_NPC_INFO >::const_iterator mit;
 //	mit = m_mapSubStageNpcInfo.find( kSubStageKey );
 //	if( mit == m_mapSubStageNpcInfo.end() )
 //	{
-//		START_LOG( cerr, L"Npc°¡ ¾ø´Â ½ºÅ×ÀÌÁöÀÎµ¥ ¸ðµçNPC Á×¿©´Þ¶ó°í ¿äÃ»ÆÐÅ¶ÀÌ ¿Ô³×? ÇØÅ·ÀÎ°¡?" )
+//		START_LOG( cerr, L"Npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½NPC ï¿½×¿ï¿½ï¿½Þ¶ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ô³ï¿½? ï¿½ï¿½Å·ï¿½Î°ï¿½?" )
 //			<< BUILD_LOG( FIRST_SENDER_UID )
 //			<< BUILD_LOG( m_iStageID )
 //			<< BUILD_LOG( m_iSubStageID )
@@ -8927,10 +8931,10 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //
 //	const SUB_STAGE_NPC_INFO& sSubStageNpcInfo = mit->second;
 //
-//	// º¸½º ½ºÅ×ÀÌÁö ÀÎÁö ÀÏ¹Ý ½ºÅ×ÀÌÁö ÀÎÁö È®ÀÎ
+//	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 //	if( sSubStageNpcInfo.m_setBossNpcUID.empty() )
 //	{
-//		// ÇØ´ç ¼­ºê ½ºÅ×ÀÌÁö¿¡ ¸ðµç ÀÏ¹Ý ¸ó½ºÅÍ°¡ Á×¾ú´ÂÁö È®ÀÎ!
+//		// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½×¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½!
 //		std::set< int >::const_iterator sit;
 //		for( sit = sSubStageNpcInfo.m_setNormalNpcUID.begin(); sit != sSubStageNpcInfo.m_setNormalNpcUID.end(); ++sit )
 //		{
@@ -8939,7 +8943,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //			mitND = m_mapNPCData.find( iNpcUID );
 //			if( mitND == m_mapNPCData.end() )
 //			{
-//				START_LOG( cerr, L"ÀÏ¹Ý npc ¸®½ºÆ®¿¡ ÀÖ´ø NpcUID·Î °Ë»çÇß´õ´Ï NPC_DATA´Â ¾ø³×?" )
+//				START_LOG( cerr, L"ï¿½Ï¹ï¿½ npc ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ NpcUIDï¿½ï¿½ ï¿½Ë»ï¿½ï¿½ß´ï¿½ï¿½ï¿½ NPC_DATAï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 //					<< BUILD_LOG( FIRST_SENDER_UID )
 //					<< BUILD_LOG( m_iStageID )
 //					<< BUILD_LOG( m_iSubStageID )
@@ -8948,21 +8952,21 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //				continue;
 //			}
 //
-//			//{{ 2010. 12. 28	ÃÖÀ°»ç	ÇÏ¸á ¸¶À» Ãß°¡
+//			//{{ 2010. 12. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_SHIP_DUNGEON
 //			if( CXSLDungeon::IsShipDungeon( GetDungeonID() ) == true )
 //			{
-//				START_LOG( clog, L"¸¶À» ÀÌµ¿ ´øÀüÀÌ¸é ±×³É ¼º°ø Ã³¸® ÇÑ´Ù!" )
+//				START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ñ´ï¿½!" )
 //					<< BUILD_LOG( GetDungeonID() );
 //				break;
 //			}
 //#endif SERV_SHIP_DUNGEON
 //			//}}
 //
-//			// npc°¡ Á×Áö ¾Ê¾Ò´Ù¸é?
+//			// npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Ù¸ï¿½?
 //			if( mitND->second.m_bDie == false )
 //			{
-//				START_LOG( cerr, L"¸ðµç npc°¡ Á×Áöµµ ¾Ê¾Ò´Âµ¥ ¸ðµç ¸ó½ºÅÍ Á×¿©´Þ¶ó°í ÆÐÅ¶ÀÌ ¿Ô³×.. ÇØÅ·ÀÎ°¡?" )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Âµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½×¿ï¿½ï¿½Þ¶ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ô³ï¿½.. ï¿½ï¿½Å·ï¿½Î°ï¿½?" )
 //					<< BUILD_LOG( FIRST_SENDER_UID )
 //					<< BUILD_LOG( m_iStageID )
 //					<< BUILD_LOG( m_iSubStageID )
@@ -8976,7 +8980,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //	}
 //	else
 //	{
-//		// ÇØ´ç ¼­ºê ½ºÅ×ÀÌÁö¿¡ ¸ðµç º¸½º ¸ó½ºÅÍ°¡ Á×¾ú´ÂÁö È®ÀÎ!
+//		// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½×¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½!
 //		std::set< int >::const_iterator sit;
 //		for( sit = sSubStageNpcInfo.m_setBossNpcUID.begin(); sit != sSubStageNpcInfo.m_setBossNpcUID.end(); ++sit )
 //		{
@@ -8985,7 +8989,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //			mitND = m_mapNPCData.find( iNpcUID );
 //			if( mitND == m_mapNPCData.end() )
 //			{
-//				START_LOG( cerr, L"º¸½º ¸®½ºÆ®¿¡ ÀÖ´ø NpcUID·Î °Ë»çÇß´õ´Ï NPC_DATA´Â ¾ø³×?" )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ NpcUIDï¿½ï¿½ ï¿½Ë»ï¿½ï¿½ß´ï¿½ï¿½ï¿½ NPC_DATAï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?" )
 //					<< BUILD_LOG( FIRST_SENDER_UID )
 //					<< BUILD_LOG( m_iStageID )
 //					<< BUILD_LOG( m_iSubStageID )
@@ -8994,21 +8998,21 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //				continue;
 //			}
 //
-//			//{{ 2010. 12. 28	ÃÖÀ°»ç	ÇÏ¸á ¸¶À» Ãß°¡
+//			//{{ 2010. 12. 28	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_SHIP_DUNGEON
 //			if( CXSLDungeon::IsShipDungeon( GetDungeonID() ) == true )
 //			{
-//				START_LOG( clog, L"¸¶À» ÀÌµ¿ ´øÀüÀÌ¸é ±×³É ¼º°ø Ã³¸® ÇÑ´Ù!" )
+//				START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ñ´ï¿½!" )
 //					<< BUILD_LOG( GetDungeonID() );
 //				break;
 //			}
 //#endif SERV_SHIP_DUNGEON
 //			//}}
 //
-//			// º¸½º°¡ Á×Áö ¾Ê¾Ò´Ù¸é?
+//			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Ù¸ï¿½?
 //			if( mitND->second.m_bDie == false )
 //			{
-//				START_LOG( cerr, L"º¸½º°¡ Á×Áöµµ ¾Ê¾Ò´Âµ¥ ¸ðµç ¸ó½ºÅÍ Á×¿©´Þ¶ó°í ÆÐÅ¶ÀÌ ¿Ô³×.. ÇØÅ·ÀÎ°¡?" )
+//				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Âµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½×¿ï¿½ï¿½Þ¶ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ô³ï¿½.. ï¿½ï¿½Å·ï¿½Î°ï¿½?" )
 //					<< BUILD_LOG( FIRST_SENDER_UID )
 //					<< BUILD_LOG( m_iStageID )
 //					<< BUILD_LOG( m_iSubStageID )
@@ -9021,7 +9025,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //		}
 //	}
 //
-//	// Å¬¶óÀÌ¾ðÆ®·Î °á°ú Àü¼Û
+//	// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_DUNGEON_KILLALLNPC_CHECK_ACK, kPacket );
 //}
 
@@ -9030,7 +9034,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_KILLALLNPC_CHECK_REQ )
 //////////////////////////////////////////////////////////////////////////
 //}}
 
-//{{ 2010. 11. 18	ÃÖÀ°»ç	¾ÆÀÌÅÛ ÆÇ¸Å Â÷´Ü
+//{{ 2010. 11. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_AUTO_HACK_CHECK_SELL_ITEM
 _IMPL_ON_FUNC( ERM_CHECK_SELL_ED_ITEM_REQ, KEGS_SELL_ED_ITEM_REQ )
 {
@@ -9059,7 +9063,7 @@ _IMPL_ON_FUNC( ERM_ADMIN_NPC_UNIT_CREATE_REQ, KEGS_ADMIN_NPC_UNIT_CREATE_REQ )
 	kPacketNot.m_cSA2 = kPacket_.m_cSA2;
 	
 // #ifdef SERV_CREATED_NPC_LIMITED_DROPS
-// 	// ÀÏ´ÜÀº ¹«Á¶°Ç ³ëµå¶ø Ã³¸® // ÀÏ´Ü ÀúÀåÇØµÒ
+// 	// ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ // ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½
 // 	bool bTempNoDrop = kPacket_.m_kNPCUnitReq.m_bNoDrop;
 // 	kPacket_.m_kNPCUnitReq.m_bNoDrop = true;
 // 
@@ -9072,7 +9076,7 @@ _IMPL_ON_FUNC( ERM_ADMIN_NPC_UNIT_CREATE_REQ, KEGS_ADMIN_NPC_UNIT_CREATE_REQ )
 // 		npcInfoQuadruple.iSubStageID	= GetSubStageID();
 // 		npcInfoQuadruple.iNpcID			= kPacket_.m_kNPCUnitReq.m_NPCID;
 // 
-// 		// ¼ÒÈ¯¿äÃ»µÇ¾ú´ø ¼ö°¡ ÀüÃ¼ µå¶ø°¡´ÉÇÑ ¼ö ¹Ì¸¸ÀÏ ¶§¸¸ µå¶ø °¡´É
+// 		// ï¿½ï¿½È¯ï¿½ï¿½Ã»ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 // 		if( m_mapDroppedTimes[npcInfoQuadruple] < iNpcDropTime )
 // 		{
 // 			m_mapDroppedTimes[npcInfoQuadruple] = m_mapDroppedTimes[npcInfoQuadruple] + 1;
@@ -9081,10 +9085,10 @@ _IMPL_ON_FUNC( ERM_ADMIN_NPC_UNIT_CREATE_REQ, KEGS_ADMIN_NPC_UNIT_CREATE_REQ )
 // 	}
 //#endif SERV_CREATED_NPC_LIMITED_DROPS
     
-	// ¸ó½ºÅÍ »ý¼º ÇÔ¼ö È£Ãâ!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ È£ï¿½ï¿½!
 	LIF( m_kDungeonMonsterManager.CreateMonster( kPacket_.m_kNPCUnitReq, kPacketNot.m_kNPCUnitNot.m_UID ) );	
 
-	// ¼Ó¼º Á¤º¸´Â ¿ø·¡´ë·Î 
+	// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
 	if( kPacket_.m_cAttrib1 != 0 || kPacket_.m_cAttrib2 != 0 || kPacket_.m_cSA1 != 0 || kPacket_.m_cSA2 != 0 )
 	{
 		m_mapAttribNpcData.insert( std::make_pair( kPacketNot.m_kNPCUnitNot.m_UID, static_cast<int>(kPacketNot.m_kNPCUnitNot.m_Level) ) );
@@ -9094,25 +9098,25 @@ _IMPL_ON_FUNC( ERM_ADMIN_NPC_UNIT_CREATE_REQ, KEGS_ADMIN_NPC_UNIT_CREATE_REQ )
 }
 #endif SERV_CREATE_ELITE_FOR_ADMIN
 
-//{{ 2011. 01. 25  ±è¹Î¼º  ¿ùµå Æ®¸®°Å Àü´Þ(´øÀü¸¸ Àû¿ëÁß - ÀÌÈÄ PVP È®Àå)
+//{{ 2011. 01. 25  ï¿½ï¿½Î¼ï¿½  ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ PVP È®ï¿½ï¿½)
 #ifdef SERV_WORLD_TRIGGER_RELOCATION
 _IMPL_ON_FUNC( ECN_WORLD_TRIGGER_RELOCATION_REQ, KEGS_WORLD_TRIGGER_RELOCATION_REQ )
 {
 	VERIFY_ROOM_STATE( ( 1, KRoomFSM::S_PLAY ), ECN_WORLD_TRIGGER_RELOCATION_ACK, KEGS_WORLD_TRIGGER_RELOCATION_ACK );
 
-	// ¹æ¾È¿¡ ¸ðµç À¯Àú¿¡°Ô ºê·Îµå Ä³½ºÆ®	
+	// ï¿½ï¿½È¿ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Îµï¿½ Ä³ï¿½ï¿½Æ®	
 	KEGS_WORLD_TRIGGER_RELOCATION_NOT _Not;
 	_Not.m_iWorldTrigger = kPacket_.m_iWorldTrigger;
 	BroadCast( ECN_WORLD_TRIGGER_RELOCATION_NOT, _Not );
 	
-	// GSUser¿¡°Ô ACKÀü´Þ
+	// GSUserï¿½ï¿½ï¿½ï¿½ ACKï¿½ï¿½ï¿½ï¿½
 	kPacket.m_iOK = NetError::NET_OK;
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ECN_WORLD_TRIGGER_RELOCATION_ACK, kPacket );
 }
 #endif SERV_WORLD_TRIGGER_RELOCATION
 //}}
 
-//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 int KDungeonRoom::GetProtectedSmallCrystalCount()
 {	
@@ -9120,9 +9124,9 @@ int KDungeonRoom::GetProtectedSmallCrystalCount()
 	return ( m_bIsWin == true ) ? iCount : 0;
 }
 #endif SERV_INSERT_GLOBAL_SERVER
-//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
-//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDropDataNpc, 
 											 IN OUT KDropTable::DROP_DATA& sDropDataStatic, 
@@ -9133,7 +9137,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 	std::vector< int > vecItemID;
 	std::vector< int >::iterator vit;
 	
-	// 1. sDropDataNpc °Ë»ç
+	// 1. sDropDataNpc ï¿½Ë»ï¿½
 	vecItemID = sDropDataNpc.m_vecItemID;
 	sDropDataNpc.Clear();
 
@@ -9142,7 +9146,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( *vit );
 		if( pItemTemplet == NULL )
 		{
-			START_LOG( cerr, L"sDropDataNpc °Ë»ç ¾ÆÀÌÅÛ Á¤º¸°¡ ¾ø´Ù." )
+			START_LOG( cerr, L"sDropDataNpc ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( *vit );
 			continue;
 		}
@@ -9153,7 +9157,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 		}
 	}
 
-	// 2. sDropDataStatic °Ë»ç
+	// 2. sDropDataStatic ï¿½Ë»ï¿½
 	vecItemID = sDropDataStatic.m_vecItemID;
 	sDropDataStatic.Clear();
 
@@ -9162,7 +9166,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( *vit );
 		if( pItemTemplet == NULL )
 		{
-			START_LOG( cerr, L"sDropDataStatic °Ë»ç ¾ÆÀÌÅÛ Á¤º¸°¡ ¾ø´Ù." )
+			START_LOG( cerr, L"sDropDataStatic ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( *vit );
 			continue;
 		}
@@ -9173,7 +9177,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 		}
 	}
 
-	// 3. sDropDataEvent °Ë»ç
+	// 3. sDropDataEvent ï¿½Ë»ï¿½
 	vecItemID = sDropDataEvent.m_vecItemID;
 	sDropDataEvent.Clear();
 
@@ -9182,7 +9186,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( *vit );
 		if( pItemTemplet == NULL )
 		{
-			START_LOG( cerr, L"sDropDataEvent °Ë»ç ¾ÆÀÌÅÛ Á¤º¸°¡ ¾ø´Ù." )
+			START_LOG( cerr, L"sDropDataEvent ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( *vit );
 			continue;
 		}
@@ -9193,7 +9197,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 		}
 	}
 
-	// 4. sDropDataAttribNpc °Ë»ç
+	// 4. sDropDataAttribNpc ï¿½Ë»ï¿½
 	vecItemID = sDropDataAttribNpc.m_vecItemID;
 	sDropDataAttribNpc.Clear();
 
@@ -9202,7 +9206,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( *vit );
 		if( pItemTemplet == NULL )
 		{
-			START_LOG( cerr, L"sDropDataAttribNpc °Ë»ç ¾ÆÀÌÅÛ Á¤º¸°¡ ¾ø´Ù." )
+			START_LOG( cerr, L"sDropDataAttribNpc ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( *vit );
 			continue;
 		}
@@ -9213,7 +9217,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 		}
 	}
 
-	// 5. sDropDataAttribNpc °Ë»ç
+	// 5. sDropDataAttribNpc ï¿½Ë»ï¿½
 	vecItemID = sDropDataHenir.m_vecItemID;
 	sDropDataHenir.Clear();
 
@@ -9222,7 +9226,7 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( *vit );
 		if( pItemTemplet == NULL )
 		{
-			START_LOG( cerr, L"sDropDataAttribNpc °Ë»ç ¾ÆÀÌÅÛ Á¤º¸°¡ ¾ø´Ù." )
+			START_LOG( cerr, L"sDropDataAttribNpc ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( *vit );
 			continue;
 		}
@@ -9236,13 +9240,13 @@ void KDungeonRoom::CheckDeleteHenirDropItem( IN OUT KDropTable::DROP_DATA& sDrop
 #endif SERV_NEW_HENIR_TEST
 //}}
 
-//{{ 2011. 11. 1	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2011. 11. 1	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidType iFIRST_SENDER_UID, IN const KERM_LEAVE_ROOM_REQ& kPacket_, IN const u_short usEventIDAck )
 {
 	KRoom::OnLeaveRoom( iLAST_SENDER_UID, iFIRST_SENDER_UID, kPacket_, usEventIDAck );
 
-	//{{ 2013. 02. 25   ´øÀü ÀÌÅ» ½Ã ·©Å© ±â·Ï - ±è¹Î¼º
+	//{{ 2013. 02. 25   ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å» ï¿½ï¿½ ï¿½ï¿½Å© ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_LEAVE_ROOM_DUNGEON_RANK
 	const int iEndNumMember = m_spRoomUserManager->GetNumMember();
 	int iPartyTotalGivenDamage = 0;
@@ -9257,12 +9261,12 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 	//}
 
 	
-	// ÀÌÅ»ÀÚ ±â·Ï.
+	// ï¿½ï¿½Å»ï¿½ï¿½ ï¿½ï¿½ï¿½.
 	if( GetStateID() == KRoomFSM::S_LOAD || GetStateID() == KRoomFSM::S_PLAY )
 	{
 
-		//=== °ÔÀÓÁß ÀÌÅ» °á°úÃ³¸® ===
-		START_LOG( clog, L"=== DUNGEON GAME : °ÔÀÓÁß ÀÌÅ»½Ã °á°úÃ³¸® ===" )
+		//=== ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å» ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ ===
+		START_LOG( clog, L"=== DUNGEON GAME : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»ï¿½ï¿½ ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ ===" )
 			<< BUILD_LOG( iFIRST_SENDER_UID )
 			<< END_LOG;
 
@@ -9275,7 +9279,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 
 		if( !spRoomUser )
 		{
-			START_LOG( cerr, L"·ë À¯Àú Æ÷ÀÎÅÍ ÀÌ»ó" )
+			START_LOG( cerr, L"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½" )
 				<< BUILD_LOG( iFIRST_SENDER_UID )
 				<< END_LOG;
 		}
@@ -9283,7 +9287,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 		{
 			if( spRoomUser->IsObserver() == false )
 			{
-				//Æ©Åä¸®¾ó ¸ðµåÀÌ¸é ÆÐ³ÎÆ¼°¡ ¾øÀ½..
+				//Æ©ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½Ð³ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
 				int iEXP = 0;
 				int iED = 0;
 				if( CXSLDungeon::IsTutorialDungeon( m_iDungeonID ) == false )
@@ -9297,25 +9301,25 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 
 					if( spRoomUser->IsDie() == true )
 					{
-						// ½Ç½Ã°£ °æÇèÄ¡
+						// ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 						m_spRoomUserManager->GetRewardEXP( iFIRST_SENDER_UID, iEXP );
 						m_spRoomUserManager->GetRewardPartyEXP( iFIRST_SENDER_UID, iEXP );
 
-						//°³ÀÎº° ¾ÆÀÌÅÛ Á¤º¸ÁÖ±â
+						//ï¿½ï¿½ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½
 						m_spRoomUserManager->GetItemList( iFIRST_SENDER_UID, kPacket.m_mapGetItem );
 					}
 					else
 					{
-						// EDÆä³ÎÆ¼
+						// EDï¿½ï¿½ï¿½Æ¼
 						SiKResultProcess()->Result_DUNGEON_BREAK( spRoomUser, kPacket );
 					}
 
-					// [Áß¿ä] Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ ¹× ÇØÅ·À¸·Î ÀÎÇÑ ¹æ ÀÌÅ»ÀÏ °æ¿ì °ÔÀÓ¼­¹ö·Î º¸»óÆÐÅ¶À» º¸³»Áö ¾Ê½À´Ï´Ù!
+					// [ï¿½ß¿ï¿½] Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½!
 					if( kPacket_.m_iReason != NetError::NOT_LEAVE_ROOM_REASON_23 )
 					{
 						SendToGSCharacter( iLAST_SENDER_UID, iFIRST_SENDER_UID, ERM_UPDATE_DUNGEON_UNIT_INFO_NOT, kPacket );
 
-						//{{ 2009. 5. 14  ÃÖÀ°»ç	³»±¸µµ °³Æí
+						//{{ 2009. 5. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 						KERM_DECREASE_ENDURANCE_DUNGEON_NOT kNot;
 						kNot.m_iEnduranceDamage = CXSLDungeon::DE_LEAVE_ROOM_ENDURANCE_DAMAGE;
 						kNot.m_cPartyNumMember  = kPacket.m_iUserCount;
@@ -9326,30 +9330,30 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 					iED = kPacket.m_iED;
 				}
 
-				//{{ 2012. 11. 9	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+				//{{ 2012. 11. 9	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-				int iClearValue = ( spRoomUser->IsDie() ? KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_DIE_LEAVE_ROOM : KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_ALIVE_LEAVE_ROOM ); // 2. Ä³¸¯ÅÍ Á×°í ÀÌÅ»   3. Ä³¸¯ÅÍ ¾ÈÁ×°í ÀÌÅ»
+				int iClearValue = ( spRoomUser->IsDie() ? KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_DIE_LEAVE_ROOM : KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_ALIVE_LEAVE_ROOM ); // 2. Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½×°ï¿½ ï¿½ï¿½Å»   3. Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½×°ï¿½ ï¿½ï¿½Å»
 				
-				if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_23 ) // 4. Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ ÀÌÅ»
+				if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_23 ) // 4. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»
 				{
 					iClearValue = KE_LOCAL_LOG_DUNGEON_NOT::DCT_CLIENT_CRASH_LEAVE_ROOM;
 				}
-				else if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_25 ) // 5. Å¬¶óÀÌ¾ðÆ® ÇØÅ·À¸·Î ÀÎÇÑ ÀÌÅ»
+				else if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_25 ) // 5. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»
 				{
 					iClearValue = KE_LOCAL_LOG_DUNGEON_NOT::DCT_CLIENT_HACKING_LEAVE_ROOM;
 				}
 
-				// ´øÀü ·Î±×
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 				KERM_UPDATE_DUNGEON_UNIT_INFO_NOT kUpdateUnitInfoDummy;
 				KDungeonUnitResultInfo kDungeonUnitInfoDummy;
 
-				//{{ 2013. 02. 25   ´øÀü ÀÌÅ» ½Ã ·©Å© ±â·Ï - ±è¹Î¼º
+				//{{ 2013. 02. 25   ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å» ï¿½ï¿½ ï¿½ï¿½Å© ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_LEAVE_ROOM_DUNGEON_RANK
 				SiKResultProcess()->LeaveRoomResultRank( m_iDungeonID, m_cDifficultyLevel, spRoomUser, m_kDungeonMonsterManager, iEndNumMember, iPartyTotalGivenDamage, (int)GetTotalPlayTime(), kUpdateUnitInfoDummy, kDungeonUnitInfoDummy );
 #endif SERV_LEAVE_ROOM_DUNGEON_RANK
 				//}
 
-				//{{ 2012. 12. 12	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+				//{{ 2012. 12. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_CHECK_USER_NEVER_RETURN_TO_FIELD
 				LogToDB_DungeonLog( spRoomUser, iClearValue, kUpdateUnitInfoDummy, kDungeonUnitInfoDummy, kPacket_.m_iReason );
 #else
@@ -9358,11 +9362,11 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 				//}}
 #else
 //				//////////////////////////////////////////////////////////////////////////
-//				// ´øÀü ÀÏÀÏ ÀÌÅ» ·Î±×
-//				// ¿î¿µÀÚ´Â Åë°è¸¦ ³²±âÁö ¾Ê½À´Ï´Ù.
+//				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å» ï¿½Î±ï¿½
+//				// ï¿½î¿µï¿½Ú´ï¿½ ï¿½ï¿½è¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
 //				//if( spRoomUser->GetAuthLevel() >= SEnum::UAL_GM )
 //				//{
-//				//	START_LOG( cout, L"¿î¿µÀÚ´Â Åë°èµ¥ÀÌÅÍ¸¦ ³²±âÁö ¾Ê½À´Ï´Ù." )
+//				//	START_LOG( cout, L"ï¿½î¿µï¿½Ú´ï¿½ ï¿½ï¿½èµ¥ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." )
 //				//		<< BUILD_LOGc( spRoomUser->GetAuthLevel() )
 //				//		<< BUILD_LOG( spRoomUser->GetNickName() );
 //				//}
@@ -9371,20 +9375,20 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 //					KRoomUserInfo kInfo;
 //					spRoomUser->GetRoomUserInfo( kInfo );
 //
-//					int iClear = ( spRoomUser->IsDie() ? KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_DIE_LEAVE_ROOM : KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_ALIVE_LEAVE_ROOM ); // 2. Ä³¸¯ÅÍ Á×°í ÀÌÅ»   3. Ä³¸¯ÅÍ ¾ÈÁ×°í ÀÌÅ»
+//					int iClear = ( spRoomUser->IsDie() ? KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_DIE_LEAVE_ROOM : KE_LOCAL_LOG_DUNGEON_NOT::DCT_UNIT_ALIVE_LEAVE_ROOM ); // 2. Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½×°ï¿½ ï¿½ï¿½Å»   3. Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½×°ï¿½ ï¿½ï¿½Å»
 //
-//					if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_23 ) // 4. Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ ÀÌÅ»
+//					if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_23 ) // 4. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»
 //					{
 //						iClear = KE_LOCAL_LOG_DUNGEON_NOT::DCT_CLIENT_CRASH_LEAVE_ROOM;
 //					}
-//					else if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_25 ) // 5. Å¬¶óÀÌ¾ðÆ® ÇØÅ·À¸·Î ÀÎÇÑ ÀÌÅ»
+//					else if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_25 ) // 5. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»
 //					{
 //						iClear = KE_LOCAL_LOG_DUNGEON_NOT::DCT_CLIENT_HACKING_LEAVE_ROOM;
 //					}
 //
-//					//{{ 2010. 06. 21  ÃÖÀ°»ç	Åë°è ½º·¹µå
+//					//{{ 2010. 06. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //					//#ifdef SERV_STATISTICS_THREAD
-//					//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+//					//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 //					//#ifdef SERV_DUNGEON_LOG_DB
 //					CTime kRegDate = CTime::GetCurrentTime();
 //					//#endif SERV_DUNGEON_LOG_DB
@@ -9415,17 +9419,17 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 //					kNot.m_iRessurectionStoneCount	= spRoomUser->GetUsedRessurectionStoneCount();
 //					kNot.m_iPassedStageCount		= spRoomUser->GetPassedStageCount();
 //					kNot.m_iPassedSubStageCount		= spRoomUser->GetPassedSubStageCount();
-//					//{{ 2010. 9. 14	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//					//{{ 2010. 9. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_PET_SYSTEM
 //					kNot.m_bIsWithPet				= spRoomUser->HavePet();
 //#endif SERV_PET_SYSTEM
 //					//}}
-//					//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+//					//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 //#ifdef SERV_DUNGEON_LOG_DB
 //					kNot.m_wstrRegDate				= (const wchar_t*)kRegDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 //#endif SERV_DUNGEON_LOG_DB
 //					//}}
-//					//{{ 2011. 03. 16	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+//					//{{ 2011. 03. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_ADD_DUNGEON_LOG_COLUMN
 //					kNot.m_sNpcDieCount				= spRoomUser->GetKillNPC_LUA();
 //					kNot.m_iGivenDamage				= 0;
@@ -9436,7 +9440,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 //					kNot.m_cPetEvoStep				= spRoomUser->GetPetEvolutionStep();
 //#endif SERV_ADD_DUNGEON_LOG_COLUMN
 //					//}}
-//					//{{ 2012. 04. 17	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+//					//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 //					kNot.m_iBaseHP					= spRoomUser->GetBaseHP_LUA();
 //					kNot.m_iEndHP					= spRoomUser->GetLastUpdatedHP();
@@ -9449,19 +9453,19 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 //					kNot.m_wstrChannelIP			= spRoomUser->GetGameChannelIP();
 //#endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 //					//}}
-//					//{{ 2012. 07. 11 ±è¹Î¼º
+//					//{{ 2012. 07. 11 ï¿½ï¿½Î¼ï¿½
 //#ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_3
 //					kNot.m_iUserUID					= spRoomUser->GetUserUID();
 //#endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_3
 //					//}}
-//					//{{ 2012. 11. 6	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//					//{{ 2012. 11. 6	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //					kNot.m_cAutoPartyPlay			= ( IsStartedByAutoParty() ? 1 : 0 );
 //#endif SERV_BATTLE_FIELD_SYSTEM
 //					//}}
 //					KSIManager.QueueingEvent( E_LOCAL_LOG_DUNGEON_NOT, kNot );
 //					//////////////////////////////////////////////////////////////////////////
-//					//{{ 2010. 11. 8	ÃÖÀ°»ç	´øÀü ·Î±× DB
+//					//{{ 2010. 11. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ DB
 //					//#ifdef SERV_DUNGEON_LOG_DB
 //					SendToLogDB( DBE_DB_LOG_DUNGEON_NOT, kNot );
 //					//#endif SERV_DUNGEON_LOG_DB
@@ -9475,7 +9479,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 
 				
 
-				//{{ 2007. 12. 18  ÃÖÀ°»ç  À¯Àú Åë°è [¼öÁ¤]
+				//{{ 2007. 12. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [ï¿½ï¿½ï¿½ï¿½]
 				KERM_DUNGEON_USER_STATISTICS_NOT kPacketNot;
 				kPacketNot.m_iDungeonID	   = m_iDungeonID + static_cast<int>(m_cDifficultyLevel);
 				kPacketNot.m_cGameResult   = KERM_DUNGEON_USER_STATISTICS_NOT::UGR_DROP;
@@ -9485,7 +9489,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 				SendToGSCharacter( iLAST_SENDER_UID, iFIRST_SENDER_UID, ERM_DUNGEON_USER_STATISTICS_NOT, kPacketNot );
 				//}}
 
-				//{{ 2007. 12. 25  ÃÖÀ°»ç  ºÎÈ°¼® Åë°è
+				//{{ 2007. 12. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½
 				if( m_spRoomUserManager->GetUsedRessurectionStoneCount( iFIRST_SENDER_UID ) > 0 )
 				{
 					KStatisticsKey kKey;
@@ -9502,9 +9506,9 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 	kPacket.m_iItemID = kPacket_.m_iItemID;
 	kPacket.m_kBattleFieldJoinInfo = kPacket_.m_kBattleFieldJoinInfo;
 
-	//{{ 2011. 02. 21  ±è¹Î¼º	Æ¯Á¤ ´øÀü ÀÔÀå ¾ÆÀÌÅÛ ¹ö±× ¼öÁ¤
+	//{{ 2011. 02. 21  ï¿½ï¿½Î¼ï¿½	Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//#ifdef SERV_DUNGEON_REQUIRED_ITEM_BUG
-	//´øÀü°ÔÀÓ ÁøÇà¾ÆÀÌÅÛÀÌ ¾øÀ»°æ¿ì Ã³¸®..
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½..
 	if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_22 )
 	{
 		kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_22;
@@ -9520,34 +9524,34 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 	//#endif SERV_DUNGEON_REQUIRED_ITEM_BUG
 	//}}
 
-	//{{ 2012. 01. 31	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 01. 31	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-	// ´ë±â »óÅÂ°Å³ª ÇÊµå·Î ³ª°¡´Â »óÅÂÀÏ¶§ ÀÌÅ»ÇÏ´Â°Å¶ó¸é
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°Å³ï¿½ ï¿½Êµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ ï¿½ï¿½Å»ï¿½Ï´Â°Å¶ï¿½ï¿½
 	if( GetStateID() == KRoomFSM::S_WAIT  ||  GetStateID() == KRoomFSM::S_RETURN_TO_FIELD )
 	{
-		// ÆÄÆ¼ ÀÌÅ» Ã³¸®¸¦ ÇÏÁö ¾Ê´Â´Ù.
+		// ï¿½ï¿½Æ¼ ï¿½ï¿½Å» Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 		kPacket.m_bNotLeaveParty = true;
 	}
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-	//{{ 2012. 12. 18	ÃÖÀ°»ç	¾Æ¶ó ÆÄÆ¼ ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡
+	//{{ 2012. 12. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 	const bool bPlayWithCharLeaveBefore = m_spRoomUserManager->IsExistCharType( CXSLUnit::UT_ARA );
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 	//}}
 
-	// ½½·Ô Á¤º¸ º¯°æ.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	if( !m_spRoomUserManager->LeaveRoom( iFIRST_SENDER_UID ) )
 	{
-		// ½½·Ô¿¡¼­ ³ª°¡±â ½ÇÆÐ.
+		// ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		kPacket.m_iOK = NetError::ERR_SLOT_04;
 		SendToGSCharacter( iLAST_SENDER_UID, iFIRST_SENDER_UID, usEventIDAck, kPacket );
 		return;
 	}
 	else
 	{
-		//{{ 2013. 01. 09 ´øÀü °­Åð ½Ã½ºÅÛ - ±è¹Î¼º
+		//{{ 2013. 01. 09 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 		if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_34 )
 		{
@@ -9558,26 +9562,26 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 
 		SendToGSCharacter( iLAST_SENDER_UID, iFIRST_SENDER_UID, usEventIDAck, kPacket );
 
-		//{{ 2012. 10. 16	ÃÖÀ°»ç		P2P & Relay Á¤º¸ ¼öÁý
+		//{{ 2012. 10. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		P2P & Relay ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COLLECTION_OF_RELAY_AND_P2P_INFO
 		LogToDB_GamePlayNetWorkInfo( iFIRST_SENDER_UID, kPacket_.m_kGamePlayNetworkInfo, true );
 #endif SERV_COLLECTION_OF_RELAY_AND_P2P_INFO
 		//}}
 
-		//{{ 2012. 12. 18	ÃÖÀ°»ç	¾Æ¶ó ÆÄÆ¼ ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡
+		//{{ 2012. 12. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 		if( bPlayWithCharLeaveBefore == true )
 		{
-			// ÀÌÅ» ´ç»çÀÚ´Â ¹öÇÁ ¼Ò¸ê
+			// ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½
 			KERM_DEACTIVATE_BUFF_NOT kPacketNot;
 			kPacketNot.m_vecDeactivateBuffID.push_back( CXSLBuffManager::BTI_SECRET_OF_THOUSAND_YEARS_FOX );
 			SendToGSCharacter( iLAST_SENDER_UID, iFIRST_SENDER_UID, ERM_DEACTIVATE_BUFF_NOT, kPacketNot );
 
-			// ¾Æ¶ó°¡ ÆÄÆ¼¿¡ ¾Æ¿¹ ¾ø´Ù¸é?
+			// ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Æ¿ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½?
 			const bool bPlayWithCharLeaveAfter = m_spRoomUserManager->IsExistCharType( CXSLUnit::UT_ARA );
 			if( bPlayWithCharLeaveAfter == false )
 			{
-                // ÆÄÆ¼¿ø ÀüÃ¼¿¡°Ô ¹öÇÁ ¼Ò¸ê
+                // ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½
 				BroadCast( ERM_DEACTIVATE_BUFF_NOT, kPacketNot );
 			}
 		}
@@ -9585,7 +9589,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 		//}}
 	}
 
-	//{{ 2013. 01. 09 ´øÀü °­Åð ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 01. 09 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 	KBadAttitudeManager::KBadAttitudeInfo kUnitData( iFIRST_SENDER_UID );
 	m_kBadAttitudeManager.RemoveUnit( iFIRST_SENDER_UID, kUnitData );
@@ -9594,7 +9598,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 
 	if( IsEmpty() == false || IsEmpty( KRoomUserManager::UT_OBSERVER ) == false )
 	{
-		// ¹æÀÇ ¸ðµç À¯Àúµé¿¡°Ô ½½·Ô Á¤º¸¸¦ ³¯¸°´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		KEGS_LEAVE_ROOM_NOT kPacketNot;
 		kPacketNot.m_cRoomState = GetStateID();
 		kPacketNot.m_iUnitUID = iFIRST_SENDER_UID;
@@ -9605,7 +9609,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 
 	if( (GetStateID() == KRoomFSM::S_LOAD || GetStateID() == KRoomFSM::S_PLAY) && IsEmpty() == false )
 	{
-		//{{ 2010. 11. 23	ÃÖÀ°»ç	¹æ ·Îµù ¿À·ù ¼öÁ¤ - Å©·¡½¬ ¹®Á¦°¡ ÀÖ¾î¼­ Àû¿ëÀº º¸·ùÇÕ´Ï´Ù.
+		//{{ 2010. 11. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾î¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
 #ifdef SERV_ROOM_LOADING_BUG_FIX
 		//////////////////////////////////////////////////////////////////////////
 		if( GetStateID() == KRoomFSM::S_LOAD )
@@ -9614,11 +9618,11 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 			{
 				BroadCastID( ERM_GAME_LOADING_ALL_UNIT_OK_NOT );
 
-				// ½ºÅ×ÀÌÁö¸¦ ÃÊ±âÈ­.
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­.
 				StartPlay();
 
 				KEGS_PLAY_START_NOT kNot;
-				//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+				//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 				kNot.m_iDungeonID = GetDungeonIDAndDif();
 #endif SERV_CHAR_LOG
@@ -9626,13 +9630,13 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 				kNot.m_RoomState = GetStateID();
 				GetRoomSlotInfo( kNot.m_vecSlot );
 
-				// ¸ðµç À¯Àú¿¡°Ô ÇÃ·¹ÀÌ ½ÃÀÛÀ» ¾Ë¸².
+				// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½.
 				BroadCast( ERM_PLAY_START_NOT, kNot );
 
-				// ¸ðµç °ÔÀÓ ¼­¹ö¿¡ ¹æ ¸®½ºÆ®¸¦ °»½ÅÇÏ¶ó°í ³¯¸°´Ù.
+				// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 				SendRoomListInfo( NetError::ERR_ROOM_15 );
 
-				//{{ 2009. 4. 23  ÃÖÀ°»ç	´ëÀüÀ¯Àú¸®½ºÆ®
+				//{{ 2009. 4. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 				SendAllPVPUserInfo();
 				//}}
 			}
@@ -9650,7 +9654,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 		//}}
 	}
 
-	// ½ºÅ×ÀÌÁö°¡ ³¡³ª°Ô µÇ´Â °æ¿ì Ã³¸®.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½.
 	if( GetStateID() == KRoomFSM::S_PLAY && IsEmpty() == false )
 	{
 		if( CheckIfPlayEnd() )
@@ -9659,7 +9663,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 		}
 		else
 		{
-			//{{ 2009. 7. 27  ÃÖÀ°»ç	ºñ¹Ð½ºÅ×ÀÌÁö
+			//{{ 2009. 7. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			if( m_eDungeonType == CXSLDungeon::DT_HENIR )
 			{
 				CheckEnterSecretStageSuccess();
@@ -9668,13 +9672,13 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 		}
 	}
 
-	//°á°úÃ¢À» º¸°íÀÖÀ»¶§ ¹æÀ» ³ª°¥°æ¿ìÃ³¸®
+	//ï¿½ï¿½ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 	if( GetStateID() == KRoomFSM::S_RESULT && IsEmpty() == false )
 	{
 		CheckResultSuccess();
 	}
 
-	//{{ 2012. 12. 12	ÃÖÀ°»ç	°á°úÃ¢ ÀÌÅ» À¯Àú ·Î±×
+	//{{ 2012. 12. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ã¢ ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_CHECK_USER_NEVER_RETURN_TO_FIELD
 	if( GetStateID() == KRoomFSM::S_RESULT )
 	{
@@ -9689,29 +9693,29 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 #endif SERV_CHECK_USER_NEVER_RETURN_TO_FIELD
 	//}}
 
-	//{{ 2013. 04. 22	ÃÖÀ°»ç	¾îµÒÀÇ ¹® ÀÔÀå ·ÎÁ÷ º¯°æ
+	//{{ 2013. 04. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
 	if( GetStateID() == KRoomFSM::S_WAIT_FOR_DEFENCE )
 	{
-		// ¸ðµç À¯ÀúÀÇ Á¤º¸°¡ °»½ÅµÇ¾ú´ÂÁö È®ÀÎÇÑ´Ù!
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÅµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½!
 		std::vector< UidType > vecLeaveUnitUID;
 		if( m_spRoomUserManager->IsAllPlayerPrepareForDefenceDungeon( vecLeaveUnitUID ) == true )
 		{
-			// ¾îµÒÀÇ ¹® ´øÀü ÀÔÀå!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			EnterDefenceDungeon( vecLeaveUnitUID );
 
-			START_LOG( clog, L"¹æ ÀÌÅ»ÀÚ¿¡ ÀÇÇØ ¾îµÒÀÇ ¹® ´øÀüÀ» ½ÃÀÛÇÕ´Ï´Ù!" );
+			START_LOG( clog, L"ï¿½ï¿½ ï¿½ï¿½Å»ï¿½Ú¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½!" );
 		}
 	}
 #else
-	//{{ 2013. 04. 15	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_NEW_DEFENCE_DUNGEON
 //	if( GetStateID() == KRoomFSM::S_WAIT_FOR_DEFENCE )
 //	{
-//		// ¸ðµç À¯ÀúÀÇ Á¤º¸°¡ °»½ÅµÇ¾ú´ÂÁö È®ÀÎÇÑ´Ù!
+//		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÅµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½!
 //		if( m_spRoomUserManager->IsAllPlayerPrepareForDefence() == true )
 //		{
-//			// ¾îµÒÀÇ ¹® ´øÀü ÀÔÀå!
+//			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 //			EnterDefenceDungeon();
 //		}
 //	}
@@ -9720,12 +9724,12 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 #endif SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
 	//}}
 
-	// ¹æ¿¡¼­ ¸ðµç À¯Àú°¡ ³ª°¬À¸¸é ¹æÀ» ´Ý´Â´Ù.
+	// ï¿½æ¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ý´Â´ï¿½.
 	if( IsEmpty() == true && IsEmpty( KRoomUserManager::UT_OBSERVER ) == true )
 	{
 		StateTransition( KRoomFSM::I_TO_CLOSE );
 
-		//{{ 2010. 06. 21  ÃÖÀ°»ç	Åë°è ½º·¹µå
+		//{{ 2010. 06. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_STATISTICS_THREAD
 		CTime kEndGameTime = CTime::GetCurrentTime();
 		//////////////////////////////////////////////////////////////////////////
@@ -9754,7 +9758,7 @@ void KDungeonRoom::OnLeaveRoom( IN const UidType iLAST_SENDER_UID, IN const UidT
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2012. 02. 29	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 02. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffInfo > >& mapActivateBuffList )
 {
@@ -9767,13 +9771,13 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( iIndex );
 		if( spRoomUser == NULL )
 		{
-			START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯ÀúÀÔ´Ï´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 				<< BUILD_LOG( iIndex )
 				<< END_LOG;
 			continue;
 		}
 
-		// ÄÄ¹é À¯Àú°¡ ÀÖ´Ù.
+		// ï¿½Ä¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½.
 		if( bExistComeBackUser == true )
 		{
 			if( spRoomUser->IsComeBackUser() == false )
@@ -9781,7 +9785,7 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 				std::map< UidType, std::vector< KBuffInfo > >::iterator mit = mapActivateBuffList.find( spRoomUser->GetCID() );
 				if( mit == mapActivateBuffList.end() )
 				{
-					// ÇØ´ç À¯´ÖÀÇ ¹öÇÁ Á¤º¸°¡ ¾ø´Ù
+					// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					std::vector< KBuffInfo > ActivateBuffList;
 
 					KBuffInfo kBuff;
@@ -9799,13 +9803,13 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 			}
 		}
 
-		// ÇöÀç ÀÚµ¿ÆÄÆ¼ ÀÎ¿øÀÌ 1¸íº¸´Ù ¸¹¾Æ¾ß ¿µ¿õÀÇ Áý°á ¹öÇÁ¸¦ °Ç´Ù!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½Î¿ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½!
 		if( iNumMember > 1 )
 		{
-			// ÀÚµ¿ÆÄÆ¼·Î ´øÀü°ÔÀÓÀ» ½ÃÀÛÇß´Ù¸é '¿µ¿õÀÇ Áý°á' ¹öÇÁ¸¦ °É¾îÁÖÀÚ!
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			// ï¿½Úµï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´Ù¸ï¿½ 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½' ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½!
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
-			if( spRoomUser->GetOldPartyMemberCount() == 3 ) // ÀÚµ¿ÆÄÆ¼ ½ÅÃ»½Ã ÆÄÆ¼¿øÀÌ 3¸íÀÌ¾ú´Ù¸é
+			if( spRoomUser->GetOldPartyMemberCount() == 3 ) // ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ 3ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½Ù¸ï¿½
 			{
 				std::map< UidType, std::vector< KBuffInfo > >::iterator mit = mapActivateBuffList.find( spRoomUser->GetCID() );
 				if( mit == mapActivateBuffList.end() )
@@ -9816,7 +9820,7 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 					kBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_BUFF_RALLY_OF_HERO_LEVEL_1;
 					ActivateBuffList.push_back( kBuff );
 
-					// ÇöÀç ÀÚµ¿ÆÄÆ¼ ÀÎ¿øÀÌ 1¸íº¸´Ù ¸¹¾Æ¾ß ÀçÁý°áÀ» À§ÇÑ ÈÞ½Ä ¹öÇÁ¸¦ °Ç´Ù!
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½Î¿ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½!
 					KBuffInfo kDebuff;
 					kDebuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_DEBUFF_REST_OF_RELLY;
 					ActivateBuffList.push_back( kDebuff );
@@ -9829,7 +9833,7 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 					kBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_BUFF_RALLY_OF_HERO_LEVEL_1;
 					mit->second.push_back( kBuff );
 
-					// ÇöÀç ÀÚµ¿ÆÄÆ¼ ÀÎ¿øÀÌ 1¸íº¸´Ù ¸¹¾Æ¾ß ÀçÁý°áÀ» À§ÇÑ ÈÞ½Ä ¹öÇÁ¸¦ °Ç´Ù!
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½Î¿ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½!
 					KBuffInfo kDebuff;
 					kDebuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_DEBUFF_REST_OF_RELLY;
 					mit->second.push_back( kDebuff );
@@ -9837,7 +9841,7 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 
 				bMaxPartyFever = true;
 			}
-			else if( spRoomUser->GetOldPartyMemberCount() == 2 )	// ÀÚµ¿ÆÄÆ¼ ½ÅÃ»½Ã ÆÄÆ¼¿øÀÌ 2¸íÀÌ¾ú´Ù¸é
+			else if( spRoomUser->GetOldPartyMemberCount() == 2 )	// ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½Ù¸ï¿½
 			{
 				std::map< UidType, std::vector< KBuffInfo > >::iterator mit = mapActivateBuffList.find( spRoomUser->GetCID() );
 				if( mit == mapActivateBuffList.end() )
@@ -9848,7 +9852,7 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 					kBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_BUFF_RALLY_OF_HERO_LEVEL_2;
 					ActivateBuffList.push_back( kBuff );
 
-					// ÇöÀç ÀÚµ¿ÆÄÆ¼ ÀÎ¿øÀÌ 1¸íº¸´Ù ¸¹¾Æ¾ß ÀçÁý°áÀ» À§ÇÑ ÈÞ½Ä ¹öÇÁ¸¦ °Ç´Ù!
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½Î¿ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½!
 					KBuffInfo kDebuff;
 					kDebuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_DEBUFF_REST_OF_RELLY;
 					ActivateBuffList.push_back( kDebuff );
@@ -9861,7 +9865,7 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 					kBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_BUFF_RALLY_OF_HERO_LEVEL_2;
 					mit->second.push_back( kBuff );
 
-					// ÇöÀç ÀÚµ¿ÆÄÆ¼ ÀÎ¿øÀÌ 1¸íº¸´Ù ¸¹¾Æ¾ß ÀçÁý°áÀ» À§ÇÑ ÈÞ½Ä ¹öÇÁ¸¦ °Ç´Ù!
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½Î¿ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½!
 					KBuffInfo kDebuff;
 					kDebuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_DEBUFF_REST_OF_RELLY;
 					mit->second.push_back( kDebuff );
@@ -9869,7 +9873,7 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 				
 				bMaxPartyFever = true;
 			}
-			else if( spRoomUser->GetOldPartyMemberCount() == 0 )	// ÀÚµ¿ÆÄÆ¼ ½ÅÃ»½Ã ÆÄÆ¼°¡ ¾Æ´Ï¾ú´Ù¸é
+			else if( spRoomUser->GetOldPartyMemberCount() == 0 )	// ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Æ´Ï¾ï¿½ï¿½Ù¸ï¿½
 			{
 				std::map< UidType, std::vector< KBuffInfo > >::iterator mit = mapActivateBuffList.find( spRoomUser->GetCID() );
 				if( mit == mapActivateBuffList.end() )
@@ -9880,7 +9884,7 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 					kBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_BUFF_RALLY_OF_HERO_LEVEL_3;
 					ActivateBuffList.push_back( kBuff );
 
-					// ÇöÀç ÀÚµ¿ÆÄÆ¼ ÀÎ¿øÀÌ 1¸íº¸´Ù ¸¹¾Æ¾ß ÀçÁý°áÀ» À§ÇÑ ÈÞ½Ä ¹öÇÁ¸¦ °Ç´Ù!
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½Î¿ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½!
 					KBuffInfo kDebuff;
 					kDebuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_DEBUFF_REST_OF_RELLY;
 					ActivateBuffList.push_back( kDebuff );
@@ -9893,7 +9897,7 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 					kBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_BUFF_RALLY_OF_HERO_LEVEL_3;
 					mit->second.push_back( kBuff );
 
-					// ÇöÀç ÀÚµ¿ÆÄÆ¼ ÀÎ¿øÀÌ 1¸íº¸´Ù ¸¹¾Æ¾ß ÀçÁý°áÀ» À§ÇÑ ÈÞ½Ä ¹öÇÁ¸¦ °Ç´Ù!
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½Î¿ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½!
 					KBuffInfo kDebuff;
 					kDebuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = CXSLBuffManager::BTI_DEBUFF_REST_OF_RELLY;
 					mit->second.push_back( kDebuff );
@@ -9911,32 +9915,32 @@ bool KDungeonRoom::AutoPartyBuff( IN OUT std::map< UidType, std::vector< KBuffIn
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2012. 12. 17	ÃÖÀ°»ç	¾Æ¶ó ÆÄÆ¼ ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡
+//{{ 2012. 12. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 bool KDungeonRoom::PlayWithCharBuff( IN OUT std::map< UidType, std::vector< KBuffInfo > >& mapActivateBuffList )
 {
-	// ÀÏ´Ü ÇöÀç ¾Æ¸®°¡ ÀÖ´ÂÁö È®ÀÎÇÑ´Ù!
+	// ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¸ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½!
 	if( m_spRoomUserManager->IsExistCharType( CXSLUnit::UT_ARA ) == false )
 		return false;
 
-	// ¾Æ¸®°¡ ÆÄÆ¼¿¡ ÀÖÀ¸¸é ÆÄÆ¼¿ø ÀüÃ¼¿¡°Ô Ä³¸¯ÅÍ¿Í ÇÔ²² ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡ ¹öÇÁ¸¦ Àû¿ë½ÃÅ²´Ù.	
+	// ï¿½Æ¸ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½Ô²ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å²ï¿½ï¿½.	
 	const int iNumMember = m_spRoomUserManager->GetNumMember();
 	for( int iIndex = 0; iIndex < iNumMember; ++iIndex )
 	{
 		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( iIndex );
 		if( IS_NULL( spRoomUser ) )
 		{
-			START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯ÀúÀÔ´Ï´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 				<< BUILD_LOG( iIndex )
 				<< END_LOG;
 			continue;
 		}
 		
-		// ¹öÇÁ Á¤º¸¸¦ ´ã´Â´Ù!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½!
 		std::map< UidType, std::vector< KBuffInfo > >::iterator mit = mapActivateBuffList.find( spRoomUser->GetCID() );
 		if( mit == mapActivateBuffList.end() )
 		{
-			// ÇØ´ç À¯´ÖÀÇ ¹öÇÁ Á¤º¸°¡ ¾ø´Ù
+			// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			std::vector< KBuffInfo > ActivateBuffList;
 
 			KBuffInfo kBuff;
@@ -9959,7 +9963,7 @@ bool KDungeonRoom::PlayWithCharBuff( IN OUT std::map< UidType, std::vector< KBuf
 //}}
 
 
-//{{ ÇÊµå µå·Ó °³Æí - ±è¹Î¼º
+//{{ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_ITEM_DROP
 float KDungeonRoom::GetDungeonPartyBonusRate()
 { 
@@ -9970,17 +9974,17 @@ float KDungeonRoom::GetDungeonPartyBonusRate()
 #endif SERV_REFORM_ITEM_DROP
 //}}
 
-//{{ 2012. 09. 02	¹Ú¼¼ÈÆ	Merge ( ´ëÀü¿¡¼­ Å¬¶óÀÌ¾ðÆ® Á¶ÀÛµîÀ¸·Î UDP ÆÐÅ¶ÀÌ ³¯¾Æ¿ÀÁö ¾Ê´Â À¯Àú°¡ ¹ß°ßµÇ¸é ¼­¹ö¿¡¼­ Å±ÇÑ´Ù. // 2012.06.11 lygan_Á¶¼º¿í )
+//{{ 2012. 09. 02	ï¿½Ú¼ï¿½ï¿½ï¿½	Merge ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½Ûµï¿½ï¿½ï¿½ï¿½ï¿½ UDP ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ßµÇ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å±ï¿½Ñ´ï¿½. // 2012.06.11 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
 #ifdef UDP_CAN_NOT_SEND_USER_KICK
 _IMPL_ON_FUNC( ERM_UDP_CHECK_KICK_USER_NOT, KEGS_UDP_CHECK_KICK_USER_NOT )
 {
-	// PVP ¿¡¼­¸¸ »ç¿ëÇÏ°í ÀÖÀ¸¹Ç·Î ´øÀü¿¡¼­´Â ¾Æ¹« ±â´Éµµ ÇÏÁö ¾Ê´Â´Ù.
-	// ÃßÈÄ¿¡ ´øÀü¿¡¼­ÀÇ ±â´É Ãß°¡´Â ¿©±â¿¡ ÇÏ¸éµÈ´Ù.
+	// PVP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½ ï¿½ï¿½Éµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
+	// ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¿¡ ï¿½Ï¸ï¿½È´ï¿½.
 }
 #endif UDP_CAN_NOT_SEND_USER_KICK
 //}}
 
-//{{ 2012. 11. 9	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 11. 9	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 IMPL_ON_FUNC_NOPARAM( ERM_UPDATE_HENIR_REWARD_USER_NOT )
 {
@@ -9989,33 +9993,33 @@ IMPL_ON_FUNC_NOPARAM( ERM_UPDATE_HENIR_REWARD_USER_NOT )
 	KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( FIRST_SENDER_UID );
 	if( IS_NULL( spRoomUser ) )
 	{
-		START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯Àú¿¡°Ô Çì´Ï¸£ º¸»ó ¿©ºÎ Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÏ·Á°í Çß½À´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ß½ï¿½ï¿½Ï´ï¿½!" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< END_LOG;
 		return;
 	}
 
-	// Çì´Ï¸£ º¸»ó Áö±Þ ¼³Á¤!
+	// ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	spRoomUser->SetHenirRewardUser( true );
 }
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2013. 01. 09 ´øÀü °­Åð ½Ã½ºÅÛ - ±è¹Î¼º
+//{{ 2013. 01. 09 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 _IMPL_ON_FUNC( ERM_BAD_ATTITUDE_USER_CHECK_INFO_NOT, KEGS_BAD_ATTITUDE_USER_CHECK_INFO_NOT )
 {
 	VERIFY_STATE( ( 1, KRoomFSM::S_PLAY ) );
 
-	// ÇØ´ç ¼­ºê ½ºÅ×ÀÌÁö or wave ÀÇ ·©Å©¸¦ ±¸ÇÑ´Ù.
-	// ÇØ´ç ¼­ºê ½ºÅ×ÀÌÁö ¸ó½ºÅÍ Á¢¼ö ±¸ÇÏÀÚ
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ or wave ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-	// ¼ÖÇÃÀÌ¸é °Ë»çÇÏÁö ¾ÊÀ½
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	int iPartyMemberCount = m_spRoomUserManager->GetNumMember();
 	if( iPartyMemberCount <= 1 )
 		return;
 
-	// ÀÚµ¿ ÆÄÆ¼¸¸ °Ë»çÇÑ´Ù.
+	// ï¿½Úµï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 	if( m_bStartedByAutoParty == false )
 		return;
 
@@ -10027,22 +10031,22 @@ _IMPL_ON_FUNC( ERM_BAD_ATTITUDE_USER_CHECK_INFO_NOT, KEGS_BAD_ATTITUDE_USER_CHEC
 												kPacket_.m_iComboScore,
 												kPacket_.m_iTechScore );
 	
-	// µ¿ÀÏ ½ºÅ×ÀÌÁö, ¼­ºê ½ºÅ×ÀÌÁö ¸ðµç À¯Àú°¡ ·©Å©¸¦ ´Ù ±¸Çß´Â°¡? 
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ß´Â°ï¿½? 
 	if( m_kBadAttitudeManager.IsAllUnitGetScore() == true )
 	{
 		std::vector<UidType> vecNewBadAttitudeUser;
 		std::vector<UidType> vecNewForceExitUser;
 
-		// ºÒ·® À¯Àú¸¦ Ã£ÀÚ
-		// °­Åð À¯Àú¸¦ Ã£ÀÚ
+		// ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 		m_kBadAttitudeManager.CheckBadAttitudeUnit( vecNewBadAttitudeUser, vecNewForceExitUser );
 
-		// ºÒ·® À¯Àú¸¦ Ã£¾Ò´Ù
+		// ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Ò´ï¿½
 		if( vecNewBadAttitudeUser.empty() == false )
 		{
 			BOOST_TEST_FOREACH( UidType, iBadAttitudeUserUID, vecNewBadAttitudeUser )
 			{
-				// ºÒ·® À¯Àú¿¡°Ô ÀÚ½ÅÀÌ ºÒ·® À¯Àú°¡ µÇ¾úÀ¸´Ï Á¶½ÉÇÏ¶ó´Â ¸Þ½ÃÁö¸¦ Ãâ·ÂÇÏ°Ô ÇÑ´Ù.
+				// ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ñ´ï¿½.
 				KRoomUserPtr pUser = m_spRoomUserManager->GetUser( iBadAttitudeUserUID );
 				if( pUser != NULL )
 				{
@@ -10054,14 +10058,14 @@ _IMPL_ON_FUNC( ERM_BAD_ATTITUDE_USER_CHECK_INFO_NOT, KEGS_BAD_ATTITUDE_USER_CHEC
 					SendToGSCharacter( pUser->GetGSUID(), pUser->GetCID(), ERM_BAD_ATTITUDE_USER_MSG_NOT, kPacket );
 				}
 
-				// ºÒ·® À¯Àú¸¦ Ã£¾ÒÀ¸´Ï ÅõÇ¥ °¡´ÉÇÏ°Ô ¾Ë·ÁÁØ´Ù.
+				// ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ë·ï¿½ï¿½Ø´ï¿½.
 				KEGS_BAD_ATTITUDE_USER_NOT kNot;
 				kNot.m_iUserUID = iBadAttitudeUserUID;
 				BroadCast( ERM_BAD_ATTITUDE_USER_NOT, kNot );
 			}
 		}
 
-		// °­Åð À¯Àú¸¦ Ã£¾Ò´Ù
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Ò´ï¿½
 		if( vecNewForceExitUser.empty() == false )
 		{
 			BOOST_TEST_FOREACH( UidType, iForceExitUserUID, vecNewForceExitUser )
@@ -10075,16 +10079,16 @@ _IMPL_ON_FUNC( ERM_BAD_ATTITUDE_USER_CHECK_INFO_NOT, KEGS_BAD_ATTITUDE_USER_CHEC
 					UidType iLAST_SENDER_UID  = pUser->GetGSUID();
 					UidType iFIRST_SENDER_UID = pUser->GetCID();
 
-					// °­Åð ½ÃÅ´
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å´
 					OnLeaveRoom( pUser->GetGSUID(), pUser->GetCID(), kPacketReq, ERM_LEAVE_ROOM_ACK );
 
-					// ÀÌ·± ÀÌ·± »çÀ¯·Î ³Ê´Ô ÆÃ°æÀ½À» ¾Ë·ÁÁØ´Ù.
+					// ï¿½Ì·ï¿½ ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ø´ï¿½.
 					KEGS_BAD_ATTITUDE_USER_MSG_NOT kKick;
 					kKick.m_MsgType = KEGS_BAD_ATTITUDE_USER_MSG_NOT::MT_FORCED_EXIT;
 					kKick.m_iUserUID = iForceExitUserUID;
 					SendToGSCharacter( iLAST_SENDER_UID, iFIRST_SENDER_UID, ERM_BAD_ATTITUDE_USER_MSG_NOT, kKick );
 
-					// ÀÌ·± ÀÌ·± »çÀ¯·Î ÀÌ À¯Àú°¡ ³ª°¬À½À» ¾Ë·ÁÁØ´Ù.
+					// ï¿½Ì·ï¿½ ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ø´ï¿½.
 					KEGS_BAD_ATTITUDE_USER_MSG_NOT kNot;
 					kNot.m_MsgType = KEGS_BAD_ATTITUDE_USER_MSG_NOT::MT_BAD_ATTITUDE_USER_EXIT;
 					kNot.m_iUserUID = iForceExitUserUID;
@@ -10104,21 +10108,21 @@ _IMPL_ON_FUNC( ERM_FORCED_EXIT_VOTE_REQ, KEGS_FORCED_EXIT_VOTE_REQ )
 {
 	KEGS_FORCED_EXIT_VOTE_ACK kPacket;
 
-	// °­Åð ÅõÇ¥¸¦ ÇÑ´Ù!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Ñ´ï¿½!
 	if( kPacket_.m_bWantForceExit == false )
 	{
-		START_LOG( cerr, L"ÅõÇ¥ ÇÑ´Ù¸é¼­ ÀÌ °ªÀÌ false?" )
+		START_LOG( cerr, L"ï¿½ï¿½Ç¥ ï¿½Ñ´Ù¸é¼­ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ false?" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_iUserUID )
 			<< BUILD_LOG( kPacket_.m_bWantForceExit )
 			<< END_LOG;
 	}
 
-	// ÅõÇ¥ÇÏ´Â »ç¶÷À» Ã£ÀÚ
+	// ï¿½ï¿½Ç¥ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 	KRoomUserPtr pVoteUser = m_spRoomUserManager->GetUser( FIRST_SENDER_UID );
 	if( pVoteUser == NULL )
 	{
-		START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯Àú°¡ ÅõÇ¥ÇÏ·Á ÇÑ´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½Ï·ï¿½ ï¿½Ñ´ï¿½." )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_iUserUID )
 			<< END_LOG;
@@ -10128,11 +10132,11 @@ _IMPL_ON_FUNC( ERM_FORCED_EXIT_VOTE_REQ, KEGS_FORCED_EXIT_VOTE_REQ )
 		return;
 	}
 
-	// ÅõÇ¥ ´çÇÑ »ç¶÷À» Ã£ÀÚ
+	// ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 	KRoomUserPtr pBadUser = m_spRoomUserManager->GetUser( kPacket_.m_iUserUID );
 	if( pBadUser == NULL )
 	{
-		START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯Àú°¡ ÅõÇ¥ÇÏ·Á ÇÑ´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½Ï·ï¿½ ï¿½Ñ´ï¿½." )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_iUserUID )
 			<< END_LOG;
@@ -10142,7 +10146,7 @@ _IMPL_ON_FUNC( ERM_FORCED_EXIT_VOTE_REQ, KEGS_FORCED_EXIT_VOTE_REQ )
 		return;
 	}
 
-	// µæÇ¥¼ö¸¦ Áõ°¡ ½ÃÅ°ÀÚ
+	// ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½
 	m_kBadAttitudeManager.IncreaseVoteOnePoint( kPacket_.m_iUserUID, FIRST_SENDER_UID );
 
 	kPacket.m_iUserUID = kPacket_.m_iUserUID;
@@ -10152,7 +10156,7 @@ _IMPL_ON_FUNC( ERM_FORCED_EXIT_VOTE_REQ, KEGS_FORCED_EXIT_VOTE_REQ )
 #endif SERV_DUNGEON_FORCED_EXIT_SYSTEM
 //}
 
-//{{ 2013. 02. 01  ÀÌº¥Æ® ¹ß·»Å¸ÀÎ ´øÀü - ±è¹Î¼º
+//{{ 2013. 02. 01  ï¿½Ìºï¿½Æ® ï¿½ß·ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
 IMPL_ON_FUNC_NOPARAM( ERM_SYNC_DUNGEON_TIMER_NOT )
 {
@@ -10161,7 +10165,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_SYNC_DUNGEON_TIMER_NOT )
 		return;
 	}
 
-	// ¹ß·»Å¸ÀÎ ´øÀü¸¸ ÇØ´çµÊ
+	// ï¿½ß·ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½
 	if( CXSLDungeon::IsValentineDungeon( GetDungeonIDAndDif() ) == false )
 	{
 		return;
@@ -10176,7 +10180,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_SYNC_DUNGEON_TIMER_NOT )
 #endif SERV_EVENT_VALENTINE_DUNGEON
 //}
 
-//{{ 2013. 04. 22	ÃÖÀ°»ç	¾îµÒÀÇ ¹® ÀÔÀå ·ÎÁ÷ º¯°æ
+//{{ 2013. 04. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
 //////////////////////////////////////////////////////////////////////////
@@ -10184,16 +10188,16 @@ IMPL_ON_FUNC( ERM_PREPARE_FOR_DEFENCE_DUNGEON_ACK )
 {
 	VERIFY_STATE( ( 1, KRoomFSM::S_WAIT_FOR_DEFENCE ) );
 
-	// ¾îµÒÀÇ ¹® ´øÀüÀ» ½ÃÀÛÇÏ±â À§ÇÑ RoomUserInfoÁ¤º¸ ¹ÞÀ½ Ã¼Å©
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ RoomUserInfoï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 	if( m_spRoomUserManager->SetPrepareForDefenceDungeon( FIRST_SENDER_UID, true ) == false )
 	{
-		START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯Àú ÀÔ´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½!" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< END_LOG;
 		return;
 	}
 
-	// °ÔÀÓ ½ºÅÈ Àû¿ë!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	m_spRoomUserManager->SetRoomUserInfo( FIRST_SENDER_UID, kPacket_.m_kRoomUserInfo );
 }
 
@@ -10201,32 +10205,32 @@ _IMPL_ON_FUNC( ERM_ENTER_DEFENCE_DUNGEON_POPUP_REPLY_NOT, KEGS_ENTER_DEFENCE_DUN
 {
 	VERIFY_STATE( ( 1, KRoomFSM::S_WAIT_FOR_DEFENCE ) );
 
-	// ¾îµÒÀÇ ¹® ÀÔÀå ÆË¾÷
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½
 	if( m_spRoomUserManager->SetEnterDefenceDungeon( FIRST_SENDER_UID, kPacket_.m_bAgree ) == false )
 	{
-		START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯Àú ÀÔ´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½!" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_bAgree )
 			<< END_LOG;
 		return;
 	}
 
-	START_LOG( clog, L"¾îµÒÀÇ ¹® ÀÔÀå¿¡ ´ëÇÑ ÀÀ´äÀ» ¹Þ¾Ò½À´Ï´Ù." )
+	START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Ò½ï¿½ï¿½Ï´ï¿½." )
 		<< BUILD_LOG( FIRST_SENDER_UID )
 		<< BUILD_LOG( kPacket_.m_bAgree );
 
-	// ¸ðµç À¯ÀúÀÇ Á¤º¸°¡ °»½ÅµÇ¾ú´ÂÁö È®ÀÎÇÑ´Ù!
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÅµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½!
 	std::vector< UidType > vecLeaveUnitUID;
 	if( m_spRoomUserManager->IsAllPlayerPrepareForDefenceDungeon( vecLeaveUnitUID ) == true )
 	{
-		// ¾îµÒÀÇ ¹® ´øÀü ÀÔÀå!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		EnterDefenceDungeon( vecLeaveUnitUID );
 	}
 }
 //////////////////////////////////////////////////////////////////////////
 #else
 //////////////////////////////////////////////////////////////////////////
-//{{ 2013. 04. 15	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+//{{ 2013. 04. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 IMPL_ON_FUNC( ERM_PREPARE_FOR_DEFENCE_DUNGEON_ACK )
 {
@@ -10234,19 +10238,19 @@ IMPL_ON_FUNC( ERM_PREPARE_FOR_DEFENCE_DUNGEON_ACK )
 
 	if( m_spRoomUserManager->SetPrepareForDefenceDungeon( FIRST_SENDER_UID, true ) == false )
 	{
-		START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯Àú ÀÔ´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½!" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< END_LOG;
 		return;
 	}
 
-	// °ÔÀÓ ½ºÅÈ Àû¿ë!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	m_spRoomUserManager->SetRoomUserInfo( FIRST_SENDER_UID, kPacket_.m_kRoomUserInfo );
 
-	// ¸ðµç À¯ÀúÀÇ Á¤º¸°¡ °»½ÅµÇ¾ú´ÂÁö È®ÀÎÇÑ´Ù!
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÅµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½!
 	if( m_spRoomUserManager->IsAllPlayerPrepareForDefenceDungeon() == true )
 	{
-		// ¾îµÒÀÇ ¹® ´øÀü ÀÔÀå!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		EnterDefenceDungeon();
 	}
 }
@@ -10257,7 +10261,7 @@ IMPL_ON_FUNC( ERM_PREPARE_FOR_DEFENCE_DUNGEON_ACK )
 //////////////////////////////////////////////////////////////////////////
 //}}
 
-#ifdef SERV_CRAYON_POP_EVENT_BUFF// ÀÛ¾÷³¯Â¥: 2013-06-10	// ¹Ú¼¼ÈÆ
+#ifdef SERV_CRAYON_POP_EVENT_BUFF// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-10	// ï¿½Ú¼ï¿½ï¿½ï¿½
 void KDungeonRoom::CrayonPopEventBuff( IN OUT std::map< UidType, std::vector< KBuffInfo > >& mapActivateBuffList ) const
 {
 	int			iBuffTempletID;
@@ -10281,7 +10285,7 @@ void KDungeonRoom::CrayonPopEventBuff( IN OUT std::map< UidType, std::vector< KB
 		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( iIndex );
 		if( spRoomUser == NULL )
 		{
-			START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯ÀúÀÔ´Ï´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 				<< BUILD_LOG( iIndex )
 				<< END_LOG;
 			continue;
@@ -10290,7 +10294,7 @@ void KDungeonRoom::CrayonPopEventBuff( IN OUT std::map< UidType, std::vector< KB
 		std::map< UidType, std::vector< KBuffInfo > >::iterator mit = mapActivateBuffList.find( spRoomUser->GetCID() );
 		if( mit == mapActivateBuffList.end() )
 		{
-			// ÇØ´ç À¯´ÖÀÇ ¹öÇÁ Á¤º¸°¡ ¾ø´Ù
+			// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			std::vector< KBuffInfo > ActivateBuffList;
 
 			KBuffInfo kBuff;
@@ -10319,7 +10323,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_BATTLE_FIELD_ZOMBIE_ALERT_NOT )
 #ifdef SERV_BONUS_BUFF_SYSTEM
 bool KDungeonRoom::PlayWithBonusBuff( IN OUT std::map< UidType, std::vector< KBuffInfo > >& mapActivateBuffList )
 {
-	// ¿©±â¼­ Á¶°Ç Ã¤Å© ÇÏ°í, ¹öÇÁ °É¾îÁÖÀÚ
+	// ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½ Ã¤Å© ï¿½Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	const int iNumMember = m_spRoomUserManager->GetNumMember();
 	for( int iIndex = 0; iIndex < iNumMember; ++iIndex )
@@ -10327,13 +10331,13 @@ bool KDungeonRoom::PlayWithBonusBuff( IN OUT std::map< UidType, std::vector< KBu
 		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( iIndex );
 		if( IS_NULL( spRoomUser ) )
 		{
-			START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â À¯ÀúÀÔ´Ï´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 				<< BUILD_LOG( iIndex )
 				<< END_LOG;
 			continue;
 		}
 
-		// ÀÌº¥Æ® ¾Ç¼¼»ç¸® Âø¿ëÁßÀÎÁö È®ÀÎÇÑ´Ù
+		// ï¿½Ìºï¿½Æ® ï¿½Ç¼ï¿½ï¿½ç¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½
 		KRoomUserInfo kRoomUserInfo;
 		spRoomUser->GetRoomUserInfo(kRoomUserInfo);
 		std::map< int, KInventoryItemInfo >::const_iterator mit = kRoomUserInfo.m_mapEquippedItem.find(CXSLUnit::NESI_AC_FACE1);
@@ -10341,8 +10345,8 @@ bool KDungeonRoom::PlayWithBonusBuff( IN OUT std::map< UidType, std::vector< KBu
 		if( kRoomUserInfo.m_mapEquippedItem.end() != mit 
 			&& BUFF_CONDITION_ITEM_ID_BEGIN <= mit->second.m_kItemInfo.m_iItemID && BUFF_CONDITION_ITEM_ID_END >= mit->second.m_kItemInfo.m_iItemID )
 		{
-			// ÀÌº¥Æ® ¾Ç¼¼»ç¸® Âø¿ë ÁßÀÌ¹Ç·Î ¹öÇÁ¸¦ Àû¿ë½ÃÅ²´Ù.
-			// ¿ì¼± ¾î´À ¹öÇÁ¸¦ Àû¿ë½ÃÅ³Áö Á¤ÇÑ´Ù.
+			// ï¿½Ìºï¿½Æ® ï¿½Ç¼ï¿½ï¿½ç¸® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å²ï¿½ï¿½.
+			// ï¿½ì¼± ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 			int iBuffID = 0;
 			KLottery	kLot;
 			kLot.AddCase( CXSLBuffManager::BTI_BUFF_2YEARS_EVENT_CN_DAMAGE_UP, 20.0f );
@@ -10358,11 +10362,11 @@ bool KDungeonRoom::PlayWithBonusBuff( IN OUT std::map< UidType, std::vector< KBu
 				iBuffID = CXSLBuffManager::BTI_BUFF_2YEARS_EVENT_CN_ALL_IN_ONE;
 			}
 
-			// ¹öÇÁ Á¤º¸¸¦ ´ã´Â´Ù!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½!
 			std::map< UidType, std::vector< KBuffInfo > >::iterator mit = mapActivateBuffList.find( spRoomUser->GetCID() );
 			if( mit == mapActivateBuffList.end() )
 			{
-				// ÇØ´ç À¯´ÖÀÇ ¹öÇÁ Á¤º¸°¡ ¾ø´Ù
+				// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				std::vector< KBuffInfo > ActivateBuffList;
 
 				KBuffInfo kBuff;

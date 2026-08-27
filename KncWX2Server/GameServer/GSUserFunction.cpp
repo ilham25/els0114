@@ -13,7 +13,7 @@
 #include "BaseServer.h"
 #include "Socket/NetCommon.h"
 
-// ³Ø½¼ ºô¸µ
+// ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #include "NexonBillingTCPManager.h"
 
 #include "X2Data/XSLSquareUnit.h"
@@ -24,13 +24,13 @@
 #include "TutorialManager.h"
 #include "RoomListManager.h"
 #include "ChannelManager.h"
-//{{ 2008. 12. 10  ÃÖÀ°»ç	·Îº¿Å×½ºÆ®
+//{{ 2008. 12. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½×½ï¿½Æ®
 #ifdef SERV_ROBOT_TEST
 	#include "RobotTestManager.h"
 #endif SERV_ROBOT_TEST
 //}}
 
-//{{ 2011. 12. 05	ÃÖÀ°»ç	¹èÆ²ÇÊµå
+//{{ 2011. 12. 05	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	#include "NewPartyListManager.h"
 	#include "X2Data/XSLBattleFieldManager.h"
@@ -40,16 +40,16 @@
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	#include "GSWorldMissionManager.h"
 #endif SERV_INSERT_GLOBAL_SERVER
-//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
-//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó
+//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COME_BACK_USER_REWARD
 	#include "ComebackUserManager.h"
-//{{ 2012. 02. 03	¹Ú¼¼ÈÆ	ÀÌº¥Æ® °ü·ÃÁ¤º¸ Ã³¸®¹æ¹ý º¯°æ ( Script -> DB )
+//{{ 2012. 02. 03	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( Script -> DB )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 	#include "EventDataRefresh/EventRewardID.h"
 	#include "EventDataRefresh/EventRewardLevelUpRefreshManager.h"
@@ -60,54 +60,54 @@
 #endif SERV_COME_BACK_USER_REWARD
 //}} 
 
-//{{ 2011. 06. 21	ÃÖÀ°»ç	´ëÀü °³Æí
+//{{ 2011. 06. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	#include "X2Data/XSLUnit.h"
 #endif SERV_PVP_NEW_SYSTEM
 //}}
-//{{ 2011. 10. 13	ÃÖÀ°»ç	ÄÁÅÙÃ÷ °ü¸®ÀÚ
+//{{ 2011. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CONTENT_MANAGER
 	#include "GSContentManager.h"
 #endif SERV_CONTENT_MANAGER
 //}}
 
-//{{ 2011.10.14     ±è¹Î¼º    ¿î¿µÀÚ ±â´ÉÀº Æ¯Á¤ IP ¿¡¼­¸¸ »ç¿ë °¡´É
+//{{ 2011.10.14     ï¿½ï¿½Î¼ï¿½    ï¿½î¿µï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ IP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_USE_GM_CHEAT_RESTRICTED_IP
 	#include "CompanyIPTable.h"
 #endif SERV_USE_GM_CHEAT_RESTRICTED_IP
 //}}
 
-//{{ 2011. 11. 21  ±è¹Î¼º	ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ
+//{{ 2011. 11. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_UNIT_CLASS_CHANGE_ITEM
 	#include "ClassChangeTable.h"
 #endif SERV_UNIT_CLASS_CHANGE_ITEM
 //}}
-//{{ 2011. 12. 14	ÃÖÀ°»ç	ÆÐÅ¶ Ã³¸® Áö¿¬ ½Ã°£ Ã¼Å©
+//{{ 2011. 12. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å¶ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ Ã¼Å©
 #ifdef SERV_PACKET_PROCESSING_LATENCY_CHECK
 	#include "PacketMornitoring/PacketMornitoring.h"
 #endif SERV_PACKET_PROCESSING_LATENCY_CHECK
 //}}
 
-//{{ 2012. 03. 29	±è¹Î¼º		x2.exe ¸ðµâ À¯¹« °Ë»ç
+//{{ 2012. 03. 29	ï¿½ï¿½Î¼ï¿½		x2.exe ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 #ifdef SERV_CHECK_X2_EXE_MODULE
 	#include "Mornitoring/MornitoringManager.h"
 #endif SERV_CHECK_X2_EXE_MODULE
 //}}
 
-//{{ 2012. 04. 17	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+//{{ 2012. 04. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 	#include "X2Data\XSLItemManager.h"
 	#include "X2Data\XSLBuffManager.h"
 #endif SERV_REFORM_THE_GATE_OF_DARKNESS
 //}}
 
-//{{ 2012. 07. 12	ÃÖÀ°»ç		·£´ý Å¥ºê ¿ÀÇÂ µô·¹ÀÌ ½Ã½ºÅÛ
+//{{ 2012. 07. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_OPEN_RANDOM_CUBE_DELAY_SYSTEM
 	#include "EventDelaySystemManager.h"
 #endif SERV_OPEN_RANDOM_CUBE_DELAY_SYSTEM
 //}}
 
-//{{ 2012. 09. 26	ÃÖÀ°»ç		¿ìÆí º¹»ç ¹ö±× ¼öÁ¤
+//{{ 2012. 09. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_POST_COPY_BUG_FIX
 	#include "SMSPhoneNumberManager.h"
 #endif SERV_POST_COPY_BUG_FIX
@@ -117,7 +117,7 @@
 #include "ChannelingUserManager.h"
 #endif SERV_CHANNELING_USER_MANAGER
 
-//{{ 2013. 3. 12	¹Ú¼¼ÈÆ	 ·ÎÄÃ ·©Å· ½Ã½ºÅÛ
+//{{ 2013. 3. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 	#include "GSLocalRankingManager.h"
 #endif SERV_LOCAL_RANKING_SYSTEM
@@ -127,7 +127,7 @@
 #include "BillManager.h"
 #endif // SERV_GLOBAL_BILLING
 
-//{{ 2012. 11. 28 Ä³½Ã ¾ÆÀÌÅÛ ¼ÒÄÏ ¿É¼Ç ±â´É ¼öÁ¤ - ±è¹Î¼º
+//{{ 2012. 11. 28 Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_CASH_ITEM_SOCKET_OPTION
 #include "X2Data/XSLSocketItem.h"
 #endif SERV_CASH_ITEM_SOCKET_OPTION
@@ -137,11 +137,11 @@
 #include "X2Data/XSLRidingPetManager.h"
 #endif //SERV_EVENT_RIDING_WITH_SUB_QUEST
 
-//{{ 2012. 09. 06	ÀÓÈ«¶ô	±Û·Î¹ú ¹Ì¼Ç ¸Å´ÏÀú
+//{{ 2012. 09. 06	ï¿½ï¿½È«ï¿½ï¿½	ï¿½Û·Î¹ï¿½ ï¿½Ì¼ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 #include "GSGlobalMissionManager.h"
 #endif SERV_GLOBAL_MISSION_MANAGER
-//}} 2012. 09. 06	ÀÓÈ«¶ô	±Û·Î¹ú ¹Ì¼Ç ¸Å´ÏÀú
+//}} 2012. 09. 06	ï¿½ï¿½È«ï¿½ï¿½	ï¿½Û·Î¹ï¿½ ï¿½Ì¼ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 
 #include "NetLayer.h"
 #include "odbc/Odbc.h"
@@ -149,12 +149,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GSUSER_CPP
-#pragma NOTE( "GSUserFuntion.cpp ÆÄÀÏ ÄÄÆÄÀÏ µË´Ï´ç!" )
+#pragma NOTE( "GSUserFuntion.cpp ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë´Ï´ï¿½!" )
 //////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////
-//{{ 2011. 04. 04	ÃÖÀ°»ç	deserializing ½ÇÆÐ ·Î±×
+//{{ 2011. 04. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	deserializing ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #define _CASE_CHECK_ERR( id, packet ) \
 case id: \
 { \
@@ -182,7 +182,7 @@ break
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-//{{ 2011. 06. 08	ÃÖÀ°»ç	KEvent ÃâÃ³ µî·Ï ±â´É
+//{{ 2011. 06. 08	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	KEvent ï¿½ï¿½Ã³ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_KEVENT_FROM
 #define _CASE_CHECK_ERR_AND_FILTER( id, packet ) \
 case id: \
@@ -221,7 +221,7 @@ KGSUser::KGSUser(void)
 :
 m_uiKNMSerialNum(0),
 m_nUnitSlot(0),
-//{{ 2012. 02. 02	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 02. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 #else
 m_nMapID(CXSLMapData::MI_RUBEN),
@@ -232,29 +232,29 @@ m_usLastPosValue(0),
 m_uiRoomListID(0),
 m_iFieldUID(0),
 m_iRoomUID(0),
-//{{ 2012. 03. 21	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 03. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 m_iBeforeRoomUID(0),
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 m_iTradeUID(0),
 m_iPersonalShopUID(0)
-//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 , m_iWorldMissionTickCount(0)
 #endif SERV_INSERT_GLOBAL_SERVER
-//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
-//{{ 2012. 10. 29	¹Ú¼¼ÈÆ	¿¤¸®¿À½º Á¶»ç´Ü
+//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+//{{ 2012. 10. 29	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ELIOS_INVESTIGATIONS
 , m_bEliosInvestigationsReward( true )
 #endif SERV_ELIOS_INVESTIGATIONS
 //}}
-//{{ 2012. 12. 12	¹Ú¼¼ÈÆ	°Ü¿ï ¹æÇÐ Àü¾ß ÀÌº¥Æ®( ÀÓ½Ã, ÇÏµå ÄÚµù )
+//{{ 2012. 12. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®( ï¿½Ó½ï¿½, ï¿½Ïµï¿½ ï¿½Úµï¿½ )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 , m_iWinterVacationEventCount( -1 )
 #endif SERV_2012_WINTER_VACATION_EVENT
 //}}
-#ifdef	SERV_HERO_PVP_MANAGE_LIST // Àû¿ë³¯Â¥: 2013-04-04
+#ifdef	SERV_HERO_PVP_MANAGE_LIST // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-04
 , m_bHeroPvpUser( false )
 #endif	// SERV_HERO_PVP_MANAGE_LIST
 #ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
@@ -262,28 +262,28 @@ m_iPersonalShopUID(0)
 , m_bNewUnit2( false )
 , m_bCurrentUnit( false )
 #endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
-#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ÀÛ¾÷³¯Â¥: 2013-05-06	// ¹Ú¼¼ÈÆ
+#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-06	// ï¿½Ú¼ï¿½ï¿½ï¿½
 , m_bCheckUdpKickStateChangeFieldNot( false )
 , m_bBlockCheckCountChanged( false )
 , m_byteBlockCheckCount( 0 )
 #endif // SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK
 
-#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ÀÛ¾÷³¯Â¥: 2013-05-15	// ¹Ú¼¼ÈÆ
+#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-15	// ï¿½Ú¼ï¿½ï¿½ï¿½
 , m_usLocalRankingClickCount( 0 )
 #endif // SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG
-//{{ 2012. 09. 06	ÀÓÈ«¶ô	±Û·Î¹ú ¹Ì¼Ç ¸Å´ÏÀú
+//{{ 2012. 09. 06	ï¿½ï¿½È«ï¿½ï¿½	ï¿½Û·Î¹ï¿½ ï¿½Ì¼ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 , m_iGlobalMissionTickCount(0)
 #endif SERV_GLOBAL_MISSION_MANAGER
-//}} 2012. 09. 06	ÀÓÈ«¶ô	±Û·Î¹ú ¹Ì¼Ç ¸Å´ÏÀú
+//}} 2012. 09. 06	ï¿½ï¿½È«ï¿½ï¿½	ï¿½Û·Î¹ï¿½ ï¿½Ì¼ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 {
 	//////////////////////////////////////////////////////////////////////////
-	// À¯´Ö ´ÜÀ§ ÃÊ±âÈ­
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
     ResetUnitInfo();
 
 	//////////////////////////////////////////////////////////////////////////
-	// °èÁ¤´ÜÀ§ ÃÊ±âÈ­
-	//{{ 2011. 08. 09  ±è¹Î¼º KAccontInfo Ãß°¡·Î »èÁ¦µÊ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+	//{{ 2011. 08. 09  ï¿½ï¿½Î¼ï¿½ KAccontInfo ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_CREATE_CHAR_EVENT
 	m_kAccountInfo.m_iAuthLevel		= SEnum::UAL_NORMAL;
 	m_kAccountInfo.m_bInternalUser	= false;
@@ -303,12 +303,12 @@ m_iPersonalShopUID(0)
 
     m_bReportDisconnectToLogin	= true;
 
-	//nProtect ÇÑ±¹ÀÎÁõ ¸ðµâ »ç¿ë¼³Á¤
+	//nProtect ï¿½Ñ±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ë¼³ï¿½ï¿½
     //if( KSimLayer::GetKObj()->CheckCommonFlag( KSimLayer::CommonFlag::CF_NPGG ) )
     //{
     //    m_kGGAuth.SetEnable( true );
     //}
-	//{{ 2009. 8. 18  ÃÖÀ°»ç	hack shield
+	//{{ 2009. 8. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	hack shield
 	if( KSimLayer::GetKObj()->CheckCommonFlag( KSimLayer::CommonFlag::CF_HSHIELD ) )
 	{
         m_kHSAuth.SetEnable( true );
@@ -323,7 +323,7 @@ m_iPersonalShopUID(0)
 	}
 #endif SERV_USE_XTRAP
 
-	// 2011.05.05 lygan_Á¶¼º¿í //  Áß±¹¿ë Ä¿¹Â´ÏÆ¼ÅÇ À¯Àú Á¤º¸ Ã£±â
+	// 2011.05.05 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ //  ï¿½ß±ï¿½ï¿½ï¿½ Ä¿ï¿½Â´ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 #ifdef SERV_USER_WATCH_NEW
 	m_cCommunity_Tap_type = 0;
 #endif //SERV_USER_WATCH_NEW
@@ -331,7 +331,7 @@ m_iPersonalShopUID(0)
 	//m_kGGAuth.Init();
 	m_kRepeatEvent.Reset();
 
-	//{{ 2010. 9. 2	ÃÖÀ°»ç	ÁßÆø ÆÐÅ¶ ÇÊÅÍ °³¼±
+	//{{ 2010. 9. 2	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REPEAT_FILTER_REFAC
 #else	
 	InitRepeatEventFilter();
@@ -341,25 +341,25 @@ m_iPersonalShopUID(0)
 	InitTransactionEventFilter();
 
 
-	//{{ 2012. 10. 02	ÃÖÀ°»ç		ED&¾ÆÀÌÅÛ ¸ð´ÏÅÍ¸µ ½Ã½ºÅÛ
+	//{{ 2012. 10. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ED&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 #else
 	m_iED.SetMaxValue( SEnum::UI_MAX_ED_CHAR_HAVE );
 #endif SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 	//}}
 
-	//{{ 2010. 07. 05  ÃÖÀ°»ç	À¯Àú ¾îºäÀú ¸Å´ÏÀú
+	//{{ 2010. 07. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_USER_ABUSER_MANAGER
 	m_kUserAbuserManager.Clear();
 #endif SERV_USER_ABUSER_MANAGER
 	//}}
-	//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+	//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 	m_setMyUnitUIDList.clear();
 #endif SERV_CHAR_LOG
 	//}}
 
-	//{{ 2011. 05. 02  ±è¹Î¼º	2Â÷ º¸¾È ½Ã½ºÅÛ
+	//{{ 2011. 05. 02  ï¿½ï¿½Î¼ï¿½	2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_SECOND_SECURITY
 	SetIsUseSecondPW( false );
 	SetSecondPWFailedCount( 0 );
@@ -369,21 +369,21 @@ m_iPersonalShopUID(0)
 #endif SERV_SECOND_SECURITY
 	//}}
 
-	//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó
+	//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COME_BACK_USER_REWARD
 	m_kComeBackUserInfo.Clear();
 #endif SERV_COME_BACK_USER_REWARD
 	//}}
-	//{{ 2012. 03. 14	±è¹Î¼º		ÆÐÅ¶ ½ÃÄö½º Ä«¿îÆ® Ã¼Å©
+	//{{ 2012. 03. 14	ï¿½ï¿½Î¼ï¿½		ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® Ã¼Å©
 #ifdef SERV_CHECK_SEQUENCE_COUNT
 	m_bCheckSequence = false;
 #endif SERV_CHECK_SEQUENCE_COUNT
 	//}}
 
-	//{{ 2012. 04. 06	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+	//{{ 2012. 04. 06	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 #else
-		//{{ 2012. 03. 27	¹Ú¼¼ÈÆ	¾Æ¸®¿¤ÀÇ º¹±Í ¿ë»ç´ÔÀ» À§ÇÑ ¼±¹°! ( º¹±Í À¯Àú Ç¥½Ã )
+		//{{ 2012. 03. 27	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 	#ifdef SERV_EVENT_RETURN_USER_MARK
 		m_bEventMark = false;
 		m_bEventReturnUserMark = false;
@@ -392,17 +392,17 @@ m_iPersonalShopUID(0)
 #endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
 	//}}
 
-	//{{ 2012. 03. 27	¹Ú¼¼ÈÆ	¾Æ¸®¿¤ÀÇ º¹±Í ¿ë»ç´ÔÀ» À§ÇÑ ¼±¹°! ( º¹±Í À¯Àú Ç¥½Ã )
+	//{{ 2012. 03. 27	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK
 #else
-	//{{ 2012. 05. 16	¹Ú¼¼ÈÆ	Ã¹ Á¢¼Ó ½Ã °¡ÀÌµå ¶óÀÎ ¶ç¿öÁÖ±â
+	//{{ 2012. 05. 16	ï¿½Ú¼ï¿½ï¿½ï¿½	Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ö±ï¿½
 #ifdef SERV_EVENT_GUIDELINE_POPUP
 		m_bPopupTheGuideLine = false;
 #endif SERV_EVENT_GUIDELINE_POPUP
 	//}}
 #endif SERV_EVENT_RETURN_USER_MARK
 	//}}
-#ifdef SERV_EVENT_MONEY	// ±è¹Î¼º // Àû¿ë³¯Â¥: 2013-07-04
+#ifdef SERV_EVENT_MONEY	// ï¿½ï¿½Î¼ï¿½ // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-07-04
 		m_iEventMoney = 0;
 #endif // SERV_EVENT_MONEY
 
@@ -415,7 +415,7 @@ m_iPersonalShopUID(0)
 	m_iBackUpUnitUID = 0;
 #endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
 
-		//{{ 2012 ´ëÀü ½ÃÁð2 Àü¾ß ·±Äª ÀÌº¥Æ®	- ±è¹Î¼º
+		//{{ 2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Äª ï¿½Ìºï¿½Æ®	- ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_2012_PVP_SEASON2_EVENT
 		m_bNowPvpEventTime = false;
 		m_bIsPvpEventUser = false;
@@ -483,61 +483,61 @@ void KGSUser::Tick()
     KActor::Tick();
 
 	
-	// note!! ±âÁ¸¿¡ ½ºÅ³ ½½·Ô B, Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®¸¦ ¾ÆÀÌÅÛÀ¸·Î ±â°£À» Ç¥½ÃÇÏ´ø °ÍÀ» UI¿¡¼­ Ç¥½ÃÇÏ´Â °ÍÀ¸·Î ¹Ù²î¸é¼­ ½ºÅ³½½·ÔÃ¼ÀÎÁö¸Þ´Þ µîÀº ÀÎº¥¿¡ ¾ÆÀÌÅÛÀ¸·Î Á¸ÀçÇÏÁö ¾Ê´Â´Ù
+	// note!! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ B, Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½â°£ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ UIï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½é¼­ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½
 
 
-	// 1. ½ºÅ³ ½½·Ô B¿¡ ´ëÇÑ ±â°£ Ã¼Å©
+	// 1. ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Bï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½â°£ Ã¼Å©
 	ExpireSkillSlotB();
 
-	// 2. Ä³½Ã½ºÅ³ Æ÷ÀÎÆ®¿¡ ´ëÇÑ ±â°£ Ã¼Å©
+	// 2. Ä³ï¿½Ã½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½â°£ Ã¼Å©
 	ExpireCashSkillPoint();
 
-	// 3. ±â°£Á¦ ¾ÆÀÌÅÛÀÇ ±â°£ Ã¼Å©
+	// 3. ï¿½â°£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½â°£ Ã¼Å©
     ExpireItem();
 
-	// 4. ½Ã°£ ÀÌº¥Æ®¿¡ ´ëÇÑ Ã¼Å©
+	// 4. ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 	CheckTimeEvent();
 
-	// 5. ÇöÀç ÀåÂøÁßÀÎ Å¸ÀÌÆ²¿¡ ´ëÇÑ ±â°£ Ã¼Å©
+	// 5. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½â°£ Ã¼Å©
 	ExpireTitle();
 
-	//{{ 2012. 04. 15	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+	//{{ 2012. 04. 15	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 	CheckCriterionEvent();
 #endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
 	//}}
 
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef AP_RESTONE
 	CheckAutoPayment();
 #endif AP_RESTONE
 	//}}
 
-	//{{ 2011. 12. 22	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2011. 12. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	CheckWaitPartyUser();
 	CheckAutoPartyBonus();
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-	//{{ 2010. 02. 16  ÃÖÀ°»ç	ÇØÅ·Åø ¸®½ºÆ®
+	//{{ 2010. 02. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_HACKING_TOOL_LIST
 	CheckHackingToolList();
 #endif SERV_HACKING_TOOL_LIST
 	//}}
-	//{{ 2011. 04. 05  ±è¹Î¼º	¿ìÆí ¹× °Å·¡ °¨½Ã
+	//{{ 2011. 04. 05  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MONITORING_LETTER_AND_TRADE
 	CheckLetterAndTradeMonitoring();
 #endif SERV_MONITORING_LETTER_AND_TRADE
 	//}}
 
-	//{{ 2011. 04. 26	ÃÖÀ°»ç	deserialize ½ÇÆÐ Á¾·á
+	//{{ 2011. 04. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	deserialize ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DESERIALIZE_FAIL_DISCONNECT
 	CheckDeserializeFailCount();
 #endif SERV_DESERIALIZE_FAIL_DISCONNECT
 	//}}
 
-	//{{ 2012. 11. 13	ÃÖÀ°»ç		ÀÚµ¿ÆÄÆ¼ ´ë±â¿­ Ä«¿îÆ® Ç¥½Ã
+	//{{ 2012. 11. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½ï¿½â¿­ Ä«ï¿½ï¿½Æ® Ç¥ï¿½ï¿½
 #ifdef SERV_AUTO_PARTY_WAIT_USER_COUNT_VIEW
 	CheckAutoPartyWaitUserCountRequest();
 #endif SERV_AUTO_PARTY_WAIT_USER_COUNT_VIEW
@@ -549,7 +549,7 @@ void KGSUser::Tick()
         {
             WriteUnitInfoToDB( false );
 			
-			//{{ 2012. 09. 22	¹Ú¼¼ÈÆ	ºù°í ÀÌº¥Æ®
+			//{{ 2012. 09. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_BINGO
 			BingoEventDBWrite();
 #endif SERV_EVENT_BINGO
@@ -565,7 +565,7 @@ void KGSUser::Tick()
 #endif SERV_NPROTECT_CS_AUTH_30
 
 #ifdef SERV_USE_XTRAP
-	// °³¹ßÀÚ´Â XTRAP ½ÇÇàÆÄÀÏ °Ë»ç¸¦ ÇÏÁö ¾Ê½À´Ï´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ XTRAP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
 	if( GetAuthLevel() < SEnum::UAL_DEVELOPER )
 	{
 		m_cXTrapCSM.CSMStep1( GetThisPtr<KGSUser>() );
@@ -573,51 +573,51 @@ void KGSUser::Tick()
 #endif SERV_USE_XTRAP
 
 	//////////////////////////////////////////////////////////////////////////
-	//KOREA NPROTECT ÀÎÁõ
+	//KOREA NPROTECT ï¿½ï¿½ï¿½ï¿½
 	//if( m_kGGAuth.Tick( GetThisPtr<KGSUser>() ) == false )
 	//{
 	//	SetDisconnectReason( KStatistics::eSIColDR_NProtect_Auth_Fail );
 	//	ReserveDestroy();
 
-	//	START_LOG( cerr, L"nProtect ÀÎÁõ ½ÇÆÐ.!" )
+	//	START_LOG( cerr, L"nProtect ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 	//		<< END_LOG;
 	//	return;
 	//}
 	//////////////////////////////////////////////////////////////////////////
 
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2009. 8. 18  ÃÖÀ°»ç	hack shield	
+	//{{ 2009. 8. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	hack shield	
 	if( m_kHSAuth.Tick( GetThisPtr<KGSUser>() ) == false )
 	{
 		SetDisconnectReason( KStatistics::eSIColDR_HackShield_Auth_Fail );
 		ReserveDestroy();
 
-		START_LOG( cerr, L"hack shield ÀÎÁõ ½ÇÆÐ.!" )
+		START_LOG( cerr, L"hack shield ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 			<< END_LOG;
 		return;
 	}
 	//}}
 	//////////////////////////////////////////////////////////////////////////
 
-	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	CheckUpdateWorldMission();
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
-	//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó
+	//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COME_BACK_USER_REWARD
 	CheckComeBackUser();
 #endif SERV_COME_BACK_USER_REWARD
 	//}} 
 
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 	CheckHenirRewardCountEvent();
 #endif SERV_NEW_HENIR_TEST
 	//}}
 
-	//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 	CheckBuffPeriod();
 #endif SERV_SERVER_BUFF_SYSTEM
@@ -627,7 +627,7 @@ void KGSUser::Tick()
 	CheckTradeBlockUnit();
 #endif SERV_NEW_UNIT_TRADE_LIMIT
 
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	CheckRelationshipReward();
 #endif SERV_RELATIONSHIP_SYSTEM
@@ -636,11 +636,11 @@ void KGSUser::Tick()
     switch( GetStateID() )
 	{
     case KGSFSM::S_UID_UPDATED:
-		//{{ 2012. 09. 03	ÃÖÀ°»ç		Áßº¹ Á¢¼Ó ¹ö±× ¼öÁ¤
+		//{{ 2012. 09. 03	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUPLICATE_CONNECT_BUG_FIX
-		// ¿©±â¼­ ¾Æ¹«·± Ã³¸®¸¦ ÇÏÁö ¾Ê´Â´Ù!
+		// ï¿½ï¿½ï¿½â¼­ ï¿½Æ¹ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!
 #else
-		//if( m_kTimer[TM_UID_UPDATED].elapsed() > 10.0 ) // ³Ø½¼ PC¹æ ÀÎÁõ ¼­¹ö Å¸ÀÓ ¾Æ¿ô ½Ã°£
+		//if( m_kTimer[TM_UID_UPDATED].elapsed() > 10.0 ) // ï¿½Ø½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½Æ¿ï¿½ ï¿½Ã°ï¿½
 		//{
 		//	START_LOG_WITH_NAME( cwarn )
 		//		<< BUILD_LOG( GetUID() )
@@ -649,7 +649,7 @@ void KGSUser::Tick()
 		//	StateTransition( KGSFSM::I_TO_LOGINED );
 		//	m_bLoginFail = false;
 
-		//	//{{ 2010. 01. 29  ÃÖÀ°»ç	PC¹æ »ó¿ëÈ­
+		//	//{{ 2010. 01. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½È­
 		//	m_kUserPcBangManager.SetIsPcBang( false );
 		//	//}}
 
@@ -660,7 +660,7 @@ void KGSUser::Tick()
 		//	// last login
 		//	SendToAccountDB( DBE_UPDATE_LOGIN_TIME_NOT );
 
-		//	// ²÷Áö ¾Ê´Â´Ù. - pc¹æ ÀÎÁõÀÌ µô·¹ÀÌ µÇ´õ¶óµµ °ÔÀÓÀº µÉ¼ö ÀÖµµ·Ï
+		//	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½. - pcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½Öµï¿½ï¿½ï¿½
 		//	//SetDisconnectReason( KStatistics::eSIColDR_PCBang_Auth_Delay );
 		//	//ReserveDestroy();
 		//	//return;
@@ -673,20 +673,20 @@ void KGSUser::Tick()
 		break;
 
     case KGSFSM::S_EXIT:
-        KActorManager::GetKObj()->ReserveDelete( m_nUID );    // ÀÚ±â ÀÚ½ÅÀ» ½º½º·Î »èÁ¦ÇÒ ¼ö ¾øÀ½.	
+        KActorManager::GetKObj()->ReserveDelete( m_nUID );    // ï¿½Ú±ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.	
     	break;
     }
 
-	//{{ ¹Ú±³Çö : [2010/03/09] //	Áß±¹ Áßµ¶¹æÁö ¹æÄ§¹Ì ½Ã½ºÅÛ
+	//{{ ï¿½Ú±ï¿½ï¿½ï¿½ : [2010/03/09] //	ï¿½ß±ï¿½ ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä§ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_ANTI_ADDICTION_SYSTEM
 	m_AntiAddictionManager.Tick();
 #endif SERV_ANTI_ADDICTION_SYSTEM
 	//}}
-	//{{ 2012. 06. 13	±è¹Î¼º       ¼±ÅÃÀû ¼Ë´Ù¿îÁ¦
+	//{{ 2012. 06. 13	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë´Ù¿ï¿½ï¿½ï¿½
 #ifdef SERV_SELECTIVE_SHUTDOWN_SYSTEM
 	CheckRestrictionUser();
 #else
-		//{{ 2012. 01. 25  ±è¹Î¼º	ÀÚÁ¤¿¡ ¼Ë´Ù¿îÁ¦ ÀÚµ¿ À¯Àú °Ë»ç ±â´É
+		//{{ 2012. 01. 25  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë´Ù¿ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½
 	#ifdef SERV_SHUTDOWN_SYSTEM_AUTO_CHECK
 	CTime tCurr = CTime::GetCurrentTime();
 
@@ -694,14 +694,14 @@ void KGSUser::Tick()
 	{
 		if( m_kUserInfoByNexon.IsShutdownUser() >= KUserInfoByNexon::NONE_AUTH )
 		{
-			// ÀÎÁõÀÌ µÇÁö ¾Ê¾Ò°Å³ª ¼Ë´Ù¿î ´ë»óÀÚ
-			// ¸Þ½ÃÁö Àü´Þ( ÆË¾÷Ã¢ )
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò°Å³ï¿½ ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+			// ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½( ï¿½Ë¾ï¿½Ã¢ )
 			KEGS_SHUT_DOWN_MESSAGE_NOT kNot;
 			kNot.m_iNetErrorID = NetError::ERR_SHUT_DOWN_00;
 
 			SendPacket( EGS_SHUT_DOWN_MESSAGE_NOT, kNot );
 
-			// °ÔÀÓ Á¢¼Ó Â÷´Ü
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			SetDisconnectReason( KStatistics::eSIColDR_Policy_Shutdown_Disconnect );
 			ReserveDestroy();
 		}
@@ -710,14 +710,14 @@ void KGSUser::Tick()
 	{
 		if( m_kUserInfoByNexon.IsShutdownUser() >= KUserInfoByNexon::NONE_AUTH )
 		{
-			// ÀÎÁõÀÌ µÇÁö ¾Ê¾Ò°Å³ª ¼Ë´Ù¿î ´ë»óÀÚ
-			// ¸Þ½ÃÁö Àü´Þ( ÆË¾÷Ã¢ )
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò°Å³ï¿½ ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+			// ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½( ï¿½Ë¾ï¿½Ã¢ )
 			KEGS_SHUT_DOWN_MESSAGE_NOT kNot;
 			kNot.m_iNetErrorID = NetError::ERR_SHUT_DOWN_00;
 
 			SendPacket( EGS_SHUT_DOWN_MESSAGE_NOT, kNot );
 
-			// °ÔÀÓ Á¢¼Ó Â÷´Ü
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			SetDisconnectReason( KStatistics::eSIColDR_Policy_Shutdown_Disconnect );
 			ReserveDestroy();
 		}
@@ -727,33 +727,33 @@ void KGSUser::Tick()
 #endif SERV_SELECTIVE_SHUTDOWN_SYSTEM
 	//}}
 
-	//{{ 2012. 04. 02	±è¹Î¼º		sn ¸ð´ÏÅÍ¸µ ±â´É ºÐ¸®
+	//{{ 2012. 04. 02	ï¿½ï¿½Î¼ï¿½		sn ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½
 #ifdef SERV_SERIAL_NUMBER_MORNITORING
 	CheckServerSN_Monitoring();
 #endif SERV_SERIAL_NUMBER_MORNITORING
 	//}}
 
-	//{{ 2012. 05. 23	±è¹Î¼º       ÆÇ¸Å ºÒ°¡ ¾ÆÀÌÅÛ ÆÇ¸Å ½Ãµµ ÇØÅ· À¯Àú·Î ÆÇ´Ü
+	//{{ 2012. 05. 23	ï¿½ï¿½Î¼ï¿½       ï¿½Ç¸ï¿½ ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½Ãµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½
 #ifdef SERV_IMPOSSIBLE_SELL_ITEM
 	CheckRandomTimeKick();
 #endif SERV_IMPOSSIBLE_SELL_ITEM
 	//}}
 
-	//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+	//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 	{
 		char cLastSendType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_NONE;
 		if( m_kUserHackingManager.CheckHackingUserRecivedPacket( cLastSendType ) == false )
 		{
-			START_LOG( cerr, L"ÇØÅ· À¯Àú ÆÐÅ¶À» º¸³Â´Âµ¥ ÀÀ´äÀÌ ¾ø´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Â´Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOGc( cLastSendType )
 				<<END_LOG;
 
-			// Å¬¶ó¿¡°Ô ÆÐÅ¶À» ½îÀÚ
+			// Å¬ï¿½ó¿¡°ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			SendID( EGS_CHECK_HACK_USER_PACKET_REQUEST_NOT );
 
-			// Å±ÇÏÀÚ
+			// Å±ï¿½ï¿½ï¿½ï¿½
 			if( SiKGameSysVal()->GetHackingUserKick() == true )
 			{
 				SetDisconnectReason( KStatistics::eSIColDR_Client_Hacking );
@@ -764,13 +764,13 @@ void KGSUser::Tick()
 #endif SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 	//}}
 
-	//{{ 2012 ´ëÀü ½ÃÁð2 Àü¾ß ·±Äª ÀÌº¥Æ®	- ±è¹Î¼º
+	//{{ 2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Äª ï¿½Ìºï¿½Æ®	- ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_2012_PVP_SEASON2_EVENT
 	CheckPvpEvent();
 #endif SERV_2012_PVP_SEASON2_EVENT
 	//}}
 
-	//{{ 2013. 03. 18	 ¸¸¿ìÀý ÀÌº¥Æ®_·¹ÀÎº¸¿ì ¹öÇÁ - ±è¹Î¼º
+	//{{ 2013. 03. 18	 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®_ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_APRIL_FOOLS_DAY
 	CheckRainbowBuff();
 #endif SERV_APRIL_FOOLS_DAY
@@ -790,11 +790,11 @@ void KGSUser::Tick()
 	_CheckKOGGamePerformanceStatistics();
 #endif//SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 	m_kAfterWorkStorage.Tick();
 #endif	// SERV_RIDING_PET_SYSTM
 
-#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ÀÛ¾÷³¯Â¥: 2013-05-06	// ¹Ú¼¼ÈÆ
+#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-06	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	CheckLanBugOutDisconnect();
 #endif // SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK
 
@@ -819,11 +819,11 @@ void KGSUser::Tick()
 	}
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
-	//{{ 2012. 09. 06	ÀÓÈ«¶ô	±Û·Î¹ú ¹Ì¼Ç ¸Å´ÏÀú
+	//{{ 2012. 09. 06	ï¿½ï¿½È«ï¿½ï¿½	ï¿½Û·Î¹ï¿½ ï¿½Ì¼ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 	CheckUpdateGlobalMission();
 #endif SERV_GLOBAL_MISSION_MANAGER
-	//}} 2012. 09. 06	ÀÓÈ«¶ô	±Û·Î¹ú ¹Ì¼Ç ¸Å´ÏÀú
+	//}} 2012. 09. 06	ï¿½ï¿½È«ï¿½ï¿½	ï¿½Û·Î¹ï¿½ ï¿½Ì¼ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 }
 
 void KGSUser::OnDestroy()
@@ -832,13 +832,13 @@ void KGSUser::OnDestroy()
 	SiKChannelingUserManager()->UpdateChannelingUserList( false, GetChannelCode() );
 #endif SERV_CHANNELING_USER_MANAGER
 
-	//{{ 2011.2.11  Á¶È¿Áø  ¸ð´ÏÅÍ¸µÅø ¼­¹ö Æ÷Æ® Ã¼Å© ½Ã ¿¡·¯·Î±× ³²´Â°Å ¼öÁ¤
+	//{{ 2011.2.11  ï¿½ï¿½È¿ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® Ã¼Å© ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î±ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PERMIT_PORT_CHECK
-	// ¸ð´ÏÅÍ¸µ Åø ¼­¹öÀÇ IP¿¡¼­´Â °ÔÀÓÀ» ÇÒ¼ö ¾ø´Ù°í °¡Á¤ÇÔ //
-	// ¸ð´ÏÅÍ¸µ ¼­¹ö¿¡ ÀÇÇÑ Æ÷Æ® Ã¼Å©ÀÏ °æ¿ì ¾Æ·¡ÀÇ ´Ù¸¥ µ¿ÀÛµé ÇÒ ÇÊ¿ä¾øÀ½
+	// ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ IPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¼ï¿½ ï¿½ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ //
+	// ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½Ûµï¿½ ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ï¿½
 	if( KBaseServer::GetKObj()->IsMonitoringServerForPortCheck( GetIPStr() ) )
 	{
-		StateTransition( KGSFSM::I_TO_EXIT );	// 11. À¯Àú°´Ã¼ »èÁ¦¸¦ À§ÇØ FSMÀ» S_EXIT·Î º¯È¯
+		StateTransition( KGSFSM::I_TO_EXIT );	// 11. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ FSMï¿½ï¿½ S_EXITï¿½ï¿½ ï¿½ï¿½È¯
 		KSession::OnDestroy();
 		START_LOG( clog, L"Mornitoring server check Port!" );
 		return;
@@ -846,55 +846,55 @@ void KGSUser::OnDestroy()
 #endif SERV_PERMIT_PORT_CHECK
 	//}}
 
-	// 2011.05.05 lygan_Á¶¼º¿í //  Áß±¹¿ë Ä¿¹Â´ÏÆ¼ÅÇ À¯Àú Á¤º¸ Ã£±â
+	// 2011.05.05 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ //  ï¿½ß±ï¿½ï¿½ï¿½ Ä¿ï¿½Â´ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 #ifdef SERV_USER_WATCH_NEW
 	m_cCommunity_Tap_type = 0;
 #endif //SERV_USER_WATCH_NEW
 
-	//{{ ¹Ú±³Çö : [2010/03/09] //	Áß±¹ Áßµ¶¹æÁö ¹æÄ§¹Ì ½Ã½ºÅÛ
+	//{{ ï¿½Ú±ï¿½ï¿½ï¿½ : [2010/03/09] //	ï¿½ß±ï¿½ ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä§ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_ANTI_ADDICTION_SYSTEM
 	m_AntiAddictionManager.Finalize();
 #endif SERV_ANTI_ADDICTION_SYSTEM
 	//}}
 
-	// Ä³¸¯ÅÍ Á¤º¸°¡ À¯È¿ÇÏ´Ù¸é Ä³¸¯ÅÍ ¼±ÅÃ ÇØÁ¦ ÀÛ¾÷À» ÁøÇàÇÏÀÚ!
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¿ï¿½Ï´Ù¸ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	if( GetCharUID() > 0 )
 	{
-		//{{ 2012. 11. 22	ÃÖÀ°»ç		Ä³¸¯ÅÍ ¼±ÅÃ ÇØÁ¦ ÄÚµå ¸®ÆÑÅä¸µ
+		//{{ 2012. 11. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ä¸µ
 		//////////////////////////////////////////////////////////////////////////
 //#ifdef SERV_DESELECT_UNIT_CODE_REFACTORING
 		//////////////////////////////////////////////////////////////////////////
-		// Ä³¸¯ÅÍ ¼±ÅÃ ÇØÁ¦ ÀÛ¾÷
+		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½
 		OnDeselectUnit( EGS_CLIENT_QUIT_REQ, true );
 		//////////////////////////////////////////////////////////////////////////
 //#else
 //		//////////////////////////////////////////////////////////////////////////		
 //				
-//		//{{ 2009. 4. 22  ÃÖÀ°»ç	´ëÀü ·Îºñ ÀÌÅ»Ã³¸®
+//		//{{ 2009. 4. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ ï¿½ï¿½Å»Ã³ï¿½ï¿½
 //		SendLeavePVPLobby();
 //		//}}
 //
-//		//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+//		//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_PVP_NEW_SYSTEM
 //		SendLeavePVPMatch( NetError::NOT_LEAVE_MATCH_WAIT_REASON_02 );
 //#endif SERV_PVP_NEW_SYSTEM
 //		//}}
 //
-//		//{{ 2012. 02. 10	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//		//{{ 2012. 02. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //		SendLeaveAutoParty( NetError::NOT_LEAVE_AUTO_PARTY_WAIT_REASON_02 );
 //#endif SERV_BATTLE_FIELD_SYSTEM
 //		//}}
 //
-//		// 4. ÆÄÆ¼ ÀÌÅ» Ã³¸®
+//		// 4. ï¿½ï¿½Æ¼ ï¿½ï¿½Å» Ã³ï¿½ï¿½
 //		SendLeaveParty( NetError::NOT_LEAVE_ROOM_REASON_01 );
 //
 //		//////////////////////////////////////////////////////////////////////////
-//		// ÀÌ¹Ì ÇÊµå¿¡ ÀÔÀåÇØÀÖ´Ù! ÇØ´ç ÇÊµå¿¡¼­ ³ª¿ÀÀÚ~!
+//		// ï¿½Ì¹ï¿½ ï¿½Êµå¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½! ï¿½Ø´ï¿½ ï¿½Êµå¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½~!
 //		SendLeaveField( NetError::NOT_LEAVE_FIELD_REASON_02 );
 //		//////////////////////////////////////////////////////////////////////////
 //
-//		// 5. °³ÀÎ°Å·¡ ÀÌÅ» Ã³¸®
+//		// 5. ï¿½ï¿½ï¿½Î°Å·ï¿½ ï¿½ï¿½Å» Ã³ï¿½ï¿½
 //		if( GetTradeUID() != 0 )
 //		{
 //			KEGS_BREAK_TRADE_REQ kPacket;
@@ -904,10 +904,10 @@ void KGSUser::OnDestroy()
 //			m_iTradeUID = 0;
 //		}
 //
-//		// 6. °³ÀÎ»óÁ¡ ÀÌÅ» Ã³¸®
+//		// 6. ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ ï¿½ï¿½Å» Ã³ï¿½ï¿½
 //		if( GetPersonalShopUID() != 0 )
 //		{
-//			//{{ 2011. 05. 02	ÃÖÀ°»ç	´ë¸®»óÀÎ
+//			//{{ 2011. 05. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸®ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_PSHOP_AGENCY
 //			if( CXSLRoom::GetRoomType( GetPersonalShopUID() ) == CXSLRoom::RT_PERSONAL_SHOP )
 //			{
@@ -931,10 +931,10 @@ void KGSUser::OnDestroy()
 //			SetPersonalShopUID( 0 );
 //		}
 //
-//		// 8. ÇöÀç ¹æ¿¡ ÀÖ´Ù¸é..
+//		// 8. ï¿½ï¿½ï¿½ï¿½ ï¿½æ¿¡ ï¿½Ö´Ù¸ï¿½..
 //		if( GetStateID() == KGSFSM::S_ROOM )
 //		{
-//			//{{ 2012. 10. 18	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//			//{{ 2012. 10. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //			//////////////////////////////////////////////////////////////////////////
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //			//////////////////////////////////////////////////////////////////////////
@@ -952,7 +952,7 @@ void KGSUser::OnDestroy()
 //				{
 //					KERM_LEAVE_ROOM_REQ kPacket;
 //
-//					// Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ÀÇ °æ¿ì [Å¬¶óÀÌ¾ðÆ® Å©·¡½¬½Ã ¼¾ÅÍ¿¡¼­ º¸»ó ÆÐÅ¶ÀÌ º¸³»Áö ¾Êµµ·Ï]
+//					// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½]
 //					if( GetDisconnectReason() == KStatistics::eSIColDR_Client_Crash )
 //					{
 //						kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_23;
@@ -970,7 +970,7 @@ void KGSUser::OnDestroy()
 //				{
 //					KERM_LEAVE_ROOM_REQ kPacket;
 //
-//					// Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ÀÇ °æ¿ì [Å¬¶óÀÌ¾ðÆ® Å©·¡½¬½Ã ¼¾ÅÍ¿¡¼­ º¸»ó ÆÐÅ¶ÀÌ º¸³»Áö ¾Êµµ·Ï]
+//					// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½]
 //					switch( GetDisconnectReason() )
 //					{
 //					case KStatistics::eSIColDR_Client_Crash:	kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_23;	break;
@@ -987,7 +987,7 @@ void KGSUser::OnDestroy()
 //				{
 //					KERM_LEAVE_ROOM_REQ kPacket;
 //
-//					// Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ÀÇ °æ¿ì [Å¬¶óÀÌ¾ðÆ® Å©·¡½¬½Ã ¼¾ÅÍ¿¡¼­ º¸»ó ÆÐÅ¶ÀÌ º¸³»Áö ¾Êµµ·Ï]
+//					// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½]
 //					if( GetDisconnectReason() == KStatistics::eSIColDR_Client_Crash )
 //					{
 //						kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_23;
@@ -1024,7 +1024,7 @@ void KGSUser::OnDestroy()
 //
 //				KERM_LEAVE_ROOM_REQ kPacket;
 //
-//				// Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ÀÇ °æ¿ì [Å¬¶óÀÌ¾ðÆ® Å©·¡½¬½Ã ¼¾ÅÍ¿¡¼­ º¸»ó ÆÐÅ¶ÀÌ º¸³»Áö ¾Êµµ·Ï]
+//				// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½]
 //				if( GetDisconnectReason() == KStatistics::eSIColDR_Client_Crash )
 //				{
 //					kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_23;
@@ -1041,13 +1041,13 @@ void KGSUser::OnDestroy()
 //			//////////////////////////////////////////////////////////////////////////
 //			//}}		
 //
-//			//{{ 2010. 12. 30	ÃÖÀ°»ç	¹æÀÌÅ» ¿¹¿ÜÃ³¸®
+//			//{{ 2010. 12. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //#ifdef SERV_LEAVE_ROOM_BUG_FIX
 //			SetRoomListID( 0 );
 //#endif SERV_LEAVE_ROOM_BUG_FIX
 //			//}}
 //
-//			//{{ 2012. 02. 07	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//			//{{ 2012. 02. 07	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //			SetRoomUID( 0 );
 //
@@ -1059,44 +1059,44 @@ void KGSUser::OnDestroy()
 //			//}}
 //		}	
 //
-//		//{{ 2010. 01. 11  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+//		//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 //#ifdef SERV_RECOMMEND_LIST
 //		SendUpdateRecommendUserInfo( KRecommendUserInfo::RUIT_LOGOUT );
 //#endif SERV_RECOMMEND_LIST
 //		//}}
 //
-//		//{{ 2010. 8. 4	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//		//{{ 2010. 8. 4	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_PET_SYSTEM		
-//		// Ä³¸¯ÅÍ ¼±ÅÃ ÇØÁ¦½Ã Æê °ü·Ã Ã³¸®!
+//		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!
 //		m_kUserPetManager.OnDeselectUnit( GetThisPtr<KGSUser>() );
 //#endif SERV_PET_SYSTEM
 //		//}}
 //
-//		//{{  2011.11.24     ±è¹Î¼º    Ä³¸¯ÅÍ Á¢¼Ó ·Î±×
+//		//{{  2011.11.24     ï¿½ï¿½Î¼ï¿½    Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 //#ifdef SERV_CHAR_CONNECT_LOG
 //		SendUpdateUnitConnectLog();
 //#endif SERV_CHAR_CONNECT_LOG
 //		//}}
 //
-//		//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+//		//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 //#ifdef SERV_SERVER_BUFF_SYSTEM
 //		CheckDeselectUnitBuff( false );
 //#endif SERV_SERVER_BUFF_SYSTEM
 //		//}
 //
-//		// 9. À¯´Ö Á¤º¸ DB¿¡ ¾÷µ¥ÀÌÆ®
+//		// 9. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 //		WriteUnitInfoToDB( true );
 //
-//		//{{ 2012. 09. 22	¹Ú¼¼ÈÆ	ºù°í ÀÌº¥Æ®
+//		//{{ 2012. 09. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 //#ifdef SERV_EVENT_BINGO
 //		BingoEventDBWrite();
 //#endif SERV_EVENT_BINGO
 //		//}}
 //
-//		//{{ 2009. 7. 9  ÃÖÀ°»ç		·Î±×ÀÎ¼­¹ö·Î Ä³¸¯ÅÍ Á¤º¸ Áö¿ì·¯ °£´Ù
+//		//{{ 2009. 7. 9  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Î±ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ì·¯ ï¿½ï¿½ï¿½ï¿½
 //		KELG_UNIT_DISCONNECT_NOT kPacketNot;
 //		kPacketNot.m_iUnitUID = GetCharUID();
-//		//{{ 2009. 9. 29  ÃÖÀ°»ç	±æµå
+//		//{{ 2009. 9. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 //#ifdef GUILD_TEST
 //		kPacketNot.m_iGuildUID = GetGuildUID();
 //#endif GUILD_TEST
@@ -1109,7 +1109,7 @@ void KGSUser::OnDestroy()
 //		SendToLoginServer( ELG_UNIT_DISCONNECT_NOT, kPacketNot );
 //		//}}
 //
-//		//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//		//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 //		KEGB_UNIT_DISCONNECT_NOT kPacketToGB;
 //		kPacketToGB.m_iUnitUID = GetCharUID();
@@ -1117,14 +1117,14 @@ void KGSUser::OnDestroy()
 //#endif SERV_BATTLE_FIELD_SYSTEM
 //		//}}
 //
-//		// »çÁ¦°ü°è
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //		m_kUserTutorialInfo.DisconnectUpdateUnitInfo( GetThisPtr<KGSUser>() );
 //
 //		if( m_kUserTutorialInfo.GetTutorUnitType() == KUserTutorialInfo::TUT_STUDENT  &&  SiKTutorialManager()->IsExistbylist( GetCharUID() ) == true )
 //		{
 //			if( SiKTutorialManager()->DeleteUnit( GetCharUID() ) == false )
 //			{
-//				START_LOG( cerr, L"»ç¼¼½Ã½ºÅÛÁß Á¦ÀÚÁ¤º¸ Áö¿ì±â ½ÇÆÐ.!" )
+//				START_LOG( cerr, L"ï¿½ç¼¼ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 //					<< BUILD_LOG( GetCharName() )
 //					<< BUILD_LOG( GetLevel() )
 //					<< END_LOG;
@@ -1137,11 +1137,11 @@ void KGSUser::OnDestroy()
 		//}}
 	}
 
-#ifdef SERV_MORNITORING_ABUSER_NOTIFY_SMS// ÀÛ¾÷³¯Â¥: 2013-05-22	// ¹Ú¼¼ÈÆ
+#ifdef SERV_MORNITORING_ABUSER_NOTIFY_SMS// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-22	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	if( m_kUserAbuserManager.IsMornitoringAbuser() == true )
 	{
 		KDBE_SEND_PHONE_MSG_NOT kPacketNot;
-		kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"¸ð´ÏÅÍ¸µ °¨½Ã ´ë»óÀÚ Á¢¼Ó Á¾·á: UserUID(%d), ServerUID(%d), ServerIP(%s)" ) % GetUID() % KBaseServer::GetKObj()->GetUID() % KBaseServer::GetKObj()->GetPublicIP() );
+		kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: UserUID(%d), ServerUID(%d), ServerIP(%s)" ) % GetUID() % KBaseServer::GetKObj()->GetUID() % KBaseServer::GetKObj()->GetPublicIP() );
 		SiKSMSPhoneNumberManager()->GetPhoneNumberList( KSMSPhoneNumberManager::FS_MORNITORING_ABUSER_NOTIFY, kPacketNot.m_vecPhoneNum );
 		if( kPacketNot.m_vecPhoneNum.empty() == false )
 		{
@@ -1150,7 +1150,7 @@ void KGSUser::OnDestroy()
 	}
 #endif // SERV_MORNITORING_ABUSER_NOTIFY_SMS
 
-#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ÀÛ¾÷³¯Â¥: 2013-05-22	// ¹Ú¼¼ÈÆ
+#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-22	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	{
 		KDBE_BLOCK_COUNT_CHECK_INFO_UPDATE_NOT kPacketToDB;
 		if( GetBlockCountChanged( kPacketToDB.m_byteBlockCheckCount, kPacketToDB.m_wstrBlockCheckResetDate ) == true )
@@ -1160,7 +1160,7 @@ void KGSUser::OnDestroy()
 	}
 #endif // SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK
 
-#ifdef SERV_HACKING_USER_CHECK_COUNT// ÀÛ¾÷³¯Â¥: 2013-06-02	// ¹Ú¼¼ÈÆ
+#ifdef SERV_HACKING_USER_CHECK_COUNT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-02	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	{
 		KDBE_HACKING_USER_CHECK_COUNT_UPDATE_NOT kPacketToDB;
 		m_kUserAbuserManager.GetDBUpdateInfo( kPacketToDB.m_mapHackingUserCheckCountDB );
@@ -1172,7 +1172,7 @@ void KGSUser::OnDestroy()
 	}
 #endif // SERV_HACKING_USER_CHECK_COUNT
 
-	//{{ 2012. 03. 29	±è¹Î¼º		Áßº¹ sn Á¢¼Ó °¨½Ã
+	//{{ 2012. 03. 29	ï¿½ï¿½Î¼ï¿½		ï¿½ßºï¿½ sn ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERIAL_NUMBER_AVAILABILITY_CHECK_FILTER
 	KEGB_UNREGISTER_SERVERSN_NOT kNot;
 	m_kUserSecurityManager.GetServerSN( kNot.m_iServerSN );
@@ -1181,7 +1181,7 @@ void KGSUser::OnDestroy()
 #endif SERV_SERIAL_NUMBER_AVAILABILITY_CHECK_FILTER
 	//}}
 
-	// 2-1. Á¾·á¿¡ ´ëÇÑ Åë°è ³²±â±â [USER_FSM]
+	// 2-1. ï¿½ï¿½ï¿½á¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ [USER_FSM]
 	const int iServerUID = static_cast<int>(KBaseServer::GetKObj()->GetUID());
 	const int iIndex = KStatistics::GetDisconnectUserFSM( GetStateID() );
 
@@ -1193,26 +1193,26 @@ void KGSUser::OnDestroy()
 	}
 	else
 	{
-		START_LOG( cerr, L"disconnect userfsm Åë°è ÀÎµ¦½º °ªÀÌ ÀÌ»óÇÕ´Ï´Ù." )
+		START_LOG( cerr, L"disconnect userfsm ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 			<< BUILD_LOG( GetStateID() )
 			<< BUILD_LOG( iIndex )
 			<< END_LOG;
 	}
 
-	// 2-2. Á¾·á¿¡ ´ëÇÑ Åë°è ³²±â±â [REASON]
+	// 2-2. ï¿½ï¿½ï¿½á¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ [REASON]
 	KStatisticsKey kKey;
 	kKey.m_vecIntKey.push_back( iServerUID );
 	KSIManager.IncreaseCount( KStatistics::SI_DISCONNECT_REASON, kKey, GetDisconnectReason(), 1 );
 
-	// 2-3. °¢ Á¾·á »çÀ¯º° Ã³¸®.
+	// 2-3. ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½.
 	switch( GetDisconnectReason() )
 	{
 	case KStatistics::eSIColDR_IOCP_GetStatus:
 		{
-			//{{ 2009. 9. 1  ÃÖÀ°»ç		IOCPÁ¾·á»çÀ¯
+			//{{ 2009. 9. 1  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		IOCPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef ABNORMAL_REASON
 
-			START_LOG( clog, L"IOCPÁ¾·á»çÀ¯" )
+			START_LOG( clog, L"IOCPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetUID() )
 #else
@@ -1222,7 +1222,7 @@ void KGSUser::OnDestroy()
 
 			GetKGSSimLayer()->AddAbnormalDisconnectReason( GetLastIocpFailedError() );
 
-			//{{ 2009. 9. 13  ÃÖÀ°»ç	À¯Àú ·Î±×
+			//{{ 2009. 9. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef USER_LOG
 			if( KSIManager.IsUserLog() )
 			{
@@ -1235,7 +1235,7 @@ void KGSUser::OnDestroy()
 		}
 		break;
 
-		//{{ 2010. 02. 01  ÃÖÀ°»ç	ÇÏÆ®ºñÆ® À¯Àú·Î±×
+		//{{ 2010. 02. 01  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ®ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Î±ï¿½
 #ifdef USER_LOG_HEART_BEAT
 
 	case KStatistics::eSIColDR_Heart_Beat:
@@ -1252,7 +1252,7 @@ void KGSUser::OnDestroy()
 
 	case KStatistics::eSIColDR_SendBufferFull:
 		{
-			START_LOG( cout, L"Send Buffer Full Á¾·á À¯Àú »óÅÂ." )
+			START_LOG( cout, L"Send Buffer Full ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( GetUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetName() )
@@ -1274,14 +1274,14 @@ void KGSUser::OnDestroy()
 
 	case KStatistics::eSIColDR_Traffic_Attack:
 		{
-			//{{ 2009. 10. 22  ÃÖÀ°»ç	Æ®·¡ÇÈ À¯¹ß À¯Àú ÇØÅ·À¯Àú·Î ÀÚµ¿µî·Ï
+			//{{ 2009. 10. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½
 			KELOG_TRAFFIC_ATTACKER_LOG_NOT kPacketLog;
 			kPacketLog.m_wstrUserID = GetName();
 			kPacketLog.m_iChannelID = SiKChannelManager()->GetChannelID();
 			SendToLogDB( ELOG_TRAFFIC_ATTACKER_LOG_NOT, kPacketLog );
 			//}}
 
-			//{{ 2009. 10. 26  ÃÖÀ°»ç	Æ®·¡ÇÈ°ø°Ý¹æÁö
+			//{{ 2009. 10. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ®ï¿½ï¿½ï¿½È°ï¿½ï¿½Ý¹ï¿½ï¿½ï¿½
 			SendID( EGS_TRAFFIC_ATTACKER_NOT );
 			//}}
 		}
@@ -1291,19 +1291,19 @@ void KGSUser::OnDestroy()
 		break;
 	}
 
-	// 3. LConnectLog ±â·Ï
+	// 3. LConnectLog ï¿½ï¿½ï¿½
 	if( GetStateID() >= KGSFSM::S_LOGINED )
 	{
 		WritePlayTimeToDB();
 
-		//{{ 2011. 05. 02  ±è¹Î¼º	2Â÷ º¸¾È ½Ã½ºÅÛ
+		//{{ 2011. 05. 02  ï¿½ï¿½Î¼ï¿½	2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_SECOND_SECURITY
-		// 11. 2Â÷ º¸¾È ÆÐµå ¹× OTP »ç¿ë À¯¹« Á¤º¸ ±â·Ï
+		// 11. 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ðµï¿½ ï¿½ï¿½ OTP ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		SendSecurityType();
 #endif SERV_SECOND_SECURITY
 		//}}
 
-		//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó
+		//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COME_BACK_USER_REWARD
 		if( m_kComeBackUserInfo.GetIsUnitSelect() == true )
 		{
@@ -1313,23 +1313,23 @@ void KGSUser::OnDestroy()
 		//}}
 	}
 
-	//{{ 2011. 09. 14  ±è¹Î¼º	ÇØÅ· ÇÁ·Î¼¼½º ¸ñ·Ï Àü´Þ - °ÔÀÓ ·Îµù ÀÌÀü ´Ü°è
+	//{{ 2011. 09. 14  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½Å· ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½
 #ifdef SERV_DLL_LIST_CHECK_BEFOR_LOADING
-	// Á¾·á½Ã ¹«Á¶°Ç ChannalRandomKey °ª º¯°æÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ChannalRandomKey ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 //	SendRefreshChannalRandomKey();
 #endif SERV_DLL_LIST_CHECK_BEFOR_LOADING
 	//}}
 
     KGSUserPtr spUser( GetThisPtr<KGSUser>() );
 
-    // 2007.12. 27. jseop. ·Î±×ÀÎ ¸øÇÏ´Â À¯Àú°¡ ÀÖ³²?
+    // 2007.12. 27. jseop. ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö³ï¿½?
 	if( GetStateID() < KGSFSM::S_LOGINED )
     {
 		switch( GetDisconnectReason() )
 		{
 		case KStatistics::eSIColDR_Limit_User_Num:
 			{
-				START_LOG( cwarn, L"¼­¹ö ¼ö¿ë ÀÎ¿ø °¡µæÂü." )
+				START_LOG( cwarn, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( GetUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 					<< BUILD_LOG( GetName() )
@@ -1341,11 +1341,11 @@ void KGSUser::OnDestroy()
 			}
 			break;
 
-			//{{ 2010. 06. 23  ÃÖÀ°»ç	°èÁ¤ºí·°±â´É
+			//{{ 2010. 06. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ACCOUNT_BLOCK
 		case KStatistics::eSIColDR_GameServer_Account_Block:
 			{
-				START_LOG( cwarn, L"ÇØÅ· ÀÇ½É À¯Àú Á¢¼Ó Á¦ÇÑ Á¶Ä¡." )
+				START_LOG( cwarn, L"ï¿½ï¿½Å· ï¿½Ç½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡." )
 					<< BUILD_LOG( GetUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 					<< BUILD_LOG( GetName() )
@@ -1359,11 +1359,11 @@ void KGSUser::OnDestroy()
 #endif SERV_ACCOUNT_BLOCK
 			//}}
 
-			//{{ 2011. 08. 09	ÃÖÀ°»ç	¸Ó½ÅID ºí·°±â´É
+			//{{ 2011. 08. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó½ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MACHINE_ID_BLOCK
 		case KStatistics::eSIColDR_MachineID_Block:
 			{
-				START_LOG( cout, L"¸Ó½Å ID ºí·°." )
+				START_LOG( cout, L"ï¿½Ó½ï¿½ ID ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( GetUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 					<< BUILD_LOG( GetName() )
@@ -1379,7 +1379,7 @@ void KGSUser::OnDestroy()
 
 		default:
 			{
-				START_LOG( cerr2, L"·Î±×ÀÎ ½ÇÆÐ À¯Àú." )
+				START_LOG( cerr2, L"ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( GetUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 					<< BUILD_LOG( GetName() )
@@ -1393,10 +1393,10 @@ void KGSUser::OnDestroy()
 		}
     }	
 
-//#ifdef	SERV_SHARING_BANK_TEST -- ½Ç½Ã°£ ¾÷µ¥ÀÌÆ®·Î ¹Ù²å±â ¶§¹®¿¡ ¿©±â¼­ Ã³¸®ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+//#ifdef	SERV_SHARING_BANK_TEST -- ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 //	KDBE_UPDATE_SHARE_ITEM_REQ kPacketSendDB;
 //
-//	//	ÀºÇà°øÀ¯ ±â·Ï
+//	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 //	if( m_kInventory.GetShareItemNeedDBUpdate( kPacketSendDB ) == true )
 //	{
 //		kPacketSendDB.m_bReload = false;
@@ -1404,11 +1404,11 @@ void KGSUser::OnDestroy()
 //	}
 //#endif	SERV_SHARING_BANK_TEST
 
-	// 10. ¸ðµç Á¢¼Ó Á¾·á ÁØºñ°¡ ¿Ï·á µÇ¾ú´Ù¸é ·Î±×ÀÎ¼­¹ö¿¡ À¯ÀúÀÇ Á¢¼ÓÁ¾·á Åëº¸
+	// 10. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ ï¿½Ï·ï¿½ ï¿½Ç¾ï¿½ï¿½Ù¸ï¿½ ï¿½Î±ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ëº¸
 	SendDisconnectEvent();
 
 #ifdef SERV_CHECK_PCBANG_BY_PUBLISHER
-#ifndef SERV_COUNTRY_TH	// ÅÂ±¹ÀÇ °æ¿ì PC¹æ ¿©ºÎ¿¡ »ó°ü¾øÀÌ ·Î±×¾Æ¿ô Ã³¸®¸¦ ÇØ¾ßÇÔ
+#ifndef SERV_COUNTRY_TH	// ï¿½Â±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×¾Æ¿ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½ï¿½
 	if( IsPcBang() == true )
 #endif //SERV_COUNTRY_TH
 	{
@@ -1426,18 +1426,18 @@ void KGSUser::OnDestroy()
 	}
 #endif //SERV_CHECK_PCBANG_BY_PUBLISHER
 
-	// 11. À¯Àú°´Ã¼ »èÁ¦¸¦ À§ÇØ FSMÀ» S_EXIT·Î º¯È¯
+	// 11. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ FSMï¿½ï¿½ S_EXITï¿½ï¿½ ï¿½ï¿½È¯
     StateTransition( KGSFSM::I_TO_EXIT );
 
-	//{{ 2008. 11. 10  ÃÖÀ°»ç	¸ð´ÏÅÍ¸µ ¾îºäÀú	
+	//{{ 2008. 11. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½	
 	//if( m_bIsMornitoringAbuser )
 	//{
 	//	std::wstring wstrIPAddr = KncUtil::toWideString( GetIPStr(), strlen( GetIPStr() ) );
 
 	//	KDBE_SEND_PHONE_MSG_NOT kPacketNot;
-	//	kPacketNot.m_wstrSMSMessage  = L"¾îºäÀú À¯Àú [";
+	//	kPacketNot.m_wstrSMSMessage  = L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ [";
 	//	kPacketNot.m_wstrSMSMessage += GetName();
-	//	kPacketNot.m_wstrSMSMessage += L"]°¡ Á¢¼ÓÁ¾·áÇÏ¿´½À´Ï´Ù! : ";
+	//	kPacketNot.m_wstrSMSMessage += L"]ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½! : ";
 	//	kPacketNot.m_wstrSMSMessage += wstrIPAddr;
 
 	//	SiKAbuserLogManager()->GetAbuserNotifyPhoneNumList( kPacketNot.m_wstrPhoneNum );
@@ -1446,7 +1446,7 @@ void KGSUser::OnDestroy()
 	//}
 	//}}
 
-	//{{ 2011. 08. 10    ±è¹Î¼º    Ã¤³Î¸µ SOAP
+	//{{ 2011. 08. 10    ï¿½ï¿½Î¼ï¿½    Ã¤ï¿½Î¸ï¿½ SOAP
 #ifdef SERV_CHANNELING_SOAP
 	m_wsrtToonilandID = L"";
 #endif SERV_CHANNELING_SOAP
@@ -1464,7 +1464,7 @@ void KGSUser::OnDestroy()
 
 bool KGSUser::RoutePacket( const KEvent* pkEvent_ )
 {
-    //START_LOG( clog, L"¶ó¿ìÆÃ" )
+    //START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½" )
     //    << BUILD_LOG( pkEvent_->m_kDestPerformer.m_dwPerformerID )
     //    << BUILD_LOG( pkEvent_->m_kDestPerformer.m_iUID )
     //    << BUILD_LOG( pkEvent_->m_usEventID )
@@ -1480,7 +1480,7 @@ bool KGSUser::RoutePacket( const KEvent* pkEvent_ )
             kEvent.PopTrace();
             LIF( KSession::SendPacket( kEvent ) );
 
-			//{{ 2009. 9. 13  ÃÖÀ°»ç	À¯Àú ·Î±×
+			//{{ 2009. 9. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef USER_LOG
 			m_kUserLogManager.SaveSendPacket( kEvent.m_usEventID );
 #endif USER_LOG
@@ -1511,7 +1511,7 @@ bool KGSUser::RoutePacket( const KEvent* pkEvent_ )
                 SiKDBLayer()->QueueingEvent( spEvent );
                 return true;
             default:
-                START_LOG( cerr, L"µµÂøÁö°¡ ÀÌ»óÇÑ ÆÐÅ¶." )
+                START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶." )
                     << BUILD_LOG( pkEvent_->m_kDestPerformer.m_dwPerformerID )
                     << END_LOG;
                 return true;
@@ -1524,11 +1524,11 @@ bool KGSUser::RoutePacket( const KEvent* pkEvent_ )
 
 void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 {
-    // À¯´ÖÀÌ ¼±ÅÃµÇÁö ¾Ê¾ÒÀ¸¸é ¾÷µ¥ÀÌÆ® ÇÏÁö ¸»¾Æ¾ß ÇÑ´Ù.
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¾ï¿½ ï¿½Ñ´ï¿½.
     if( GetCharUID() <= 0 )
     {
 #ifdef SERV_BUY_PERSONAL_SHOP_ITEM_ERROR_LOG
-		START_LOG( cerr, L"[ERROR] À¯´Ö Á¤º¸ ¾÷µ¥ÀÌÆ® ÇÏ´Âµ¥, À¯´ÖÀÌ ¼±ÅÃµÇÁö ¾Ê¾Ò´Ù.")
+		START_LOG( cerr, L"[ERROR] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï´Âµï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ ï¿½Ê¾Ò´ï¿½.")
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( iEventID )
 			<< END_LOG;
@@ -1538,21 +1538,21 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 
     KDBE_UPDATE_UNIT_INFO_REQ kPacket;
     kPacket.m_bFinal		= bFinal;
-	kPacket.m_iEventID		= iEventID;	// for Ã¤³ÎÀÌµ¿
+	kPacket.m_iEventID		= iEventID;	// for Ã¤ï¿½ï¿½ï¿½Ìµï¿½
     kPacket.m_iUnitUID		= GetCharUID();
 	kPacket.m_iEXP			= m_kEXP.GetChangeExp();
     kPacket.m_iLevel        = static_cast<int>(GetLevel());
-	//{{ 2012. 10. 02	ÃÖÀ°»ç		ED&¾ÆÀÌÅÛ ¸ð´ÏÅÍ¸µ ½Ã½ºÅÛ
+	//{{ 2012. 10. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ED&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 	//////////////////////////////////////////////////////////////////////////
 #ifdef SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2012. 04. 17	ÃÖÀ°»ç	°³ÀÎ°Å·¡ DDOS¹æ¾î
+	//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Î°Å·ï¿½ DDOSï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_DDOS_DEFENCE
 	if( m_kInventory.IsLocked() == true )
 	{
 		if( m_kEDManager.GetChangeValue() != 0 )
 		{
-			START_LOG( cout, L"[¾Ë¸²] Inventroy Lock »óÅÂÀÎµ¥ EDÁõºÐ°ªÀÌ ³²¾ÆÀÖ´Ù! ÀÌ·¯¸é ¹®Á¦ »ý±æÅÙµ¥..?" )
+			START_LOG( cout, L"[ï¿½Ë¸ï¿½] Inventroy Lock ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ EDï¿½ï¿½ï¿½Ð°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½! ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ùµï¿½..?" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( GetED() )
@@ -1562,7 +1562,7 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 #endif SERV_TRADE_DDOS_DEFENCE
 	//}}
 	m_kEDManager.GetDBUpdateInfo( kPacket.m_iED );
-	//{{ 2011. 09. 23	ÃÖÀ°»ç	·Î±×¿ÀÇÁ »óÅÂ EDÃ¼Å©
+	//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±×¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EDÃ¼Å©
 #ifdef SERV_LOGOUT_ED_CHECK
 	kPacket.m_iRealDataED	= GetED();
 #endif SERV_LOGOUT_ED_CHECK
@@ -1570,19 +1570,19 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 	//////////////////////////////////////////////////////////////////////////
 #else
 	//////////////////////////////////////////////////////////////////////////
-	kPacket.m_iED			= m_iED.GetChangeValue();		// SetValue()´Â ÀÌ ÇÔ¼ö ¾Æ·¡ÂÊ¿¡ ÀÖ½À´Ï´Ù.
-	//{{ 2011. 09. 23	ÃÖÀ°»ç	·Î±×¿ÀÇÁ »óÅÂ EDÃ¼Å©
+	kPacket.m_iED			= m_iED.GetChangeValue();		// SetValue()ï¿½ï¿½ ï¿½ï¿½ ï¿½Ô¼ï¿½ ï¿½Æ·ï¿½ï¿½Ê¿ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
+	//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±×¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EDÃ¼Å©
 #ifdef SERV_LOGOUT_ED_CHECK
 	kPacket.m_iRealDataED	= GetED();
 #endif SERV_LOGOUT_ED_CHECK
 	//}}
-	//{{ 2012. 04. 17	ÃÖÀ°»ç	°³ÀÎ°Å·¡ DDOS¹æ¾î
+	//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Î°Å·ï¿½ DDOSï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_DDOS_DEFENCE
 	if( m_kInventory.IsLocked() == true )
 	{
 		if( m_iED.GetChangeValue() != 0 )
 		{
-			START_LOG( cout, L"[¾Ë¸²] Inventroy Lock »óÅÂÀÎµ¥ EDÁõºÐ°ªÀÌ ³²¾ÆÀÖ´Ù! ÀÌ·¯¸é ¹®Á¦ »ý±æÅÙµ¥..?" )
+			START_LOG( cout, L"[ï¿½Ë¸ï¿½] Inventroy Lock ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ EDï¿½ï¿½ï¿½Ð°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½! ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ùµï¿½..?" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( GetED() )
@@ -1596,7 +1596,7 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 	//////////////////////////////////////////////////////////////////////////
 	//}}	
 	kPacket.m_iSPoint		= m_iSPoint.GetChangeValue();
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	m_kUserPvpManager.GetDBUpdateInfo( kPacket.m_iOfficialMatchCnt, 
 										kPacket.m_iRating, 
@@ -1608,7 +1608,7 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 										kPacket.m_iLose,
 										kPacket.m_cEmblemEnum
 
-										//{{ 2012. 06. 22	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+										//{{ 2012. 06. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 										, kPacket.m_fKFactor
 #endif SERV_2012_PVP_SEASON2
@@ -1623,12 +1623,12 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 	//}}
 	kPacket.m_kDenyOptions  = m_kUserGameOption.GetDenyOptions();
 	
-	//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kUserSpiritManager.GetDBUpdateInfo( kPacket.m_iSpirit, kPacket.m_bIsSpiritUpdated );
 #else
-	kPacket.m_iSpirit		= m_iSpirit;			 // ±Ù¼ºµµ
-	kPacket.m_bIsSpiritUpdated = m_bIsSpiritUpdated; // ±Ù¼ºµµ ¸ðµÎ ¼Ò¸ð ¾÷µ¥ÀÌÆ®
+	kPacket.m_iSpirit		= m_iSpirit;			 // ï¿½Ù¼ï¿½ï¿½ï¿½
+	kPacket.m_bIsSpiritUpdated = m_bIsSpiritUpdated; // ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}	
 
@@ -1641,24 +1641,24 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 	kPacket.m_arrChinaSpirit[5] = m_arrChinaSpirit[5];
 #endif SERV_CHINA_SPIRIT_EVENT
 
-	//{{ 2009. 10. 7  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 10. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 	kPacket.m_iGuildUID		= GetGuildUID();
 	kPacket.m_iHonorPoint	= m_kUserGuildManager.GetHonorPoint();
 #endif GUILD_TEST
 	//}}
 	
-	// ºÎÈ°¼®
+	// ï¿½ï¿½È°ï¿½ï¿½
 	kPacket.m_iNumResurrectionStone = m_iNumResurrectionStone.GetChangeValue();
     m_iNumResurrectionStone.SetValue( m_iNumResurrectionStone );
 
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦ ºÎÈ°¼®
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 #ifdef AP_RESTONE
 	kPacket.m_iNumAutoPaymentResStone = m_iNumAutoPaymentResStone.GetChangeValue();
 	m_iNumAutoPaymentResStone.SetValue( m_iNumAutoPaymentResStone );
 #endif AP_RESTONE
 	//}}
-	//{{ 2012. 02. 21	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kUserUnitManager.GetGamePlayStatus( kPacket.m_kGamePlayStatus );
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -1667,22 +1667,22 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 	//////////////////////////////////////////////////////////////////////////
 	// Packing LastPosition
 
-	//07.07.19.  hoon. ÇöÀç »óÅÂÀÌµ¿½Ã ¸¶Áö¸· ¸¶À» ¾ÆÀÌµð°¡ 0À¸·Î ¼ÂÆÃ µÇ´Â ½ÃÁ¡ÀÌ »ý±â±â¶§¹®¿¡ ÀÓ½Ã·Î ·çº¥À» ¼³Á¤ÇÔ.
-	//¸¶Áö¸· ¸¶À»¸¸ DB¿¡ ÀúÀåÇÏ¸éµÇ°í ÇöÀçÀÇ ¸¶À» Á¤º¸´Â À¯Áö¸¦ À§ÇØ ÆÐÅ¶¿¡ ¹Ù·Î ³Ö´Â´Ù.
-	//{{ 2012. 02. 02	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//07.07.19.  hoon. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½â¶§ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½Ã·ï¿½ ï¿½çº¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½Ö´Â´ï¿½.
+	//{{ 2012. 02. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM	
-	// MapID°ËÁõ
+	// MapIDï¿½ï¿½ï¿½ï¿½
 	if( bFinal )
 	{
 		if( SEnum::IsBattleFieldID( GetMapID() ) == true )
 		{
-			// ±×³É Åë°ú!
+			// ï¿½×³ï¿½ ï¿½ï¿½ï¿½!
 		}
 		else
 		{
 			if( SiCXSLMapData()->CheckMapData( GetMapID() ) == false )
 			{
-				START_LOG( cerr, L"DB¾÷µ¥ÀÌÆ® ÇÏ·Á´Â MapID°¡ ÀÌ»óÇÏ´Ù?" )
+				START_LOG( cerr, L"DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï·ï¿½ï¿½ï¿½ MapIDï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Ï´ï¿½?" )
 #ifdef SERV_PRIVACY_AGREEMENT
 					<< BUILD_LOG( GetCharUID() )
 #else
@@ -1692,17 +1692,17 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 					<< BUILD_LOG( SiCXSLMapData()->GetDefaultMapID() )
 					<< END_LOG;
 
-				// ±âº»°ªÀ» ³Ö¾îÁØ´Ù!		
+				// ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½Ø´ï¿½!		
 				SetMapID( SiCXSLMapData()->GetDefaultMapID() );
 			}
 		}
 	}
 
-	kPacket.m_kLastPos = GetLastPosInfo(); // ´õÀÌ»ó packingÇØ¼­ »ç¿ëÇÏÁö ¾Ê½À´Ï´Ù.
+	kPacket.m_kLastPos = GetLastPosInfo(); // ï¿½ï¿½ï¿½Ì»ï¿½ packingï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
 #else
 	if( bFinal  &&  SiCXSLMapData()->CheckMapData( GetMapID() ) == false )
 	{
-		START_LOG( cerr, L"DB¾÷µ¥ÀÌÆ® ÇÏ·Á´Â MapID°¡ ÀÌ»óÇÏ´Ù?" )
+		START_LOG( cerr, L"DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï·ï¿½ï¿½ï¿½ MapIDï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Ï´ï¿½?" )
 #ifdef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 #else
@@ -1712,7 +1712,7 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 			<< BUILD_LOG( SiCXSLMapData()->GetDefaultMapID() )
 			<< END_LOG;
 
-		// ±âº»°ªÀ» ³Ö¾îÁØ´Ù!
+		// ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½Ø´ï¿½!
 		m_nMapID = SiCXSLMapData()->GetDefaultMapID();
 	}
 
@@ -1761,14 +1761,14 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 	//QUEST UPDATE
 	m_kUserQuestManager.GetUpdatedQuestInfo( kPacket.m_vecQuestData );
 
-	//{{ 2010. 02. 09  ÃÖÀ°»ç	ÀÏÀÏ ÀÌº¥Æ® Äù½ºÆ®
+	//{{ 2010. 02. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_DAY_QUEST
 	m_kUserQuestManager.GetReservedGiveUpQuest( kPacket.m_vecGiveUpQuestList );
 #endif SERV_DAY_QUEST
 	//}}
 
 	// MISSION UPDATE
-	//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 	m_kUserTitleManager.GetUpdateInfo( IsPcBang(), kPacket.m_iInitTitleID, kPacket.m_iEquippedTitleID, kPacket.m_vecMissionData );
 #else
@@ -1783,42 +1783,42 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 		kPacket.m_vecSkillSlot.resize(4); 
 	}
 
-	// Àå¹Ù±¸´Ï ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½Ù±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	if( bFinal )
 	{
 		m_kUserWishList.FlushWishListChange( kPacket.m_mapWishList );
 	}
 
-	//{{ 2009. 7. 7  ÃÖÀ°»ç		·©Å· °³Æí	
+	//{{ 2009. 7. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½	
 	m_kUserRankingManager.GetUpdateInfo( kPacket.m_vecHenirRanking );
 	//}}
 
-	//{{ 2009. 12. 8  ÃÖÀ°»ç	ÀÌº¥Æ®°³Æí
+	//{{ 2009. 12. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ®ï¿½ï¿½ï¿½ï¿½
 #ifdef CUMULATIVE_TIME_EVENT	
 	m_kUserEventManager.GetDBUpdateInfo( kPacket.m_vecUpdateEventTime );	
 #endif CUMULATIVE_TIME_EVENT
 	//}}
 
-	//{{ 2010. 8. 4	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 8. 4	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 	m_kUserPetManager.GetDBUpdatePetInfo( kPacket.m_vecPet );
 #endif SERV_PET_SYSTEM
 	//}}
-	//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+	//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 	if( bFinal )
 	{
-		// À¯Àú Åë°è Á¢¼Ó½Ã°£
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½
 		const int iDurationTime = static_cast<int>( m_kTimer[TM_UNIT_DURATION].elapsed() + 0.5 );
 		m_kUserStatistics.IncreaseCharacterCount( KUserStatistics::CGCT_DUNRATION_TIME, iDurationTime / 60 );
 
-		// DB ¾÷µ¥ÀÌÆ® Á¤º¸ ¾ò±â
+		// DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		m_kUserStatistics.GetDBUpdateInfo( kPacket.m_mapCharGameCount );
 	}
 #endif SERV_CHAR_LOG
 	//}}
 
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 	kPacket.m_kHenirRewardCnt.m_iNormal = m_kUserDungeonManager.GetHenirRewardNormalCount();
 	kPacket.m_kHenirRewardCnt.m_iPremium = m_kUserDungeonManager.GetHenirRewardPremiumCount();
@@ -1826,16 +1826,16 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 #endif SERV_NEW_HENIR_TEST
 	//}}
 
-	//{{ 2013. 3. 17	¹Ú¼¼ÈÆ	 ·ÎÄÃ ·©Å· ½Ã½ºÅÛ
+	//{{ 2013. 3. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 	m_kUserLocalRankingInfo.GetChangedValue( kPacket.m_iChangedLocalRankingSpirit, kPacket.m_iChangedLocalRankingAP );
 #endif SERV_LOCAL_RANKING_SYSTEM
 	//}}
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 	m_kUserRidingPetManager.GetDBUpdateInfo( kPacket.m_vecRidingPetList );
 #endif	// SERV_RIDING_PET_SYSTM
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	kPacket.m_cUnitRelationshipType = m_kUserRelationshipManager.GetRelationshipType();
 #endif SERV_RELATIONSHIP_SYSTEM
@@ -1844,23 +1844,23 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 	kPacket.m_iGateOfDarknessSupportEventTime = m_iGateOfDarknessSupportEventTime;
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
-    SendToGameDB( DBE_UPDATE_UNIT_INFO_REQ, kPacket ); // [Áß¿ä] À¯´Ö Á¤º¸ ÃÊ±âÈ­´Â DBE_UPDATE_UNIT_INFO_ACK¿¡¼­..	
+    SendToGameDB( DBE_UPDATE_UNIT_INFO_REQ, kPacket ); // [ï¿½ß¿ï¿½] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½ï¿½ DBE_UPDATE_UNIT_INFO_ACKï¿½ï¿½ï¿½ï¿½..	
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 
-	// DB¾÷µ¥ÀÌÆ® Å¸ÀÌ¸Ó ÃÊ±âÈ­
+	// DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® Å¸ï¿½Ì¸ï¿½ ï¿½Ê±ï¿½È­
     m_kTimer[TM_DB_UPDATE].restart();
 	
 	m_kEXP.SetExp( m_kEXP.GetExp() );
-	//{{ 2012. 10. 02	ÃÖÀ°»ç		ED&¾ÆÀÌÅÛ ¸ð´ÏÅÍ¸µ ½Ã½ºÅÛ
+	//{{ 2012. 10. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ED&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_ED_AND_ITEM_MORNITORING_SYSTEM
-	// EDManager³»ºÎ¿¡¼­ SetValue¸¦ ÇÕ´Ï´Ù.
+	// EDManagerï¿½ï¿½ï¿½Î¿ï¿½ï¿½ï¿½ SetValueï¿½ï¿½ ï¿½Õ´Ï´ï¿½.
 #else
 	m_iED.SetValue( m_iED );
 #endif SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 	//}}
 	m_iSPoint.SetValue( m_iSPoint );
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 #else
 	m_iVSPoint.SetValue( m_iVSPoint );
@@ -1868,15 +1868,15 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 #endif SERV_PVP_NEW_SYSTEM
 	//}}
 
-	//{{ 2007. 10. 16  ÃÖÀ°»ç  À¯Àú Åë°è
+	//{{ 2007. 10. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	if( bFinal  &&  ( GetAuthLevel() == SEnum::UAL_NORMAL || GetAuthLevel() == SEnum::UAL_BLOCKED_1 ) )
 	{
-		// À¯Àú Åë°è Á¢¼Ó½Ã°£
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½
 		const int iDurationTime = static_cast<int>( m_kTimer[TM_UNIT_DURATION].elapsed() + 0.5 );
 		m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EtcData, 0, KUserStatistics::US_Etc_Duration_Time, iDurationTime );
 
-		// À¯Àú Åë°è ½Àµæ ¾ÆÀÌÅÛ
-		//{{ 2012. 12. 14  °èÁ¤ ¹Ì¼Ç ½Ã½ºÅÛ ( °èÁ¤´ÜÀ§ Äù½ºÆ® ) - ±è¹Î¼º
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		//{{ 2012. 12. 14  ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 		const int iObtainedItemCount = m_kUserQuestManager.GetQuestRewardItemCount() + m_kUserAccountQuestManager.GetQuestRewardItemCount();
 #else
@@ -1885,7 +1885,7 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 		//}}
 		m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EtcData, 0, KUserStatistics::US_Etc_Obtained_Item, iObtainedItemCount );
 
-		//{{ 2010. 11. 17	ÃÖÀ°»ç	¿ÀÅäÇÙ °ËÁõ ±â´É
+		//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_AUTO_HACK_CHECK_GET_ITEM
 		m_kUserAbuserManager.IncreaseGetItemCount( GetThisPtr<KGSUser>(), iObtainedItemCount );
 #endif SERV_AUTO_HACK_CHECK_GET_ITEM
@@ -1895,7 +1895,7 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 		CTime tDisconnectTime = CTime::GetCurrentTime();
 #endif //SERV_USER_STATISTICS_RENEWAL
 
-		// ±Ù¼ºµµ ¼Ò¸ð·®
+		// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½
 		const int iUsedSpirit = m_kUserStatistics.GetUsedSpirit();
 
 		KELOG_USER_STATISTICS kPacketLog;
@@ -1929,14 +1929,14 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 		
 		SendToLogDB( ELOG_USER_STATISTICS, kPacketLog );
 
-		// LogDBThread·Î ÀÌº¥Æ® Àü¼Û ÈÄ Åë°è´Â ÃÊ±âÈ­½ÃÅ²´Ù
+		// LogDBThreadï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½ï¿½Å²ï¿½ï¿½
 		m_kUserStatistics.Clear();
 
-		//{{ 2010. 06. 30  ÃÖÀ°»ç	±Ù¼ºµµ Åë°è
+		//{{ 2010. 06. 30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_SPIRIT_STATISTICS
 		KDBE_SPIRIT_STATISTICS_NOT kPacketNot;
 		kPacketNot.m_iUnitUID = GetCharUID();
-		//{{ 2012. 11. 14	¹Ú¼¼ÈÆ	Field PT ·Î±× Ãß°¡
+		//{{ 2012. 11. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	Field PT ï¿½Î±ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_FIELD_PLAY_TIME_LOG
 		kPacketNot.m_iSpiritPlayTime = m_kUserStatistics.GetPlayTime( KUserStatistics::PT_SPIRIT_PLAY_TIME );
 		m_kUserStatistics.ResetPlayTime( KUserStatistics::PT_SPIRIT_PLAY_TIME );
@@ -1953,10 +1953,10 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 	}
 	//}}
 
-	//{{ 2008. 11. 19  ÃÖÀ°»ç	¾îºäÀú ÀÚµ¿ µî·Ï	
+	//{{ 2008. 11. 19  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½	
 	if( GetED() >= KUserAbuserManager::AE_ED_ABUSER_LIMIT )
 	{
-		//{{ 2010. 07. 05  ÃÖÀ°»ç	À¯Àú ¾îºäÀú ¸Å´ÏÀú
+		//{{ 2010. 07. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_USER_ABUSER_MANAGER
 		m_kUserAbuserManager.RegEDAbuser( GetThisPtr<KGSUser>() );
 #endif SERV_USER_ABUSER_MANAGER
@@ -1964,7 +1964,7 @@ void KGSUser::WriteUnitInfoToDB( bool bFinal, int iEventID /*= 0*/ )
 	}
 	//}}
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	³×Æ®¿öÅ© Æ®·¡ÇÈ À¯¹ß À¯Àú ¸ð´ÏÅÍ¸µ
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ®ï¿½ï¿½Å© Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 #ifdef SERV_TRAFFIC_USER_MONITORING
 	if( m_kUserAbuserManager.IsTrafficAbuser() == true )
 	{
@@ -1989,7 +1989,7 @@ void KGSUser::WritePlayTimeToDB()
 	kPacket.m_bLogoutFail	  = m_bLogoutFail;
 	kPacket.m_iTotalPlayTime  = m_kUserStatistics.GetPlayTime( KUserStatistics::PT_TOTAL_PLAY_TIME );
 	kPacket.m_iPvpPlayTime	  = m_kUserStatistics.GetPlayTime( KUserStatistics::PT_PVP_PLAY_TIME );
-	//{{ 2012. 11. 14	¹Ú¼¼ÈÆ	Field PT ·Î±× Ãß°¡
+	//{{ 2012. 11. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	Field PT ï¿½Î±ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_FIELD_PLAY_TIME_LOG
 	kPacket.m_iDungeonPlayTime	= m_kUserStatistics.GetPlayTime( KUserStatistics::PT_DUNGEON_PLAY_TIME );
 	kPacket.m_iFieldPlayTime	= m_kUserStatistics.GetPlayTime( KUserStatistics::PT_FIELD_PLAY_TIME );
@@ -1997,15 +1997,15 @@ void KGSUser::WritePlayTimeToDB()
 	//}}
 	kPacket.m_iDisconnectReason	= GetDisconnectReason();
 	kPacket.m_iDisconnectUserFSM = GetStateID();
-	//{{ 2009. 12. 22  ÃÖÀ°»ç	¼­¹ö±ºÈ®Àå
+	//{{ 2009. 12. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È®ï¿½ï¿½
 	kPacket.m_iServerGroupID  = KBaseServer::GetKObj()->GetServerGroupID();
 	//}}
-	//{{ 2011. 08. 09	ÃÖÀ°»ç	¸Ó½ÅID ºí·°±â´É
+	//{{ 2011. 08. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó½ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MACHINE_ID_BLOCK
 	kPacket.m_wstrMachineID	  = m_kUserSecurityManager.GetWStringMachineID();
 #endif SERV_MACHINE_ID_BLOCK
 	//}}
-	//{{ 2011. 09. 27	±è¹Î¼º	PC ¹æ ¿À°ú±Ý ¹æÁö
+	//{{ 2011. 09. 27	ï¿½ï¿½Î¼ï¿½	PC ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PCBANG_INCORRECT_BILLING
 	kPacket.m_wstrUnitID	= m_kUserStatistics.GetCharName();
 	kPacket.m_bIsPcbang		= IsPcBang();
@@ -2025,10 +2025,10 @@ void KGSUser::WritePlayTimeToDB()
 	kPacket.m_bAeriaClient = IsAeriaClientUser();
 #endif //SERV_CHANNELING_AERIA
 
-	// StatisticsDB¿¡ ±â·Ï
+	// StatisticsDBï¿½ï¿½ ï¿½ï¿½ï¿½
 	SendToLogDB( ELOG_STAT_PLAY_TIME, kPacket );
 
-	// AccountDB¿¡ ÅëÇÕ ±â·Ï
+	// AccountDBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	SendToAccountDB( ELOG_STAT_PLAY_TIME, kPacket );
 }
 
@@ -2040,7 +2040,7 @@ void KGSUser::SendDisconnectEvent( u_short usEventID /*= -1*/ )
         {
 			KELG_USER_DISCONNECT_REQ kPacket;
 			kPacket.m_usEventID = usEventID;
-			//{{ 2011. 02. 23	ÃÖÀ°»ç	°èÁ¤ ´ÜÀ§ Ä«¿îÆ®
+			//{{ 2011. 02. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
 #ifdef SERV_ACCOUNT_COUNT
 			m_kUserStatistics.GetAccountDBUpdateInfo( kPacket.m_mapAccCountInfo );
 #endif SERV_ACCOUNT_COUNT
@@ -2050,10 +2050,10 @@ void KGSUser::SendDisconnectEvent( u_short usEventID /*= -1*/ )
     }
 }
 
-//{{ 2009. 4. 3  ÃÖÀ°»ç		Ä¡Æ®·Î±×
+//{{ 2009. 4. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ä¡Æ®ï¿½Î±ï¿½
 void KGSUser::WriteCheatLogToDB( const wchar_t* szCheatCode, const std::wstring& wstrCheatContents )
 {
-	// Ä¡Æ® ·Î±×
+	// Ä¡Æ® ï¿½Î±ï¿½
 	KELOG_CHEAT_LOG_NOT kPacket;
 	kPacket.m_iUserUID		  = GetUID();
 	kPacket.m_iUnitUID		  = GetCharUID();
@@ -2063,7 +2063,7 @@ void KGSUser::WriteCheatLogToDB( const wchar_t* szCheatCode, const std::wstring&
 
 	if( KODBC::IsInvalidMarkInForCheat( kPacket.m_wsCheatCode ) )
 	{
-		START_LOG( cerr, L"SQL Injection ¹æÁö" )
+		START_LOG( cerr, L"SQL Injection ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket.m_wsCheatCode )
 			<< END_LOG;
 		return;
@@ -2071,7 +2071,7 @@ void KGSUser::WriteCheatLogToDB( const wchar_t* szCheatCode, const std::wstring&
 
 	if( KODBC::IsInvalidMarkInForCheat( kPacket.m_wsCheatContents ) )
 	{
-		START_LOG( cerr, L"SQL Injection ¹æÁö" )
+		START_LOG( cerr, L"SQL Injection ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket.m_wsCheatContents )
 			<< END_LOG;
 		return;
@@ -2093,7 +2093,7 @@ void KGSUser::WriteCheatLogToDB( const wchar_t* szCheatCode )
 }
 //}}
 
-//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 void KGSUser::WriteCharacterLogToDB( IN const KELOG_USER_CHARACTER_LOG_NOT::LOG_TYPE eLogType )
 {
@@ -2114,13 +2114,13 @@ void KGSUser::WriteCharacterLogToDBWithParam( IN const KELOG_USER_CHARACTER_LOG_
 {
 	if( KELOG_USER_CHARACTER_LOG_NOT::IsValidLogType( eLogType ) == false )
 	{
-		START_LOG( cerr, L"Àß¸øµÈ ·Î±× Å¸ÀÔ ÀÔ´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ Å¸ï¿½ï¿½ ï¿½Ô´Ï´ï¿½!" )
 			<< BUILD_LOG( eLogType )
 			<< END_LOG;
 		return;
 	}
 	
-	// Ä³¸¯ÅÍ ·Î±× ³²±â´Â ´ë»óÀÌ ¾Æ´Ï¸é ¿©±â¼­ ¸®ÅÏ!
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½!
 	if( m_kUserStatistics.IsCharCount() == false )
 		return;
 
@@ -2149,13 +2149,13 @@ void KGSUser::WriteCharacterLogToDBWithParam( IN const KELOG_USER_CHARACTER_LOG_
 #endif SERV_CHAR_LOG
 //}}
 
-//{{ 2012. 11. 9	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 11. 9	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KGSUser::DungeonGameStart_SingleOpenDungeonRoom( IN const char cDungeonMode, IN const int iDungeonID, IN const char cDifficultyLevel, IN const bool bAutoParty )
 {
 	const int iDungeonIDWithDif = iDungeonID + static_cast<int>(cDifficultyLevel);
 
-	// »õ·Î ¹æÀ» ¸¸µé¸é¼­ ´øÀü °ÔÀÓÀ» ½ÃÀÛÇÏÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	KERM_OPEN_ROOM_REQ kPacket;
 	kPacket.m_kRoomInfo.m_bStartedByAutoParty	= bAutoParty;
 	kPacket.m_bQuickJoin						= false;
@@ -2164,13 +2164,13 @@ void KGSUser::DungeonGameStart_SingleOpenDungeonRoom( IN const char cDungeonMode
 	kPacket.m_wstrChannelIP						= NetCommon::GetLocalIPW();
 	kPacket.m_kRoomInfo.m_RoomType				= CXSLRoom::RT_DUNGEON;
 	kPacket.m_kRoomInfo.m_uiRoomListID			= GetRoomListID();
-	kPacket.m_kRoomInfo.m_RoomName				= L"È¥ÀÚ ÇÏ´Â ´øÀü";
+	kPacket.m_kRoomInfo.m_RoomName				= L"È¥ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½";
 	kPacket.m_kRoomInfo.m_bPublic				= false;
 	kPacket.m_kRoomInfo.m_cDungeonMode			= cDungeonMode;
 	kPacket.m_kRoomInfo.m_iDungeonID			= iDungeonID;
 	kPacket.m_kRoomInfo.m_DifficultyLevel		= cDifficultyLevel;
 	kPacket.m_kRoomInfo.m_fPlayTime				= DUNGEON_DEFAULT_LIMIT_PLAY_TIME;
-	//{{ 2013. 04. 10	ÃÖÀ°»ç	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	kPacket.m_kRoomInfo.m_bDefenceDungeonOpen	= SiKGSWorldMissionManager()->GetIsActive();
 #endif SERV_NEW_DEFENCE_DUNGEON
@@ -2182,13 +2182,13 @@ void KGSUser::DungeonGameStart_SingleOpenDungeonRoom( IN const char cDungeonMode
 		kPacket.m_kRoomInfo.m_fPlayTime = fPlayTimeLimit;
 	}
 
-	// ´øÀü ÇÃ·¹ÀÌ Á¤º¸¸¦ ÀúÀå
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_kUserDungeonManager.SetDungeonGameInfo( iDungeonID, cDifficultyLevel, cDungeonMode );
 
-	// KRoomUserInfo¾ò±â
+	// KRoomUserInfoï¿½ï¿½ï¿½
 	GetRoomUserInfo( kPacket.m_kRoomUserInfo, CXSLRoom::RT_DUNGEON );
 
-	// ½Ì±Û ´øÀü °ÔÀÓ ½ÃÀÛ!
+	// ï¿½Ì±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	SendToCnRoom( ERM_SINGLE_OPEN_DUNGEON_ROOM_REQ, kPacket );
 }
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -2205,7 +2205,7 @@ void KGSUser::ExpireItem( bool bForce/* = false */ )
 
         m_kTimer[TM_CHECK_ITEM_EXPIRATION].restart();
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 		CheckRidingPetProcess();
 #endif	// SERV_RIDING_PET_SYSTM
 
@@ -2223,12 +2223,12 @@ void KGSUser::ExpireItem( bool bForce/* = false */ )
 
         SendPacket( EGS_ITEM_EXPIRATION_NOT, kPacket );
 
-		//{{ 2008. 12. 3  ÃÖÀ°»ç	ÇÊµå¿¡¼­ ±â°£´ÙµÈ ¾ÆÀÌÅÛ °»½Å
+		//{{ 2008. 12. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Êµå¿¡ï¿½ï¿½ ï¿½â°£ï¿½Ùµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( GetStateID() == KGSFSM::S_FIELD_MAP )
 		{
 			if( GetFieldUID() <= 0 )
 			{
-				START_LOG( clog, L"ÇÊµå »óÅÂÀÎµ¥ FieldUID°¡ ¾ø´Ù." )
+				START_LOG( clog, L"ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ FieldUIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 					<< BUILD_LOG( GetFieldUID() )
 					<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
@@ -2252,7 +2252,7 @@ void KGSUser::ExpireItem( bool bForce/* = false */ )
 			if( kPacketNot.m_vecInventorySlotInfo.empty() )
 				return;
 
-			//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+			//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 			kPacketNot.m_iEquippedTitleID = m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -2266,7 +2266,7 @@ void KGSUser::ExpireItem( bool bForce/* = false */ )
         {
             if( GetRoomUID() <= 0 )
             {
-                START_LOG( cerr, L"·ë UID ÀÌ»ó." )
+                START_LOG( cerr, L"ï¿½ï¿½ UID ï¿½Ì»ï¿½." )
                     << BUILD_LOG( GetRoomUID() )
                     << BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
@@ -2283,7 +2283,7 @@ void KGSUser::ExpireItem( bool bForce/* = false */ )
             case CXSLRoom::RT_TRAININGCENTER:
                 {
                     KERM_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT kPacketNot;
-					//{{ 2010. 12. 23	ÃÖÀ°»ç	Àåºñ º¯°æ ÆÐÅ¶ Å¸ÀÔ
+					//{{ 2010. 12. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ Å¸ï¿½ï¿½
 #ifdef SERV_CHANGE_EQUIPPED_PACKET_REFAC
 					kPacketNot.m_cChangeEquippedPacketType = KEGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT::CEPT_CHANGE_EQUIP;
 #endif SERV_CHANGE_EQUIPPED_PACKET_REFAC
@@ -2304,8 +2304,8 @@ void KGSUser::ExpireItem( bool bForce/* = false */ )
                     }
 
 					//080421.hoons.
-					//Ãàº¹ÀÇ ¾ÆÀÌÅÛÀÌ Áö¿öÁ®µµ GetRoomUserInfo() È£ÃâÇÒ¶§ ¾÷µ¥ÀÌÆ®°¡ µÇ±â ¶§¹®¿¡ ´Ù¸¥Ã³¸®¸¦
-					//°í·ÁÇÏÁö ¾Ê´Â´Ù.
+					//ï¿½àº¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ GetRoomUserInfo() È£ï¿½ï¿½ï¿½Ò¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ç±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½Ã³ï¿½ï¿½ï¿½ï¿½
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
                     GetRoomUserInfo( kPacketNot.m_kRoomUserInfo );
                     SendToCnRoom( ERM_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT, kPacketNot );
                 }
@@ -2329,7 +2329,7 @@ void KGSUser::ExpireItem( bool bForce/* = false */ )
                         return;
                     }
 
-					//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+					//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 					kPacketNot.m_iEquippedTitleID = m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -2342,7 +2342,7 @@ void KGSUser::ExpireItem( bool bForce/* = false */ )
 
             default:
                 {
-                    START_LOG( cerr, L"ÀÌ»óÇÑ ¹æ Å¸ÀÔ." )
+                    START_LOG( cerr, L"ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½." )
                         << BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
                         << BUILD_LOG( GetCharUID() )
                         << END_LOG;
@@ -2369,7 +2369,7 @@ void KGSUser::ExpireCashSkillPoint( bool bForce /*= false*/ )
 			{
 				//if( false == IsTransactionEnabled( DBE_EXPIRE_CASH_SKILL_POINT_REQ ) )
 				//{
-				//	START_LOG( cwarn, L"Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® ±â°£¸¸·á Ã³¸®ÇÏ·Á´Âµ¥ ´Ù¸¥ ½ºÅ³ °ü·Ã ÀÛ¾÷ÁßÀÌ¼­ Ã³¸® ¸øÇÔ, 5ºÐ ÈÄ¿¡ ´Ù½Ã Ã³¸®!" )
+				//	START_LOG( cwarn, L"Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½â°£ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï·ï¿½ï¿½Âµï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, 5ï¿½ï¿½ ï¿½Ä¿ï¿½ ï¿½Ù½ï¿½ Ã³ï¿½ï¿½!" )
 				//		<< BUILD_LOG( GetCharUID() )
 				//		<< BUILD_LOG( GetCharName() )
 				//		<< BUILD_LOGc( GetUnitClass() )
@@ -2377,20 +2377,20 @@ void KGSUser::ExpireCashSkillPoint( bool bForce /*= false*/ )
 				//	return;
 				//}
 
-				// ¹è¿î ½ºÅ³ Æ®¸®Áß¿¡¼­ CSP·Î ¹è¿î ½ºÅ³ µÇµ¹¸®°í, »ç¿ëµÈ CSP Æ÷ÀÎÆ® °è»êÇÏ°í m_iMaxCSPoint¸¦ »©¼­ SP·Î µ¹·ÁÁÖ°í
-				// ÀåÂøµÈ ½ºÅ³Áß¿¡ ¾È¹è¿î ½ºÅ³ÀÌ ÀÖÀ¸¸é Å»ÂøÇÑ´Ù
+				// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ Æ®ï¿½ï¿½ï¿½ß¿ï¿½ï¿½ï¿½ CSPï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ CSP ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ m_iMaxCSPointï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö°ï¿½
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ß¿ï¿½ ï¿½È¹ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ï¿½Ñ´ï¿½
 				KDBE_EXPIRE_CASH_SKILL_POINT_REQ KDBReq;
 				KDBReq.m_iUnitUID = GetCharUID();
 				m_kSkillTree.CalcExpireCashSkillPoint( KDBReq.m_iRetrievedSPoint, KDBReq.m_vecUserSkillData );
 				SendToGameDB( DBE_EXPIRE_CASH_SKILL_POINT_REQ, KDBReq );
 
-				//{{ 2010. 07. 04  ÃÖÀ°»ç	½ºÅ³ Æ÷ÀÎÆ® ¿À·ù È®ÀÎ
+				//{{ 2010. 07. 04  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 #ifdef SERV_CHECK_SKILL_POINT
 				if( CheckSkillPointError() == false )
 				{
 					if( GetAuthLevel() < SEnum::UAL_GM )
 					{
-						START_LOG( cerr, L"Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® ±â°£ ¸¸·á ½ÃÁ¡¿¡ ½ºÅ³ Æ÷ÀÎÆ® °ªÀÌ ºñÁ¤»óÀÔ´Ï´Ù." )
+						START_LOG( cerr, L"Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 #ifdef SERV_PRIVACY_AGREEMENT
 							<< BUILD_LOG( GetUID() )
 							<< BUILD_LOG( GetCharUID() )
@@ -2419,7 +2419,7 @@ void KGSUser::ExpireSkillSlotB( bool bForce /*= false*/ )
 
 		m_kTimer[TM_SKILL_SLOT_EXPIRATION].restart();
 
-		// ±â°£Á¦ °Ë»ç
+		// ï¿½â°£ï¿½ï¿½ ï¿½Ë»ï¿½
 		m_kSkillTree.ExpireSkillSlotB();
 		SendID( EGS_EXPIRE_SKILL_SLOT_NOT );
 	}
@@ -2434,7 +2434,7 @@ void KGSUser::ExpireTitle( bool bForce /*= false*/ )
 
 		m_kTimer[TM_CHECK_TITLE_EXPIRATION].restart();
 
-		// ±â°£Á¦ °Ë»ç
+		// ï¿½â°£ï¿½ï¿½ ï¿½Ë»ï¿½
 		m_kUserTitleManager.ExpireTitle( GetThisPtr<KGSUser>() );
 	}
 }
@@ -2453,8 +2453,8 @@ void KGSUser::CheckTimeEvent()
 		m_kInventory.GetItemIDSet( setItemID );
 #endif SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 		
-		// Á¢¼Ó ½Ã°£ ÀÌº¥Æ® Ã¼Å©
-		//{{ 2012. 10. 13	¹Ú¼¼ÈÆ	Á¢¼Ó ÀÌº¥Æ® ÀÎÀÚ Á¤¸®
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ® Ã¼Å©
+		//{{ 2012. 10. 13	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CONNECT_EVENT_FACTOR_SET
 		char cAPinkEventUserType	= 0;
 		int	iAPinkScriptID			= -1;
@@ -2464,41 +2464,41 @@ void KGSUser::CheckTimeEvent()
 			GetLevel(),
 			IsPcBang(),
 			GetChannelCode(),
-#ifdef SERV_BUBBLE_FIGHTER_TOGETHER_EVENT	// ºôµå ¿À·ù·Î ÇØ¿ÜÆÀ Ãß°¡
+#ifdef SERV_BUBBLE_FIGHTER_TOGETHER_EVENT	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			GetBF_Team(),
 #endif // SERV_BUBBLE_FIGHTER_TOGETHER_EVENT
 			GetUnitType(),
 			GetUnitClass(),
 			false
 
-			//{{ 2012. 04. 13	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+			//{{ 2012. 04. 13	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 #else
-			//{{ 2012. 03. 26	¹Ú¼¼ÈÆ	¾Æ¸®¿¤ÀÇ º¹±Í ¿ë»ç´ÔÀ» À§ÇÑ ¼±¹°! ( º¹±Í À¯Àú Ç¥½Ã )
+			//{{ 2012. 03. 26	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK
 			, IsEventReturnUser()
 #endif SERV_EVENT_RETURN_USER_MARK
 			//}}
 #endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
 			//}}
-			//{{ 2012. 06. 07	¹Ú¼¼ÈÆ	¸ÅÀÏ¸ÅÀÏ ¼±¹° »óÀÚ
+			//{{ 2012. 06. 07	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 			, m_mmapDailyGiftBoxList
 #endif SERV_EVENT_DAILY_GIFT_BOX
 			//}}
 			, m_kComeBackUserInfo.GetIsComeBackUser()
-			//{{ 2012. 12. 11	¹Ú¼¼ÈÆ	±âÁØ ÀÏÀÚ ÀÌº¥Æ® ÀÛ¾÷
+			//{{ 2012. 12. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Û¾ï¿½
 #ifdef SERV_FIXED_DATE_EVENT
 			, m_kAccountInfo
 #endif SERV_FIXED_DATE_EVENT
 			//}}
-			//{{ 2012. 12. 12	¹Ú¼¼ÈÆ	°Ü¿ï ¹æÇÐ Àü¾ß ÀÌº¥Æ®( ÀÓ½Ã, ÇÏµå ÄÚµù )
+			//{{ 2012. 12. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®( ï¿½Ó½ï¿½, ï¿½Ïµï¿½ ï¿½Úµï¿½ )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 			, m_wstrWinterVacationEventRegDate
 			, m_iWinterVacationEventCount
 #endif SERV_2012_WINTER_VACATION_EVENT
 			//}}
-			//{{ 2012. 12. 25	¹Ú¼¼ÈÆ	Æ¯Á¤ À¯Àú Àü¿ë Á¢¼Ó ÀÌº¥Æ®
+			//{{ 2012. 12. 25	ï¿½Ú¼ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_SPECIFIC_USER_CONNECT_EVENT
 			, GetUID()
 #endif SERV_SPECIFIC_USER_CONNECT_EVENT
@@ -2509,7 +2509,7 @@ void KGSUser::CheckTimeEvent()
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 			, GetCustonEventID()
 #endif //SERV_CUSTOM_CONNECT_EVENT
-#ifdef	SERV_CRITERION_DATE_EVENT// Àû¿ë³¯Â¥: 2013-04-11
+#ifdef	SERV_CRITERION_DATE_EVENT// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-11
 			, GetCriterionDateEventInfo()
 			, GetAccountRegDate()
 #endif	// SERV_CRITERION_DATE_EVENT
@@ -2529,7 +2529,7 @@ void KGSUser::CheckTimeEvent()
 		m_kUserEventManager.CheckConnectTimeEvent( GetThisPtr<KGSUser>(), kFactor );
 #else
 		m_kUserEventManager.CheckConnectTimeEvent( GetThisPtr<KGSUser>()
-			//{{ 2012. 06. 07	¹Ú¼¼ÈÆ	¸ÅÀÏ¸ÅÀÏ ¼±¹° »óÀÚ
+			//{{ 2012. 06. 07	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 			, GetCharUID()
 			, m_mmapDailyGiftBoxList
@@ -2542,9 +2542,9 @@ void KGSUser::CheckTimeEvent()
 #endif SERV_CONNECT_EVENT_FACTOR_SET
 		//}}
 
-		//{{ 2009. 12. 7  ÃÖÀ°»ç	´©Àû½Ã°£ÀÌº¥Æ®
+		//{{ 2009. 12. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½Ìºï¿½Æ®
 #ifdef CUMULATIVE_TIME_EVENT
-		//{{ 2012. 12. 12	¹Ú¼¼ÈÆ	°Ü¿ï ¹æÇÐ Àü¾ß ÀÌº¥Æ®( ÀÓ½Ã, ÇÏµå ÄÚµù )
+		//{{ 2012. 12. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®( ï¿½Ó½ï¿½, ï¿½Ïµï¿½ ï¿½Úµï¿½ )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 		m_kUserEventManager.CheckCumulativeTimeEvent( GetThisPtr<KGSUser>(), kFactor );
 #else
@@ -2554,18 +2554,18 @@ void KGSUser::CheckTimeEvent()
 #endif CUMULATIVE_TIME_EVENT
 		//}}
 
-		//{{ 2010. 02. 06  ÃÖÀ°»ç	ÀÏÀÏ ÀÌº¥Æ® Äù½ºÆ®
+		//{{ 2010. 02. 06  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_DAY_QUEST
 		m_kUserQuestManager.CheckQuestEvent( GetThisPtr<KGSUser>() );
 #endif SERV_DAY_QUEST
 		//}}
-		//{{ QUEST °³Æí - ±è¹Î¼º
+		//{{ QUEST ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_QUEST
 		m_kUserQuestManager.CheckResetDayEventQuest_AutoAccept( GetThisPtr<KGSUser>() );
 #endif SERV_REFORM_QUEST
 		//}}
 
-		//{{ 2013. 03. 21	 °èÁ¤ Äù½ºÆ® - ¿äÀÏº° È°¼ºÈ­ ±â´É - ±è¹Î¼º
+		//{{ 2013. 03. 21	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½Ïºï¿½ È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ACCOUNT_QUEST_DAY_OF_WEEK
 		m_kUserAccountQuestManager.CheckResetDayAccountQuest_AutoAccept( GetThisPtr<KGSUser>() );
 #endif SERV_ACCOUNT_QUEST_DAY_OF_WEEK
@@ -2578,7 +2578,7 @@ void KGSUser::CheckTimeEvent()
 	}
 }
 
-//{{ 2012. 04. 13	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+//{{ 2012. 04. 13	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 void KGSUser::CheckCriterionEvent( void )
 {
@@ -2589,14 +2589,14 @@ void KGSUser::CheckCriterionEvent( void )
 
 		m_kTimer[TM_CRITERION_EVENT_CHECK].restart();
 
-		// ±âÁØ ½Ã°¢ º¹±Í À¯Àú ÀÌº¥Æ® Ã¼Å©
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® Ã¼Å©
 		m_kUserEventManager.CheckCriterionEvent( GetThisPtr<KGSUser>() );
 	}
 }
 #endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
 //}}
 
-//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦
+//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef AP_RESTONE
 void KGSUser::CheckAutoPayment()
 {
@@ -2610,7 +2610,7 @@ void KGSUser::CheckAutoPayment()
 		if( m_tAutoPaymentCheckTime.GetTime() == 0 )
 			return;
 
-		// ºÎÈ°¼® °¹¼ö°¡ 1°³ÀÌ»óÀÌ¸é Ã¼Å©ÇÏÁö ¾Ê½À´Ï´Ù.
+		// ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½Ì»ï¿½ï¿½Ì¸ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
 		if( m_iNumAutoPaymentResStone > 0 )
 			return;
 
@@ -2623,16 +2623,16 @@ void KGSUser::CheckAutoPayment()
 			KENX_BT_CHECK_AUTO_PAYMENT_USER_REQ kPacketReq;
 			kPacketReq.m_ulPacketNo		= SiKNexonBillingTCPManager()->GetNextPacketNo();
 			kPacketReq.m_bytePacketType	= KNexonBillingTCPPacket::CHECK_AUTO_PAYMENT_USER;
-			kPacketReq.m_wstrGameID		= GetName(); // ÀÎº¥Åä¸® °øÀ¯¸¦ À§ÇØ Nexon ID¸¦ ¾´´Ù.
+			kPacketReq.m_wstrGameID		= GetName(); // ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Nexon IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 			kPacketReq.m_wstrUserID		= GetName();			
 
 			if( KSimLayer::GetKObj()->GetBillingFlag() == KSimLayer::BF_NEXON_KOREA )
 			{
-				kPacketReq.m_ulProductNo = 67215; // º»¼· : ÄÚº¸ ¼­Æ÷Æ® ¼­ºñ½º 
+				kPacketReq.m_ulProductNo = 67215; // ï¿½ï¿½ï¿½ï¿½ : ï¿½Úºï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ 
 			}
 			else
 			{
-				kPacketReq.m_ulProductNo = 77697; // Å×¼· : ÄÚº¸ ¼­Æ÷Æ® ¼­ºñ½º 
+				kPacketReq.m_ulProductNo = 77697; // ï¿½×¼ï¿½ : ï¿½Úºï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ 
 			}
 
 			KEventPtr spEvent( new KEvent );
@@ -2640,7 +2640,7 @@ void KGSUser::CheckAutoPayment()
 			spEvent->SetData( PI_GS_NX_BILLING_TCP, anTrace, ENX_BT_CHECK_AUTO_PAYMENT_USER_REQ, kPacketReq );
 			SiKNexonBillingTCPManager()->QueueingEvent( spEvent );
 
-			// ÀÚµ¿°áÁ¦ Ã¼Å© ½Ã°¢ Áö³µÀ¸¹Ç·Î ´ÙÀ½³¯ 6½Ã·Î ´Ù½Ã Ã¼Å©½Ã°¢ ¼³Á¤!
+			// ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 6ï¿½Ã·ï¿½ ï¿½Ù½ï¿½ Ã¼Å©ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			m_tAutoPaymentCheckTime += CTimeSpan( 1, 0, 0, 0 );
 		}
 	}
@@ -2648,7 +2648,7 @@ void KGSUser::CheckAutoPayment()
 #endif AP_RESTONE
 //}}
 
-//{{ 2010. 02. 16  ÃÖÀ°»ç	ÇØÅ·Åø ¸®½ºÆ®
+//{{ 2010. 02. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_HACKING_TOOL_LIST
 
 void KGSUser::CheckHackingToolList()
@@ -2665,18 +2665,18 @@ void KGSUser::CheckHackingToolList()
 #endif SERV_HACKING_TOOL_LIST
 //}}
 
-//{{ 2010. 7. 30 ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//{{ 2010. 7. 30 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 
 void KGSUser::CheckAutoFeed()
 {
-	// ÀÚµ¿ ¸ÔÀÌ ±â´É Ã¼Å©!
+	// ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã¼Å©!
 	KEGS_CHANGED_PET_SATIETY_NOT kNotSatiety;
 	KEGS_CHANGED_PET_INTIMACY_NOT kNotIntimacy;
 	KEGS_AUTO_FEED_NOT kAutoFeedPacket;
 	bool bIsFirstFeed = false;
 
-	//{{ 2011. 05. 23  ±è¹Î¼º	Å¥ÇÇ¿¤ Á©¸® Ä£¹Ðµµ Áõ°¨
+	//{{ 2011. 05. 23  ï¿½ï¿½Î¼ï¿½	Å¥ï¿½Ç¿ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä£ï¿½Ðµï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ADD_KEWPIEL_JELLY
 	int iAddIntimacy  = 0;
 	if( m_kUserPetManager.CheckAutoFeed( GetThisPtr<KGSUser>(), bIsFirstFeed, kNotSatiety, kNotIntimacy, kAutoFeedPacket, iAddIntimacy ) == true )
@@ -2692,7 +2692,7 @@ void KGSUser::CheckAutoFeed()
 		}
 		SendPacket( EGS_AUTO_FEED_NOT, kAutoFeedPacket );
 
-		// Ã¹¸ÔÀÌ¶ó¸é Ã¹ ¸ÔÀÌ ÆÐÅ¶À» ³¯¸®ÀÚ!
+		// Ã¹ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 		if( bIsFirstFeed == true )
 		{
 			KEGS_FIRST_FEED_PETS_NOT kPacketNot;
@@ -2700,15 +2700,15 @@ void KGSUser::CheckAutoFeed()
 			SendPacket( EGS_FIRST_FEED_PETS_NOT, kPacketNot );
 		}		
 
-		// ³ª¸¦ Æ÷ÇÔÇÑ ÁÖº¯ À¯Àú¿¡°Ô ¸ÔÀÌ ¸Ô´Â ¾×¼ÇÀ» º¸³»ÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Öºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´ï¿½ ï¿½×¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 		SendPetAction( CXSLPetManager::PAC_EAT );
 
-		//{{ 2011. 05. 16  ±è¹Î¼º	ÄªÈ£ È¹µæ Á¶°Ç Ãß°¡
+		//{{ 2011. 05. 16  ï¿½ï¿½Î¼ï¿½	ÄªÈ£ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_TITLE_CONDITION
 		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( kAutoFeedPacket.m_iFeedItemID );
 		if( pItemTemplet == NULL )
 		{
-			START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â ¾ÆÀÌÅÛÀÔ´Ï´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 				<< BUILD_LOG( kAutoFeedPacket.m_iFeedItemID )
 				<< END_LOG;
 
@@ -2717,7 +2717,7 @@ void KGSUser::CheckAutoFeed()
 
 		if( m_kUserTitleManager.GivePetFeed( pItemTemplet->m_ItemGrade, GetThisPtr<KGSUser>() ) == true )
 		{
-			// ¿Ï·áµÈ ÄªÈ£ ¹Ì¼ÇÀÌ ÀÖÀ¸¸é »õ ¹Ì¼ÇÀÌ ÀÖ´ÂÁö °Ë»çÇÑ´Ù
+			// ï¿½Ï·ï¿½ï¿½ ÄªÈ£ ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½
 			m_kUserTitleManager.CheckNewMission( GetThisPtr<KGSUser>(), true );
 		}
 #endif SERV_ADD_TITLE_CONDITION
@@ -2725,22 +2725,22 @@ void KGSUser::CheckAutoFeed()
 	}
 }
 
-//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 void KGSUser::CheckUpdateWorldMission()
 {
-	//	Æ½Ä«¿îÆ®°¡ º¯ÇÏ°Å³ª 60ÃÊ¸¶´Ù ÇÑ¹ø¾¿ ¾÷µ¥ÀÌÆ®
+	//	Æ½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°Å³ï¿½ 60ï¿½Ê¸ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	if( SiKGSWorldMissionManager()->GetTickCount() == m_iWorldMissionTickCount )
 		return;
 
 	m_iWorldMissionTickCount = SiKGSWorldMissionManager()->GetTickCount();
 
-	//	Á¤º¸¹Þ±â
+	//	ï¿½ï¿½ï¿½ï¿½ï¿½Þ±ï¿½
 	KEGS_WORLD_MISSION_UPDATE_NOT kNot;
 
 	SiKGSWorldMissionManager()->GetMissionInfo( kNot );
 
-	//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 	CTime tCurr = CTime::GetCurrentTime();
 
@@ -2749,7 +2749,7 @@ void KGSUser::CheckUpdateWorldMission()
 	int iWorldBuff = SiKGSWorldMissionManager()->GetWorldBuffState();
 	int iWorldBuffPriod = SiKGSWorldMissionManager()->GetWorldBuffEndTime();
 
-	//{{ 2013. 04. 15	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 15	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 #ifdef SERV_NEW_DEFENCE_DUNGEON_NO_USE_DEFENSE_BUFF_AND_DEBUFF
 #else //SERV_NEW_DEFENCE_DUNGEON_NO_USE_DEFENSE_BUFF_AND_DEBUFF
@@ -2832,31 +2832,31 @@ void KGSUser::CheckUpdateWorldMission()
 #endif SERV_SERVER_BUFF_SYSTEM
 	//}
 
-	//	À¯Àú¿¡°Ô ÆÐÅ¶³¯¸®±â
+	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	SendPacket( EGS_WORLD_MISSION_UPDATE_NOT, kNot );
 }
 #endif SERV_INSERT_GLOBAL_SERVER
-//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
 bool KGSUser::AutoFeedInPetInventory( IN bool bOnlyEatSpecial, OUT int& iFeedItemID, OUT std::vector< KInventoryItemInfo >& vecPetInventorySlotInfo )
 {
 	return m_kInventory.AutoFeedInPetInventory( GetLevel(), bOnlyEatSpecial, iFeedItemID, vecPetInventorySlotInfo );
 }
 
-//{{ 2012. 12. 24	¹Ú¼¼ÈÆ	Æê ¿ÀÅä ·çÆÃ ±â´É Ãß°¡
+//{{ 2012. 12. 24	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_PET_AUTO_LOOTING
 int KGSUser::CanIUseTheAutoLootingItem( IN const UidType iPetUID )
 {
 	KUserPetPtr spPet = m_kUserPetManager.GetPet( iPetUID );
 	if( spPet == NULL )
 	{
-		START_LOG( cerr, L"º¸À¯ ÇÏ°í ÀÖÁö ¾Ê´Â PetUIDÀÔ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ PetUIDï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iPetUID )
 			<< END_LOG;
 		return NetError::ERR_PET_26;
 	}
 
-	// 2. ¼ÒÈ¯µÈ ÆêÀº »ý¸íÀÇ °áÁ¤ »óÅÂÀÎ°¡?
+	// 2. ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 	if( spPet->GetEvolutionStep() == 0 )
 	{
 		if( SiCXSLPetManager()->IsEvolutionExceptionPet( spPet->GetPetID() ) == false )
@@ -2866,7 +2866,7 @@ int KGSUser::CanIUseTheAutoLootingItem( IN const UidType iPetUID )
 	}
 
 
-	// 3. ¼ÒÈ¯µÈ ÆêÀÌ ÀÌ¹Ì ¿ÀÅä ·çÆÃ ±â´ÉÀ» »ç¿ëÁßÀÌÁø ¾ÊÀº°¡?
+	// 3. ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?
 	if( spPet->IsAutoLootingPet() == true )
 	{
 		return NetError::ERR_PET_28;
@@ -2880,7 +2880,7 @@ void KGSUser::SetAutoLootingPet( IN const UidType iPetUID )
 	KUserPetPtr spPet = m_kUserPetManager.GetPet( iPetUID );
 	if( spPet == NULL )
 	{
-		START_LOG( cerr, L"º¸À¯ ÇÏ°í ÀÖÁö ¾Ê´Â PetUIDÀÔ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ PetUIDï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iPetUID )
 			<< END_LOG;
 		return;
@@ -2896,26 +2896,26 @@ int KGSUser::CanIUseTransformItem( IN const UidType iPetUID )
 	KUserPetPtr spPet = m_kUserPetManager.GetPet( iPetUID );
 	if( spPet == NULL )
 	{
-		START_LOG( cerr, L"º¸À¯ ÇÏ°í ÀÖÁö ¾Ê´Â PetUIDÀÔ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ PetUIDï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iPetUID )
 			<< END_LOG;
 		return NetError::ERR_PET_26;
 	}
 
-	// 1. ¼ÒÈ¯µÈ ÆêÀº º¯½Å ¹°¾à »ç¿ëÇÒ ¼ö ÀÖ´Â ÆêÀÎ°¡?
+	// 1. ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Î°ï¿½?
 	if( spPet->GetPetID() != CXSLPetManager::PUI_HALLOWEEN_PUMPKIN_TANYA && spPet->GetPetID() != CXSLPetManager::PUI_HALLOWEEN_PUMPKIN_LAEL &&
 		spPet->GetPetID() != CXSLPetManager::PUI_HALLOWEEN_PUMPKIN_LOJETA && spPet->GetPetID() != CXSLPetManager::PUI_HALLOWEEN_PUMPKIN_NARENEA &&
 		spPet->GetPetID() != CXSLPetManager::PUI_HALLOWEEN_PUMPKIN_TANYA_F && spPet->GetPetID() != CXSLPetManager::PUI_HALLOWEEN_PUMPKIN_LAEL_F &&
 		spPet->GetPetID() != CXSLPetManager::PUI_HALLOWEEN_PUMPKIN_LOJETA_F && spPet->GetPetID() != CXSLPetManager::PUI_HALLOWEEN_PUMPKIN_NARENEA_F
 		)
 	{
-		START_LOG( cerr, L"º¯½Å ¹°¾àÀ» »ç¿ëÇÒ¼ö ÀÖ´Â ÆêÀÌ ¾Æ´Õ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Õ´Ï´ï¿½." )
 			<< BUILD_LOG( iPetUID )
 			<< END_LOG;
 		return NetError::ERR_HW_PET_02;
 	}
 
-	// 2. ¼ÒÈ¯µÈ ÆêÀº »ý¸íÀÇ ¿ÏÀüÃ¼ »óÅÂÀÎ°¡?
+	// 2. ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 	if( spPet->GetEvolutionStep() != 3 )
 	{
 		if( SiCXSLPetManager()->IsEvolutionExceptionPet( spPet->GetPetID() ) == false )
@@ -2924,7 +2924,7 @@ int KGSUser::CanIUseTransformItem( IN const UidType iPetUID )
 		}
 	}
 
-	// 3. ¼ÒÈ¯µÈ ÆêÀÌ Ä£¹Ðµµ 100% ÀÎ°¡?
+	// 3. ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä£ï¿½Ðµï¿½ 100% ï¿½Î°ï¿½?
 	if( ( static_cast<float>(spPet->GetIntimacy()) / static_cast<float>(spPet->GetMaxIntimacy()) * 100.f ) < 100.f  )
 	{
 		return NetError::ERR_HW_PET_01;
@@ -2938,7 +2938,7 @@ void KGSUser::UseTransformItem( IN int iUsedItemID, IN const UidType iPetUID, OU
 	KUserPetPtr spPet = m_kUserPetManager.GetPet( iPetUID );
 	if( spPet == NULL )
 	{
-		START_LOG( cerr, L"º¸À¯ ÇÏ°í ÀÖÁö ¾Ê´Â PetUIDÀÔ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ PetUIDï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iPetUID )
 			<< END_LOG;
 		return;
@@ -2964,7 +2964,7 @@ void KGSUser::UseTransformItem( IN int iUsedItemID, IN const UidType iPetUID, OU
 
 	spPet->ChangePetID( iAfterPetID );
 
-	// Ä£¹Ðµµ¸¦ 0À¸·Î ÃÊ±âÈ­ ÇÏÀÚ!
+	// Ä£ï¿½Ðµï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½!
 	if( spPet->GetIntimacy() > 0 )
 	{
 		const int iCurIntimacy = spPet->DecreaseIntimacy( spPet->GetIntimacy() );
@@ -2976,7 +2976,7 @@ void KGSUser::UseTransformItem( IN int iUsedItemID, IN const UidType iPetUID, OU
 #endif SERV_PET_SYSTEM
 //}}
 
-//{{ 2010. 07. 04  ÃÖÀ°»ç	½ºÅ³ Æ÷ÀÎÆ® ¿À·ù È®ÀÎ
+//{{ 2010. 07. 04  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 #ifdef SERV_CHECK_SKILL_POINT
 
 bool KGSUser::CheckSkillPointError()
@@ -2984,14 +2984,14 @@ bool KGSUser::CheckSkillPointError()
 	if( GetCharUID() == 0 )
 		return false;
 
-	// fix!! ÀÓ½Ã·Î ³» SP ¼öÄ¡¿¡ ¿À·ù°¡ ÀÖÁö ¾ÊÀºÁö ·Î±×¸¦ ³²±ä´Ù
+	// fix!! ï¿½Ó½Ã·ï¿½ ï¿½ï¿½ SP ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 	int iUsedSPoint = 0;
 	int iUsedCSPoint = 0;
 	m_kSkillTree.CalcUsedSPointAndCSPoint( iUsedSPoint, iUsedCSPoint );
 
 	if( m_kSkillTree.IsCashSkillPointExpired() == false )
 	{
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 		int iRetrievedSPoint = 0;
 		SiCXSLSkillTree()->GetCalcInitSkillPoint( GetLevel(), iRetrievedSPoint );
 		const int iCheckSP = iRetrievedSPoint + m_kSkillTree.GetMaxCSPoint();
@@ -3004,10 +3004,10 @@ bool KGSUser::CheckSkillPointError()
 
 		if( iCheckSP != iCurSP )
 		{
-			//{{ 2009. 6. 16  ÃÖÀ°»ç	ÀÏ¹ÝÀ¯ÀúÀÏ °æ¿ì¸¸ ¿¡·¯ÂïÀ½
+			//{{ 2009. 6. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ï¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¸¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			if( GetAuthLevel() < SEnum::UAL_GM )
 			{
-				START_LOG( cerr, L"³»°¡ °¡Áö°í ÀÖ´Â SP º¸À¯·®¿¡ ¹®Á¦°¡ ÀÖÀ» ¼ö ÀÖ½À´Ï´Ù.!" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ SP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.!" )
 					<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 					<< BUILD_LOG( GetCharName() )
@@ -3024,8 +3024,8 @@ bool KGSUser::CheckSkillPointError()
 			}
 			else
 			{
-				// ¿î¿µÀÚ±Þ ÀÌ»óÀº Å×½ºÆ® ¸ñÀûÀ¸·Î SP¸¦ º¯°æÇÒ ¼ö ÀÖ±â ¶§¹®¿¡ ¿¡·¯¸¦ ÂïÁö ¾Ê½À´Ï´Ù.
-				START_LOG( cwarn, L"³»°¡ °¡Áö°í ÀÖ´Â SP º¸À¯·®¿¡ ¹®Á¦°¡ ÀÖÀ» ¼ö ÀÖ½À´Ï´Ù.!" )
+				// ï¿½î¿µï¿½Ú±ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
+				START_LOG( cwarn, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ SP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.!" )
 					<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 					<< BUILD_LOG( GetCharName() )
@@ -3048,7 +3048,7 @@ bool KGSUser::CheckSkillPointError()
 	{
 		if( iUsedCSPoint != 0  ||  m_kSkillTree.GetCSPoint() != 0 )
 		{
-			START_LOG( cerr, L"CSP »ç¿ë±â°£ÀÌ ¸¸·áµÇ¾ú´Âµ¥ CSP°¡ ³²¾ÆÀÖ´Ù" )
+			START_LOG( cerr, L"CSP ï¿½ï¿½ï¿½â°£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Âµï¿½ CSPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½" )
 				<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharName() )
@@ -3064,7 +3064,7 @@ bool KGSUser::CheckSkillPointError()
 		}
 		else
 		{
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 			int iRetrievedSPoint = 0;
 			SiCXSLSkillTree()->GetCalcInitSkillPoint( GetLevel(), iRetrievedSPoint );
 			const int iCheckSP = iRetrievedSPoint;
@@ -3076,10 +3076,10 @@ bool KGSUser::CheckSkillPointError()
 
 			if( iCheckSP != iCurSP )
 			{
-				//{{ 2009. 6. 16  ÃÖÀ°»ç	ÀÏ¹ÝÀ¯ÀúÀÏ °æ¿ì¸¸ ¿¡·¯ÂïÀ½
+				//{{ 2009. 6. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ï¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¸¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				if( GetAuthLevel() < SEnum::UAL_GM )
 				{
-					START_LOG( cerr, L"³»°¡ °¡Áö°í ÀÖ´Â SP º¸À¯·®¿¡ ¹®Á¦°¡ ÀÖÀ» ¼ö ÀÖ½À´Ï´Ù.!!" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ SP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.!!" )
 						<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 						<< BUILD_LOG( GetCharName() )
@@ -3096,8 +3096,8 @@ bool KGSUser::CheckSkillPointError()
 				}
 				else
 				{
-					// ¿î¿µÀÚ±Þ ÀÌ»óÀº Å×½ºÆ® ¸ñÀûÀ¸·Î SP¸¦ º¯°æÇÒ ¼ö ÀÖ±â ¶§¹®¿¡ ¿¡·¯¸¦ ÂïÁö ¾Ê½À´Ï´Ù.
-					START_LOG( cwarn, L"³»°¡ °¡Áö°í ÀÖ´Â SP º¸À¯·®¿¡ ¹®Á¦°¡ ÀÖÀ» ¼ö ÀÖ½À´Ï´Ù.!!" )
+					// ï¿½î¿µï¿½Ú±ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
+					START_LOG( cwarn, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ SP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.!!" )
 						<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 						<< BUILD_LOG( GetCharName() )
@@ -3124,20 +3124,20 @@ bool KGSUser::CheckSkillPointError()
 #endif SERV_CHECK_SKILL_POINT
 //}}
 
-//{{ 2011. 12. 22	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2011. 12. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KGSUser::CheckWaitPartyUser()
 {
 	if( GetStateID() > KGSFSM::S_SERVER_SELECT  &&  GetStateID() < KGSFSM::STATE_SENTINEL )
 	{
-		// ÆÄÆ¼ ÃÊ´ë ½Ã°£ Ã¼Å©
+		// ï¿½ï¿½Æ¼ ï¿½Ê´ï¿½ ï¿½Ã°ï¿½ Ã¼Å©
 		m_kUserPartyManager.CheckWaitPartyUser();
 	}
 }
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2011. 06. 17	ÃÖÀ°»ç	ÆÐÅ¶ ÀÌº¥Æ® º¸¾È
+//{{ 2011. 06. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å¶ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_KEVENT_FROM
 bool KGSUser::CheckIsValidPacketEvent( IN const KEventPtr& spEvent_, IN const wchar_t* pszPacketStructName, IN const bool bIsDeserializeSuccess, IN const bool bIsValidPacketID )
 {
@@ -3180,7 +3180,7 @@ bool KGSUser::CheckIsValidPacketEvent( IN const KEventPtr& spEvent_, IN const wc
 #endif SERV_KEVENT_FROM
 //}}
 
-#ifdef SERV_FIX_KGSUSER_KICK// ÀÛ¾÷³¯Â¥: 2013-08-22	// ¹Ú¼¼ÈÆ
+#ifdef SERV_FIX_KGSUSER_KICK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-08-22	// ï¿½Ú¼ï¿½ï¿½ï¿½
 void KGSUser::Kick( IN const int iNetError )
 {
 	KStatistics::ESIColumn_Disconnect_Reason eDisconnectReason = KStatistics::eSIColDR_Unknown;
@@ -3198,9 +3198,9 @@ void KGSUser::Kick( IN const int iNetError )
 
 	case NetError::ERR_ADMIN_COMMAND_07:
 		eDisconnectReason = KStatistics::eSIColDR_GM_Kick_User;
-		//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+		//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
-		//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+		//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 		{
 			KEGS_SERVER_CHECK_HACK_USER_REQ kPacket;
@@ -3210,7 +3210,7 @@ void KGSUser::Kick( IN const int iNetError )
 #endif SERV_CHECK_KICK_USER_IN_GAMESERVER
 		//}}
 #else
-		//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+		//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 		{
 			KEGS_SERVER_CHECK_HACK_USER_NOT kPacket;
@@ -3235,25 +3235,25 @@ void KGSUser::Kick( IN const int iNetError )
 		eDisconnectReason = KStatistics::eSIColDR_User_Reg_Error;
 		break;
 
-		//{{ 2009. 3. 5  ÃÖÀ°»ç		Ã¤³ÎÀÌµ¿
+		//{{ 2009. 3. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ã¤ï¿½ï¿½ï¿½Ìµï¿½
 	case NetError::ERR_CHANNEL_CHANGE_03:
-		// Ã¤³ÎÀÌµ¿ ¼º°øÀ¸·Î ÀÎÇÑ Á¢¼ÓÁ¾·á
+		// Ã¤ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		eDisconnectReason = KStatistics::eSIColDR_Channel_Change;
 		break;
 		//}}
-		//{{ 2010. 06. 22  ÃÖÀ°»ç	°èÁ¤ºí·°±â´É
+		//{{ 2010. 06. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ACCOUNT_BLOCK
 	case NetError::ERR_ACCOUNT_BLOCK_00:
 		eDisconnectReason = KStatistics::eSIColDR_GameServer_Account_Block;
 
-#ifdef SERV_ACCOUNT_BLOCK_USER_POPUP_TEMP// ÀÛ¾÷³¯Â¥: 2013-06-18	// ¹Ú¼¼ÈÆ
+#ifdef SERV_ACCOUNT_BLOCK_USER_POPUP_TEMP// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-18	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		SendID( EGS_ACCOUNT_BLOCK_USER_POPUP_NOT );
 #endif // SERV_ACCOUNT_BLOCK_USER_POPUP_TEMP
 
 		break;
 #endif SERV_ACCOUNT_BLOCK
 		//}}
-		//{{ 2011. 08. 09	ÃÖÀ°»ç	¸Ó½ÅID ºí·°±â´É
+		//{{ 2011. 08. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó½ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MACHINE_ID_BLOCK
 	case NetError::ERR_CHECK_MACHINE_ID_00:
 		eDisconnectReason = KStatistics::eSIColDR_MachineID_Block;
@@ -3261,7 +3261,7 @@ void KGSUser::Kick( IN const int iNetError )
 #endif SERV_MACHINE_ID_BLOCK
 		//}}
 
-		//{{ 2011. 08. 17	ÃÖÀ°»ç	¸Ó½ÅID Áßº¹ Á¢¼Ó Â÷´Ü
+		//{{ 2011. 08. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó½ï¿½ID ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MACHINE_ID_DUPLICATE_CHECK
 	case NetError::ERR_USER_REGISTRATION_10:
 		eDisconnectReason = KStatistics::eSIColDR_Same_MachineID_Connect;
@@ -3270,7 +3270,7 @@ void KGSUser::Kick( IN const int iNetError )
 		//}}
 
 	default:
-		START_LOG( cerr, L"Kick Reason°ªÀÌ ÀÌ»óÇÕ´Ï´Ù." )
+		START_LOG( cerr, L"Kick Reasonï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 			<< BUILD_LOG( iNetError )			
 			<< END_LOG;		
 		break;
@@ -3292,7 +3292,7 @@ void KGSUser::Kick( int iReason )
         m_bReportDisconnectToLogin = false;
     }
 
-#ifdef SERV_FIX_KGSUSER_KICK// ÀÛ¾÷³¯Â¥: 2013-08-22	// ¹Ú¼¼ÈÆ
+#ifdef SERV_FIX_KGSUSER_KICK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-08-22	// ï¿½Ú¼ï¿½ï¿½ï¿½
 #else // SERV_FIX_KGSUSER_KICK
     SendPacket( E_KICK_USER_NOT, iReason );
 #endif // SERV_FIX_KGSUSER_KICK
@@ -3308,9 +3308,9 @@ void KGSUser::Kick( int iReason )
 
 	case NetError::ERR_ADMIN_COMMAND_07:
 		iIndex = KStatistics::eSIColDR_GM_Kick_User;
-		//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+		//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
-		//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+		//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 		{
 			KEGS_SERVER_CHECK_HACK_USER_REQ kPacket;
@@ -3320,7 +3320,7 @@ void KGSUser::Kick( int iReason )
 #endif SERV_CHECK_KICK_USER_IN_GAMESERVER
 		//}}
 #else
-		//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+		//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 		{
 			KEGS_SERVER_CHECK_HACK_USER_NOT kPacket;
@@ -3345,25 +3345,25 @@ void KGSUser::Kick( int iReason )
 		iIndex = KStatistics::eSIColDR_User_Reg_Error;
 		break;
 
-		//{{ 2009. 3. 5  ÃÖÀ°»ç		Ã¤³ÎÀÌµ¿
+		//{{ 2009. 3. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ã¤ï¿½ï¿½ï¿½Ìµï¿½
 	case NetError::ERR_CHANNEL_CHANGE_03:
-		// Ã¤³ÎÀÌµ¿ ¼º°øÀ¸·Î ÀÎÇÑ Á¢¼ÓÁ¾·á
+		// Ã¤ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		iIndex = KStatistics::eSIColDR_Channel_Change;
 		break;
 		//}}
-		//{{ 2010. 06. 22  ÃÖÀ°»ç	°èÁ¤ºí·°±â´É
+		//{{ 2010. 06. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ACCOUNT_BLOCK
 	case NetError::ERR_ACCOUNT_BLOCK_00:
 		iIndex = KStatistics::eSIColDR_GameServer_Account_Block;
 
-#ifdef SERV_ACCOUNT_BLOCK_USER_POPUP_TEMP// ÀÛ¾÷³¯Â¥: 2013-06-18	// ¹Ú¼¼ÈÆ
+#ifdef SERV_ACCOUNT_BLOCK_USER_POPUP_TEMP// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-18	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		SendID( EGS_ACCOUNT_BLOCK_USER_POPUP_NOT );
 #endif // SERV_ACCOUNT_BLOCK_USER_POPUP_TEMP
 
 		break;
 #endif SERV_ACCOUNT_BLOCK
 		//}}
-		//{{ 2011. 08. 09	ÃÖÀ°»ç	¸Ó½ÅID ºí·°±â´É
+		//{{ 2011. 08. 09	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó½ï¿½ID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MACHINE_ID_BLOCK
 	case NetError::ERR_CHECK_MACHINE_ID_00:
 		iIndex = KStatistics::eSIColDR_MachineID_Block;
@@ -3371,7 +3371,7 @@ void KGSUser::Kick( int iReason )
 #endif SERV_MACHINE_ID_BLOCK
 		//}}
 
-		//{{ 2011. 08. 17	ÃÖÀ°»ç	¸Ó½ÅID Áßº¹ Á¢¼Ó Â÷´Ü
+		//{{ 2011. 08. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ó½ï¿½ID ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MACHINE_ID_DUPLICATE_CHECK
 	case NetError::ERR_USER_REGISTRATION_10:
 		iIndex = KStatistics::eSIColDR_Same_MachineID_Connect;
@@ -3380,7 +3380,7 @@ void KGSUser::Kick( int iReason )
 		//}}
 
 	default:
-		START_LOG( cerr, L"Kick Reason°ªÀÌ ÀÌ»óÇÕ´Ï´Ù." )
+		START_LOG( cerr, L"Kick Reasonï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 			<< BUILD_LOG( iReason )			
 			<< END_LOG;		
 		break;
@@ -3411,7 +3411,7 @@ void KGSUser::SendToLogDB( unsigned short usEventID )
     SendToLogDB( usEventID, char() );
 }
 
-//{{ 2010. 02. 23  ÃÖÀ°»ç	À¥ Æ÷ÀÎÆ® ÀÌº¥Æ®
+//{{ 2010. 02. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ìºï¿½Æ®
 #ifdef SERV_WEB_POINT_EVENT
 
 void KGSUser::SendToNXWebDB( unsigned short usEventID )
@@ -3422,7 +3422,7 @@ void KGSUser::SendToNXWebDB( unsigned short usEventID )
 #endif SERV_WEB_POINT_EVENT
 //}}
 
-//{{ 2013. 09. 23	ÃÖÀ°»ç	ÀÏº» ÀÌº¥Æ® Áß°èDBÀÛ¾÷
+//{{ 2013. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ïºï¿½ ï¿½Ìºï¿½Æ® ï¿½ß°ï¿½DBï¿½Û¾ï¿½
 #ifdef SERV_RELAY_DB_CONNECTION
 void KGSUser::SendToRelayDB( unsigned short usEventID )
 {
@@ -3444,7 +3444,7 @@ void KGSUser::SendToCnUser( unsigned short usEventID )
     SendToCnUser( usEventID, char() );
 }
 
-//{{ 2009. 4. 24  ÃÖÀ°»ç	´ëÀüÀ¯Àú¸®½ºÆ®
+//{{ 2009. 4. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 void KGSUser::SendToCnServer( unsigned short usEventID )
 {
 	SendToCnServer( usEventID, char() );
@@ -3461,7 +3461,7 @@ void KGSUser::SendToCnRoom( unsigned short usEventID )
     SendToCnRoom( usEventID, char() );
 }
 
-//{{ 2011. 04. 29	ÃÖÀ°»ç	´ë¸®»óÀÎ
+//{{ 2011. 04. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸®ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 
 void KGSUser::SendToLoginRoom( unsigned short usEventID )
@@ -3477,7 +3477,7 @@ void KGSUser::SendToPShopRoom( unsigned short usEventID )
 #endif SERV_PSHOP_AGENCY
 //}}
 
-//{{ 2010. 02. 20  ÃÖÀ°»ç	Ã¤³Î ÆÄÆ¼ ÅëÇÕ
+//{{ 2010. 02. 20  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHANNEL_PARTY	
 void KGSUser::SendToCnParty( unsigned short usEventID )
 {
@@ -3496,30 +3496,30 @@ void KGSUser::SendToLoginServer( unsigned short usEventID )
 	SendToLoginServer( usEventID, char() );
 }
 
-//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 void KGSUser::SendToGlobalServer( unsigned short usEventID )
 {
 	SendToGlobalServer( usEventID, char() );
 }
 #endif SERV_INSERT_GLOBAL_SERVER
-//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
 void KGSUser::SetUnitInfo( const KUnitInfo& kInfo )
 {
-	//{{ 2009. 4. 2  ÃÖÀ°»ç		Ä³¸¯ÅÍÃÊ±âÈ­ °Ë»ç
+	//{{ 2009. 4. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ä³ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½È­ ï¿½Ë»ï¿½
 	if( GetCharUID() > 0 )
 	{
 		GetKUserManager()->UnregCharInfo( *this );
 
-		START_LOG( cerr, L"Ä³¸¯ÅÍ ¼±ÅÃÇÏ·Á´Âµ¥ ±âÁ¸ Ä³¸¯ÅÍ Á¤º¸°¡ ÃÊ±âÈ­ µÇ¾îÀÖÁö ¾Ê´Ù?" )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½?" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( kInfo.m_nUnitUID )
 			<< END_LOG;
 	}
 	//}}
 
-    // User UID ´Â ÀÌÀü¿¡ ¼¼ÆÃ µÇ¾ú´Ù.
+    // User UID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½.
     m_nUnitUID              = kInfo.m_nUnitUID;
 	m_uiKNMSerialNum		= kInfo.m_uiKNMSerialNum;
     m_cUnitClass            = kInfo.m_cUnitClass;
@@ -3528,13 +3528,13 @@ void KGSUser::SetUnitInfo( const KUnitInfo& kInfo )
 	//m_nPort				= kInfo.m_nPort;
 	m_ucLevel				= kInfo.m_ucLevel;
 
-	//{{ 2011. 09. 27	±è¹Î¼º	PC ¹æ ¿À°ú±Ý ¹æÁö
+	//{{ 2011. 09. 27	ï¿½ï¿½Î¼ï¿½	PC ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PCBANG_INCORRECT_BILLING
 	m_kUserStatistics.SetCharName( m_wstrNickName );
 #endif SERV_PCBANG_INCORRECT_BILLING
 	//}
 
-	//{{ 2012. 10. 02	ÃÖÀ°»ç		ED&¾ÆÀÌÅÛ ¸ð´ÏÅÍ¸µ ½Ã½ºÅÛ
+	//{{ 2012. 10. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ED&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 	SetED( kInfo.m_iED, KUserEDManager::ER_SET_ED_SELECT_UNIT );
 #else
@@ -3542,7 +3542,7 @@ void KGSUser::SetUnitInfo( const KUnitInfo& kInfo )
 #endif SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 	//}}	
 	m_kEXP.SetExp( kInfo.m_iEXP );
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 
 	m_kUserPvpManager.Init( kInfo.m_iOfficialMatchCnt, 
@@ -3553,10 +3553,10 @@ void KGSUser::SetUnitInfo( const KUnitInfo& kInfo )
 							kInfo.m_bIsWinBeforeMatch, 
 							kInfo.m_iWin, 
 							kInfo.m_iLose
-							//{{ 2012. 06. 20	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+							//{{ 2012. 06. 20	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 							, kInfo.m_cRank
-							//{{ 2012. 06. 25	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+							//{{ 2012. 06. 25	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 							, kInfo.m_fKFactor
 							, kInfo.m_bIsRedistributionUser
 							, kInfo.m_iPastSeasonWin
@@ -3574,20 +3574,20 @@ void KGSUser::SetUnitInfo( const KUnitInfo& kInfo )
 	m_kSkillTree.SetMaxCSPoint( kInfo.m_iMaxCSPoint );
 	if( true == kInfo.m_wstrCSPointEndDate.empty() )
 	{
-		// °ú°Å ½Ã°£À¸·Î ¼¼ÆÃ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		m_kSkillTree.SetCSPointEndDate( L"2000-01-01 00:00:00" );
 	}
 	else if( false == m_kSkillTree.SetCSPointEndDate( kInfo.m_wstrCSPointEndDate ) )
 	{
-		START_LOG( cerr, L"¹®ÀÚ¿­ ½Ã°£ º¯È¯ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kInfo.m_wstrCSPointEndDate )
 			<< END_LOG;
 
-		// °ú°Å ½Ã°£À¸·Î ¼¼ÆÃ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		m_kSkillTree.SetCSPointEndDate( L"2000-01-01 00:00:00" );
 	}
 
-	//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kUserSpiritManager.Init( kInfo.m_iSpirit, kInfo.m_iSpiritMax );
 #else
@@ -3596,7 +3596,7 @@ void KGSUser::SetUnitInfo( const KUnitInfo& kInfo )
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}	
 
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 #else
 	m_ePVPEmblem			= CXSLUnit::GetPVPEmblem( kInfo.m_iVSPointMax );
@@ -3608,14 +3608,14 @@ void KGSUser::SetUnitInfo( const KUnitInfo& kInfo )
 
 	m_kStat					= kInfo.m_kStat;
 
-	//{{ 2012. 02. 02	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	SetLastPosInfo( kInfo.m_kLastPos );
 #else
 	m_nMapID			    = kInfo.m_nMapID;
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}    
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 #else
 	m_iWin				    = kInfo.m_iWin;
@@ -3628,8 +3628,8 @@ void KGSUser::SetUnitInfo( const KUnitInfo& kInfo )
 	m_mapDungeonPlay       = kInfo.m_mapDungeonPlay;
 #endif SERV_LIMITED_DUNGEON_PLAY_TIMES
 
-	//{{ 2008. 10. 7  ÃÖÀ°»ç	Å¸ÀÌÆ²
-	//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+	//{{ 2008. 10. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å¸ï¿½ï¿½Æ²
+	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 	m_kUserTitleManager.SetEquippedTitleID( kInfo.m_iTitleID );
 #else
@@ -3638,7 +3638,7 @@ void KGSUser::SetUnitInfo( const KUnitInfo& kInfo )
 	//}}	
 	//}}
 
-	//{{ 2009. 9. 25  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 9. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 	m_kUserGuildManager.SetGuildInfo( kInfo.m_kUserGuildInfo );
 #endif GUILD_TEST
@@ -3677,7 +3677,7 @@ void KGSUser::GetUnitInfo( KUnitInfo& kInfo )
     kInfo.m_nUnitUID            = m_nUnitUID;
 	kInfo.m_uiKNMSerialNum		= m_uiKNMSerialNum;
     kInfo.m_cUnitClass          = GetUnitClass();
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 #else
 	kInfo.m_iPVPEmblem			= (int)m_ePVPEmblem;//GetPVPEmblem();
@@ -3691,7 +3691,7 @@ void KGSUser::GetUnitInfo( KUnitInfo& kInfo )
     kInfo.m_nNowBaseLevelEXP    = SiKExpTable()->GetRequireTotalExpbyLevel( static_cast<int>(GetLevel()) );
     kInfo.m_nNextBaseLevelEXP   = SiKExpTable()->GetRequireTotalExpbyLevel( static_cast<int>(GetLevel() + 1) );
 	kInfo.m_iEXP                = m_kEXP.GetExp();
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	kInfo.m_iOfficialMatchCnt	= m_kUserPvpManager.GetOfficialMatchCount();
 	kInfo.m_iRating				= GetRating();
@@ -3700,7 +3700,7 @@ void KGSUser::GetUnitInfo( KUnitInfo& kInfo )
 	kInfo.m_iAPoint				= GetAPoint();
 	kInfo.m_bIsWinBeforeMatch	= m_kUserPvpManager.IsWinBeforeMatch();
 
-	//{{ 2012. 06. 25	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 06. 25	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	kInfo.m_cRank				= GetPvpRankForClient();
 	kInfo.m_fKFactor			= m_kUserPvpManager.GetKFactor();
@@ -3716,14 +3716,14 @@ void KGSUser::GetUnitInfo( KUnitInfo& kInfo )
     kInfo.m_nStraightVictories  = m_nStraightVictories;
 	kInfo.m_kStat				= m_kStat;
 	kInfo.m_iSPoint				= m_iSPoint;
-	//{{ 2012. 02. 02	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	kInfo.m_kLastPos			= GetLastPosInfo();
 #else
 	kInfo.m_nMapID              = GetMapID();
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}    
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	kInfo.m_iWin				= GetWin();
 	kInfo.m_iLose				= GetLose();
@@ -3741,7 +3741,7 @@ void KGSUser::GetUnitInfo( KUnitInfo& kInfo )
 	m_kInventory.GetEquippedItem( kInfo.m_mapEquippedItem );
 
 	//////////////////////////////////////////////////////////////////////////
-	// ½ºÅ³°³Æí
+	// ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½
 	kInfo.m_iCSPoint			= m_kSkillTree.GetCSPoint();
 	kInfo.m_iMaxCSPoint			= m_kSkillTree.GetMaxCSPoint();
 	kInfo.m_wstrCSPointEndDate	= m_kSkillTree.GetCSPointEndDateString();
@@ -3766,7 +3766,7 @@ void KGSUser::GetUnitInfo( KUnitInfo& kInfo )
 
 	m_kSkillTree.GetPassiveSkillData( kInfo.m_UnitSkillData.m_vecPassiveSkill );
 
-	//{{ 2010. 04. 08  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+	//{{ 2010. 04. 08  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
 	m_kSkillTree.GetSkillNote( kInfo.m_UnitSkillData.m_vecSkillNote );
 #endif SERV_SKILL_NOTE
@@ -3776,7 +3776,7 @@ void KGSUser::GetUnitInfo( KUnitInfo& kInfo )
 
 	kInfo.m_bIsParty = ( GetPartyUID() > 0 );
 	
-	//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	kInfo.m_iSpiritMax			= m_kUserSpiritManager.GetSpiritMax();
 	kInfo.m_iSpirit				= m_kUserSpiritManager.GetSpirit();
@@ -3785,14 +3785,14 @@ void KGSUser::GetUnitInfo( KUnitInfo& kInfo )
 	kInfo.m_iSpirit				= m_iSpirit;
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}	
-	//{{ 2010. 01. 29  ÃÖÀ°»ç	PC¹æ »ó¿ëÈ­
+	//{{ 2010. 01. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½È­
 	kInfo.m_bIsGameBang         = IsPcBang();
 	//}}
 #ifdef SERV_PC_BANG_TYPE
 	kInfo.m_iPcBangType			= GetPcBangType();
 #endif SERV_PC_BANG_TYPE
 
-	//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 	kInfo.m_iTitleID			= m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -3800,7 +3800,7 @@ void KGSUser::GetUnitInfo( KUnitInfo& kInfo )
 #endif SERV_TITLE_DATA_SIZE
 	//}}	
 
-	//{{ 2009. 9. 25  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 9. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 	kInfo.m_kUserGuildInfo.m_iGuildUID			= GetGuildUID();
 	kInfo.m_kUserGuildInfo.m_wstrGuildName		= m_kUserGuildManager.GetGuildName();
@@ -3839,7 +3839,7 @@ void KGSUser::ResetUnitInfo()
     m_nUnitUID          = 0;
     m_cUnitClass        = 0;
     m_wstrNickName      = std::wstring();    
-	//{{ 2012. 10. 02	ÃÖÀ°»ç		ED&¾ÆÀÌÅÛ ¸ð´ÏÅÍ¸µ ½Ã½ºÅÛ
+	//{{ 2012. 10. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ED&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 	m_kEDManager.Clear();
 #else
@@ -3848,7 +3848,7 @@ void KGSUser::ResetUnitInfo()
 	//}}    
     m_ucLevel           = 0;
 	m_kEXP.SetExp( 0 );
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	m_kUserPvpManager.Clear();
 #else
@@ -3864,24 +3864,24 @@ void KGSUser::ResetUnitInfo()
     m_usInventorySize   = 0;
     m_ucQuickSlotSize   = 0;
 
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 #else
 	m_ePVPEmblem		= CXSLUnit::PE_NONE;
 #endif SERV_PVP_NEW_SYSTEM
 	//}}	
 	
-	//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kUserSpiritManager.Clear();
 #else
 	m_iSpiritMax		= 0;
 	m_iSpirit			= 0;
-	m_bIsSpiritUpdated	= false;	// ±Ù¼ºµµ ÇÏ·çÄ¡ ¸ðµÎ ¼Ò¸ð ÇÃ·¡±×
+	m_bIsSpiritUpdated	= false;	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ä¡ ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}	
 
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 #else
 	m_iWin				= 0;
@@ -3890,18 +3890,18 @@ void KGSUser::ResetUnitInfo()
 	//}}	
 
 	m_iNumResurrectionStone.SetValue( 0 );
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦ ºÎÈ°¼®
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 #ifdef AP_RESTONE
 	m_iNumAutoPaymentResStone.SetValue( 0 );
 	m_tAutoPaymentCheckTime = CTime();
 #endif AP_RESTONE
 	//}}
 
-	m_dResolveJackpotTime = 30000.f; // ÀÓ½Ã ÃÖ´ë°ª
+	m_dResolveJackpotTime = 30000.f; // ï¿½Ó½ï¿½ ï¿½Ö´ë°ª
 
 	m_kStat.Init();
     
-	//{{ 2012. 02. 02	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kLastPos.Clear();
 	SetMapID( SEnum::VMI_RUBEN );
@@ -3915,27 +3915,27 @@ void KGSUser::ResetUnitInfo()
 	m_mapDungeonPlay.clear();
 #endif SERV_LIMITED_DUNGEON_PLAY_TIMES
 
-	//{{ 2010. 01. 08  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+	//{{ 2010. 01. 08  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 	m_kUserRecommendManager.Clear();
 	//}}
-	//{{ 2012. 03. 21	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_iBeforeRoomUID = 0;
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-	//{{ 2011. 12. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2011. 12. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kUserPartyManager.Clear();
 #else
-	//{{ 2010. 03. 10  ÃÖÀ°»ç	Ã¤³Î ÅëÇÕ ÆÄÆ¼
+	//{{ 2010. 03. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼
 	m_iPartyUID = 0;
 	m_iCandidatePartyUID = 0;
 	//}}
-	//{{ 2009. 5. 4  ÃÖÀ°»ç		ÄüÆÄÆ¼
+	//{{ 2009. 5. 4  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½Æ¼
 	m_iQuickJoinPartyUID = 0;
 	//}}
-	//{{ 2010. 02. 09  ÃÖÀ°»ç	ºü¸¥ÆÄÆ¼ ±â´É°³¼±
+	//{{ 2010. 02. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ ï¿½ï¿½É°ï¿½ï¿½ï¿½
 #ifdef SERV_QUICK_PARTY_UPGRADE
 	m_mapKickedPartyUIDList.clear();
 #endif SERV_QUICK_PARTY_UPGRADE
@@ -3943,44 +3943,44 @@ void KGSUser::ResetUnitInfo()
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}	
 
-	//{{ 2010. 07. 05  ÃÖÀ°»ç	À¯Àú ¾îºäÀú ¸Å´ÏÀú
+	//{{ 2010. 07. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_USER_ABUSER_MANAGER
 	m_kUserAbuserManager.Clear( true );
 #endif SERV_USER_ABUSER_MANAGER
 	//}}
 	
-	//{{ 2009. 10. 26  ÃÖÀ°»ç	PC¹æÀÌº¥Æ®
+	//{{ 2009. 10. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ï¿½Ìºï¿½Æ®
 	m_kUserEventManager.Clear();
 	//}}
-	m_kUserCashInventory.Clear();	// À¯Àú Ä³½¬ Á¤º¸
-	m_kUserLetterBox.Clear();		// À¯Àú ¿ìÆíÇÔ
-	m_kUserTitleManager.Clear();	// À¯Àú Å¸ÀÌÆ² ¸Å´ÏÀú
-	m_mapFriendList.clear();		// Ä£±¸Á¤º¸
-	m_kUserRankingManager.clear();	// ·©Å· Á¤º¸
-    m_kMessengerInfo.Clear();		// ¸Þ½ÅÀú
-	m_kUserStatistics.Clear();		// Ä³¸¯ÅÍ Åë°è
+	m_kUserCashInventory.Clear();	// ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	m_kUserLetterBox.Clear();		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	m_kUserTitleManager.Clear();	// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½Å´ï¿½ï¿½ï¿½
+	m_mapFriendList.clear();		// Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	m_kUserRankingManager.clear();	// ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½
+    m_kMessengerInfo.Clear();		// ï¿½Þ½ï¿½ï¿½ï¿½
+	m_kUserStatistics.Clear();		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 
-	//{{ 2009. 9. 22  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 9. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 	m_kUserGuildManager.Clear();
 #endif GUILD_TEST
 	//}}
-	//{{ 2010. 07. 21  ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 07. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 	m_kUserPetManager.Clear();
 #endif SERV_PET_SYSTEM
 	//}}
-	//{{ 2011. 02. 21  ±è¹Î¼º	Æ¯Á¤ ´øÀü ÀÔÀå ¾ÆÀÌÅÛ ¹ö±× ¼öÁ¤
+	//{{ 2011. 02. 21  ï¿½ï¿½Î¼ï¿½	Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_REQUIRED_ITEM_BUG
 	m_kDungeonRequired.Clear();
 #endif SERV_DUNGEON_REQUIRED_ITEM_BUG
 	//}}
-	//{{ 2011. 04. 11	ÃÖÀ°»ç	´ë¸® »óÀÎ
+	//{{ 2011. 04. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 	m_kUserPersonalShopManager.Clear();
 #endif SERV_PSHOP_AGENCY
 	//}}
-	//{{ 2012. 02. 21	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kUserUnitManager.Clear();
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -3990,7 +3990,7 @@ void KGSUser::ResetUnitInfo()
 	m_kInventory.ClearShareBank();
 #endif SERV_SHARING_BANK_TEST
 
-	//{{ 2012. 04. 21	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2012. 04. 21	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 	m_kUserBuffManager.Clear();
 #endif SERV_REFORM_THE_GATE_OF_DARKNESS
@@ -4000,7 +4000,7 @@ void KGSUser::ResetUnitInfo()
 	m_bInvisible = false;
 #endif SERV_INVISIBLE_GM
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 	m_kUserRidingPetManager.Clear();
 #endif	// SERV_RIDING_PET_SYSTM
 
@@ -4048,7 +4048,7 @@ bool KGSUser::CheckExceedRefCount( int nCount )
     return false;
 }
 
-//{{ 2009. 5. 29  ÃÖÀ°»ç	ÇÔ¼ö ÅëÇÕ
+//{{ 2009. 5. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 bool KGSUser::OnConnectReq( IN const KEGS_CONNECT_REQ& kReq, OUT KEGS_CONNECT_ACK& kAck )
 {
 	if( kReq.m_wstrVersion.compare( KBaseServer::GetKObj()->GetMainVersion() ) != 0 )
@@ -4063,9 +4063,9 @@ bool KGSUser::OnConnectReq( IN const KEGS_CONNECT_REQ& kReq, OUT KEGS_CONNECT_AC
 		kAck.m_iOK	= NetError::ERR_CONNECT_00;
 		//SendPacket( usAckEventID, kAck );
 
-		//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+		//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
-		//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+		//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 		KEGS_SERVER_CHECK_HACK_USER_REQ kPacket;
 		kPacket.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_CHECK_GAME_VERSION;
@@ -4073,7 +4073,7 @@ bool KGSUser::OnConnectReq( IN const KEGS_CONNECT_REQ& kReq, OUT KEGS_CONNECT_AC
 #endif SERV_CHECK_KICK_USER_IN_GAMESERVER
 		//}}
 #else
-		//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+		//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 		KEGS_SERVER_CHECK_HACK_USER_NOT kPacket;
 		kPacket.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_NOT::HCT_CHECK_GAME_VERSION;
@@ -4088,8 +4088,8 @@ bool KGSUser::OnConnectReq( IN const KEGS_CONNECT_REQ& kReq, OUT KEGS_CONNECT_AC
 		return false;
 	}
 
-	// µ¿Á¢ Á¦ÇÑ °Ë»ç
-	//{{ 2011. 12. 16	ÃÖÀ°»ç	µ¿Á¢ ÃÖ´ë ÀÎ¿ø ½Ç½Ã°£ Àû¿ë
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	//{{ 2011. 12. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Î¿ï¿½ ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REALTIME_MAX_USER
 	int iMaxUser = GetKGameServer()->GetMaxUser();
 #else
@@ -4098,17 +4098,17 @@ bool KGSUser::OnConnectReq( IN const KEGS_CONNECT_REQ& kReq, OUT KEGS_CONNECT_AC
 	//}}	
 	if( iMaxUser <= 0 )
 	{
-		START_LOG( cerr, L"ÃÖ´ë µ¿Á¢ ÀÌ»ó." )
+		START_LOG( cerr, L"ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 			<< BUILD_LOG( iMaxUser )
 			<< END_LOG;
 
 		iMaxUser = 1;
 	}
 
-	// µ¿Á¢ ÀÎ¿ø Á¦ÇÑ¿¡ °É¸®¸é Ã¤³Î¿¡ ÀÔÀåÇÏÁö ¸øÇÏµµ·Ï Ã³¸®
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½Ñ¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ Ã¤ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 	int iNowUser = KActorManager::GetKObj()->GetCountNoLock() + SiKChannelManager()->GetChannelChangeWaitingUserCount();
 
-	// ÀÚ±â ÀÚ½ÅÀº »©°í °è»êÇØ¾ßÇÔ.
+	// ï¿½Ú±ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½.
 	if( ( iNowUser - 1 ) >= iMaxUser )
 	{
 		kAck.m_iOK   = NetError::ERR_CONNECT_04;
@@ -4121,7 +4121,7 @@ bool KGSUser::OnConnectReq( IN const KEGS_CONNECT_REQ& kReq, OUT KEGS_CONNECT_AC
 
 	kAck.m_iOK		 = NetError::NET_OK;
 	kAck.m_UDPPort	 = static_cast< int >( KNetLayer::GetKObj()->GetNCUDPPort() );
-	//{{ 2009. 4. 17  ÃÖÀ°»ç	Ã¤³ÎÁ¤º¸
+	//{{ 2009. 4. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	kAck.m_iChannelID = SiKChannelManager()->GetChannelID();
 	//}}
 	//SendPacket( usAckEventID, kAck );
@@ -4130,7 +4130,7 @@ bool KGSUser::OnConnectReq( IN const KEGS_CONNECT_REQ& kReq, OUT KEGS_CONNECT_AC
 
 bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_ACK& kAck_, OUT KEGS_VERIFY_ACCOUNT_ACK& kAck )
 {
-	//À¯ÀúÁ¤º¸ ¹Þ¾Æ¿À±â ½ÇÆÐ¸é Á¾·á..
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð¸ï¿½ ï¿½ï¿½ï¿½ï¿½..
 	if( kAck_.m_iOK != NetError::NET_OK )
 	{
 		START_LOG_WITH_NAME( cwarn )
@@ -4144,14 +4144,14 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 
 		//SendPacket( EGS_VERIFY_ACCOUNT_ACK, kPacket );
 
-		//{{ 2010. 06. 22  ÃÖÀ°»ç	°èÁ¤ºí·°±â´É
+		//{{ 2010. 06. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ACCOUNT_BLOCK
 		if( kAck_.m_iOK == NetError::ERR_ACCOUNT_BLOCK_00 )
 		{
-			// Å¬¶óÀÌ¾ðÆ®¿¡°Ô´Â Á¤»óÃ³¸® ÇÏ±â À§ÇØ OK°ª º¸³¿
+			// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½Ô´ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ OKï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			kAck.m_iOK = NetError::NET_OK;
 
-			// °èÁ¤ ºí·°À¸·Î Á¾·á »çÀ¯ ÀúÀå
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			SetDisconnectReason( KStatistics::eSIColDR_GameServer_Account_Block );
 		}
 		else
@@ -4171,11 +4171,11 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 	}
 #endif SERV_NPROTECT_CS_AUTH_30
 
-	// µ¿ÀÏ¼­¹ö ³» ÀÌÁßÁ¢¼Ó ¿©ºÎ È®ÀÎ
+	// ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	KActorPtr spActor( KActorManager::GetKObj()->Get( kAck_.m_kAccountInfo.m_nUserUID ) );
 	if( spActor )
 	{
-		START_LOG( cerr, L"µ¿ÀÏ¼­¹ö°£ ÀÌÁßÁ¢¼Ó °¨Áö" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( m_strName )
 			<< BUILD_LOG( m_nUID )
 #ifdef SERV_PRIVACY_AGREEMENT
@@ -4186,9 +4186,9 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 			<< BUILD_LOG( kAck_.m_kAccountInfo.m_wstrName );
 #endif SERV_PRIVACY_AGREEMENT
 
-		//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+		//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
-		//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+		//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 		KEGS_SERVER_CHECK_HACK_USER_REQ kPacket;
 		kPacket.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_CHECK_OVERLAP_ACCOUNT;
@@ -4196,7 +4196,7 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 #endif SERV_CHECK_KICK_USER_IN_GAMESERVER
 		//}}
 #else
-		//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+		//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 		KEGS_SERVER_CHECK_HACK_USER_NOT kPacket;
 		kPacket.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_NOT::HCT_CHECK_OVERLAP_ACCOUNT;
@@ -4206,9 +4206,9 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 #endif SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 		//}}
 
-		kAck.m_iOK = NetError::ERR_VERIFY_00;    // µ¿ÀÏ¼­¹ö°£ ÀÌÁßÁ¢¼Ó ½Ãµµ
+		kAck.m_iOK = NetError::ERR_VERIFY_00;    // ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½
 		spActor->SetDisconnectReason( KStatistics::eSIColDR_Same_Server_Connect );
-		spActor->ReserveDestroy();                  //±âÁ¸ »ç¿ëÀÚµµ Á¢¼ÓÀ» ³¡³­´Ù.		
+		spActor->ReserveDestroy();                  //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.		
 
 		//SendPacket( EGS_VERIFY_ACCOUNT_ACK, kPacket );
 
@@ -4217,18 +4217,18 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 		return false;
 	}
 
-	// µ¿ÀÏ °èÁ¤ÀÌ ¹ß°ßµÇÁö ¾Ê¾Ò´Ù¸é UID º¯°æ. 
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ßµï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Ù¸ï¿½ UID ï¿½ï¿½ï¿½ï¿½. 
 	KActorManager::GetKObj()->UpdateUID( kAck_.m_kAccountInfo.m_nUserUID, *this );
 
-	// ¾ÆÀÌµð·Î ÀÌ¸§ ¼³Á¤
+	// ï¿½ï¿½ï¿½Ìµï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	SetName( kAck_.m_kAccountInfo.m_wstrID );
 
-	// µð¹ö±ë½Ã user nameÀ» È®ÀÎÇÏ±â À§ÇØ ½Ç¸í ¼³Á¤.
-	//{{ 2011. 08. 09  ±è¹Î¼º KAccontInfo Ãß°¡·Î »èÁ¦µÊ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ user nameï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½.
+	//{{ 2011. 08. 09  ï¿½ï¿½Î¼ï¿½ KAccontInfo ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-	// ±ÇÇÑ ¼³Á¤
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-	// ³Ø½¼ ¶Ç´Â »ç³» À¯ÀúÀÎ°¡?
+	// ï¿½Ø½ï¿½ ï¿½Ç´ï¿½ ï¿½ç³» ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 #ifdef SERV_NEW_CREATE_CHAR_EVENT
 	m_kAccountInfo.m_wstrName = kAck_.m_kAccountInfo.m_wstrName;
 	m_kAccountInfo.m_iAuthLevel = kAck_.m_kAccountInfo.m_iAuthLevel;
@@ -4240,43 +4240,43 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 #endif SERV_NEW_CREATE_CHAR_EVENT
 	//}}
 
-	//{{ 2011.10.14     ±è¹Î¼º    ¿î¿µÀÚ ±â´ÉÀº Æ¯Á¤ IP ¿¡¼­¸¸ »ç¿ë °¡´É
+	//{{ 2011.10.14     ï¿½ï¿½Î¼ï¿½    ï¿½î¿µï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ IP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_USE_GM_CHEAT_RESTRICTED_IP
 	if( kAck_.m_kAccountInfo.m_iAuthLevel == SEnum::UAL_SUPERDEVELOPER )
 	{
-		START_LOG( cout2, L"½´ÆÛ °³¹ßÀÚ °èÁ¤ÀÔ´Ï´Ù!!!" )
+		START_LOG( cout2, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!!!" )
 			<< BUILD_LOG( GetName() )
 			<< BUILD_LOG( kAck_.m_kAccountInfo.m_iAuthLevel )
 			<< END_LOG;
 
-		// Å¬¶óÀÌ¾ðÆ®¿¡¼­ ÀÎ½ÄÇÒ ¼ö ÀÖµµ·Ï µî±ÞÀ» °³¹ßÀÚ µî±ÞÀ¸·Î º¯°æÇÑ´Ù.
+		// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 		kAck_.m_kAccountInfo.m_iAuthLevel = SEnum::UAL_DEVELOPER;
 		m_kAccountInfo.m_iAuthLevel = SEnum::UAL_DEVELOPER;
 	}
 #ifndef SERV_CHEAT_IP_CHECK_LIFT
 	else if( kAck_.m_kAccountInfo.m_iAuthLevel > SEnum::UAL_NORMAL && kAck_.m_kAccountInfo.m_iAuthLevel < SEnum::UAL_SUPERDEVELOPER )
 	{
-		// Ä¡Æ®Å° »ç¿ë ±ÇÇÑÀÌ ÀÖ´Â ·¹º§Àº ¸ðµÎ IP °Ë»ç¸¦ ÇÑµÚ ±ÇÇÑÀ» ¹ß±ÞÇÑ´Ù  // UAL_SUPERDEVELOPERÀº Á¦¿Ü
+		// Ä¡Æ®Å° ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ IP ï¿½Ë»ç¸¦ ï¿½Ñµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß±ï¿½ï¿½Ñ´ï¿½  // UAL_SUPERDEVELOPERï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( CheckAuthLevel() == false )
 		{
-			// ±ÇÇÑÀÌ ¾ø´Â IP¿¡¼­ Á¢¼Ó ÇÏ¸é ÀÏ¹Ý ±ÇÇÑÀ¸·Î º¯°æ
-			START_LOG( cout2, L"Ä¡Æ® ±ÇÇÑÀÌ ¾ø´Â IP¿¡¼­ Á¢¼ÓÇÏ¿© ±ÇÇÑ ·¹º§À» 0À¸·Î ³·Ãä´Ï´Ù!" )
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ IPï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			START_LOG( cout2, L"Ä¡Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ IPï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½!" )
 				<< BUILD_LOG( GetName() )
 				<< BUILD_LOG( kAck_.m_kAccountInfo.m_iAuthLevel )
 				<< END_LOG;
 
-			// Å¬¶óÀÌ¾ðÆ®¿¡ Àü´Þ µÇ¹Ç·Î º¯°æ ÇØ ÁØ´Ù
+			// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½
 			kAck_.m_kAccountInfo.m_iAuthLevel = SEnum::UAL_NORMAL;
-			// ¼­¹ö¿¡¼­ °¡Áö°í ÀÖÀ¸¹Ç·Î º¯°æ ÇØ ÁØ´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½.
 			m_kAccountInfo.m_iAuthLevel = SEnum::UAL_NORMAL;
 		}
 	}
 #endif // SERV_CHEAT_IP_CHECK_LIFT
-#ifdef	SERV_HACKING_USER_CHECK_COUNT// ÀÛ¾÷³¯Â¥: 2013-06-02	// ±è¹Î¼º
+#ifdef	SERV_HACKING_USER_CHECK_COUNT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-02	// ï¿½ï¿½Î¼ï¿½
 	else if( kAck_.m_kAccountInfo.m_iAuthLevel < SEnum::UAL_BLOCKED_9 && kAck_.m_kAccountInfo.m_iAuthLevel > SEnum::UAL_SUPERDEVELOPER )
 	{
-		// ºñÁ¤»óÀûÀÎ ±ÇÇÑÀÌ´Ù?
-		START_LOG( cerr, L"°èÁ¤ ±ÇÇÑÀÌ ºñÁ¤»ó ÀûÀÎ °ªÀÌ´Ù." )
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½?
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½." )
 			<< BUILD_LOG( GetName() )
 			<< BUILD_LOG( kAck_.m_kAccountInfo.m_iAuthLevel )
 			<< END_LOG;
@@ -4288,27 +4288,27 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 #endif SERV_USE_GM_CHEAT_RESTRICTED_IP
 	//}}
 
-	// ¿î¿µÀÚ±Þ ÀÌ»óÀº À¯´ÖÅë°è¿¡ Àû¿ë ¾È½ÃÅ´
+	// ï¿½î¿µï¿½Ú±ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½È½ï¿½Å´
 	m_kUserStatistics.SetIsNormalUser( GetAuthLevel() );
 
-	// ³Ø½¼ ¾îÄ«¿îÆ® Á¤º¸ ¼³Á¤
+	// ï¿½Ø½ï¿½ ï¿½ï¿½Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_kNexonAccountInfo = kAck_.m_kNexonAccountInfo;
-	// »ç³» ¼­¹ö¿¡¼­´Â À¯Àú À¯¾ÆÀÌµð·Î ³Ø½¼ °íÀ¯¹øÈ£¸¦ ¼³Á¤ÇÑ´Ù.
+	// ï¿½ç³» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½ ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	if( m_kNexonAccountInfo.m_uiNexonSN == 0)
 	{
 		m_kNexonAccountInfo.m_uiNexonSN = ( unsigned int )kAck_.m_kAccountInfo.m_nUserUID;
 	}
-	//{{ 2010. 12. 1	ÃÖÀ°»ç	NexonSNÃß°¡
+	//{{ 2010. 12. 1	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	NexonSNï¿½ß°ï¿½
 	kAck.m_uiNexonSN = kAck_.m_kNexonAccountInfo.m_uiNexonSN;
 	//}}
 
-	// ÃßÃµÀÎ µî·Ï ¿©ºÎ ÀúÀå
-	//{{ 2010. 01. 08  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+	// ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ 2010. 01. 08  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 	m_kUserRecommendManager.SetIsRecommend( kAck_.m_kAccountInfo.m_bIsRecommend );
 	//}}
 
-	// ºí·ÏÀ¯Àú¸é »çÀ¯¸¦ ¹Þ¾Æ³õ´Â´Ù.
-	//{{ °èÁ¤ Á¦Àç ÀÏ¼ö »óÅÂ Ãß°¡ - ±è¹Î¼º
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ³ï¿½ï¿½Â´ï¿½.
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ADD_BLOCK_DAY
 	if( GetAuthLevel() <= SEnum::UAL_BLOCKED_1 && GetAuthLevel() >= SEnum::UAL_BLOCKED_9 )
 #else
@@ -4320,30 +4320,30 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 		m_kAccountBlockInfo.m_wstrBlockReason	= kAck_.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockReason;
 	}
 
-	//080602.hoons. ÇØÅ·À¯Àú Á¤º¸.
+	//080602.hoons. ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	m_cHackingUserType = kAck_.m_cHackingUserType;
 	kAck.m_cHackingUserType = kAck_.m_cHackingUserType;
 
-	//{{ 2008. 9. 2  ÃÖÀ°»ç		Å¬¶óÀÌ¾ðÆ® ±¤°í
+	//{{ 2008. 9. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	SiKGameSysVal()->GetAdvertisementURL( kAck.m_wstrAdURL );
 	//}}
 
-	//{{ 2010. 8. 3	ÃÖÀ°»ç	¼ºº°Á¤º¸Ãß°¡
+	//{{ 2010. 8. 3	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß°ï¿½
 	kAck.m_bSex = kAck_.m_kNexonAccountInfo.m_bSex;
 	kAck.m_uiAge = kAck_.m_kNexonAccountInfo.m_uiAge;
 	//}}
 
-	//{{ 2011. 02. 23	ÃÖÀ°»ç	°èÁ¤ ´ÜÀ§ Ä«¿îÆ®
+	//{{ 2011. 02. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ®
 #ifdef SERV_ACCOUNT_COUNT
 	m_kUserStatistics.InitAccountCountInfo( kAck_.m_kAccountInfo.m_wstrRegDate, kAck_.m_mapAccCountInfo );
 #endif SERV_ACCOUNT_COUNT
 	//}}
 
-	//{{ 2011. 05. 02  ±è¹Î¼º	2Â÷ º¸¾È ½Ã½ºÅÛ
+	//{{ 2011. 05. 02  ï¿½ï¿½Î¼ï¿½	2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_SECOND_SECURITY
-	SetIsUseOTP( kAck_.m_kNexonAccountInfo.m_uSecureCode  );		// OTP ¶û ÁöÁ¤ PC Áß ÇÏ³ª¶óµµ ¾²°í ÀÖÀ¸¸é OTP À¯Àú
+	SetIsUseOTP( kAck_.m_kNexonAccountInfo.m_uSecureCode  );		// OTP ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ PC ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ OTP ï¿½ï¿½ï¿½ï¿½
 
-	//{{ 2011. 08. 09  ±è¹Î¼º KAccontInfo Ãß°¡·Î »èÁ¦µÊ
+	//{{ 2011. 08. 09  ï¿½ï¿½Î¼ï¿½ KAccontInfo ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_CREATE_CHAR_EVENT
 #else
 	SetLastLoginDate( kAck_.m_kAccountInfo.m_wstrLastLogin );
@@ -4352,7 +4352,7 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 #endif SERV_SECOND_SECURITY
 	//}}
 
-	// Auth Level¿¡ µû¶ó Á¢¼Ó Á¦ÇÑ.
+	// Auth Levelï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	//switch( GetAuthLevel() )
 	//{
 	//   case SEnum::UAL_BLOCKED:
@@ -4371,7 +4371,7 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 	//	break;
 	//}
 
-	// IP Á¦ÇÑ.
+	// IP ï¿½ï¿½ï¿½ï¿½.
 	if( GetAuthLevel() < SEnum::UAL_DEVELOPER )
 	{
 		if( GetKGSSimLayer()->CheckIP( GetIPStr() ) == false )
@@ -4397,22 +4397,22 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 
 	//{{
 #ifdef SERV_KOG_HAVE_PCBANG_IP_LIST
-	// ÆÛºí¸®¼Å¿¡¼­ ÇÇ½Ã¹æ Ã¼Å© ¹Þ´Â °æ¿ì¿¡ ¿©±â¼­ PC¹æ Ã¼Å©ÇÒ ÇÊ¿ä ¾øÀ½
+	// ï¿½Ûºï¿½ï¿½ï¿½ï¿½Å¿ï¿½ï¿½ï¿½ ï¿½Ç½Ã¹ï¿½ Ã¼Å© ï¿½Þ´ï¿½ ï¿½ï¿½ì¿¡ ï¿½ï¿½ï¿½â¼­ PCï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 	int tempPcBangType = GetKGameServer()->IsPCBangIP( KncUtil::toWideString( KSession::GetIPStr() ) );
 	if( tempPcBangType != 0)
 	{
-		bool bPreStatePCBang = m_kUserPcBangManager.IsPcBang(); // (PC¹æ Åë°è¿¡ Áßº¹ °è»ê µÇ´Â°Å ¸·±â À§ÇØ¼­)
+		bool bPreStatePCBang = m_kUserPcBangManager.IsPcBang(); // (PCï¿½ï¿½ ï¿½ï¿½è¿¡ ï¿½ßºï¿½ ï¿½ï¿½ï¿½ ï¿½Ç´Â°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½)
 
 		m_kUserPcBangManager.SetIsPcBang( true );
 #ifdef SERV_PC_BANG_TYPE
 		m_kUserPcBangManager.SetPcBangType(tempPcBangType);
 #endif //SERV_PC_BANG_TYPE
-		//{{ 2007. 11. 13  ÃÖÀ°»ç  À¯Àú Åë°è PC¹æ 
-		if (false == bPreStatePCBang)	//(PC¹æ Åë°è¿¡ Áßº¹ °è»ê µÇ´Â°Å ¸·±â À§ÇØ¼­)
+		//{{ 2007. 11. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ PCï¿½ï¿½ 
+		if (false == bPreStatePCBang)	//(PCï¿½ï¿½ ï¿½ï¿½è¿¡ ï¿½ßºï¿½ ï¿½ï¿½ï¿½ ï¿½Ç´Â°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½)
 			m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EtcData, 0, KUserStatistics::US_Etc_IsPcBang,	1 );
 		//}}
 
-		START_LOG( clog2, L"PC¹æÀÓ...KOG IP CHECK" )
+		START_LOG( clog2, L"PCï¿½ï¿½ï¿½ï¿½...KOG IP CHECK" )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( KncUtil::toWideString( KSession::GetIPStr() ) );
 	}
@@ -4420,16 +4420,16 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 	{
 		m_kUserPcBangManager.SetIsPcBang( false );
 #ifdef SERV_PC_BANG_TYPE
-		m_kUserPcBangManager.SetPcBangType(-1); // PC¹æ ¾Æ´Ñ°æ¿ì -1°ª 0µµ ÇÇ¾¾¹æÀÓ
+		m_kUserPcBangManager.SetPcBangType(-1); // PCï¿½ï¿½ ï¿½Æ´Ñ°ï¿½ï¿½ -1ï¿½ï¿½ 0ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif //SERV_PC_BANG_TYPE
-		START_LOG( clog2, L"PC¹æ¾Æ´Ô...KOG IP CHECK" )
+		START_LOG( clog2, L"PCï¿½ï¿½Æ´ï¿½...KOG IP CHECK" )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( KncUtil::toWideString( KSession::GetIPStr() ) );
 	}
 #endif //SERV_KOG_HAVE_PCBANG_IP_LIST
 	//}}
 
-	//{{ 2013. 05. 29	ÃÖÀ°»ç	Á¦Àç ¸®½ºÆ® ÅëÇÕ
+	//{{ 2013. 05. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_BLOCK_LIST
 	std::vector< int > vecBlockType;
 	vecBlockType.push_back( KBlockInfo::BT_IP_BLOCK );
@@ -4439,7 +4439,7 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 #endif SERV_BLOCK_LIST
 	//}}
 
-	//{{ 2013. 09. 24	ÃÖÀ°»ç	ÀÏº» ÀÌº¥Æ® Áß°èDBÀÛ¾÷
+	//{{ 2013. 09. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ïºï¿½ ï¿½Ìºï¿½Æ® ï¿½ß°ï¿½DBï¿½Û¾ï¿½
 #ifdef SERV_RELAY_DB_CONNECTION
 	{
 		KDBE_CHECK_REWARD_FROM_RELAY_DB_JP_EVENT_REQ kPacketToDB;
@@ -4452,7 +4452,7 @@ bool KGSUser::OnNexonUserAuthenticateAck( IN OUT KELG_NEXON_USER_AUTHENTICATE_AC
 	return true;
 }
 
-//{{ 2012. 12. 10  Ä³¸¯ÅÍ ¼±ÅÃ ÆÐÅ¶ ºÐÇÒ - ±è¹Î¼º
+//{{ 2012. 12. 10  Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SELECT_UNIT_PACKET_DIVISION
 bool KGSUser::OnAccountSelectUnitAck( IN OUT KDBE_SELECT_UNIT_ACK& kAck_, IN bool bIsChannelChange )
 #else
@@ -4465,7 +4465,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	kAck_.m_kUnitInfo.m_wstrIP = GetP2PIP();
 	kAck_.m_kUnitInfo.m_usPort = GetP2PPort();
 	kAck_.m_kUnitInfo.m_bIsGameBang = IsPcBang();
-	//{{ 2011. 10. 13	ÃÖÀ°»ç	ÄÁÅÙÃ÷ °ü¸®ÀÚ
+	//{{ 2011. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CONTENT_MANAGER
 	kAck_.m_bCashShopOpen = SiKGSContentManager()->IsEnableCashShop();
 #endif SERV_CONTENT_MANAGER
@@ -4482,7 +4482,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 		return false;
 	}
 
-	//Item ÀåÂø ½ºÅÈ Ç×¸ñ
+	//Item ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½×¸ï¿½
 	kAck_.m_kUnitInfo.m_ucLevel				= SiKExpTable()->CheckLevelUp( 1, kAck_.m_kUnitInfo.m_iEXP );
 	kAck_.m_kUnitInfo.m_nNowBaseLevelEXP	= SiKExpTable()->GetRequireTotalExpbyLevel( (int)kAck_.m_kUnitInfo.m_ucLevel );
 	kAck_.m_kUnitInfo.m_nNextBaseLevelEXP	= SiKExpTable()->GetRequireTotalExpbyLevel( (int)(kAck_.m_kUnitInfo.m_ucLevel + 1) );
@@ -4495,23 +4495,23 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	kAck_.m_kUnitInfo.m_kStat.m_iDefPhysic	+= (int)sUnitStat.m_usDefPhysic;
 	kAck_.m_kUnitInfo.m_kStat.m_iDefMagic	+= (int)sUnitStat.m_usDefMagic;
 
-	// ±Ù¼ºµµ ÃÖ´ë°ª
+	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ö´ë°ª
 	kAck_.m_kUnitInfo.m_iSpiritMax = SiKSpiritTable()->GetMaxSpirit();
 
 	SetUnitInfo( kAck_.m_kUnitInfo );
 	
-	//{{ 2010. 07. 05  ÃÖÀ°»ç	À¯Àú ¾îºäÀú ¸Å´ÏÀú
+	//{{ 2010. 07. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_USER_ABUSER_MANAGER
-	// SetUnitInfo()°¡ È£ÃâµÈ ÀÌÈÄ¿¡ È£ÃâÇØ¾ßÇÑ´Ù.
+	// SetUnitInfo()ï¿½ï¿½ È£ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ È£ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ñ´ï¿½.
 	m_kUserAbuserManager.InitCharAbuser( GetThisPtr<KGSUser>() );
 #endif SERV_USER_ABUSER_MANAGER
 	//}}
 
-	//{{ 2012. 09. 26	ÃÖÀ°»ç		¿ìÆí º¹»ç ¹ö±× ¼öÁ¤
+	//{{ 2012. 09. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_POST_COPY_BUG_FIX
 	if( GetED() < 0 )
 	{
-		START_LOG( cout, L"ED°¡ ¸¶ÀÌ³Ê½ºÀÎ À¯Àú°¡ ¹ß°ßµÇ¾ú½À´Ï´Ù~!!" )
+		START_LOG( cout, L"EDï¿½ï¿½ ï¿½ï¿½ï¿½Ì³Ê½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ßµÇ¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½~!!" )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( GetUserID() )
 			<< BUILD_LOG( GetCharUID() )
@@ -4519,8 +4519,8 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 			<< BUILD_LOG( GetED() );
 
 		KDBE_SEND_PHONE_MSG_NOT kPacketNot;
-		kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"ED°¡ ¸¶ÀÌ³Ê½ºÀÎ À¯Àú ¹ß°ß! : UserUID(%d), NickName(%s)" ) % GetUID() % GetCharName() );
-		//{{ 2012. 10. 8	¹Ú¼¼ÈÆ	SMS ÀüÈ­¹øÈ£ ÅëÇÕ °ü¸®
+		kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"EDï¿½ï¿½ ï¿½ï¿½ï¿½Ì³Ê½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½! : UserUID(%d), NickName(%s)" ) % GetUID() % GetCharName() );
+		//{{ 2012. 10. 8	ï¿½Ú¼ï¿½ï¿½ï¿½	SMS ï¿½ï¿½È­ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SMS_TOTAL_MANAGER
 		SiKSMSPhoneNumberManager()->GetPhoneNumberList( KSMSPhoneNumberManager::FS_MINUS_ED, kPacketNot.m_vecPhoneNum );
 #else
@@ -4532,7 +4532,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 			SendToSMSDB( DBE_SEND_PHONE_MSG_NOT, kPacketNot );
 		}
 
-		// ÀÚµ¿À¸·Î ¾îºäÀú µî·Ï
+		// ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		m_kUserAbuserManager.RegEDAbuser( GetThisPtr<KGSUser>() );
 		m_kUserAbuserManager.RegItemAbuser( GetThisPtr<KGSUser>() );
 		//HackUserRegPacketMornitor();
@@ -4541,7 +4541,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	//}}
 
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2011. 09. 23	ÃÖÀ°»ç	·Î±×¿ÀÇÁ »óÅÂ EDÃ¼Å©
+	//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±×¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EDÃ¼Å©
 #ifdef SERV_LOGOUT_ED_CHECK
 	if( kAck_.m_iRealDataED != -1 )
 	{
@@ -4549,7 +4549,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 		{
 			if( GetED() != kAck_.m_iRealDataED )
 			{
-				START_LOG( cout, L"[¾Ë¸²] Ä³¸¯ÅÍ ¼±ÅÃ ÇØÁ¦ ½ÃÁ¡¿¡ ³²°å´ø ED°ª°ú À¯Àú°¡ º¸À¯ÇÏ°í ÀÖ´Â ED°ªÀÌ ´Ù¸£´Ù! DBÇØÅ·ÀÎ°¡!?" )
+				START_LOG( cout, L"[ï¿½Ë¸ï¿½] Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ EDï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´ï¿½ EDï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½! DBï¿½ï¿½Å·ï¿½Î°ï¿½!?" )
 #ifdef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 #else
@@ -4559,7 +4559,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 					<< BUILD_LOG( GetED() )
 					<< BUILD_LOG( kAck_.m_iRealDataED );
 
-				//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+				//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 				KEGS_SERVER_CHECK_HACK_USER_REQ kDummy;
 				kDummy.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_LOGOUT_ED_CHECK;
@@ -4578,7 +4578,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 		{
 			if( GetED() != kAck_.m_iRealDataED )
 			{
-				START_LOG( cout, L"[¾Ë¸²] ¿î¿µÀÚ±Þ ÀÌ»ó °èÁ¤¿¡ ´ëÇØ¼­ ED°ª º¯µ¿ÀÌ ÀÖ¾ú´ÂÁö Ã¼Å© ¹Ù¶ø´Ï´Ù!" )
+				START_LOG( cout, L"[ï¿½Ë¸ï¿½] ï¿½î¿µï¿½Ú±ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ EDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½Ù¶ï¿½ï¿½Ï´ï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 #else
@@ -4596,19 +4596,19 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 
 	//////////////////////////////////////////////////////////////////////////
 	
-	//{{ 2012. 02. 02	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
-	// ¸¶Áö¸· À§Ä¡ Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 	SetLastPosInfo( kAck_.m_kUnitInfo.m_kLastPos );
 
-	// MapID À¯È¿¼º °Ë»ç
+	// MapID ï¿½ï¿½È¿ï¿½ï¿½ ï¿½Ë»ï¿½
 	if( GetMapID() == SEnum::VMI_TUTORIAL )
 	{
-		// Ä³¸¯ÅÍ¸¦ Ã³À½ »ý¼ºÇÑ °æ¿ì, ¿À·ù°¡ ¾Æ´Ï´Ù. ±×³É ÀÌ´ë·Î ÀúÀå!
+		// Ä³ï¿½ï¿½ï¿½Í¸ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï´ï¿½. ï¿½×³ï¿½ ï¿½Ì´ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	}
-	else if( SEnum::IsBattleFieldID( GetMapID() ) == true )		// ¹èÆ²ÇÊµå
+	else if( SEnum::IsBattleFieldID( GetMapID() ) == true )		// ï¿½ï¿½Æ²ï¿½Êµï¿½
 	{
-		//{{ 2012. 11. 13	ÃÖÀ°»ç		ÀÔÀå °¡´ÉÇÑ ¸¶À» °Ë»ç ¹× º¸Á¤
+		//{{ 2012. 11. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHECK_POSSIBLE_ENTER_VILLAGE
 		int iRequireLevel = 0;
 		int iRequireDungeonID = 0;
@@ -4616,56 +4616,56 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 		const SEnum::BATTLE_FIELD_ID eBattleFieldID = static_cast<SEnum::BATTLE_FIELD_ID>( GetMapID() );
 		const int iEnterVillageMapID = SiCXSLBattleFieldManager()->GetEnterVillageMapID( eBattleFieldID );
 
-		// ÀÔÀå °¡´ÉÇÑ ¹èÆ²ÇÊµåÀÎÁö °Ë»ç!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ²ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½!
 		const bool bCanEnterBattleField = SiCXSLBattleFieldManager()->IsCanEnterBattleField( eBattleFieldID, GetLevel(), m_mapDungeonClear, iRequireLevel, iRequireDungeonID );
 
-		// ÀÔÀå °¡´ÉÇÑ ¹èÆ²ÇÊµå ÀÔÀå ¸¶À»ÀÎÁö °Ë»ç!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½!
 		const bool bCanEnterVillageMap = CheckEnterTheVillage( iEnterVillageMapID );
 
-		// µÑÁß ÇÏ³ª¶óµµ Ã¼Å©¸¦ Åë°ú ¸øÇÏ¸é ÀÔÀå ¸¶À»À» ´Ù½Ã Á¤ÇÏÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 		if( bCanEnterBattleField == false  ||  bCanEnterVillageMap == false )
 		{
-			// ÃÖ´ëÇÑ ÀÔÀå °¡´ÉÇÑ ¸¶À» mapid¸¦ °¡Á®¿ÀÀÚ!
+			// ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ mapidï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 			KLastPositionInfo kLastPos;
 			kLastPos.m_iMapID = SiCXSLMapData()->GetPossibleEnterVillageMapID( GetLevel(), m_mapDungeonClear );
 
-			// ´Ù½Ã Ã¼Å©!
+			// ï¿½Ù½ï¿½ Ã¼Å©!
 			if( CheckEnterTheVillage( kLastPos.m_iMapID ) == false )
 			{
 				kLastPos.m_iMapID = SiCXSLMapData()->GetDefaultMapID();
 			}
 
-			START_LOG( cerr, L"ÀÔÀå °¡´ÉÇÑ ¹èÆ²ÇÊµå°¡ ¾Æ´Ñµ¥ DB¿¡ ÀúÀåµÇ¾î ÀÖ½À´Ï´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ²ï¿½Êµå°¡ ï¿½Æ´Ñµï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½!" )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( kAck_.m_kUnitInfo.m_kLastPos.m_iMapID )
 				<< BUILD_LOG( GetMapID() )
 				<< END_LOG;
 
-			// ¼±ÅÃµÈ Ä³¸¯ÅÍÀÇ Á¤º¸µµ ¼öÁ¤.
+			// ï¿½ï¿½ï¿½Ãµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 			SetLastPosInfo( kLastPos );
 			kAck_.m_kUnitInfo.m_kLastPos = kLastPos;
 		}
 #endif SERV_CHECK_POSSIBLE_ENTER_VILLAGE
 		//}}
 	}
-	else if( SEnum::IsVillageMapID( GetMapID() ) == true  ||  SEnum::IsRestFieldID( GetMapID() ) == true )			// ¸¶À» & ÈÞ½ÄÃ³
+	else if( SEnum::IsVillageMapID( GetMapID() ) == true  ||  SEnum::IsRestFieldID( GetMapID() ) == true )			// ï¿½ï¿½ï¿½ï¿½ & ï¿½Þ½ï¿½Ã³
 	{
-		//{{ 2012. 11. 13	ÃÖÀ°»ç		ÀÔÀå °¡´ÉÇÑ ¸¶À» °Ë»ç ¹× º¸Á¤
+		//{{ 2012. 11. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHECK_POSSIBLE_ENTER_VILLAGE
-		// ¸¶À»¿¡ ÀÔÀåÇÒ Á¶°ÇÀÌ ¾ÈµÈ´Ù¸é..
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÈ´Ù¸ï¿½..
  		if( CheckEnterTheVillage( GetMapID() ) == false )
  		{
- 			// ÃÖ´ëÇÑ ÀÔÀå °¡´ÉÇÑ ¸¶À» mapid¸¦ °¡Á®¿ÀÀÚ!
+ 			// ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ mapidï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
  			KLastPositionInfo kLastPos;
  			kLastPos.m_iMapID = SiCXSLMapData()->GetPossibleEnterVillageMapID( GetLevel(), m_mapDungeonClear );
  
- 			// ´Ù½Ã Ã¼Å©!
+ 			// ï¿½Ù½ï¿½ Ã¼Å©!
  			if( CheckEnterTheVillage( kLastPos.m_iMapID ) == false )
  			{
  				kLastPos.m_iMapID = SiCXSLMapData()->GetDefaultMapID();
  			}
  
- 			START_LOG( cerr, L"ÀÔÀåÇÒ ¼ö ¾ø´Â ¸¶À»ÀÎµ¥ DB¿¡ ÀúÀåµÇ¾î ÀÖ¾ú´Ù?" )
+ 			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½?" )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharUID() )
 #else
@@ -4675,7 +4675,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
  				<< BUILD_LOG( GetMapID() )
  				<< END_LOG;
  
- 			// ¼±ÅÃµÈ Ä³¸¯ÅÍÀÇ Á¤º¸µµ ¼öÁ¤.
+ 			// ï¿½ï¿½ï¿½Ãµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
  			SetLastPosInfo( kLastPos );
  			kAck_.m_kUnitInfo.m_kLastPos = kLastPos;
  		}
@@ -4684,13 +4684,13 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	}
 	else
 	{
-		START_LOG( cerr, L"ÀúÀåµÈ ¸¶Áö¸· À§Ä¡°¡ Æ©Åä¸®¾óµµ ¸¶À»µµ ¹èÆ²ÇÊµåµµ ¾Æ´Ñ À§Ä¡´Ù! ÀÏ¾î³ª¸é ¾ÈµÇ´Â ¿À·ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Æ©ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ²ï¿½Êµåµµ ï¿½Æ´ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½! ï¿½Ï¾î³ªï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( kAck_.m_kUnitInfo.m_kLastPos.m_iMapID )
 			<< BUILD_LOG( GetMapID() )
 			<< END_LOG;
 
-		// ¼±ÅÃµÈ Ä³¸¯ÅÍÀÇ Á¤º¸µµ ¼öÁ¤.
+		// ï¿½ï¿½ï¿½Ãµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		KLastPositionInfo kLastPos;
 		kLastPos.m_iMapID = SiCXSLMapData()->GetDefaultMapID();
 		SetLastPosInfo( kLastPos );
@@ -4708,10 +4708,10 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 //	kAck_.m_kUnitInfo.m_ucLastTouchLineIndex = m_ucLastTouchLineIndex;
 //	kAck_.m_kUnitInfo.m_usLastPosValue = m_usLastPosValue;
 //
-//	//{{ 2009. 3. 30  ÃÖÀ°»ç	MapID°Ë»ç
+//	//{{ 2009. 3. 30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	MapIDï¿½Ë»ï¿½
 //	if( !SiCXSLMapData()->VerifyMapID( GetMapID() ) )
 //	{
-//		START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â MapID°¡ DB¿¡ ÀúÀåµÇ¾î ÀÖ¾ú´Ù?" )
+//		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ MapIDï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½?" )
 //			<< BUILD_LOG( GetCharName() )
 //			<< BUILD_LOG( iLastPosition )
 //			<< BUILD_LOG( GetMapID() )
@@ -4719,7 +4719,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 //			<< BUILD_LOG( m_usLastPosValue )
 //			<< END_LOG;
 //
-//		// ¼±ÅÃµÈ Ä³¸¯ÅÍÀÇ Á¤º¸µµ ¼öÁ¤.
+//		// ï¿½ï¿½ï¿½Ãµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 //		kAck_.m_kUnitInfo.m_nMapID = SiCXSLMapData()->GetDefaultMapID();
 //		m_nMapID = kAck_.m_kUnitInfo.m_nMapID;
 //		
@@ -4728,18 +4728,18 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 //	}
 //	else
 //	{
-//		//{{ 2012. 09. 21   ±è¹Î¼º   ¸¶À» ÀÔÀå ¿À·ù ¸Þ½ÃÁö ±¸ºÐ
+//		//{{ 2012. 09. 21   ï¿½ï¿½Î¼ï¿½   ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_ENTER_VILLAGE_ERROR
-//		// ¸¶À»¿¡ ÀÔÀåÇÒ Á¶°ÇÀÌ ¾ÈµÈ´Ù¸é..
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÈ´Ù¸ï¿½..
 //		if( !CheckEnterTheVillage( kAck_.m_kUnitInfo.m_nMapID, iTempLevel, iTempDungeonID ) )
 //#else
-//		// ¸¶À»¿¡ ÀÔÀåÇÒ Á¶°ÇÀÌ ¾ÈµÈ´Ù¸é..
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÈ´Ù¸ï¿½..
 //		if( !CheckEnterTheVillage( kAck_.m_kUnitInfo.m_nMapID ) )
 //#endif SERV_ENTER_VILLAGE_ERROR
 //		//}}
 //		{
 //			kAck_.m_kUnitInfo.m_nMapID = SiCXSLMapData()->GetBeforeMapID( kAck_.m_kUnitInfo.m_nMapID );
-//			//{{ 2012. 09. 21   ±è¹Î¼º   ¸¶À» ÀÔÀå ¿À·ù ¸Þ½ÃÁö ±¸ºÐ
+//			//{{ 2012. 09. 21   ï¿½ï¿½Î¼ï¿½   ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_ENTER_VILLAGE_ERROR
 //			if( !CheckEnterTheVillage( kAck_.m_kUnitInfo.m_nMapID, iTempLevel, iTempDungeonID ) )
 //#else
@@ -4750,13 +4750,13 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 //				kAck_.m_kUnitInfo.m_nMapID = SiCXSLMapData()->GetDefaultMapID();
 //			}
 //
-//			START_LOG( cerr, L"ÀÔÀåÇÒ ¼ö ¾ø´Â ¸¶À»ÀÎµ¥ DB¿¡ ÀúÀåµÇ¾î ÀÖ¾ú´Ù?" )
+//			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½?" )
 //				<< BUILD_LOG( GetCharName() )
 //				<< BUILD_LOG( kAck_.m_kUnitInfo.m_nMapID )
 //				<< BUILD_LOG( GetMapID() )
 //				<< END_LOG;
 //
-//			// ¼±ÅÃµÈ Ä³¸¯ÅÍÀÇ Á¤º¸µµ ¼öÁ¤.
+//			// ï¿½ï¿½ï¿½Ãµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 //			m_nMapID = kAck_.m_kUnitInfo.m_nMapID;
 //
 //			kAck_.m_kUnitInfo.m_ucLastTouchLineIndex = 0;
@@ -4767,8 +4767,8 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	//}}
 	//////////////////////////////////////////////////////////////////////////
 
-	// ¿¥ºí·½ µ¥ÀÌÅÍµµ ¼ÂÆÃÇØ º¸³»ÁØ´Ù.
-	//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
+	//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 #else
 	kAck_.m_kUnitInfo.m_iPVPEmblem		= (int)CXSLUnit::GetPVPEmblem( kAck_.m_kUnitInfo.m_iVSPointMax );
@@ -4778,13 +4778,13 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	KDBE_UPDATE_INVENTORY_ITEM_POS_NOT kPacketToDB;
 	if( m_kInventory.Init( kAck_.m_mapInventorySlotSize, kAck_.m_mapItem, kPacketToDB.m_kItemPositionUpdate, bIsChannelChange ) == false )
 	{
-		START_LOG( cerr, L"ÀÎº¥Åä¸® ÃÊ±âÈ­½Ã ¹®Á¦ ¹ß»ý" )
+		START_LOG( cerr, L"ï¿½Îºï¿½ï¿½ä¸® ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOGc( GetAuthLevel() )
 			<< END_LOG;
 	}	
 
-	// Àß¸øµÈ ¾ÆÀÌÅÛ ÀÎº¥Åä¸® Á¤º¸ º¹±¸
+	// ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( !kPacketToDB.m_kItemPositionUpdate.empty() )
 	{
 		kPacketToDB.m_iUnitUID = GetCharUID();
@@ -4792,21 +4792,21 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2010. 01. 04  ÃÖÀ°»ç	ÀÎº¥Åä¸® ±â´É°³¼±
+	//{{ 2010. 01. 04  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½É°ï¿½ï¿½ï¿½
 #ifdef SERV_INVENTORY_NEW
 
-	// ÆÐÅ¶ »çÀÌÁî¸¦ ÁÙÀÌ±â À§ÇØ DB·ÎºÎÅÍ ¹ÞÀº ÀÎº¥Åä¸® Á¤º¸¸¦ ÀÏ´Ü Áö¿ó´Ï´Ù.
+	// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½î¸¦ ï¿½ï¿½ï¿½Ì±ï¿½ ï¿½ï¿½ï¿½ï¿½ DBï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 	kAck_.m_mapItem.clear();
 
-	// ±âÁ¸°ú µ¿ÀÏÇÑ µ¿ÀÛÀ» º¸ÀåÇÏ±âÀ§ÇØ ÀåÂøÀåºñ Á¤º¸´Â select_unit_ack¿¡ ´ã½À´Ï´Ù. ( ¿¹¿Ü»óÈ² Á¦°Å )
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ select_unit_ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ( ï¿½ï¿½ï¿½Ü»ï¿½È² ï¿½ï¿½ï¿½ï¿½ )
 	m_kInventory.GetInventoryInfo( CXSLInventory::ST_E_EQUIP, kAck_.m_mapItem );
 
-	// ÀÎº¥Åä¸® ½½·Ô »çÀÌÁî ¾ò±â
+	// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	m_kInventory.GetInventorySlotSize( kAck_.m_mapInventorySlotSize );
 
 #else
 #pragma ELSE_MESSAGE
-	//{{ 2009. 8. 7  ÃÖÀ°»ç		ÀºÇàÁ¤º¸ Á¦¿Ü
+	//{{ 2009. 8. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//m_kInventory.GetInventoryInfoWithoutBank( kAck_.m_mapInventorySlotSize, kAck_.m_mapItem );
 	//}}
 #endif SERV_INVENTORY_NEW
@@ -4814,7 +4814,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	//////////////////////////////////////////////////////////////////////////
 
 	m_iNumResurrectionStone.SetValue( kAck_.m_iNumResurrectionStone );
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦ ºÎÈ°¼®
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 #ifdef AP_RESTONE
 	m_iNumAutoPaymentResStone.SetValue( kAck_.m_iNumAutoPaymentResStone );  
 #endif AP_RESTONE
@@ -4823,7 +4823,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	StateTransition( KGSFSM::I_TO_FIELD_MAP );
 
 	//////////////////////////////////////////////////////////////////////////	
-	//È¹µæ ½ºÅ³¸®½ºÆ®.
+	//È¹ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½Æ®.
 	LIF( KUserSkillTree::MAX_SKILL_SLOT == 8 );
 	int aSkillSlot[KUserSkillTree::MAX_SKILL_SLOT];
 	aSkillSlot[KUserSkillTree::SKILL_SLOT_A1] = (int)  kAck_.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill[0].m_iSkillID;
@@ -4835,7 +4835,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	aSkillSlot[KUserSkillTree::SKILL_SLOT_B3] = (int)  kAck_.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB[2].m_iSkillID;
 	aSkillSlot[KUserSkillTree::SKILL_SLOT_B4] = (int)  kAck_.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB[3].m_iSkillID;
 
-	//{{ 2011. 01. 06  ±è¹Î¼º  ½ºÅ³½½·ÔÃ¼ÀÎÁö Ã¼Å©(ÀÎº¥Åä¸®-±â°£Á¦) ±â´É ±¸Çö
+	//{{ 2011. 01. 06  ï¿½ï¿½Î¼ï¿½  ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ Ã¼Å©(ï¿½Îºï¿½ï¿½ä¸®-ï¿½â°£ï¿½ï¿½) ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SKILL_SLOT_CHANGE_INVENTORY
 	m_kInventory.GetSlotChangeBEndDate( CXSLItem::EI_EXPAND_SKILL_SLOT_EVENT, kAck_.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
 #endif SERV_SKILL_SLOT_CHANGE_INVENTORY
@@ -4843,7 +4843,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 
 	m_kSkillTree.InitSkill( kAck_.m_vecSkillAcquired, aSkillSlot, kAck_.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate, kAck_.m_vecSkillUnsealed, GetUnitClass() );
 
-	//{{ 2010. 03. 22  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+	//{{ 2010. 03. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
 	m_kSkillTree.InitSkillNote( kAck_.m_cSkillNoteMaxPageNum, kAck_.m_mapSkillNote );
 #endif SERV_SKILL_NOTE
@@ -4852,13 +4852,13 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	kAck_.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState = (char) m_kSkillTree.GetSkillSlotBExpirationState();
 	kAck_.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate = m_kSkillTree.GetSkillSlotBEndDateString();
 
-	//{{ 2010. 07. 04  ÃÖÀ°»ç	½ºÅ³ Æ÷ÀÎÆ® ¿À·ù È®ÀÎ
+	//{{ 2010. 07. 04  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 #ifdef SERV_CHECK_SKILL_POINT
 	if( CheckSkillPointError() == false )
 	{
 		if( GetAuthLevel() < SEnum::UAL_GM )
 		{
-			START_LOG( cerr, L"Ä³¸¯ÅÍ ¼±ÅÃ ½ÃÁ¡¿¡ ½ºÅ³ Æ÷ÀÎÆ® °ªÀÌ ºñÁ¤»óÀÔ´Ï´Ù." )
+			START_LOG( cerr, L"Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetUID() )
 				<< BUILD_LOG( GetCharUID() )
@@ -4875,8 +4875,8 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 			int iCorrectionSP = 0;
 			if( CheckSkillPointCorrection( iCorrectionSP ) == true )
 			{
-				/* ºñ±³ ¹®Á¦·Î º¸Á¤Àº ÇÏÁö ¾Ê°í DB ±â·Ï¸¸ ÇÔ.
-				if( iCorrectionSP > 0 )		// Ä³¸¯ÅÍ ¼±ÅÃ½Ã¿¡´Â ÇØ´ç ·¹º§ÀÇ ÀûÁ¤ SPº¸´Ù ºÎÁ·ÇÑ ¸¸Å­ SP¸¦ Áö±ÞÇÔ.
+				/* ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ DB ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½.
+				if( iCorrectionSP > 0 )		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã½Ã¿ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å­ SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 				{
 					m_iSPoint += iCorrectionSP;
 					kAck_.m_kUnitInfo.m_iSPoint = m_iSPoint;
@@ -4908,24 +4908,24 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_CHECK_SKILL_POINT
 	//}}
 
-	// Ä¿¹Â´ÏÆ¼ ¿É¼Ç Á¤º¸ ÀúÀå
+	// Ä¿ï¿½Â´ï¿½Æ¼ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_kUserGameOption.SetChatBlackList( kAck_.m_vecChatBlackList );
 	m_kUserGameOption.SetDenyOptions( kAck_.m_kDenyOptions );
 
-	//Ä³¸¯ÀÌ ¹Ù²ð¶§¸¶´Ù Äù½ºÆ® µ¥ÀÌÅÍ¸¦ »õ·Î ÃÊ±âÈ­ ÇÑ´Ù.
+	//Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ð¶§¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ñ´ï¿½.
 	m_kUserQuestManager.SetUnitQuest( kAck_.m_vecQuest, kAck_.m_vecCompletQuest, GetThisPtr<KGSUser>() );
-	//{{ 2011. 08. 29	±è¹Î¼º       ÀÏÀÏ ·£´ý Äù½ºÆ®
+	//{{ 2011. 08. 29	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_RANDOM_DAY_QUEST
 	SiCXSLQuestManager()->GetRandomQuestGroupList( kAck_.m_mapRandomQuestList );
 #endif SERV_RANDOM_DAY_QUEST
 	//}}
-	//{{ 2012. 12. 14  °èÁ¤ ¹Ì¼Ç ½Ã½ºÅÛ ( °èÁ¤´ÜÀ§ Äù½ºÆ® ) - ±è¹Î¼º
+	//{{ 2012. 12. 14  ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 	m_kUserAccountQuestManager.SetAccountQuest( kAck_.m_vecAccountQuesting, kAck_.m_vecAccountCompleteQuest, kAck_.m_vecQuest, kAck_.m_vecCompletQuest, GetThisPtr<KGSUser>() );
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 	//}}
 
-	//{{ 2008. 10. 6  ÃÖÀ°»ç	Å¸ÀÌÆ²
+	//{{ 2008. 10. 6  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å¸ï¿½ï¿½Æ²
 #ifdef SERV_PC_BANG_TYPE
 	bool bUsePcBangTitle = IsPcBang() & SiKGameSysVal()->IsUsingPcBangTitle( GetPcBangType() );
 	m_kUserTitleManager.Init( bUsePcBangTitle, kAck_.m_vecMission, kAck_.m_vecTitle );
@@ -4934,10 +4934,10 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_PC_BANG_TYPE
 	//}}
 
-    // Ä£±¸ ¸®½ºÆ®
+    // Ä£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
     m_kMessengerInfo = kAck_.m_kMessengerInfo;
 
-	//Ä³¸¯¼±ÅÃ½Ã ¸¶´Ù ¼¾ÅÍ¼­¹ö À¯ÀúÁ¤º¸¿¡ µî·Ï½ÃÄÑ ³õ´Â´Ù.
+	//Ä³ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
 	{
 		KELG_REGISTER_UNIT_NOT kCNNot;
 		kCNNot.m_nUnitUID			= GetCharUID();
@@ -4952,9 +4952,9 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 		SendToLoginServer( ELG_REGISTER_UNIT_NOT, kCNNot );
 	}	
 
-	//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-	// Ä³¸¯ÅÍ ¼±ÅÃ½Ã ±Û·Î¹ú ¼­¹ö¿¡µµ Ä³¸¯ÅÍ Á¤º¸¸¦ µî·Ï½ÃÅ°ÀÚ!
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ï½ï¿½Å°ï¿½ï¿½!
 	{
 		KEGB_REGISTER_UNIT_NOT kGBNot;
 		kGBNot.m_kUnitInfo.m_iUserUID = GetUID();
@@ -4964,7 +4964,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 		kGBNot.m_kUnitInfo.m_iChannelID = SiKChannelManager()->GetChannelID();
 		kGBNot.m_kUnitInfo.m_wstrIP = NetCommon::GetLocalIPW();
 		kGBNot.m_kUnitInfo.m_cAuthLevel = GetAuthLevel();
-		//{{ 2012. 12. 17	¹Ú¼¼ÈÆ	ÀèÆÌ ÀÌº¥Æ®
+		//{{ 2012. 12. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_JACKPOT
 		kGBNot.m_kUnitInfo.m_iChannelCode = GetChannelCode();
 #endif SERV_EVENT_JACKPOT
@@ -4974,29 +4974,29 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-	// À¯Àú Åë°è ÇØ´ç À¯´ÖÀÇ Á¢¼Ó ½Ã°£ Ã¼Å©
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ Ã¼Å©
 	m_kTimer[TM_UNIT_DURATION].restart();
 
-	// ºÐÇØ ´ë¹Ú
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	m_kTimer[TM_RESOLVE_JACKPOT].restart();
 	m_dResolveJackpotTime = SiCXSLResolveItemManager()->GetJackpotTime();
 
-	// ÃßÃµÀÎ ¼³Á¤
-	//{{ 2010. 01. 08  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+	// ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ 2010. 01. 08  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 	m_kUserRecommendManager.SetRecommendedUnitUID( kAck_.m_iRecommendUnitUID );
 	kAck_.m_bIsRecommend = m_kUserRecommendManager.IsRecommend();
 	//}}
 
-	//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 #else
-	// ±Ù¼ºµµ ¸ðµÎ ¼Ò¸ð Åë°è
+	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½
 	m_bIsSpiritUpdated = kAck_.m_bIsSpiritUpdated;
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}	
 
-	// ¾ÆÀÌÅÛ ¾îºäÀú ¿©ºÎ È®ÀÎ
-	//{{ 2010. 07. 05  ÃÖÀ°»ç	À¯Àú ¾îºäÀú ¸Å´ÏÀú
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+	//{{ 2010. 07. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_USER_ABUSER_MANAGER
 	m_kUserAbuserManager.InitCharAbuser( GetThisPtr<KGSUser>() );
 #endif SERV_USER_ABUSER_MANAGER
@@ -5014,56 +5014,56 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	m_kUserRecommendManager.SetRecruitUnitList( kAck_.m_vecRecruitUnitInfo );
 	m_kUserRecommendManager.SetRecruiterUnitList( kAck_.m_vecRecruiterUnitInfo );
 
-	START_LOG( clog, L"ÃßÃµÀÎ/ÇÇÃßÃµÀÎ ¸ñ·ÏÀ» m_kUserRecommendManager ¿¡ ¼ÂÆÃ ¿Ï·á" )
+	START_LOG( clog, L"ï¿½ï¿½Ãµï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ m_kUserRecommendManager ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½" )
 		<< BUILD_LOG( kAck_.m_vecRecruitUnitInfo.size() )
 		<< BUILD_LOG( kAck_.m_vecRecruiterUnitInfo.size() )
 		<< END_LOG;
 #endif SERV_RECRUIT_EVENT_BASE
 
-	//{{  2011.11.30     ±è¹Î¼º    Ä³¸¯ÅÍº° Á¢¼Ó ÀÌº¥Æ®
+	//{{  2011.11.30     ï¿½ï¿½Î¼ï¿½    Ä³ï¿½ï¿½ï¿½Íºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_CHAR_CONNECT_EVENT
-	//{{ 2012. 10. 13	¹Ú¼¼ÈÆ	Á¢¼Ó ÀÌº¥Æ® ÀÎÀÚ Á¤¸®
+	//{{ 2012. 10. 13	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CONNECT_EVENT_FACTOR_SET
 	KGameEventManager::ConnectEventFactorSet kFactor(
 		GetCharUID(),
 		GetLevel(),
 		IsPcBang(),
 		GetChannelCode(),
-#ifdef SERV_BUBBLE_FIGHTER_TOGETHER_EVENT	// ºôµå ¿À·ù·Î ÇØ¿ÜÆÀ Ãß°¡
+#ifdef SERV_BUBBLE_FIGHTER_TOGETHER_EVENT	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 		GetBF_Team(),
 #endif // SERV_BUBBLE_FIGHTER_TOGETHER_EVENT
 		GetUnitType(),
 		GetUnitClass(),
 		true
 
-		//{{ 2012. 04. 13	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+		//{{ 2012. 04. 13	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 #else
-		//{{ 2012. 03. 26	¹Ú¼¼ÈÆ	¾Æ¸®¿¤ÀÇ º¹±Í ¿ë»ç´ÔÀ» À§ÇÑ ¼±¹°! ( º¹±Í À¯Àú Ç¥½Ã )
+		//{{ 2012. 03. 26	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK
 		, IsEventReturnUser()
 #endif SERV_EVENT_RETURN_USER_MARK
 		//}}
 #endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
 		//}}
-		//{{ 2012. 06. 07	¹Ú¼¼ÈÆ	¸ÅÀÏ¸ÅÀÏ ¼±¹° »óÀÚ
+		//{{ 2012. 06. 07	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 		, m_mmapDailyGiftBoxList
 #endif SERV_EVENT_DAILY_GIFT_BOX
 		//}}
 		, m_kComeBackUserInfo.GetIsComeBackUser()
-		//{{ 2012. 12. 11	¹Ú¼¼ÈÆ	±âÁØ ÀÏÀÚ ÀÌº¥Æ® ÀÛ¾÷
+		//{{ 2012. 12. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Û¾ï¿½
 #ifdef SERV_FIXED_DATE_EVENT
 		, m_kAccountInfo
 #endif SERV_FIXED_DATE_EVENT
 		//}}
-		//{{ 2012. 12. 12	¹Ú¼¼ÈÆ	°Ü¿ï ¹æÇÐ Àü¾ß ÀÌº¥Æ®( ÀÓ½Ã, ÇÏµå ÄÚµù )
+		//{{ 2012. 12. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®( ï¿½Ó½ï¿½, ï¿½Ïµï¿½ ï¿½Úµï¿½ )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 		, m_wstrWinterVacationEventRegDate
 		, m_iWinterVacationEventCount
 #endif SERV_2012_WINTER_VACATION_EVENT
 		//}}
-		//{{ 2012. 12. 25	¹Ú¼¼ÈÆ	Æ¯Á¤ À¯Àú Àü¿ë Á¢¼Ó ÀÌº¥Æ®
+		//{{ 2012. 12. 25	ï¿½Ú¼ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_SPECIFIC_USER_CONNECT_EVENT
 		, GetUID()
 #endif SERV_SPECIFIC_USER_CONNECT_EVENT
@@ -5074,7 +5074,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		, GetCustonEventID()
 #endif //SERV_CUSTOM_CONNECT_EVENT
-#ifdef	SERV_CRITERION_DATE_EVENT// Àû¿ë³¯Â¥: 2013-04-11
+#ifdef	SERV_CRITERION_DATE_EVENT// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-11
 		, GetCriterionDateEventInfo()
 		, GetAccountRegDate()
 #endif	// SERV_CRITERION_DATE_EVENT
@@ -5109,10 +5109,10 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 		kAck_.m_vecConnectTimeEvent,
 		kAck_.m_vecCumulativeTimeEvent
 
-		//{{ 2012. 04. 13	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+		//{{ 2012. 04. 13	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 #else
-		//{{ 2012. 03. 26	¹Ú¼¼ÈÆ	¾Æ¸®¿¤ÀÇ º¹±Í ¿ë»ç´ÔÀ» À§ÇÑ ¼±¹°! ( º¹±Í À¯Àú Ç¥½Ã )
+		//{{ 2012. 03. 26	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK
 		, IsEventReturnUser()
 #endif SERV_EVENT_RETURN_USER_MARK
@@ -5120,7 +5120,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
 		//}}
 
-		//{{ 2012. 06. 07	¹Ú¼¼ÈÆ	¸ÅÀÏ¸ÅÀÏ ¼±¹° »óÀÚ
+		//{{ 2012. 06. 07	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 		, GetCharUID()
 		, m_mmapDailyGiftBoxList
@@ -5135,10 +5135,10 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_CHAR_CONNECT_EVENT
 	//}}
 
-	//030406.hoons. »çÁ¦¸®½ºÆ® Á¤¸® ¹× ¿¹¿ÜÃ³¸®¸¦ ÇÑ´Ù.
+	//030406.hoons. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	if( m_kUserTutorialInfo.OnSelectUnitAck( GetThisPtr<KGSUser>(), kAck_.m_vecTutorialDBUnitInfo ) == false )
 	{
-		START_LOG( cerr, L"»çÁ¦¸®½ºÆ® Á¤º¸ ¼ÂÆÃ½ÇÆÐ.!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½.!" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOGc( GetLevel() )
 #ifndef SERV_PRIVACY_AGREEMENT
@@ -5158,7 +5158,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 			kTutInfo.m_bIsOnline = true;
 			if( SiKTutorialManager()->AddUnit( kTutInfo ) == false )
 			{
-				START_LOG( cerr, L"»çÁ¦½Ã½ºÅÛ ¸®½ºÆ® Ãß°¡ ½ÇÆÐ.!" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 					<< BUILD_LOG( GetCharUID() )
 					<< BUILD_LOGc( GetLevel() )
 #ifndef SERV_PRIVACY_AGREEMENT
@@ -5169,27 +5169,27 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 		}
 	}
 
-	//{{ 2009. 7. 7  ÃÖÀ°»ç		·©Å· °³Æí
+	//{{ 2009. 7. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½
 	m_kUserRankingManager.Init( kAck_.m_vecHenirRanking );
 	//}}
 
-	//{{ 2010. 07. 21  ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 07. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 
 	//////////////////////////////////////////////////////////////////////////
-	// ·Îº¿ÀÎ °æ¿ì °­Á¦·Î Æê Àû¿ëÇÏ±â
+	// ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
 #ifdef SERV_ROBOT_TEST
 	SiKRobotTestManager()->RobotPet( GetCharName(), kAck_.m_iSummonedPetUID, kAck_.m_vecPetList );
 #endif SERV_ROBOT_TEST
 	//////////////////////////////////////////////////////////////////////////
 
-	// Æê Á¤º¸ ÃÊ±âÈ­!
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­!
 	int iPetCategorySlotSize = 0;
 	std::map< UidType, KInventoryItemInfo > mapPetInventory;
 	m_kUserPetManager.Init( GetThisPtr<KGSUser>(), kAck_.m_iSummonedPetUID, kAck_.m_mapPetItem, kAck_.m_vecPetList, iPetCategorySlotSize, mapPetInventory, kAck_.m_vecCanEvolutionPetList, kAck_.m_vecNeverSummonPetList );
 	kAck_.m_mapPetItem.clear();
 
-	// ¼ÒÈ¯µÇ¾î ÀÖ´Â ÆêÀÌ ÀÖ´Ù¸é Æê ÀÎº¥Åä¸® Á¤º¸ ÃÊ±âÈ­!
+	// ï¿½ï¿½È¯ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­!
 	if( kAck_.m_iSummonedPetUID != 0 )
 	{
 		std::vector< KInventoryItemInfo > vecPetInventorySlotInfo;
@@ -5198,24 +5198,24 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_PET_SYSTEM
 	//}}
 
-	//{{ 2011. 04. 11	ÃÖÀ°»ç	´ë¸® »óÀÎ
+	//{{ 2011. 04. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 	m_kUserPersonalShopManager.Init( kAck_.m_kPShopAgencyInfo );
 #endif SERV_PSHOP_AGENCY
 	//}}
 
-	//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+	//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 	m_kUserStatistics.InitCharacterCountInfo( kAck_.m_mapCharGameCount, kAck_.m_wstrUnitCreateDate );
 	kAck_.m_mapCharGameCount.clear();
 #endif SERV_CHAR_LOG
 	//}}
 
-	//{{ 2011. 03. 22	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ã¹ Á¢¼Ó ·Î±×
+	//{{ 2011. 03. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DAILY_CHAR_FIRST_SELECT
 	if( m_kUserStatistics.IsFirstCharSelectToday( kAck_.m_wstrUnitLastLoginDate ) == true )
 	{
-		// ·Î±× ³²±âÀÚ!
+		// ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 		WriteCharacterLogToDB( KELOG_USER_CHARACTER_LOG_NOT::LT_DAILY_CHAR_FIRST_SELECT );
 	}
 #endif SERV_DAILY_CHAR_FIRST_SELECT
@@ -5225,30 +5225,30 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	m_tConnectTime		= CTime::GetCurrentTime();
 #endif SERV_LUNITCONNECTLOG_BUG_FIX
 
-	// Ã¼ÇèID Á¦ÇÑ
+	// Ã¼ï¿½ï¿½ID ï¿½ï¿½ï¿½ï¿½
 	if( IsGuestUser() )
 	{
 		if( GetLevel() > SiKGameSysVal()->GetGuestUserLimitLevel() )
 		{
-			// ·¹º§19 Á¦ÇÑ
+			// ï¿½ï¿½ï¿½ï¿½19 ï¿½ï¿½ï¿½ï¿½
 			kAck_.m_iOK = NetError::ERR_GUEST_USER_02;
 			return false;
 		}
 	}
 
-	// Å¬¶óÀÌ¾ðÆ®·Î Àü¼ÛµÇ´Â ACK¿¡¼­ ºÒÇÊ¿äÇÑ µ¥ÀÌÅÍ »èÁ¦
-	//{{ 2009. 7. 7  ÃÖÀ°»ç		·©Å· °³Æí
+	// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ÛµÇ´ï¿½ ACKï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ 2009. 7. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½
 	kAck_.m_vecHenirRanking.clear();
 	//}}
 	kAck_.m_vecConnectTimeEvent.clear();
 
-	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	KEGS_WORLD_MISSION_UPDATE_NOT kMission;
 	SiKGSWorldMissionManager()->GetMissionInfo( kMission );
 	SendPacket( EGS_WORLD_MISSION_UPDATE_NOT, kMission );
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 	KEGS_GLOBAL_MISSION_UPDATE_NOT kGlobalMission;
@@ -5258,9 +5258,9 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 
 	CTime tCurr = CTime::GetCurrentTime();
 
-	//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
-	//{{ 2013. 04. 15	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2013. 04. 15	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kBuffReq;
 	kBuffReq.m_iUnitUID = GetCharUID();
@@ -5338,27 +5338,27 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	}
 #endif // SERV_NEW_UNIT_TRADE_LIMIT
 
-	//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó
+	//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COME_BACK_USER_REWARD
 	if( m_kComeBackUserInfo.GetIsComeBackUser() == true )
 	{
 		CTime tComeBackBuffEnd = m_kComeBackUserInfo.GetComeBackBuffEnd();
 
-		if( m_kComeBackUserInfo.GetIsComeBackFirst() == true )		// º¹±Í ÃÖÃÊ Á¢¼Ó½Ã¸¸ Áö±Þ
+		if( m_kComeBackUserInfo.GetIsComeBackFirst() == true )		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 		{
-			// ÈÞ¸é À¯Àú º¹±Í º¸»ó Å¥ºê Áö±Þ
+			// ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			int iRewardItem = 0;
 			int iRewardPeriod = 0;
 
 			if( m_kComeBackUserInfo.GiveComeBackUserRewardCube( iRewardItem, tComeBackBuffEnd, iRewardPeriod ) == true )
 			{
-				// ÈÞ¸é À¯Àú º¹±Í º¸»ó Å¥ºê¸¦ ÁÖÀÚ!
+				// ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ê¸¦ ï¿½ï¿½ï¿½ï¿½!
 				m_kUserUnitSelectRewardManager.AddRewardItemInfo( iRewardItem );
 			
-				// ÈÞ¸é À¯Àú º¹±Í º¸»ó ÄªÈ£ Áö±Þ
+				// ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ÄªÈ£ ï¿½ï¿½ï¿½ï¿½
 				KDBE_INSERT_TITLE_REQ kPacketToDB;
 				kPacketToDB.m_iUnitUID = GetCharUID();
-				//{{ 2012. 02. 03	¹Ú¼¼ÈÆ	ÀÌº¥Æ® °ü·ÃÁ¤º¸ Ã³¸®¹æ¹ý º¯°æ ( Script -> DB )
+				//{{ 2012. 02. 03	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( Script -> DB )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 				kPacketToDB.m_iTitleID = ERI_COME_BACK_USER_TITLE;
 #else
@@ -5368,8 +5368,8 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 				kPacketToDB.m_sPeriod  = (short)iRewardPeriod;
 				SendToGameDB( DBE_INSERT_TITLE_REQ, kPacketToDB );
 
-				// °­Á¦ ÀåÂø½ÃÄ×À¸´Ï ¾Ë·ÁÁÖÀÚ
-				//{{ 2012. 02. 03	¹Ú¼¼ÈÆ	ÀÌº¥Æ® °ü·ÃÁ¤º¸ Ã³¸®¹æ¹ý º¯°æ ( Script -> DB )
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½
+				//{{ 2012. 02. 03	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( Script -> DB )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 				kAck_.m_kUnitInfo.m_iTitleID = ERI_COME_BACK_USER_TITLE;
 #else
@@ -5377,24 +5377,24 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 				//}}
 
-				// DB¿¡ ±â·ÏÇÏÀÚ
+				// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				KDBE_WRITE_COME_BACK_REWARD_NOT kNot;
 				kNot.m_iUserUID					= GetUID();
 				kNot.m_iRewardStep				= m_kComeBackUserInfo.GetComeBackRewardLevel();
 				kNot.m_wstrComeBackBuffEndDate	= tComeBackBuffEnd.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 				SendToAccountDB( DBE_WRITE_COME_BACK_REWARD_NOT, kNot );
 
-				// ÈÞ¸é À¯Àú º¹±Í ½Ã½ºÅÛ ¿ìÆí ¾Ë¸²
+				// ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½
 				AnnunciateComeBackUser();
 			}
 		}
 		
-		//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+		//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 		int iEndComeBackBuddTime = static_cast<int>(tComeBackBuffEnd.GetTime() - tCurr.GetTime());
 		ActivateBuff( CXSLBuffManager::BTI_BUFF_RETURN_OF_HERO, kBuffReq.m_vecActivateBuff, tCurr, iEndComeBackBuddTime );
 #else
-		// ÈÞ¸é À¯Àú ¹öÇÁ ½Ã°£ ¾Ë·ÁÁÖ±â
+		// ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ë·ï¿½ï¿½Ö±ï¿½
 		KEGS_COME_BACK_BUFF_NOT kComeBack;
 		kComeBack.m_bIsFinish = false;
 		kComeBack.m_iComeBackBuffEnd = tComeBackBuffEnd.GetTime();
@@ -5402,14 +5402,14 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_SERVER_BUFF_SYSTEM
 		//}
 	
-		// ¿À´Ã Ã¹ Á¢¼ÓÀÌ¶ó¸é
+		// ï¿½ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½
 		if( m_kUserStatistics.IsFirstUserLoginToday( GetUID(), kAck_.m_wstrUnitLastLoginDate ) == true )
 		{
-			// º¸¾È »ç¿ë Á¤º¸ ·Î±× ³²±âÀÚ!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 			SendFirstLoginComeBackUser( kAck_.m_kUnitInfo, m_kComeBackUserInfo.GetIsComeBackFirst() );
 		}
 
-		// º¸»ó Áö±Þ ¹× ±â·ÏÀÌ ³¡³ª¸é º¸»ó Áö±Þ Á¶°Ç º¯°æ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		m_kComeBackUserInfo.SetIsComeBackFirst( false );
 	}
 
@@ -5418,19 +5418,19 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_COME_BACK_USER_REWARD
 	//}}
 
-	//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 	SendToLoginServer( ELG_UPDATE_USER_UNIT_BUFF_INFO_REQ, kBuffReq );
 #endif SERV_SERVER_BUFF_SYSTEM
 	//}
 
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
-	// ÇöÀç ÀÌº¥Æ® Á¤º¸ ¾ò¾î ¿À±â
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	kAck_.m_PacketHenirRewardCount.m_bUnLimited = false;
 	kAck_.m_PacketHenirRewardCount.m_iEventMAX = 0;
 
-	// ÇöÀç Àû¿ëÁßÀÎ ÀÌº¥Æ®°¡ ÀÖ´Â°¡?
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Ö´Â°ï¿½?
 	SiKGameEventManager()->GetHenirRewardCountEvent( kAck_.m_PacketHenirRewardCount.m_bUnLimited, kAck_.m_PacketHenirRewardCount.m_iEventMAX );
 	
 	m_kUserDungeonManager.Init( kAck_.m_PacketHenirRewardCount.m_bUnLimited,
@@ -5447,55 +5447,55 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	m_kUserDungeonManager.GetHenirRewardCountInfo( kAck_.m_PacketHenirRewardCount );
 #endif SERV_NEW_HENIR_TEST
 	//}}
-	//{{  2011.11.24     ±è¹Î¼º    Ä³¸¯ÅÍ Á¢¼Ó ·Î±×
+	//{{  2011.11.24     ï¿½ï¿½Î¼ï¿½    Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_CHAR_CONNECT_LOG
 	SetLoginLevel( GetLevel() );
 	SetUnitLoginTime( tCurr );
 #endif SERV_CHAR_CONNECT_LOG
 	//}}
 
-	//{{ 2012. 04. 15	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+	//{{ 2012. 04. 15	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 	m_kUserEventManager->PayTheCriterionEventReward( GetThisPtr<KGSUser>() );
 #endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
 	//}}
 
-	//{{ 2012. 02. 21	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-	// ÃÖ´ë HPÁ¤º¸¸¦ »õ·Î ±¸ÇÏ±â À§ÇØ KRoomUserInfo¸¦ °è»êÇÑ´Ù.
+	// ï¿½Ö´ï¿½ HPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ KRoomUserInfoï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	KRoomUserInfo kRoomUserInfo;
 	GetRoomUserInfo( kRoomUserInfo, CXSLRoom::RT_BATTLE_FIELD );
 
-	// ÀåÂø ½ºÅ³ Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
 	kAck_.m_kUnitInfo.m_UnitSkillData = kRoomUserInfo.m_UnitSkillData;
 
-	// À¯´Ö ¸Å´ÏÀú ÃÊ±âÈ­
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 	m_kUserUnitManager.Init( kAck_.m_kGamePlayStatus, kRoomUserInfo );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-//{{ 2012. 10. 10	¹Ú¼¼ÈÆ	ºù°í ÀÌº¥Æ®
+//{{ 2012. 10. 10	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_BINGO
 	kAck_.m_iOK = SetBingoEventInfo( kAck_.m_kBingoEvent );
 	if( kAck_.m_iOK != NetError::NET_OK )
 	{
-		// ºù°í ÀÌº¥Æ® Á¤º¸ ¾²±â ½ÇÆÐ
-		// Å¬¶óÀÌ¾ðÆ®¿¡°Ô ¾Ë·ÁÁÖÁö ¾Ê±â À§ÇØ UnKnownÀ¸·Î Ã³¸®ÇÏ°í ÀÖ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ï¿½ UnKnownï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´ï¿½.
 		return false;
 	}
 	
-	// Áö±Ý Å¬¶ó¿¡°Ô Á¤º¸¸¦ ¾Ë·ÁÁÙ ÇÊ¿ä´Â ¾ø´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ó¿¡°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	kAck_.m_kBingoEvent.clear();
 #endif SERV_EVENT_BINGO
 	//}}
 
-	//{{ 2012. 05. 16	±è¹Î¼º       ÄÉ¸¯ÅÍ ¼±ÅÃ½Ã ·¹º§¿¡ µû¶ó ¸ÊID ¸¦ º¯È¯
+	//{{ 2012. 05. 16	ï¿½ï¿½Î¼ï¿½       ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ID ï¿½ï¿½ ï¿½ï¿½È¯
 #ifdef SERV_SELECT_UNIT_CHANGE_MAP_ID
 	if( GetAuthLevel() < SEnum::UAL_DEVELOPER )
 	{
 		int iTempMapID = kAck_.m_kUnitInfo.m_kLastPos.m_iMapID;
 		SiCXSLMapData()->CheckMapID( kAck_.m_kUnitInfo.m_ucLevel, iTempMapID );
-		// MapID °¡ º¯°æ µÇ¾ú´Ù¸é Line, PosValue µµ º¯°æÇØ ÁÖÀÚ
+		// MapID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½Ù¸ï¿½ Line, PosValue ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( iTempMapID != kAck_.m_kUnitInfo.m_kLastPos.m_iMapID )
 		{
 			kAck_.m_kUnitInfo.m_kLastPos.m_iMapID = iTempMapID;
@@ -5506,13 +5506,13 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #endif SERV_SELECT_UNIT_CHANGE_MAP_ID
 	//}}
 
-	//{{ 2012. 12. 20	ÃÖÀ°»ç	¾Æ¶ó Ã¹ ¼±ÅÃ Æ©Åä¸®¾ó
+	//{{ 2012. 12. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ Æ©ï¿½ä¸®ï¿½ï¿½
 #ifdef SERV_ARA_FIRST_SELECT_TUTORIAL
 	kAck_.m_bFirstSelect = ( m_kUserStatistics.GetCharacterCount( KUserStatistics::CGCT_SELECT_CHAR ) == 0 );
 #endif SERV_ARA_FIRST_SELECT_TUTORIAL
 	//}}
 	
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	m_kUserRelationshipManager.Init( kAck_.m_kRelationshipInfo );
 #endif SERV_RELATIONSHIP_SYSTEM
@@ -5521,7 +5521,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 #ifdef SERV_2013_JUNGCHU_TITLE
 	IF_EVENT_ENABLED( CEI_2013_JUNGCHU_TITLE )
 	{
-		bool bHaveEventTitle = false;	// ÀÌº¥Æ® Å¸ÀÌÆ²À» °¡Áö°í ÀÖ´À³Ä
+		bool bHaveEventTitle = false;	// ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½
 		BOOST_TEST_FOREACH( KTitleInfo&, kInfo, kAck_.m_vecTitle )
 		{
 			if( kInfo.m_iTitleID == KRewardTable::ERI_2013_JUNGCHU_TITLE )
@@ -5529,8 +5529,8 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 		}
 		if( bHaveEventTitle == false )
 		{
-			// ¾È°¡Áö°í ÀÖÀ¸¸é Å¸ÀÌÆ² Áö±Þ
-			START_LOG( cout, L"[Å×½ºÆ®] ÀÌº¥Æ® ±â°£Áß Å¸ÀÌÆ²À» ¾È°¡Áö°í ÀÖ´Ù. Å¸ÀÌÆ²À» ÁÖÀÚ" )
+			// ï¿½È°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½
+			START_LOG( cout, L"[ï¿½×½ï¿½Æ®] ï¿½Ìºï¿½Æ® ï¿½â°£ï¿½ï¿½ Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½È°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½. Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kAck_.m_wstrUnitLastLoginDate )
 				<< END_LOG;
 
@@ -5540,7 +5540,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 			kPacketToDB.m_sPeriod  = 15;
 			SendToGameDB( DBE_INSERT_TITLE_REQ, kPacketToDB );
 
-			// °­Á¦ ÀåÂø½ÃÄ×À¸´Ï ¾Ë·ÁÁÖÀÚ
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½
 			kAck_.m_kUnitInfo.m_iTitleID = KRewardTable::ERI_2013_JUNGCHU_TITLE;
 		}
 	}
@@ -5551,7 +5551,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 	{
 		if( true == IsAeriaUser())
 		{
-			bool bHaveEventTitle = false;	// ÀÌº¥Æ® Å¸ÀÌÆ²À» °¡Áö°í ÀÖ´À³Ä
+			bool bHaveEventTitle = false;	// ï¿½Ìºï¿½Æ® Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½
 			BOOST_TEST_FOREACH( KTitleInfo&, kInfo, kAck_.m_vecTitle )
 			{
 				if( kInfo.m_iTitleID == KRewardTable::ERI_CHANNELING_AERIA_EVENT_TITLE )
@@ -5559,8 +5559,8 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 			}
 			if( bHaveEventTitle == false )
 			{
-				// ¾È°¡Áö°í ÀÖÀ¸¸é Å¸ÀÌÆ² Áö±Þ
-				START_LOG( clog, L"[Å×½ºÆ®] ÀÌº¥Æ® ±â°£Áß Å¸ÀÌÆ²À» ¾È°¡Áö°í ÀÖ´Ù. Å¸ÀÌÆ²À» ÁÖÀÚ" )
+				// ï¿½È°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½
+				START_LOG( clog, L"[ï¿½×½ï¿½Æ®] ï¿½Ìºï¿½Æ® ï¿½â°£ï¿½ï¿½ Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½È°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½. Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( kAck_.m_wstrUnitLastLoginDate )
 					<< END_LOG;
 
@@ -5570,7 +5570,7 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 				kPacketToDB.m_sPeriod  = 30;
 				SendToGameDB( DBE_INSERT_TITLE_REQ, kPacketToDB );
 
-				// °­Á¦ ÀåÂø½ÃÄ×À¸´Ï ¾Ë·ÁÁÖÀÚ
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½
 				kAck_.m_kUnitInfo.m_iTitleID = KRewardTable::ERI_CHANNELING_AERIA_EVENT_TITLE;
 			}
 		}
@@ -5581,8 +5581,8 @@ bool KGSUser::OnAccountSelectUnitAck( IN OUT KEGS_SELECT_UNIT_ACK& kAck_, IN boo
 }
 //}}
 
-//{{ 2009. 10. 14  ÃÖÀ°»ç	ÄÚµåÁ¤¸®
-//{{ 2012. 12. 10  Ä³¸¯ÅÍ ¼±ÅÃ ÆÐÅ¶ ºÐÇÒ - ±è¹Î¼º
+//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½
+//{{ 2012. 12. 10  Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SELECT_UNIT_PACKET_DIVISION
 void KGSUser::OnSelectUnitSuccess( IN const KDBE_SELECT_UNIT_ACK& kAck_, IN bool bIsChannelChange )
 #else
@@ -5590,47 +5590,47 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 #endif SERV_SELECT_UNIT_PACKET_DIVISION
 //}}
 {
-	// ±â°£Á¦ °Ë»ç
+	// ï¿½â°£ï¿½ï¿½ ï¿½Ë»ï¿½
 	ExpireCashSkillPoint( true );
 	ExpireSkillSlotB( true );
 	ExpireItem( true );
 	ExpireTitle( true );
 	
-	// µµÂøÇÑ Ä³½¬ ¼±¹°ÀÌ ÀÖ´ÂÁö È®ÀÎÇÏ·¯ °¡±â
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½
 	KENX_BT_NISMS_INVENTORY_READABLE_REQ kPacketReq;
 	kPacketReq.m_ulPacketNo	  	   = SiKNexonBillingTCPManager()->GetNextPacketNo();
 	kPacketReq.m_bytePacketType	   = KNexonBillingTCPPacket::NISMS_INVENTORY_READABLE;
-	kPacketReq.m_wstrGameID		   = GetName(); // ÀÎº¥Åä¸® °øÀ¯¸¦ À§ÇØ Nexon ID¸¦ ¾´´Ù.
+	kPacketReq.m_wstrGameID		   = GetName(); // ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Nexon IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	kPacketReq.m_byteShowInventory = 10;		// 10 : true, 30 : false
-	kPacketReq.m_byteIsPresent	   = 1;			// 0 : ÀÏ¹Ý±¸¸Å, 1 : ¼±¹°, 2 : ÀÏ¹Ý±¸¸Å+¼±¹°
+	kPacketReq.m_byteIsPresent	   = 1;			// 0 : ï¿½Ï¹Ý±ï¿½ï¿½ï¿½, 1 : ï¿½ï¿½ï¿½ï¿½, 2 : ï¿½Ï¹Ý±ï¿½ï¿½ï¿½+ï¿½ï¿½ï¿½ï¿½
 
 	KEventPtr spEvent( new KEvent );
 	UidType anTrace[2] = { GetUID(), -1 };
 	spEvent->SetData( PI_GS_NX_BILLING_TCP, anTrace, ENX_BT_NISMS_INVENTORY_READABLE_REQ, kPacketReq );
 	SiKNexonBillingTCPManager()->QueueingEvent( spEvent );
 
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef AP_RESTONE
-	// ÀÚµ¿°áÁ¦ »óÇ° Ã¼Å©
-	// ¡Ø ÇÏ·ç¿¡ ÇÑ¹ø¸¸ ºô¸µ¼­¹ö¿¡ ³¯·Á¾ßÇÔ! ºô¸µ¼­¹öÀÇ ÆÛÆ÷¸Õ½º¸¦ Àâ¾Æ¸Ô´Â ÀÌº¥Æ®ÀÓ
+	// ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç° Ã¼Å©
+	// ï¿½ï¿½ ï¿½Ï·ç¿¡ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¸Ô´ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½
 
 	CTime tCurTime = CTime::GetCurrentTime();
 	CTime tCheckTime = CTime( tCurTime.GetYear(), tCurTime.GetMonth(), tCurTime.GetDay(), 6, 0, 0 );
 
-	// »õº® 6½Ã¸¦ ±âÁØÀ¸·Î Ã¼Å©ÇÏ±â À§ÇØ Á¶°Ç°Ë»ç
+	// ï¿½ï¿½ï¿½ï¿½ 6ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç°Ë»ï¿½
 	if( tCurTime.GetHour() >= 0  &&  tCurTime.GetHour() < 6 )
 	{
 		tCheckTime -= CTimeSpan( 1, 0, 0, 0 );
 	}
 
-	// ´ÙÀ½ ÀÚµ¿°áÁ¦ Ã¼Å© ÆÐÅ¶ Àü¼Û ½Ã°¢À» ³»ÀÏ 6½Ã·Î ¼³Á¤!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 6ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	m_tAutoPaymentCheckTime = tCheckTime + CTimeSpan( 1, 0, 0, 0 );
 
 	CTime tLastRefillDate;
 	if( KncUtil::ConvertStringToCTime( kAck_.m_wstrAutoPayResStoneLastDate, tLastRefillDate ) )
 	{
 		if( tLastRefillDate < tCheckTime  &&
-			m_iNumAutoPaymentResStone == 0 ) // ÀÚµ¿°áÁ¦ ºÎÈ°¼®ÀÌ 0°³ÀÏ¶§¸¸ Ã¼Å©.
+			m_iNumAutoPaymentResStone == 0 ) // ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½Ï¶ï¿½ï¿½ï¿½ Ã¼Å©.
 		{
 			std::vector< unsigned long > vecAutoPaymentProductList;
 			SiKNexonBillingTCPManager()->GetAutoPaymentProductList( vecAutoPaymentProductList );
@@ -5638,16 +5638,16 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 			KENX_BT_CHECK_AUTO_PAYMENT_USER_REQ kPacketReq;
 			kPacketReq.m_ulPacketNo		= SiKNexonBillingTCPManager()->GetNextPacketNo();
 			kPacketReq.m_bytePacketType	= KNexonBillingTCPPacket::CHECK_AUTO_PAYMENT_USER;
-			kPacketReq.m_wstrGameID		= GetName(); // ÀÎº¥Åä¸® °øÀ¯¸¦ À§ÇØ Nexon ID¸¦ ¾´´Ù.
-			kPacketReq.m_wstrUserID		= GetName(); // ÀÎº¥Åä¸® °øÀ¯¸¦ À§ÇØ Nexon ID¸¦ ¾´´Ù.
+			kPacketReq.m_wstrGameID		= GetName(); // ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Nexon IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+			kPacketReq.m_wstrUserID		= GetName(); // ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Nexon IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 
 			if( KSimLayer::GetKObj()->GetBillingFlag() == KSimLayer::BF_NEXON_KOREA )
 			{
-				kPacketReq.m_ulProductNo = 67215; // º»¼· : ÄÚº¸ ¼­Æ÷Æ® ¼­ºñ½º 
+				kPacketReq.m_ulProductNo = 67215; // ï¿½ï¿½ï¿½ï¿½ : ï¿½Úºï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ 
 			}
 			else
 			{
-				kPacketReq.m_ulProductNo = 77697; // Å×¼· : ÄÚº¸ ¼­Æ÷Æ® ¼­ºñ½º 
+				kPacketReq.m_ulProductNo = 77697; // ï¿½×¼ï¿½ : ï¿½Úºï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ 
 			}
 
 			KEventPtr spEvent( new KEvent );
@@ -5655,7 +5655,7 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 			spEvent->SetData( PI_GS_NX_BILLING_TCP, anTrace, ENX_BT_CHECK_AUTO_PAYMENT_USER_REQ, kPacketReq );
 			SiKNexonBillingTCPManager()->QueueingEvent( spEvent );
 
-			START_LOG( clog, L"ÀÚµ¿°áÁ¦ Çß´ÂÁö Ã¼Å©ÇÏ·¯ °¡ÀÚ!" )
+			START_LOG( clog, L"ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß´ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetUID() )
 #else
@@ -5665,7 +5665,7 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 		}
 		else
 		{
-			START_LOG( clog, L"ÀÚµ¿°áÁ¦ Ã¼Å©½Ã°¢ÀÌ Áö³ª¼­ ±×³É Åë°ú!" )
+			START_LOG( clog, L"ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetUID() )
 #else
@@ -5679,10 +5679,10 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 #endif AP_RESTONE
 	//}}
 
-	// ¿ìÆí ¸®½ºÆ® ¿äÃ»
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½Ã»
 	KDBE_GET_POST_LETTER_LIST_REQ kPacketToDB;
 	kPacketToDB.m_iUnitUID = GetCharUID();
-	//{{ 2012. 11. 08	¹Ú¼¼ÈÆ	¿¤¸®¿À½º Á¶»ç´Ü
+	//{{ 2012. 11. 08	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ELIOS_INVESTIGATIONS
 	kPacketToDB.m_bIsChannelChange				= bIsChannelChange;
 	kPacketToDB.m_bEliosInvestigationsReward	= kAck_.m_bEliosInvestigationsReward;
@@ -5690,27 +5690,27 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 	//}}
 	SendToGameDB( DBE_GET_POST_LETTER_LIST_REQ, kPacketToDB );
 
-	//{{ 2010. 02. 09  ÃÖÀ°»ç	ÀÏÀÏ ÀÌº¥Æ® Äù½ºÆ®
+	//{{ 2010. 02. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_DAY_QUEST
 	m_kUserQuestManager.InitEventQuest( GetThisPtr<KGSUser>() );
 #endif SERV_DAY_QUEST
 	//}}
-	//{{ QUEST °³Æí - ±è¹Î¼º
+	//{{ QUEST ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_QUEST
 	m_kUserQuestManager.CheckEventQuest( GetThisPtr<KGSUser>() );
 	m_kUserQuestManager.CheckLimitLevelQuest( GetThisPtr<KGSUser>() );
 #endif SERV_REFORM_QUEST
 	//}}
-	//{{ 2012. 12. 14  °èÁ¤ ¹Ì¼Ç ½Ã½ºÅÛ ( °èÁ¤´ÜÀ§ Äù½ºÆ® ) - ±è¹Î¼º
+	//{{ 2012. 12. 14  ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 	m_kUserAccountQuestManager.CheckAccountQuest( GetThisPtr<KGSUser>() );
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 	//}}
 
-	// »õ·Î¿î ¹Ì¼Ç °Ë»ç
+	// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½Ì¼ï¿½ ï¿½Ë»ï¿½
 	m_kUserTitleManager.CheckNewMission( GetThisPtr<KGSUser>(), true );
 
-	//{{ 2009. 9. 22  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 9. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 	if( GetGuildUID() > 0 )
 	{
@@ -5723,7 +5723,7 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 #endif GUILD_TEST
 	//}}
 
-	//{{ 2011. 05. 10	ÃÖÀ°»ç	´ë¸®»óÀÎ
+	//{{ 2011. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸®ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 	if( kAck_.m_kPShopAgencyInfo.m_bIsPShopOpen )
 	{
@@ -5736,7 +5736,7 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 	
 	if( bIsChannelChange == false )
 	{
-		//{{ 2009. 12. 4  ÃÖÀ°»ç	Á¢¼Ó½Ã°£ÀÌº¥Æ®½Ã½ºÅÛ°³Æí
+		//{{ 2009. 12. 4  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ó½Ã°ï¿½ï¿½Ìºï¿½Æ®ï¿½Ã½ï¿½ï¿½Û°ï¿½ï¿½ï¿½
 		KEGS_TIME_EVENT_INFO_NOT kPacketNot;
 		kPacketNot.m_cNotifyType = KEGS_TIME_EVENT_INFO_NOT::TENT_INIT;
 		m_kUserEventManager.GetNowProcessingTimeEvent( kPacketNot.m_vecTimeEvent );
@@ -5746,14 +5746,14 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 		}
 		//}}
 
-		//{{ 2010. 01. 11  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+		//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_RECOMMEND_LIST
 		SendUpdateRecommendUserInfo( KRecommendUserInfo::RUIT_LOGIN );
 #endif SERV_RECOMMEND_LIST
 		//}}
 
-		//{{ 2010. 01. 29  ÃÖÀ°»ç	PC¹æ »ó¿ëÈ­
-		// Å¬¶óÀÌ¾ðÆ®¿¡ ¸Þ½ÃÁö Ãâ·Â
+		//{{ 2010. 01. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½È­
+		// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 		if( m_kUserPcBangManager.IsReservedPcBangMessage() == true )
 		{
 			KEGS_PC_BANG_AUTH_RESULT_NOT kPacketNot;
@@ -5763,13 +5763,13 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 		}
 		//}}
 
-		//{{ 2010. 8. 16	ÃÖÀ°»ç	±â°£ ¸®¼Â ¾ÆÀÌÅÛ ÀÌº¥Æ®
+		//{{ 2010. 8. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_RESET_PERIOD_EVENT
-		// ±â°£ ¸®¼Â ÀÌº¥Æ® ¾ÆÀÌÅÛÀÌ ÀÖ´ÂÁö ÀÎº¥Åä¸®¸¦ Ã£¾Æº»´Ù!
+		// ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ Ã£ï¿½Æºï¿½ï¿½ï¿½!
 		KDBE_RESET_PERIOD_ITEM_REQ kPacketToDB;
 		m_kInventory.GetResetPeriodItemUIDList( kPacketToDB.m_mapExpandPeriodItemList );
 
-		// ÀÖÀ¸¸é ±â°£ ÃÊ±âÈ­ ½ÃÅ°·¯ DB·Î °¡ÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½â°£ ï¿½Ê±ï¿½È­ ï¿½ï¿½Å°ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		if( kPacketToDB.m_mapExpandPeriodItemList.empty() == false )
 		{
 			kPacketToDB.m_iUnitUID = GetCharUID();
@@ -5778,7 +5778,7 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 #endif SERV_RESET_PERIOD_EVENT
 		//}}
 
-		//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+		//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 		m_kUserStatistics.IncreaseCharacterCount( KUserStatistics::CGCT_SELECT_CHAR );		
 
@@ -5806,15 +5806,15 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 		//}}
 	}
 
-	// ¸ð´ÏÅÍ¸µ ¾îºäÀú	
+	// ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½	
 	//if( m_bIsMornitoringAbuser )
 	//{
 	//	KDBE_SEND_PHONE_MSG_NOT kPacketNot;
-	//	kPacketNot.m_wstrSMSMessage  = L"¾îºäÀú À¯Àú [";
+	//	kPacketNot.m_wstrSMSMessage  = L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ [";
 	//	kPacketNot.m_wstrSMSMessage += GetName();
-	//	kPacketNot.m_wstrSMSMessage += L"]°¡ Ä³¸¯ÅÍ [";
+	//	kPacketNot.m_wstrSMSMessage += L"]ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ [";
 	//	kPacketNot.m_wstrSMSMessage += GetCharName();
-	//	kPacketNot.m_wstrSMSMessage += L"]¸¦ ¼±ÅÃÇÏ¿´½À´Ï´Ù!";			
+	//	kPacketNot.m_wstrSMSMessage += L"]ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½!";			
 
 	//	SiKAbuserLogManager()->GetAbuserNotifyPhoneNumList( kPacketNot.m_wstrPhoneNum );
 
@@ -5826,12 +5826,12 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 	{
 		if(m_GiantAccountType.IsType(KGiantAccountType::ADULT_PLAYER) == false)
 		{
-			START_LOG( clog, L"¹Ì¼º³âÀÚ" )
+			START_LOG( clog, L"ï¿½Ì¼ï¿½ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( GetUID() )
 				//<< BUILD_LOG( m_GiantAccountType.m_uiType )
 				<< END_LOG;
 
-			// 2010.08.07	¹Ú±³Çö		¹æÄ§¹Ì ¾ò¾î¿À±â
+			// 2010.08.07	ï¿½Ú±ï¿½ï¿½ï¿½		ï¿½ï¿½Ä§ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			SendToAccountDB( DBE_GET_ANTI_ADDICTION_INFO_REQ, GetUID() );
 		}
 	}
@@ -5841,17 +5841,17 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 	m_vecPersonalShopSell_ItemInfo.clear();
 #endif //SERV_PERSONAL_SHOP_NO_MOVE
 
-	//{{ 2012 ´ëÀü ½ÃÁð2 Àü¾ß ·±Äª ÀÌº¥Æ®	- ±è¹Î¼º
+	//{{ 2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Äª ï¿½Ìºï¿½Æ®	- ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_2012_PVP_SEASON2_EVENT
-	// ÀÌº¥Æ® ½Ã°£ ÀÎ°¡?
+	// ï¿½Ìºï¿½Æ® ï¿½Ã°ï¿½ ï¿½Î°ï¿½?
 	CTime tCurr = CTime::GetCurrentTime();
 	int iIndex = 0;
 	if( SiKGameSysVal()->IsPvpEventTime( tCurr, iIndex, kAck_.m_wstrLastPvpEventDate, m_bIsPvpEventUser ) == true )
 	{
-		// ÇöÀç´Â ÀÌº¥Æ® ½Ã°£ÀÌ´Ù!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Ã°ï¿½ï¿½Ì´ï¿½!
 		m_bNowPvpEventTime = true;
 
-		// Å¬¶ó¿¡°Ô ¾ÆÀÌÄÜ Ãâ·ÂÀ» ¾Ë·ÁÁÖÀÚ
+		// Å¬ï¿½ó¿¡°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½
 		KEGS_PVP_EVENT_INFO_NOT kNot;
 		kNot.m_bEventInfo = true;
 
@@ -5860,7 +5860,7 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 #endif SERV_2012_PVP_SEASON2_EVENT
 	//}}
 
-	//{{ 2013. 01. 21  ´ë±Ô¸ð ÀÌº¥Æ® º¸»ó ½Ã ÃÖÃÊ ¼±ÅÃ Ä³¸¯ÅÍ¿¡°Ô Áö±ÞÇÏ´Â ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 01. 21  ï¿½ï¿½Ô¸ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_FIRST_SELECT_UNIT_REWARD_SYSTEM
 	{
 		std::vector<KFirstSelectUnitReward> vecRewardInfo;
@@ -5868,7 +5868,7 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 		{
 			BOOST_TEST_FOREACH( KFirstSelectUnitReward, kInfo, vecRewardInfo )
 			{
-				// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+				// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 				KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 				kPacketToDB.m_iFromUnitUID	= GetCharUID();
 				kPacketToDB.m_iToUnitUID	= GetCharUID();
@@ -5882,21 +5882,21 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 				{
 				case KFirstSelectUnitReward::FSUR_WEB_EVENT:
 					{
-						kPacketToDB.m_iRewardType	= KPostItemInfo::LT_DB_REWARD; // º¸»ó Å¸ÀÔ
+						kPacketToDB.m_iRewardType	= KPostItemInfo::LT_DB_REWARD; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 
 						cwstrMessage.Format( L"%d", kInfo.m_iItemID );
 						kPacketToDB.m_wstrMessage = static_cast<LPCTSTR>(cwstrMessage);
 					}break;
 				case KFirstSelectUnitReward::FSUR_SYSTEM_ERROR:
 					{
-						kPacketToDB.m_iRewardType	= KPostItemInfo::LT_SYSTEM_ERROR_REWARD; // º¸»ó Å¸ÀÔ
+						kPacketToDB.m_iRewardType	= KPostItemInfo::LT_SYSTEM_ERROR_REWARD; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 
 						cwstrMessage.Format( L"%d", kInfo.m_iItemID );
 						kPacketToDB.m_wstrMessage = static_cast<LPCTSTR>(cwstrMessage);
 					}break;
 				default:
 					{
-						START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â Ä³¸¯ÅÍ ¼±ÅÃ ½Ã Áö±Þ º¸»ó Å¸ÀÔÀÔ´Ï´Ù." )
+						START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 							<< BUILD_LOG( GetUID() )
 							<< BUILD_LOGc( kInfo.m_cRewardType )
 							<< BUILD_LOG( kInfo.m_iItemID )
@@ -5917,22 +5917,22 @@ void KGSUser::OnSelectUnitSuccess( IN const KEGS_SELECT_UNIT_ACK& kAck_, IN bool
 }
 //}}
 
-//{{ 2010. 8. 4	ÃÖÀ°»ç	¼­¹ö ÄÚµå Á¤¸®
+//{{ 2010. 8. 4	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_DESELECT_UNIT_REFAC
 
-//{{ 2012. 11. 22	ÃÖÀ°»ç		Ä³¸¯ÅÍ ¼±ÅÃ ÇØÁ¦ ÄÚµå ¸®ÆÑÅä¸µ
+//{{ 2012. 11. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ä¸µ
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_DESELECT_UNIT_CODE_REFACTORING
 //////////////////////////////////////////////////////////////////////////
 void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestroy )
 {
-	// Ä³¸¯ÅÍ°¡ ¼±ÅÃ µÇ¾î ÀÖÁö ¾Ê´Ù¸é ±×³É ³Ñ¾î °¡ÀÚ!
+	// Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½ ï¿½×³ï¿½ ï¿½Ñ¾ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	if( GetCharUID() == 0 )
 		return;
 
 	if( GetCharUID() < 0 )
 	{
-		START_LOG( cerr, L"UnitUID°ªÀÌ ¸¶ÀÌ³Ê½º´Ù! ÀÖÀ» ¼ö ¾ø´Â ¿¡·¯!" )
+		START_LOG( cerr, L"UnitUIDï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì³Ê½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( usEventID )
@@ -5944,42 +5944,42 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
-	// ÀÏ´Ü ¸ÕÀú ÀÌÅ»¿¡¼­ ´ëÇÑ Ã³¸®¸¦ ÇØÁÖÀÚ!
+	// ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 
-	// 1. ´ëÀüÀ¯Àú¸®½ºÆ®
+	// 1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	SendLeavePVPLobby();
 
-	//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	SendLeavePVPMatch( NetError::NOT_LEAVE_MATCH_WAIT_REASON_02 );
 #endif SERV_PVP_NEW_SYSTEM
 	//}}
 
-	//{{ 2012. 02. 10	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	SendLeaveAutoParty( NetError::NOT_LEAVE_AUTO_PARTY_WAIT_REASON_02 );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-	// 2. ResetUnitInfo¿¡¼­ UnitUID¸¦ 0À¸·Î ÃÊ±âÈ­ ÇÏ±â ¶§¹®¿¡ leaveÃ³¸®¸¦ ¸ÕÀúÇØÁÖ¾î¾ß ÇÑ´Ù.
+	// 2. ResetUnitInfoï¿½ï¿½ï¿½ï¿½ UnitUIDï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ leaveÃ³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	SendLeaveParty( NetError::NOT_LEAVE_ROOM_REASON_01 );
 
-	// Ã¤³ÎÀÌµ¿À¸·Î ÀÎÇÑ Ä³¸¯ÅÍ ¼±ÅÃÇØÁ¦¶ó¸é Å¬¶óÀÌ¾ðÆ®·Î ÀÌÅ» ÆÐÅ¶À» ¹Ù·Î º¸³»¹ö¸®ÀÚ!
+	// Ã¤ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Å» ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	if( usEventID == EGS_DISCONNECT_FOR_CHANNEL_CHANGE_REQ )
 	{
 		if( GetPartyUID() > 0 )
 		{
-			// ÀÌÅ» Ã³¸®
+			// ï¿½ï¿½Å» Ã³ï¿½ï¿½
 			KEGS_LEAVE_PARTY_ACK kPacket;
 			kPacket.m_iOK = NetError::NET_OK;
 			SendPacket( EGS_LEAVE_PARTY_ACK, kPacket );
 		}
 	}
 
-	// 3. ÇÊµåµµ ¸¶Âù°¡Áö..
+	// 3. ï¿½Êµåµµ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
 	SendLeaveField( NetError::NOT_LEAVE_FIELD_REASON_02 );
 
-	// 4. °³ÀÎ°Å·¡ ÀÌÅ» Ã³¸®
+	// 4. ï¿½ï¿½ï¿½Î°Å·ï¿½ ï¿½ï¿½Å» Ã³ï¿½ï¿½
 	if( GetTradeUID() != 0 )
 	{
 		KEGS_BREAK_TRADE_REQ kPacket;
@@ -5989,10 +5989,10 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 		SetTradeUID( 0 );
 	}
 
-	// 5. °³ÀÎ»óÁ¡ ÀÌÅ» Ã³¸®
+	// 5. ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ ï¿½ï¿½Å» Ã³ï¿½ï¿½
 	if( GetPersonalShopUID() != 0 )
 	{
-		//{{ 2011. 05. 02	ÃÖÀ°»ç	´ë¸®»óÀÎ
+		//{{ 2011. 05. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸®ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 		if( CXSLRoom::GetRoomType( GetPersonalShopUID() ) == CXSLRoom::RT_PERSONAL_SHOP )
 		{
@@ -6016,7 +6016,7 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 		SetPersonalShopUID( 0 );
 	}
 
-	// 6. ÇöÀç ¹æ¿¡ ÀÖ´Ù¸é..
+	// 6. ï¿½ï¿½ï¿½ï¿½ ï¿½æ¿¡ ï¿½Ö´Ù¸ï¿½..
 	if( GetRoomUID() > 0 )
 	{
 		switch( CXSLRoom::GetRoomType( GetRoomUID() ) )
@@ -6033,7 +6033,7 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 			{
 				KERM_LEAVE_ROOM_REQ kPacket;
 
-				// Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ÀÇ °æ¿ì [Å¬¶óÀÌ¾ðÆ® Å©·¡½¬½Ã ¼¾ÅÍ¿¡¼­ º¸»ó ÆÐÅ¶ÀÌ º¸³»Áö ¾Êµµ·Ï]
+				// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½]
 				if( GetDisconnectReason() == KStatistics::eSIColDR_Client_Crash )
 				{
 					kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_23;
@@ -6050,12 +6050,12 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 		case CXSLRoom::RT_BATTLE_FIELD:
 			{
 				KERM_LEAVE_ROOM_REQ kPacket;
-				kPacket.m_bSendAck = false;	// [2012-12-07][ÃÖÀ°»ç] ÀÌ ÆÐÅ¶ º¸³»°í ³ª¼­´Â ACK¸¦ ¹ÞÀ» ÇÊ¿ä°¡ ¾øÀ¸¹Ç·Î SendAck°ªÀ» false·Î ³ÖÀÚ.
+				kPacket.m_bSendAck = false;	// [2012-12-07][ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ACKï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ SendAckï¿½ï¿½ï¿½ï¿½ falseï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 
-				// Á¢¼Ó Á¾·áÀÏ °æ¿ì
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 				if( bOnDestroy )
 				{
-					// Á¢¼Ó Á¾·á »çÀ¯·Î Neterror¸¦ Á¤ÇÑ´Ù.
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Neterrorï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 					switch( GetDisconnectReason() )
 					{
 					case KStatistics::eSIColDR_Client_Crash:	kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_23;	break;
@@ -6082,7 +6082,7 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 			{
 				KERM_LEAVE_ROOM_REQ kPacket;
 
-				// Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ÀÇ °æ¿ì [Å¬¶óÀÌ¾ðÆ® Å©·¡½¬½Ã ¼¾ÅÍ¿¡¼­ º¸»ó ÆÐÅ¶ÀÌ º¸³»Áö ¾Êµµ·Ï]
+				// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½]
 				if( GetDisconnectReason() == KStatistics::eSIColDR_Client_Crash )
 				{
 					kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_23;
@@ -6097,13 +6097,13 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 			break;
 		}
 
-		//{{ 2010. 12. 30	ÃÖÀ°»ç	¹æÀÌÅ» ¿¹¿ÜÃ³¸®
+		//{{ 2010. 12. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 #ifdef SERV_LEAVE_ROOM_BUG_FIX
 		SetRoomListID( 0 );
 #endif SERV_LEAVE_ROOM_BUG_FIX
 		//}}
 
-		//{{ 2012. 02. 07	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 02. 07	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		SetRoomUID( 0 );
 
@@ -6118,32 +6118,32 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
-	// DB¿¡ Ä³¸¯ÅÍ Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÏ±â Àü¿¡ ÇØ¾ßÇÒ ÀÛ¾÷Àº ¿©±â¼­ ÇØµÎÀÚ!
+	// DBï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½Øµï¿½ï¿½ï¿½!
 
-	//{{ 2010. 01. 11  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+	//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_RECOMMEND_LIST
-	// 7. ÃßÃµÀÎ ¸®½ºÆ®
+	// 7. ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 	SendUpdateRecommendUserInfo( KRecommendUserInfo::RUIT_LOGOUT );
 #endif SERV_RECOMMEND_LIST
 	//}}
 
-	//{{ 2012. 07. 12	ÃÖÀ°»ç		·£´ý Å¥ºê ¿ÀÇÂ µô·¹ÀÌ ½Ã½ºÅÛ
+	//{{ 2012. 07. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_OPEN_RANDOM_CUBE_DELAY_SYSTEM
 	SiKEventDelaySystemManager()->UnRegOpenRandomCubeEvent( GetCharUID() );
 #endif SERV_OPEN_RANDOM_CUBE_DELAY_SYSTEM
 	//}}
 
-	//{{ 2010. 8. 4	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 8. 4	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
-	// Ä³¸¯ÅÍ ¼±ÅÃ ÇØÁ¦½Ã Æê °ü·Ã Ã³¸®!
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!
 	m_kUserPetManager.OnDeselectUnit( GetThisPtr<KGSUser>() );
 #endif SERV_PET_SYSTEM
 	//}}
 
-//#ifdef	SERV_SHARING_BANK_TEST -- ½Ç½Ã°£ ¾÷µ¥ÀÌÆ®·Î ¹Ù²å±â ¶§¹®¿¡ ¿©±â¼­ Ã³¸®ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+//#ifdef	SERV_SHARING_BANK_TEST -- ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
 //	KDBE_UPDATE_SHARE_ITEM_REQ kPacketSendDB;
 //
-//	//	ÀºÇà°øÀ¯ ±â·Ï
+//	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 //	if( m_kInventory.GetShareItemNeedDBUpdate( kPacketSendDB ) == true )
 //	{
 //		kPacketSendDB.m_bReload = false;
@@ -6151,36 +6151,36 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 //	}
 //#endif	SERV_SHARING_BANK_TEST
 
-	//{{  2011.11.24     ±è¹Î¼º    Ä³¸¯ÅÍ Á¢¼Ó ·Î±×
+	//{{  2011.11.24     ï¿½ï¿½Î¼ï¿½    Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_CHAR_CONNECT_LOG
 	SendUpdateUnitConnectLog();
 #endif SERV_CHAR_CONNECT_LOG
 	//}}
 
-	//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 	CheckDeselectUnitBuff();
 #endif SERV_SERVER_BUFF_SYSTEM
 	//}
 
-	//{{ 2012. 12. 14  °èÁ¤ ¹Ì¼Ç ½Ã½ºÅÛ ( °èÁ¤´ÜÀ§ Äù½ºÆ® ) - ±è¹Î¼º
+	//{{ 2012. 12. 14  ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 	SendUpdateAccountQuestInfo();
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 	//}}
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 	m_kUserRidingPetManager.OnDeselectUnit();
 #endif	// SERV_RIDING_PET_SYSTM
 
-	//»çÁ¦½Ã½ºÅÛ¿¡ µî·ÏÀÌ µÇ¾îÀÖ´Ù¸é À¯´ÖÀ» »èÁ¦ÇØÁØ´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
 	m_kUserTutorialInfo.DisconnectUpdateUnitInfo( GetThisPtr<KGSUser>() );
 
 	if( m_kUserTutorialInfo.GetTutorUnitType() == KUserTutorialInfo::TUT_STUDENT  &&  SiKTutorialManager()->IsExistbylist( GetCharUID() ) == true )
 	{
 		if( SiKTutorialManager()->DeleteUnit( GetCharUID() ) == false )
 		{
-			START_LOG( cerr, L"»ç¼¼½Ã½ºÅÛÁß Á¦ÀÚÁ¤º¸ Áö¿ì±â ½ÇÆÐ.!" )
+			START_LOG( cerr, L"ï¿½ç¼¼ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( GetLevel() )
 				<< END_LOG;
@@ -6190,20 +6190,20 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
-	// Ä³¸¯ÅÍ Á¤º¸ DB¾÷µ¥ÀÌÆ®
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	WriteUnitInfoToDB( true, usEventID );
 
-	//{{ 2012. 09. 22	¹Ú¼¼ÈÆ	ºù°í ÀÌº¥Æ®
+	//{{ 2012. 09. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_BINGO
 	BingoEventDBWrite();
 #endif SERV_EVENT_BINGO
 	//}}
 
-#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ÀÛ¾÷³¯Â¥: 2013-05-14	// ¹Ú¼¼ÈÆ
+#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-14	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	SetLanBugOutDisconnectCheck( false );
 #endif // SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK
 
-	//{{ 2013. 09. 24	ÃÖÀ°»ç	ÀÏº» ÀÌº¥Æ® Áß°èDBÀÛ¾÷
+	//{{ 2013. 09. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ïºï¿½ ï¿½Ìºï¿½Æ® ï¿½ß°ï¿½DBï¿½Û¾ï¿½
 #ifdef SERV_RELAY_DB_CONNECTION
 	SendUpdateUnitInfoToRelayDB( KDBE_UPDATE_USER_INFO_TO_RELAY_DB_JP_EVENT_NOT::UT_NONE );
 #endif SERV_RELAY_DB_CONNECTION
@@ -6211,13 +6211,13 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
-	// Åë°è³ª ·Î±×¿¡ °ü·ÃµÈ Ã³¸®´Â ¿©±â¼­ ÇÏÀÚ!
+	// ï¿½ï¿½è³ª ï¿½Î±×¿ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½!
 	
 	{
-		// ·Î±×ÀÎ ¼­¹ö¿¡ µî·ÏµÈ Ä³¸¯ÅÍ Á¤º¸ ÇØÁ¦
+		// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ïµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		KELG_UNIT_DISCONNECT_NOT kPacketNot;
 		kPacketNot.m_iUnitUID = GetCharUID();
-		//{{ 2009. 9. 29  ÃÖÀ°»ç	±æµå
+		//{{ 2009. 9. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 		kPacketNot.m_iGuildUID = GetGuildUID();
 #endif GUILD_TEST
@@ -6230,12 +6230,12 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 	}
 
 	{
-		//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-		// ±Û·Î¹ú ¼­¹ö¿¡ µî·ÏµÈ Ä³¸¯ÅÍ Á¤º¸ ÇØÁ¦
+		// ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ïµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		KEGB_UNIT_DISCONNECT_NOT kPacketNot;
 		kPacketNot.m_iUnitUID = GetCharUID();
-		//{{ 2012. 12. 17	¹Ú¼¼ÈÆ	ÀèÆÌ ÀÌº¥Æ®
+		//{{ 2012. 12. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_JACKPOT
 		kPacketNot.m_iUserUID	= GetUID();
 #endif SERV_EVENT_JACKPOT
@@ -6246,7 +6246,7 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 	}
 
 	{
-		//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+		//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 		m_kUserStatistics.IncreaseCharacterCount( KUserStatistics::CGCT_DESELECT_CHAR );
 
@@ -6263,7 +6263,7 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 		//}}
 	}
 
-#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ÀÛ¾÷³¯Â¥: 2013-05-15	// ¹Ú¼¼ÈÆ
+#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-15	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	if( ( m_kUserLocalRankingInfo.InitCheckUserInfo( GetUID() ) == true ) &&
 		( 0 < GetLocalRankingButtonClickCount() )
 		)
@@ -6285,13 +6285,13 @@ void KGSUser::OnDeselectUnit( IN const u_short usEventID, IN const bool bOnDestr
 //////////////////////////////////////////////////////////////////////////
 void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 {
-	// À¯´ÖÀÌ ¼±ÅÃµÇ¾î ÀÖ´Ù¸é ÇØ´ç À¯´ÖÁ¤º¸¸¦ DB¾÷µ¥ÀÌÆ®, ·Î±×ÀÎ¼­¹ö¿¡¼­ Áö¿ì±â, ³ª¸ÓÁö Ã³¸®¸¦ ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÃµÇ¾ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®, ï¿½Î±ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	if( GetCharUID() == 0 )
 		return;
 
 	if( GetCharUID() < 0 )
 	{
-		START_LOG( cerr, L"UnitUID°ªÀÌ ¸¶ÀÌ³Ê½º´Ù! ÀÖÀ» ¼ö ¾ø´Â ¿¡·¯!" )
+		START_LOG( cerr, L"UnitUIDï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì³Ê½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( bFinal )
 			<< BUILD_LOG( usEventID )
@@ -6302,43 +6302,43 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 #ifdef SERV_IDENTITY_CONFIRM_POPUP_MESSAGE
 	m_bIdentityConfirmCheck = false;
 #endif //SERV_IDENTITY_CONFIRM_POPUP_MESSAGE
-	// 1. ´ëÀüÀ¯Àú¸®½ºÆ®
+	// 1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	SendLeavePVPLobby();
 
-	//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	SendLeavePVPMatch( NetError::NOT_LEAVE_MATCH_WAIT_REASON_02 );
 #endif SERV_PVP_NEW_SYSTEM
 	//}}
 
-	//{{ 2012. 02. 10	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	SendLeaveAutoParty( NetError::NOT_LEAVE_AUTO_PARTY_WAIT_REASON_02 );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-	// 2. ResetUnitInfo¿¡¼­ UnitUID¸¦ 0À¸·Î ÃÊ±âÈ­ ÇÏ±â ¶§¹®¿¡ leaveÃ³¸®¸¦ ¸ÕÀúÇØÁÖ¾î¾ß ÇÑ´Ù.
+	// 2. ResetUnitInfoï¿½ï¿½ï¿½ï¿½ UnitUIDï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ leaveÃ³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	SendLeaveParty( NetError::NOT_LEAVE_ROOM_REASON_01 );
 
-	// Ã¤³ÎÀÌµ¿À¸·Î ÀÎÇÑ Ä³¸¯ÅÍ ¼±ÅÃÇØÁ¦¶ó¸é Å¬¶óÀÌ¾ðÆ®·Î ÀÌÅ» ÆÐÅ¶À» ¹Ù·Î º¸³»¹ö¸®ÀÚ!
+	// Ã¤ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Å» ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	if( usEventID == EGS_DISCONNECT_FOR_CHANNEL_CHANGE_REQ )
 	{
 		if( GetPartyUID() > 0 )
 		{
-			// ÀÌÅ» Ã³¸®
+			// ï¿½ï¿½Å» Ã³ï¿½ï¿½
 			KEGS_LEAVE_PARTY_ACK kPacket;
 			kPacket.m_iOK = NetError::NET_OK;
 			SendPacket( EGS_LEAVE_PARTY_ACK, kPacket );
 		}
 	}	
 
-	// 3. ÇÊµåµµ ¸¶Âù°¡Áö..
+	// 3. ï¿½Êµåµµ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
 	SendLeaveField( NetError::NOT_LEAVE_FIELD_REASON_01 );
 
-	// 4. °³ÀÎ°Å·¡ ÀÌÅ» Ã³¸®
+	// 4. ï¿½ï¿½ï¿½Î°Å·ï¿½ ï¿½ï¿½Å» Ã³ï¿½ï¿½
 	if( GetTradeUID() != 0 )
 	{
-		START_LOG( cerr, L"ÀÌ ÇÚµé·¯¿¡¼­´Â TradeUID°¡ 0ÀÌ¾î¾ßÇÑ´Ù! ¿©±ä ¿Ö¿ÔÁö?" )
+		START_LOG( cerr, L"ï¿½ï¿½ ï¿½Úµé·¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ TradeUIDï¿½ï¿½ 0ï¿½Ì¾ï¿½ï¿½ï¿½Ñ´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¿ï¿½ï¿½ï¿½?" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( GetTradeUID() )
 			<< END_LOG;
@@ -6350,15 +6350,15 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 		SetTradeUID( 0 );
 	}
 
-	// 5. °³ÀÎ»óÁ¡ ÀÌÅ» Ã³¸®
+	// 5. ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ ï¿½ï¿½Å» Ã³ï¿½ï¿½
 	if( GetPersonalShopUID() != 0 )
 	{
-		START_LOG( cerr, L"ÀÌ ÇÚµé·¯¿¡¼­´Â PersonalShopUID°¡ 0ÀÌ¾î¾ßÇÑ´Ù! ¿©±ä ¿Ö¿ÔÁö?" )
+		START_LOG( cerr, L"ï¿½ï¿½ ï¿½Úµé·¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PersonalShopUIDï¿½ï¿½ 0ï¿½Ì¾ï¿½ï¿½ï¿½Ñ´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¿ï¿½ï¿½ï¿½?" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( GetPersonalShopUID() )
 			<< END_LOG;
 
-		//{{ 2011. 05. 02	ÃÖÀ°»ç	´ë¸®»óÀÎ
+		//{{ 2011. 05. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸®ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 		if( CXSLRoom::GetRoomType( GetPersonalShopUID() ) == CXSLRoom::RT_PERSONAL_SHOP )
 		{
@@ -6382,16 +6382,16 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 		SetPersonalShopUID( 0 );
 	}
 
-	// 6. ÇöÀç ¹æ¿¡ ÀÖ´Ù¸é..
+	// 6. ï¿½ï¿½ï¿½ï¿½ ï¿½æ¿¡ ï¿½Ö´Ù¸ï¿½..
 	if( GetRoomUID() > 0 )
 	{
-		START_LOG( cerr, L"ÀÌ ÇÚµé·¯¿¡¼­´Â RoomUID°¡ 0ÀÌ¾î¾ßÇÑ´Ù! ¿©±ä ¿Ö¿ÔÁö?" )
+		START_LOG( cerr, L"ï¿½ï¿½ ï¿½Úµé·¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RoomUIDï¿½ï¿½ 0ï¿½Ì¾ï¿½ï¿½ï¿½Ñ´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¿ï¿½ï¿½ï¿½?" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( GetRoomUID() )
 			<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
 			<< END_LOG;
 
-		//{{ 2012. 10. 18	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 10. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 		//////////////////////////////////////////////////////////////////////////
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		//////////////////////////////////////////////////////////////////////////
@@ -6409,7 +6409,7 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 			{
 				KERM_LEAVE_ROOM_REQ kPacket;
 
-				// Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ÀÇ °æ¿ì [Å¬¶óÀÌ¾ðÆ® Å©·¡½¬½Ã ¼¾ÅÍ¿¡¼­ º¸»ó ÆÐÅ¶ÀÌ º¸³»Áö ¾Êµµ·Ï]
+				// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½]
 				if( GetDisconnectReason() == KStatistics::eSIColDR_Client_Crash )
 				{
 					kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_23;
@@ -6427,7 +6427,7 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 			{
 				KERM_LEAVE_ROOM_REQ kPacket;
 
-				// Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ÀÇ °æ¿ì [Å¬¶óÀÌ¾ðÆ® Å©·¡½¬½Ã ¼¾ÅÍ¿¡¼­ º¸»ó ÆÐÅ¶ÀÌ º¸³»Áö ¾Êµµ·Ï]
+				// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½]
 				switch( usEventID )
 				{
 				case EGS_DISCONNECT_FOR_CHANNEL_CHANGE_REQ:	kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_29; break;
@@ -6442,7 +6442,7 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 			{
 				KERM_LEAVE_ROOM_REQ kPacket;
 
-				// Å¬¶óÀÌ¾ðÆ® Å©·¡½¬ÀÇ °æ¿ì [Å¬¶óÀÌ¾ðÆ® Å©·¡½¬½Ã ¼¾ÅÍ¿¡¼­ º¸»ó ÆÐÅ¶ÀÌ º¸³»Áö ¾Êµµ·Ï]
+				// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½]
 				if( GetDisconnectReason() == KStatistics::eSIColDR_Client_Crash )
 				{
 					kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_23;
@@ -6486,7 +6486,7 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 		//////////////////////////////////////////////////////////////////////////
 		//}}		
 
-		//{{ 2012. 02. 07	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 02. 07	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		SetRoomUID( 0 );
 
@@ -6498,30 +6498,30 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 		//}}
 	}
 
-	//{{ 2010. 01. 11  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+	//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_RECOMMEND_LIST
-	// 7. ÃßÃµÀÎ ¸®½ºÆ®
+	// 7. ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 	SendUpdateRecommendUserInfo( KRecommendUserInfo::RUIT_LOGOUT );
 #endif SERV_RECOMMEND_LIST
 	//}}
 
-	//{{ 2012. 07. 12	ÃÖÀ°»ç		·£´ý Å¥ºê ¿ÀÇÂ µô·¹ÀÌ ½Ã½ºÅÛ
+	//{{ 2012. 07. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_OPEN_RANDOM_CUBE_DELAY_SYSTEM
 	SiKEventDelaySystemManager()->UnRegOpenRandomCubeEvent( GetCharUID() );
 #endif SERV_OPEN_RANDOM_CUBE_DELAY_SYSTEM
 	//}}
 
-	//{{ 2010. 8. 4	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 8. 4	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 	if( bFinal )
 	{
-		// Ä³¸¯ÅÍ ¼±ÅÃ ÇØÁ¦½Ã Æê °ü·Ã Ã³¸®!
+		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!
         m_kUserPetManager.OnDeselectUnit( GetThisPtr<KGSUser>() );
 	}
 #endif SERV_PET_SYSTEM
 	//}}
 
-	//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+	//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 	m_kUserStatistics.IncreaseCharacterCount( KUserStatistics::CGCT_DESELECT_CHAR );
 
@@ -6537,10 +6537,10 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 #endif SERV_CHAR_LOG
 	//}}
 
-//#ifdef	SERV_SHARING_BANK_TEST -- ½Ç½Ã°£ ¾÷µ¥ÀÌÆ®·Î ¹Ù²å±â ¶§¹®¿¡ ¿©±â¼­ µû·Î Ã³¸®ÇÒ ÇÊ¿ä°¡ ¾ø´Ù!
+//#ifdef	SERV_SHARING_BANK_TEST -- ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½!
 //	KDBE_UPDATE_SHARE_ITEM_REQ kPacketSendDB;
 //
-//	//	ÀºÇà°øÀ¯ ±â·Ï
+//	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 //	if( m_kInventory.GetShareItemNeedDBUpdate( kPacketSendDB ) == true )
 //	{
 //		kPacketSendDB.m_bReload = false;
@@ -6549,32 +6549,32 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 //#endif	SERV_SHARING_BANK_TEST
 
 
-	//{{  2011.11.24     ±è¹Î¼º    Ä³¸¯ÅÍ Á¢¼Ó ·Î±×
+	//{{  2011.11.24     ï¿½ï¿½Î¼ï¿½    Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_CHAR_CONNECT_LOG
 	SendUpdateUnitConnectLog();
 #endif SERV_CHAR_CONNECT_LOG
 	//}}
 
-	//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 	CheckDeselectUnitBuff();
 #endif SERV_SERVER_BUFF_SYSTEM
 	//}
 
-	// Ä³¸¯ÅÍ Á¤º¸ DB¾÷µ¥ÀÌÆ®
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	WriteUnitInfoToDB( bFinal, usEventID );
 
-	//{{ 2012. 09. 22	¹Ú¼¼ÈÆ	ºù°í ÀÌº¥Æ®
+	//{{ 2012. 09. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_BINGO
 	BingoEventDBWrite();
 #endif SERV_EVENT_BINGO
 	//}}
 
-	// ·Î±×ÀÎ ¼­¹ö¿¡ µî·ÏµÈ Ä³¸¯ÅÍ Á¤º¸ ÃÊ±âÈ­
+	// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ïµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 	{
 		KELG_UNIT_DISCONNECT_NOT kPacketNot;
 		kPacketNot.m_iUnitUID = GetCharUID();
-		//{{ 2009. 9. 29  ÃÖÀ°»ç	±æµå
+		//{{ 2009. 9. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 		kPacketNot.m_iGuildUID = GetGuildUID();
 #endif GUILD_TEST
@@ -6585,11 +6585,11 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 		}
 		SendToLoginServer( ELG_UNIT_DISCONNECT_NOT, kPacketNot );
 
-		//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		KEGB_UNIT_DISCONNECT_NOT kPacketToGB;
 		kPacketToGB.m_iUnitUID = GetCharUID();
-		//{{ 2012. 12. 17	¹Ú¼¼ÈÆ	ÀèÆÌ ÀÌº¥Æ®
+		//{{ 2012. 12. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_JACKPOT
 		kPacketToGB.m_iUserUID	= GetUID();
 #endif SERV_EVENT_JACKPOT
@@ -6599,14 +6599,14 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 		//}}
 	}
 
-	//»çÁ¦½Ã½ºÅÛ¿¡ µî·ÏÀÌ µÇ¾îÀÖ´Ù¸é À¯´ÖÀ» »èÁ¦ÇØÁØ´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
 	m_kUserTutorialInfo.DisconnectUpdateUnitInfo( GetThisPtr<KGSUser>() );
 
 	if( m_kUserTutorialInfo.GetTutorUnitType() == KUserTutorialInfo::TUT_STUDENT  &&  SiKTutorialManager()->IsExistbylist( GetCharUID() ) == true )
 	{
 		if( SiKTutorialManager()->DeleteUnit( GetCharUID() ) == false )
 		{
-			START_LOG( cerr, L"»ç¼¼½Ã½ºÅÛÁß Á¦ÀÚÁ¤º¸ Áö¿ì±â ½ÇÆÐ.!" )
+			START_LOG( cerr, L"ï¿½ç¼¼ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharUID() )
 #else
@@ -6624,10 +6624,10 @@ void KGSUser::OnDeselectUnit( IN const bool bFinal, IN const u_short usEventID )
 //#endif SERV_DESELECT_UNIT_REFAC
 //}}
 
-//{{ 2011. 10. 14	ÃÖÀ°»ç	¾ÆÀÌÅÛ »ç¿ë DB ¾÷µ¥ÀÌÆ® ¼öÁ¤
+//{{ 2011. 10. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_USE_ITEM_DB_UPDATE_FIX
 void KGSUser::OnUseItemInInventory( IN const UidType iItemUID
-								   //{{ 2012. 12. 24	¹Ú¼¼ÈÆ	Æê ¿ÀÅä ·çÆÃ ±â´É Ãß°¡
+								   //{{ 2012. 12. 24	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_PET_AUTO_LOOTING
 								   , IN const __int64 iTempCode
 //#endif SERV_PET_AUTO_LOOTING
@@ -6639,7 +6639,7 @@ void KGSUser::OnUseItemInInventory( IN const UidType iItemUID
 	const int iUsedItemID = m_kInventory.GetItemID( iItemUID );
 
 	//////////////////////////////////////////////////////////////////////////
-	// ÀÎº¥Åä¸®¿¡¼­ ¾ÆÀÌÅÛ »ç¿ë!
+	// ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½!
 	KEGS_USE_ITEM_IN_INVENTORY_ACK kAck;
 	KDBE_USE_ITEM_IN_INVENTORY_REQ kPacketToDB;
 
@@ -6650,7 +6650,7 @@ void KGSUser::OnUseItemInInventory( IN const UidType iItemUID
 		return;
 	}
 
-	//{{ 2012. 10. 31	¹Ú¼¼ÈÆ	ÄÚº¸ ÀÍ½ºÇÁ·¹½º Æ¼ÄÏ Ãß°¡
+	//{{ 2012. 10. 31	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Úºï¿½ ï¿½Í½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¼ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_COBO_EXPRESS_TICKET
 	if( ( iUsedItemID == CXSLItem::SI_USE_FREE_BY_FIELD ) ||
 		( iUsedItemID == CXSLItem::SI_USE_COBO_EXPRESS_TICKET )
@@ -6677,27 +6677,27 @@ void KGSUser::OnUseItemInInventory( IN const UidType iItemUID
 				return;
 			}
 
-			//{{ 2012. 10. 16	ÃÖÀ°»ç		ED&¾ÆÀÌÅÛ ¸ð´ÏÅÍ¸µ ½Ã½ºÅÛ
+			//{{ 2012. 10. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ED&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 			DecreaseED( iCOBOExpressTicketCost, KUserEDManager::ER_OUT_ED_USE_COBO_EXPRESS_TICKET );
 #else
-//#ifdef SERV_SEPARATE_DUNGEON_FIELD_ED_LOG// ÀÛ¾÷³¯Â¥: 2013-06-17	// ¹Ú¼¼ÈÆ
+//#ifdef SERV_SEPARATE_DUNGEON_FIELD_ED_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-17	// ï¿½Ú¼ï¿½ï¿½ï¿½
 			const int iBeforeED = m_iED;
 //#endif // SERV_SEPARATE_DUNGEON_FIELD_ED_LOG
 
 			DecreaseED( iCOBOExpressTicketCost );
 
-#ifdef SERV_SEPARATE_DUNGEON_FIELD_ED_LOG// ÀÛ¾÷³¯Â¥: 2013-05-08	// ¹Ú¼¼ÈÆ	// ÇØ¿ÜÆÀ ´©¶ô Ãß°¡
-//#ifdef SERV_SEPARATE_DUNGEON_FIELD_ED_LOG// ÀÛ¾÷³¯Â¥: 2013-06-17	// ¹Ú¼¼ÈÆ
+#ifdef SERV_SEPARATE_DUNGEON_FIELD_ED_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-08	// ï¿½Ú¼ï¿½ï¿½ï¿½	// ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+//#ifdef SERV_SEPARATE_DUNGEON_FIELD_ED_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-17	// ï¿½Ú¼ï¿½ï¿½ï¿½
 			m_kUserAbuserManager.CheckEDAbuser( GetThisPtr<KGSUser>(), KAbuserLogManager::ELS_COBO_EXPRESS_TICKET_COST, iBeforeED );
 //#endif // SERV_SEPARATE_DUNGEON_FIELD_ED_LOG
 
-			// ED »ç¿ë·® Åë°è
+			// ED ï¿½ï¿½ë·® ï¿½ï¿½ï¿½
 			KStatisticsKey kKey;
 			kKey.m_vecIntKey.push_back( 0 );
 			KSIManager.IncreaseCount( KStatistics::SI_ED, kKey, KStatistics::eSIColDB_ED_MCoboExpressTicketED, iCOBOExpressTicketCost );
 
-			// À¯Àú Åë°è
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_USER_STATISTICS_RENEWAL
 			m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EDData, 0, KUserStatistics::US_ED_MCoboExpressTicketED, iCOBOExpressTicketCost );
 #else //SERV_USER_STATISTICS_RENEWAL
@@ -6712,18 +6712,18 @@ void KGSUser::OnUseItemInInventory( IN const UidType iItemUID
 #endif SERV_ADD_COBO_EXPRESS_TICKET
 	//}}
 
-	//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 	std::vector<KBuffInfo> vecActiveBuff;
 	std::vector<int> vecDeactiveBuff;
 
-	// ¾ÆÀÌÅÛ »ç¿ë ¹öÇÁ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	CTime tCurr = CTime::GetCurrentTime();
 	ActivateItemBuff( iUsedItemID, vecActiveBuff, vecDeactiveBuff, tCurr );
 
 	if( vecActiveBuff.empty() == false || vecDeactiveBuff.empty() == false )
 	{
-		// ·Î±×ÀÎ ¼­¹ö ¹öÇÁ ¸Å´ÏÀú¿¡ ¾÷µ¥ÀÌÆ®
+		// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
 		kReq.m_iUnitUID = GetCharUID();
 		kReq.m_vecActivateBuff = vecActiveBuff;
@@ -6739,7 +6739,7 @@ void KGSUser::OnUseItemInInventory( IN const UidType iItemUID
 #endif //SERV_GOLD_TICKET
 	kPacketToDB.m_iWarpPointMapID = iWarpPointMapID;
 	kPacketToDB.m_iUnitUID = GetCharUID();
-	//{{ 2012. 12. 24	¹Ú¼¼ÈÆ	Æê ¿ÀÅä ·çÆÃ ±â´É Ãß°¡
+	//{{ 2012. 12. 24	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 //#ifdef SERV_PET_AUTO_LOOTING
 	kPacketToDB.m_iTempCode	= iTempCode;
 //#endif SERV_PET_AUTO_LOOTING
@@ -6751,7 +6751,7 @@ void KGSUser::OnUseItemInInventory( IN const UidType iItemUID
 #endif SERV_USE_ITEM_DB_UPDATE_FIX
 //}}
 
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT// ÀÛ¾÷³¯Â¥: 2013-07-14	// ¹Ú¼¼ÈÆ
+#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-14	// ï¿½Ú¼ï¿½ï¿½ï¿½
 bool KGSUser::CheckCharLevelUp( const bool bHackingCheck /*= true */)
 #else
 bool KGSUser::CheckCharLevelUp()
@@ -6763,16 +6763,16 @@ bool KGSUser::CheckCharLevelUp()
 
 	if( ucNowLevel < m_ucLevel )
 	{
-		//{{ 2012. 12. 14  °èÁ¤ ¹Ì¼Ç ½Ã½ºÅÛ ( °èÁ¤´ÜÀ§ Äù½ºÆ® ) - ±è¹Î¼º
+		//{{ 2012. 12. 14  ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 		m_kUserAccountQuestManager.Handler_CharaterLevelUp_Account( GetThisPtr<KGSUser>() );
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 		//}}
 
-		//·¹º§¾÷ÇÑ °æ¿ì ÆÄÆ¼Á¤º¸ ¾÷µ¥ÀÌÆ®.
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®.
 		SendUpdatePartyUnitInfo();
 		
-		// Ã¼ÇèID ±â´É Á¦ÇÑ
+		// Ã¼ï¿½ï¿½ID ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( !IsGuestUser() )
 		{
 #ifdef SERV_RECRUIT_EVENT_BASE
@@ -6786,11 +6786,11 @@ bool KGSUser::CheckCharLevelUp()
 				int iRewardID = SiKRecommendUserTable()->GetRecommendUserReward( GetLevel() );
 				if( iRewardID != 0 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID	= GetCharUID();
-					kPacketToDB.m_iToUnitUID	= vecRecruiterUnitList[0].m_iUnitUID; // ÃßÃµÀÎ UnitUID
-					kPacketToDB.m_iRewardType	= KPostItemInfo::LT_RECOMMEND; // º¸»ó Å¸ÀÔ
+					kPacketToDB.m_iToUnitUID	= vecRecruiterUnitList[0].m_iUnitUID; // ï¿½ï¿½Ãµï¿½ï¿½ UnitUID
+					kPacketToDB.m_iRewardType	= KPostItemInfo::LT_RECOMMEND; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 					kPacketToDB.m_iRewardID		= iRewardID;
 
 					CStringW cwstrMessage;
@@ -6802,10 +6802,10 @@ bool KGSUser::CheckCharLevelUp()
 			}
 			else
 #endif SERV_RECRUIT_EVENT_BASE
-			// ÃßÃµÀÎ º¸»ó ºÎºÐ
+			// ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½
 			if( m_kUserRecommendManager.GetRecommendedUnitUID() > 0 )
 			{
-				//{{ 2010. 01. 11  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+				//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_RECOMMEND_LIST
 				SendUpdateRecommendUserInfo( KRecommendUserInfo::RUIT_LEVEL_UP );
 #endif SERV_RECOMMEND_LIST
@@ -6814,11 +6814,11 @@ bool KGSUser::CheckCharLevelUp()
 				int iRewardID = SiKRecommendUserTable()->GetRecommendUserReward( GetLevel() );
 				if( iRewardID != 0 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID	= GetCharUID();
-					kPacketToDB.m_iToUnitUID	= m_kUserRecommendManager.GetRecommendedUnitUID(); // ÃßÃµÀÎ UnitUID
-					kPacketToDB.m_iRewardType	= KPostItemInfo::LT_RECOMMEND; // º¸»ó Å¸ÀÔ
+					kPacketToDB.m_iToUnitUID	= m_kUserRecommendManager.GetRecommendedUnitUID(); // ï¿½ï¿½Ãµï¿½ï¿½ UnitUID
+					kPacketToDB.m_iRewardType	= KPostItemInfo::LT_RECOMMEND; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 					kPacketToDB.m_iRewardID		= iRewardID;
 
 					CStringW cwstrMessage;
@@ -6828,17 +6828,17 @@ bool KGSUser::CheckCharLevelUp()
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
 
-				//{{ 2013. 03. 21	 ÃßÃµÀÎ ½Ã½ºÅÛ °³Æí - ±è¹Î¼º
+				//{{ 2013. 03. 21	 ï¿½ï¿½Ãµï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RECOMMEND_LIST_EVENT
-				// ¿¤¼Òµå ¸ðÇè°¡ÀÇ ¼ºÀå 10·¾ 1°³, 20·¾ 2°³, 30·¾ 3°³
+				// ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ï¿½è°¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 10ï¿½ï¿½ 1ï¿½ï¿½, 20ï¿½ï¿½ 2ï¿½ï¿½, 30ï¿½ï¿½ 3ï¿½ï¿½
 				int iRewardEventID = SiKRecommendUserTable()->GetRecommendUserEventReward( GetLevel() );
 				if( iRewardEventID != 0 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID	= GetCharUID();
-					kPacketToDB.m_iToUnitUID	= m_kUserRecommendManager.GetRecommendedUnitUID(); // ÃßÃµÀÎ UnitUID
-					kPacketToDB.m_iRewardType	= KPostItemInfo::LT_RECOMMEND; // º¸»ó Å¸ÀÔ
+					kPacketToDB.m_iToUnitUID	= m_kUserRecommendManager.GetRecommendedUnitUID(); // ï¿½ï¿½Ãµï¿½ï¿½ UnitUID
+					kPacketToDB.m_iRewardType	= KPostItemInfo::LT_RECOMMEND; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 					kPacketToDB.m_iRewardID		= iRewardEventID;
 
 					CStringW cwstrMessage;
@@ -6852,7 +6852,7 @@ bool KGSUser::CheckCharLevelUp()
 
 			}
 
-			//Á¦ÀÚ¸®½ºÆ®¿¡ ÀÖ´Ù¸é Á¤º¸¾÷µ¥ÀÌÆ®.
+			//ï¿½ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®.
 			if( m_kUserTutorialInfo.GetTutorUnitType() == KUserTutorialInfo::TUT_STUDENT &&
 				m_kUserTutorialInfo.IsExistbyTutorData() == false )
 			{
@@ -6860,7 +6860,7 @@ bool KGSUser::CheckCharLevelUp()
 				{
 					SiKTutorialManager()->SetLevelData( GetCharUID(), GetLevel() );
 
-					//Á¦ÀÛÀÇ ¸¶Áö¸· ·¹º§ÀÌ µÇ¾úÀ¸¸é ¸®½ºÆ®¿¡¼­ »èÁ¦ÇØÁØ´Ù. 
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½. 
 					if( GetLevel() >= KTutorialManager::UNIT_LEVEL_STUDENT_MAX  &&
 						ucNowLevel < KTutorialManager::UNIT_LEVEL_STUDENT_MAX )
 					{
@@ -6869,19 +6869,19 @@ bool KGSUser::CheckCharLevelUp()
 				}
 			}
 
-			//080408.hoons. »çÁ¦ º¸»ó ºÎºÐ.
+			//080408.hoons. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½.
 			m_kUserTutorialInfo.ProcCharLevelUP( ucNowLevel, GetThisPtr<KGSUser>() );
 		}
 
-		//{{ 2010. 03. 22  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+		//{{ 2010. 03. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
-		// ÇöÀç ±â¼úÀÇ ³ëÆ®¸¦ º¸À¯ÇÏ°í ÀÖ´Ù¸é?
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´Ù¸ï¿½?
 		if( m_kSkillTree.IsHaveSkillNote() == true )
 		{
 			char cSkillNoteMaxPageNum = 0;
 			if( m_kSkillTree.GetExpandSkillNotePage( GetLevel(), cSkillNoteMaxPageNum ) == true )
 			{
-				// »õ·Î ¾òÀº ÆäÀÌÁö¼ö°¡ ÇöÀçº¸´Ù Å©´Ù¸é DB·Î È®ÀåÇÏ·¯ °¡ÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½çº¸ï¿½ï¿½ Å©ï¿½Ù¸ï¿½ DBï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				if( cSkillNoteMaxPageNum > m_kSkillTree.GetSkillNoteMaxPageNum() )
 				{
 					KDBE_EXPAND_SKILL_NOTE_PAGE_REQ kPacketToDB;
@@ -6893,7 +6893,7 @@ bool KGSUser::CheckCharLevelUp()
 			}
 			else
 			{
-				START_LOG( cerr, L"±â¼úÀÇ ³ëÆ® ·¹º§º° ÆäÀÌÁö Á¤º¸ ¾ò±â ½ÇÆÐ!" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( GetCharUID() )
 					<< BUILD_LOGc( GetLevel() )
 					<< END_LOG;
@@ -6902,11 +6902,11 @@ bool KGSUser::CheckCharLevelUp()
 #endif SERV_SKILL_NOTE
 		//}}
 
-#ifdef SERV_LEVEL_UP_EVENT// ÀÛ¾÷³¯Â¥: 2013-07-12	// ¹Ú¼¼ÈÆ
+#ifdef SERV_LEVEL_UP_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-12	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		{
 			std::vector<int> vecRewardID;
 			SiKGameEventManager()->GetLevelUpEvent( ucNowLevel
-#ifdef SERV_LEVEL_UP_EVENT_CRITERION_DATE// ÀÛ¾÷³¯Â¥: 2013-06-26	// ¹Ú¼¼ÈÆ
+#ifdef SERV_LEVEL_UP_EVENT_CRITERION_DATE// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-26	// ï¿½Ú¼ï¿½ï¿½ï¿½
 				, GetCriterionDateEventInfo()
 				, GetAccountRegDate()
 #endif // SERV_LEVEL_UP_EVENT_CRITERION_DATE
@@ -6915,25 +6915,25 @@ bool KGSUser::CheckCharLevelUp()
 
 			BOOST_TEST_FOREACH( int, iRewardID, vecRewardID )
 			{
-				// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+				// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 				KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 				kPacketToDB.m_iFromUnitUID = GetCharUID();
 				kPacketToDB.m_iToUnitUID   = GetCharUID();
-				kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
+				kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 				kPacketToDB.m_iRewardID	   = iRewardID;
 				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 			}
 		}
 #endif // SERV_LEVEL_UP_EVENT
 
-#ifdef SERV_PRESENT_SKILL_INIT_ITEM// ÀÛ¾÷³¯Â¥: 2013-06-25	// ¹Ú¼¼ÈÆ
+#ifdef SERV_PRESENT_SKILL_INIT_ITEM// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-25	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		if( m_ucLevel == SiKGameSysVal()->GetLimitsLevel() )
 		{
-			// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+			// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 			kPacketToDB.m_iFromUnitUID = GetCharUID();
 			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
+			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 #ifdef SERV_PRESENT_SKILL_INIT_ITEM_INT
 			kPacketToDB.m_iRewardID	   = _CONST_PRESENT_SKILL_INIT_ITEM_INT_::iReachLimitLevel;
 #else //SERV_PRESENT_SKILL_INIT_ITEM_INT
@@ -6943,17 +6943,17 @@ bool KGSUser::CheckCharLevelUp()
 		}
 #endif // SERV_PRESENT_SKILL_INIT_ITEM
 
-		//{{ 2011. 08. 09  ±è¹Î¼º Ã¤³Î¸µ ÀÌº¥Æ® - Åõ´Ï·£µå À¯Àú 25·¾ ´Þ¼º ÀÌº¥Æ®
+		//{{ 2011. 08. 09  ï¿½ï¿½Î¼ï¿½ Ã¤ï¿½Î¸ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 25ï¿½ï¿½ ï¿½Þ¼ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_CHANNELING_TOONILAND_LEVEL_UP_EVENT
-		if( GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )  // Åõ´Ï·£µå À¯ÀúÀÏ¶§
+		if( GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )  // ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½
 		{
 			if( ucNowLevel < 25  &&  GetLevel() >= 25 )
 			{
-				// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+				// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 				KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 				kPacketToDB.m_iFromUnitUID = GetCharUID();
 				kPacketToDB.m_iToUnitUID   = GetCharUID();
-				kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
+				kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 				kPacketToDB.m_iRewardID	   = 10219; // TooniLand ÄªÈ£ ITEM
 				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 			}
@@ -6961,7 +6961,7 @@ bool KGSUser::CheckCharLevelUp()
 #endif SERV_CHANNELING_TOONILAND_LEVEL_UP_EVENT
 		//}}		
 
-		//{{ 2012. 12. 19  ¾Æ¶ó Ä³¸¯ÅÍ ·¹º§¾÷ ÀÌº¥Æ®(15, 30, 40 ·¹º§´Þ¼º ½Ã) - ±è¹Î¼º
+		//{{ 2012. 12. 19  ï¿½Æ¶ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®(15, 30, 40 ï¿½ï¿½ï¿½ï¿½ï¿½Þ¼ï¿½ ï¿½ï¿½) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ARA_LEVEL_UP_EVENT
 		{
 			CTime tCurrentDate = CTime::GetCurrentTime();
@@ -6973,34 +6973,34 @@ bool KGSUser::CheckCharLevelUp()
 				{
 					if( ucNowLevel < 15  &&  GetLevel() >= 15 )
 					{
-						// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+						// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 						KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 						kPacketToDB.m_iFromUnitUID = GetCharUID();
 						kPacketToDB.m_iToUnitUID   = GetCharUID();
-						kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-						kPacketToDB.m_iRewardID	   = 10451; // ½ºÅ³ ½½·Ô Ã¼ÀÎÁö ¸Þ´Þ 30ÀÏ±Ç Å¥ºê <-- RewardTable.lua¿¡ µî·ÏµÈ idÀÓ
+						kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+						kPacketToDB.m_iRewardID	   = 10451; // ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´ï¿½ 30ï¿½Ï±ï¿½ Å¥ï¿½ï¿½ <-- RewardTable.luaï¿½ï¿½ ï¿½ï¿½Ïµï¿½ idï¿½ï¿½
 						SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 					}
 
 					if( ucNowLevel < 30  &&  GetLevel() >= 30 )
 					{
-						// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+						// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 						KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 						kPacketToDB.m_iFromUnitUID = GetCharUID();
 						kPacketToDB.m_iToUnitUID   = GetCharUID();
-						kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-						kPacketToDB.m_iRewardID	   = 10452; // ±×³ë½Ã½ºÀÇ Ãàº¹ (10SP) 30ÀÏ±Ç Å¥ºê <-- RewardTable.lua¿¡ µî·ÏµÈ idÀÓ
+						kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+						kPacketToDB.m_iRewardID	   = 10452; // ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½àº¹ (10SP) 30ï¿½Ï±ï¿½ Å¥ï¿½ï¿½ <-- RewardTable.luaï¿½ï¿½ ï¿½ï¿½Ïµï¿½ idï¿½ï¿½
 						SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 					}
 
 					if( ucNowLevel < 40  &&  GetLevel() >= 40 )
 					{
-						// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+						// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 						KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 						kPacketToDB.m_iFromUnitUID = GetCharUID();
 						kPacketToDB.m_iToUnitUID   = GetCharUID();
-						kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-						kPacketToDB.m_iRewardID	   = 10453; // ¸Á°¢ÀÇ ¾Ë¾à 10°³ Å¥ºê <-- RewardTable.lua¿¡ µî·ÏµÈ idÀÓ
+						kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+						kPacketToDB.m_iRewardID	   = 10453; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½ 10ï¿½ï¿½ Å¥ï¿½ï¿½ <-- RewardTable.luaï¿½ï¿½ ï¿½ï¿½Ïµï¿½ idï¿½ï¿½
 						SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 					}
 				}
@@ -7009,7 +7009,7 @@ bool KGSUser::CheckCharLevelUp()
 #endif SERV_ARA_LEVEL_UP_EVENT
 		//}}
 
-		//{{ 2013. 01. 25  ·¹º§¾÷ º¸»ó ÀÌº¥Æ® ÀÛ¾÷ - ±è¹Î¼º
+		//{{ 2013. 01. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Û¾ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_EVENT_LEVEL_UP
 		{
 			CTime tCurrentDate = CTime::GetCurrentTime();
@@ -7019,12 +7019,12 @@ bool KGSUser::CheckCharLevelUp()
 			{
 				if( ucNowLevel < 65  &&  GetLevel() >= 65 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID = GetCharUID();
 					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-					kPacketToDB.m_iRewardID	   = 10472; // ¡®»÷´õ »þÀÌ´× ºê·¹½½¸´¡¯ (1°³±Ç)  <-- RewardTable.lua¿¡ µî·ÏµÈ idÀÓ
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+					kPacketToDB.m_iRewardID	   = 10472; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ê·¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (1ï¿½ï¿½ï¿½ï¿½)  <-- RewardTable.luaï¿½ï¿½ ï¿½ï¿½Ïµï¿½ idï¿½ï¿½
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
 			}
@@ -7038,44 +7038,44 @@ bool KGSUser::CheckCharLevelUp()
 			{
 				if( ucNowLevel < 20 && GetLevel() >= 20 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID = GetCharUID();
 					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 					kPacketToDB.m_iRewardID	   = _CONST_ARA_NEW_FIRST_CLASS_EVENT_REWARD_ID::iLevelUpReward1;
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
 
 				if( ucNowLevel < 25 && GetLevel() >= 25 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID = GetCharUID();
 					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 					kPacketToDB.m_iRewardID	   = _CONST_ARA_NEW_FIRST_CLASS_EVENT_REWARD_ID::iLevelUpReward2;
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
 
 				if( ucNowLevel < 30 && GetLevel() >= 30 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID = GetCharUID();
 					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 					kPacketToDB.m_iRewardID	   = _CONST_ARA_NEW_FIRST_CLASS_EVENT_REWARD_ID::iLevelUpReward3;
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
 
 				if( ucNowLevel < 35 && GetLevel() >= 35 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID = GetCharUID();
 					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
 					kPacketToDB.m_iRewardID	   = _CONST_ARA_NEW_FIRST_CLASS_EVENT_REWARD_ID::iLevelUpReward4;
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
@@ -7090,66 +7090,66 @@ bool KGSUser::CheckCharLevelUp()
 			{
 				if( ucNowLevel < 3  &&  GetLevel() >= 3 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID = GetCharUID();
 					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-					kPacketToDB.m_iRewardID	   = 1545; // ¸¶³ª ÀÌÅÍ
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+					kPacketToDB.m_iRewardID	   = 1545; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
 
 				if( ucNowLevel < 7  &&  GetLevel() >= 7 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID = GetCharUID();
 					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-					kPacketToDB.m_iRewardID	   = 1546; // Æ¯¼ö ¾×¼¼¼­¸® 3ÀÏ±Ç Å¥ºê
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+					kPacketToDB.m_iRewardID	   = 1546; // Æ¯ï¿½ï¿½ ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ 3ï¿½Ï±ï¿½ Å¥ï¿½ï¿½
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
 
 				if( ucNowLevel < 11  &&  GetLevel() >= 11 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID = GetCharUID();
 					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-					kPacketToDB.m_iRewardID	   = 1547; // ¿¤ÀÇ ³ª¹« ¾¾¾Ñ 10°³
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+					kPacketToDB.m_iRewardID	   = 1547; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 10ï¿½ï¿½
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
 
 				if( ucNowLevel < 15  &&  GetLevel() >= 15 )
 				{
-					// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+					// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 					kPacketToDB.m_iFromUnitUID = GetCharUID();
 					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-					kPacketToDB.m_iRewardID	   = 1548; // ±×³ë½Ã½º Ãàº¹(10SP) 15ÀÏ±Ç
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+					kPacketToDB.m_iRewardID	   = 1548; // ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹(10SP) 15ï¿½Ï±ï¿½
 					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 				}
 			}
 		}
 #endif SERV_EVENT_LEVEL_UP_ARA
 
-#ifdef	SERV_CHILDREN_DAY_LEVEL_UP_EVENT // Àû¿ë³¯Â¥: 2013-05-02
+#ifdef	SERV_CHILDREN_DAY_LEVEL_UP_EVENT // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-05-02
 		{
 			std::wstring wstrAccountRegDate = GetAccountRegDate();
 			CTime tRegDate;
 			if( KncUtil::ConvertStringToCTime( wstrAccountRegDate, tRegDate ) == true )
 			{
-#ifdef	SERV_CHILDREN_DAY_LEVEL_UP_EVENT_TEST // Àû¿ë³¯Â¥: 2013-05-02
-				if( CTime( 2013, 4, 30, 0, 0, 0 ) < tRegDate  )	// ÀÌº¥Æ® ±â°£ ÀÌÈÄ »ý¼ºµÈ À¯Àú
+#ifdef	SERV_CHILDREN_DAY_LEVEL_UP_EVENT_TEST // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-05-02
+				if( CTime( 2013, 4, 30, 0, 0, 0 ) < tRegDate  )	// ï¿½Ìºï¿½Æ® ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				{
 					CTime tCurrentDate = CTime::GetCurrentTime();
 					if( ( CTime( 2013, 4, 30, 0, 0, 0 ) <= tCurrentDate ) &&
 						( tCurrentDate < CTime( 2013, 5, 16, 7, 0, 0 ) )
 						)
 #else
-				if( CTime( 2013, 5, 2, 7, 0, 0 ) < tRegDate  )	// ÀÌº¥Æ® ±â°£ ÀÌÈÄ »ý¼ºµÈ À¯Àú
+				if( CTime( 2013, 5, 2, 7, 0, 0 ) < tRegDate  )	// ï¿½Ìºï¿½Æ® ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				{
 					CTime tCurrentDate = CTime::GetCurrentTime();
 					if( ( CTime( 2013, 5, 2, 7, 0, 0 ) <= tCurrentDate ) &&
@@ -7159,34 +7159,34 @@ bool KGSUser::CheckCharLevelUp()
 					{
 						if( ucNowLevel < 10  &&  GetLevel() >= 10 )
 						{
-							// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+							// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 							KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 							kPacketToDB.m_iFromUnitUID = GetCharUID();
 							kPacketToDB.m_iToUnitUID   = GetCharUID();
-							kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-							kPacketToDB.m_iRewardID	   = 10530; // Ãàº¹ÀÇ ¸Þ´Þ 1ÀÏ±Ç Å¥ºê <-- RewardTable.lua¿¡ µî·ÏµÈ idÀÓ
+							kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+							kPacketToDB.m_iRewardID	   = 10530; // ï¿½àº¹ï¿½ï¿½ ï¿½Þ´ï¿½ 1ï¿½Ï±ï¿½ Å¥ï¿½ï¿½ <-- RewardTable.luaï¿½ï¿½ ï¿½ï¿½Ïµï¿½ idï¿½ï¿½
 							SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 						}
 
 						if( ucNowLevel < 20  &&  GetLevel() >= 20 )
 						{
-							// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+							// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 							KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 							kPacketToDB.m_iFromUnitUID = GetCharUID();
 							kPacketToDB.m_iToUnitUID   = GetCharUID();
-							kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-							kPacketToDB.m_iRewardID	   = 10531; // ±×³ë½Ã½ºÀÇ Ãàº¹(10sp) 30ÀÏ±Ç 1°³ <-- RewardTable.lua¿¡ µî·ÏµÈ idÀÓ
+							kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+							kPacketToDB.m_iRewardID	   = 10531; // ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½àº¹(10sp) 30ï¿½Ï±ï¿½ 1ï¿½ï¿½ <-- RewardTable.luaï¿½ï¿½ ï¿½ï¿½Ïµï¿½ idï¿½ï¿½
 							SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 						}
 
 						if( ucNowLevel < 30  &&  GetLevel() >= 30 )
 						{
-							// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+							// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 							KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 							kPacketToDB.m_iFromUnitUID = GetCharUID();
 							kPacketToDB.m_iToUnitUID   = GetCharUID();
-							kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-							kPacketToDB.m_iRewardID	   = 10532; // ³ª¼Òµå ÆÇ³Ú °¡µå ¹«±â ¾×¼¼¼­¸® 1°³±Ç <-- RewardTable.lua¿¡ µî·ÏµÈ idÀÓ
+							kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+							kPacketToDB.m_iRewardID	   = 10532; // ï¿½ï¿½ï¿½Òµï¿½ ï¿½Ç³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ <-- RewardTable.luaï¿½ï¿½ ï¿½ï¿½Ïµï¿½ idï¿½ï¿½
 							SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 						}
 					}
@@ -7195,85 +7195,85 @@ bool KGSUser::CheckCharLevelUp()
 		}
 #endif	// SERV_CHILDREN_DAY_LEVEL_UP_EVENT
 
-		//{{ 2009. 5. 18  ÃÖÀ°»ç	10·¹º§ µÇ¾úÀ»¶§ º¸»ó
+		//{{ 2009. 5. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	10ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		//if( ucNowLevel < 10  &&  GetLevel() >= 10 )
 		//{
-		//	// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+		//	// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		//	KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 		//	kPacketToDB.m_iFromUnitUID = GetCharUID();
 		//	kPacketToDB.m_iToUnitUID   = GetCharUID();
-		//	kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // º¸»ó Å¸ÀÔ
-		//	kPacketToDB.m_iRewardID	   = 136; // ÄÚº¸ Æ¯Á¦ ¹«±â Å¥ºê <-- RewardTable.lua¿¡ µî·ÏµÈ idÀÓ
+		//	kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+		//	kPacketToDB.m_iRewardID	   = 136; // ï¿½Úºï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ <-- RewardTable.luaï¿½ï¿½ ï¿½ï¿½Ïµï¿½ idï¿½ï¿½
 		//	SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 		//}
 		//}}
 
 		//////////////////////////////////////////////////////////////////////////
-		//{{ 2009. 12. 22  ÃÖÀ°»ç	½Å¼­¹öÀÌº¥Æ®  "2009-12-23 ~ 2010-01-27"
+		//{{ 2009. 12. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Å¼ï¿½ï¿½ï¿½ï¿½Ìºï¿½Æ®  "2009-12-23 ~ 2010-01-27"
 		//if( KBaseServer::GetKObj()->GetServerGroupID() == SEnum::SGI_GAIA )
 		//{
 		//	if( ucNowLevel < 10  &&  GetLevel() >= 10 )
 		//	{
-		//		// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+		//		// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		//		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 		//		kPacketToDB.m_iFromUnitUID = GetCharUID();
 		//		kPacketToDB.m_iToUnitUID   = GetCharUID();
 		//		kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-		//		kPacketToDB.m_iRewardID	   = 189; // ÄÚº¸ ¿©ÇàÀÚ º¸±Þ ¹°Ç°(10·¹º§)
+		//		kPacketToDB.m_iRewardID	   = 189; // ï¿½Úºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç°(10ï¿½ï¿½ï¿½ï¿½)
 		//		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 		//	}
 
 		//	if( ucNowLevel < 20  &&  GetLevel() >= 20 )
 		//	{
-		//		// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+		//		// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		//		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 		//		kPacketToDB.m_iFromUnitUID = GetCharUID();
 		//		kPacketToDB.m_iToUnitUID   = GetCharUID();
 		//		kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-		//		kPacketToDB.m_iRewardID	   = 190; // ÄÚº¸ ¿©ÇàÀÚ º¸±Þ ¹°Ç°(20·¹º§), ±æµå Ã¢´Ü Çã°¡¼­
+		//		kPacketToDB.m_iRewardID	   = 190; // ï¿½Úºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç°(20ï¿½ï¿½ï¿½ï¿½), ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½ã°¡ï¿½ï¿½
 		//		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 		//	}
 
 		//	if( ucNowLevel < 30  &&  GetLevel() >= 30 )
 		//	{
-		//		// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+		//		// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		//		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 		//		kPacketToDB.m_iFromUnitUID = GetCharUID();
 		//		kPacketToDB.m_iToUnitUID   = GetCharUID();
 		//		kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-		//		kPacketToDB.m_iRewardID	   = 191; // ÄÚº¸ ¿©ÇàÀÚ º¸±Þ ¹°Ç°(30·¹º§)
+		//		kPacketToDB.m_iRewardID	   = 191; // ï¿½Úºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç°(30ï¿½ï¿½ï¿½ï¿½)
 		//		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 		//	}
 
 		//	if( ucNowLevel < 40  &&  GetLevel() >= 40 )
 		//	{
-		//		// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+		//		// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		//		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 		//		kPacketToDB.m_iFromUnitUID = GetCharUID();
 		//		kPacketToDB.m_iToUnitUID   = GetCharUID();
 		//		kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-		//		kPacketToDB.m_iRewardID	   = 192; // ÄÚº¸ ¿©ÇàÀÚ º¸±Þ ¹°Ç°(40·¹º§)
+		//		kPacketToDB.m_iRewardID	   = 192; // ï¿½Úºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç°(40ï¿½ï¿½ï¿½ï¿½)
 		//		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 		//	}
 
 		//	if( ucNowLevel < 50  &&  GetLevel() >= 50 )
 		//	{
-		//		// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+		//		// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		//		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 		//		kPacketToDB.m_iFromUnitUID = GetCharUID();
 		//		kPacketToDB.m_iToUnitUID   = GetCharUID();
 		//		kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-		//		kPacketToDB.m_iRewardID	   = 193; // ÄÚº¸ ¿©ÇàÀÚ º¸±Þ ¹°Ç°(50·¹º§)
+		//		kPacketToDB.m_iRewardID	   = 193; // ï¿½Úºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç°(50ï¿½ï¿½ï¿½ï¿½)
 		//		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 		//	}
 		//}
 		//}}
 		//////////////////////////////////////////////////////////////////////////
 
-		//{{ 2011. 08. 29	ÃÖÀ°»ç	Ä³¸¯ÅÍ ·¹º§¾÷ ÀÌº¥Æ®
+		//{{ 2011. 08. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_CHAR_LEVEL_UP_EVENT
 //		bool bIsLevelUpEvent = false;
-		if( GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )  // Åõ´Ï·£µå À¯ÀúÀÏ¶§
+		if( GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )  // ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½
 		{
 			std::vector< int >	vecLevelUpRewardID;
 			/* bIsLevelUpEvent = */GetLevelUpRewardItem( ucNowLevel, GetLevel(), vecLevelUpRewardID );
@@ -7282,15 +7282,15 @@ bool KGSUser::CheckCharLevelUp()
 			std::vector< int >::iterator vit = vecLevelUpRewardID.begin();
 			for( ; vit != vecLevelUpRewardID.end() ; ++vit )
 			{
-				if( *vit == 10227 ) // ÇöÀÚÀÇ ÁÖ¹®¼­ 1°³ (1ÀÏ) 
+				if( *vit == 10227 ) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ 1ï¿½ï¿½ (1ï¿½ï¿½) 
 				{
-					if( m_kUserLetterBox.IsExistRewardInLetter( 10227 ) == true )  // °¡Áö°í ÀÖÀ¸¸é Áßº¹ Áö±ÞÇÏÁö ¾Ê´Â´Ù.
+					if( m_kUserLetterBox.IsExistRewardInLetter( 10227 ) == true )  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 					{
 						continue;
 					}
 				}
 
-				// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+				// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 				KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 				kPacketToDB.m_iFromUnitUID = GetCharUID();
 				kPacketToDB.m_iToUnitUID   = GetCharUID();
@@ -7336,27 +7336,27 @@ bool KGSUser::CheckCharLevelUp()
 // 
 // 		if( bIsLevelUpEvent )
 // 		{
-// 			// ÀÌ¹Ì ¿ìÆí¿¡ ÇöÀÚÀÇ ÁÖ¹®¼­°¡ ÀÖ´Ù¸é º¸»óÀ» Áö±ÞÇÏÁö ¾Ê´Â´Ù.
+// 			// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 // 			if( m_kUserLetterBox.IsExistRewardInLetter( 10227 ) == false )
 // 			{
-// 				// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+// 				// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 // 				KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 // 				kPacketToDB.m_iFromUnitUID = GetCharUID();
 // 				kPacketToDB.m_iToUnitUID   = GetCharUID();
 // 				kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-// 				kPacketToDB.m_iRewardID	   = 10227; // ÇöÀÚÀÇ ÁÖ¹®¼­ 1°³ (1ÀÏ)
+// 				kPacketToDB.m_iRewardID	   = 10227; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ 1ï¿½ï¿½ (1ï¿½ï¿½)
 // 				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 // 			}
 // 		}
 #endif SERV_CHAR_LEVEL_UP_EVENT
 		//}}
-#ifdef	SERV_LOCAL_RANKING_SYSTEM // Àû¿ë³¯Â¥: 2013-03-28
+#ifdef	SERV_LOCAL_RANKING_SYSTEM // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-03-28
 		m_kUserLocalRankingInfo.SetCharacterLevel( GetLevel() );
-		// Login Server·Î À¯Àú Á¤º¸ °»½Å ¾Ë¸²À» º¸³½´Ù.
+		// Login Serverï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		IncreasedLocalRankingPoint( 0, 0, true );
 #endif	// SERV_LOCAL_RANKING_SYSTEM
 
-		//{{ 2009. 6. 29  ÃÖÀ°»ç	¸¸·¾ ´Þ¼º °øÁö
+		//{{ 2009. 6. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( GetLevel() == SiKGameSysVal()->GetLimitsLevel()  &&
 			GetAuthLevel() < SEnum::UAL_GM )
 		{
@@ -7370,7 +7370,7 @@ bool KGSUser::CheckCharLevelUp()
 			
 			SendToCnServer( ECN_NOTIFY_MSG_NOT, kPacket );
 
-			//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+			//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 			WriteCharacterLogToDB( KELOG_USER_CHARACTER_LOG_NOT::LT_FULL_LEVEL );
 #endif SERV_CHAR_LOG
@@ -7381,12 +7381,12 @@ bool KGSUser::CheckCharLevelUp()
 #ifdef SERV_SANDER_UPDATE_EVENT
 		if( GetLevel() == 64 )
 		{
-			// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+			// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 			kPacketToDB.m_iFromUnitUID = GetCharUID();
 			kPacketToDB.m_iToUnitUID   = GetCharUID();
 			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 1540; // »÷´õ ¸¶À» Á¤º¹ÀÚ Å¥ºê rewardID
+			kPacketToDB.m_iRewardID	   = 1540; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ rewardID
 			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 		}
 #endif //SERV_SANDER_UPDATE_EVENT
@@ -7400,11 +7400,11 @@ bool KGSUser::CheckCharLevelUp()
 			m_kStat.m_iDefPhysic	= sUnitStat.m_usDefPhysic;
 			m_kStat.m_iDefMagic		= sUnitStat.m_usDefMagic;
 
-			// ·¹º§¾÷ ÇÏ¸é spµµ °°ÀÌ È¹µæÇÑ´Ù
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ spï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ï¿½Ñ´ï¿½
 			for( u_char ucLevel = ucNowLevel + 1; ucLevel <= GetLevel(); ++ucLevel )
 			{
 				int iSPInc = 0;
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 				if( SiCXSLSkillTree()->GetCalcLevelUpIncreaseSkillPoint( ucLevel, iSPInc ) == true )
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
 /*				
@@ -7420,20 +7420,20 @@ bool KGSUser::CheckCharLevelUp()
 						int iCorrectionSP = 0;
 						if( CheckSkillPointCorrection( iCorrectionSP ) == true)
 						{
-							/* ºñ±³ ¹®Á¦·Î º¸Á¤Àº ÇÏÁö ¾Ê°í DB ±â·Ï¸¸ ÇÔ.
-							if( iCorrectionSP > 0 )			// iCorrectionSP°¡ ¾ç¼ö¸é ·¹º§ÀÇ ÀûÁ¤ SPº¸´Ù ºÎÁ·ÇÑ °ÍÀÓ.
+							/* ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ DB ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½.
+							if( iCorrectionSP > 0 )			// iCorrectionSPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 							{
-								m_iSPoint += iCorrectionSP;	// ºÎÁ·ÇÑ SP¸¸Å­ Ãß°¡ Áö±ÞÇÔ.
+								m_iSPoint += iCorrectionSP;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½Å­ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 							}
-							else							// iCorrectionSP°¡ À½¼ö¸é ·¹º§ÀÇ ÀûÁ¤ SPº¸´Ù ¸¹Àº °ÍÀÓ.
+							else							// iCorrectionSPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 							{
 								if( abs(iCorrectionSP) < iSPInc )			
 								{
-									m_iSPoint -= abs(iCorrectionSP);	// SPÀÇ Â÷°¡ ·¹º§¾÷¿¡ µû¸¥ SP »ó½ÂÆøº¸´Ù ÀûÀ¸¸é SP Â÷¸¸Å­ Â÷°¨ÇØ¼­ ÀûÁ¤ SP·Î ¸ÂÃã.
+									m_iSPoint -= abs(iCorrectionSP);	// SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SP ï¿½ï¿½ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 								}
 								else
 								{
-									m_iSPoint -= iSPInc;				// SPÀÇ Â÷°¡ ·¹º§¾÷¿¡ µû¸¥ SP »ó½ÂÆøº¸´Ù Å©¸é ÀÌ¹ø ·¹º§¾÷¿¡´Â SP¸¦ Áö±ÞÇÏÁö ¾ÊÀ½.
+									m_iSPoint -= iSPInc;				// SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 								}
 							}
 							*/
@@ -7466,30 +7466,30 @@ bool KGSUser::CheckCharLevelUp()
 				}
 			}
 
-            // ·¹º§¾÷¿¡ ´ëÇÑ ·Î±×¸¦ DB¿¡ ³²±ä´Ù.
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×¸ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
             KDBE_CHARACTER_LEVELUP_NOT kNot;
             kNot.m_nCharUID = GetCharUID();
             kNot.m_ucLevelBefore = ucNowLevel;
             kNot.m_ucLevelAfter = GetLevel();
             SendToLogDB( DBE_CHARACTER_LEVELUP_NOT, kNot );
 
-			//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+			//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 			WriteCharacterLogToDB( KELOG_USER_CHARACTER_LOG_NOT::LT_LEVEL_UP );
 #endif SERV_CHAR_LOG
 			//}}
 
-			//{{ 2011. 08. 29	ÃÖÀ°»ç	Ä³¸¯ÅÍ ·¹º§¾÷ ÀÌº¥Æ®
+			//{{ 2011. 08. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 			//////////////////////////////////////////////////////////////////////////
 #ifdef SERV_CHAR_LEVEL_UP_EVENT
 			//////////////////////////////////////////////////////////////////////////
-			// ·¹º§¾÷ ÀÌº¥Æ® ÇÏ´Â µ¿¾È¿¡´Â ¿ÀÅäÇÙ Ã¼Å© ±â´ÉÀ» ²¨¾ßÇÕ´Ï´Ù!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½È¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½!
 #else
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT// ÀÛ¾÷³¯Â¥: 2013-07-14	// ¹Ú¼¼ÈÆ
+#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-14	// ï¿½Ú¼ï¿½ï¿½ï¿½
 			if( bHackingCheck == true )
 			{
 #endif // SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-			//{{ 2010. 11. 17	ÃÖÀ°»ç	¿ÀÅäÇÙ °ËÁõ ±â´É
+			//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_AUTO_HACK_CHECK_LEVEL			
 			if( m_kUserAbuserManager.IsAutoHackLevelUpUser( GetLevel()
 #ifdef SERV_AUTO_HACK_CHECK_LEVEL_FIX
@@ -7499,7 +7499,7 @@ bool KGSUser::CheckCharLevelUp()
 			{
 				if( GetAuthLevel() >= SEnum::UAL_GM )
 				{
-					START_LOG( cout, L"·¹º§¾÷ ½Ã°£ °£°ÝÀÌ 1ºÐ ¹Ì¸¸À¸·Î Ã¼Å©µÇ¾úÀ¸³ª °èÁ¤±ÇÇÑÀÌ ¿î¿µÀÚ±Þ ÀÌ»óÀÌ¹Ç·Î ¾Æ¹«·± Ã³¸®¸¦ ÇÏÁö ¾Ê½À´Ï´Ù!" )
+					START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½î¿µï¿½Ú±ï¿½ ï¿½Ì»ï¿½ï¿½Ì¹Ç·ï¿½ ï¿½Æ¹ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½!" )
 #ifndef SERV_PRIVACY_AGREEMENT
 						<< BUILD_LOG( GetName() )
 #endif SERV_PRIVACY_AGREEMENT
@@ -7512,7 +7512,7 @@ bool KGSUser::CheckCharLevelUp()
 				}
 				else
 				{
-					START_LOG( cout, L"·¹º§¾÷ ½Ã°£ °£°ÝÀÌ 1ºÐ ¹Ì¸¸À¸·Î Ã¼Å©µÇ¾î ÇØ´ç À¯Àú¸¦ Á¢¼Ó Á¾·á Ã³¸®ÇÔ!" )
+					START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ç¾ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½!" )
 #ifndef SERV_PRIVACY_AGREEMENT
 						<< BUILD_LOG( GetName() )
 #endif SERV_PRIVACY_AGREEMENT
@@ -7531,7 +7531,7 @@ bool KGSUser::CheckCharLevelUp()
 
 					if( SiKAbuserLogManager()->IsAbuserCheckLevelUp() == true )
 					{
-						START_LOG( cout, L"ÇØÅ· À¯Àú µî·Ï ¹× °èÁ¤ Á¢¼Ó Â÷´Ü ÇÕ´Ï´Ù!" )
+						START_LOG( cout, L"ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½!" )
 #ifndef SERV_PRIVACY_AGREEMENT
 							<< BUILD_LOG( GetName() )
 #endif SERV_PRIVACY_AGREEMENT
@@ -7542,14 +7542,14 @@ bool KGSUser::CheckCharLevelUp()
 #endif SERV_PRIVACY_AGREEMENT
 							<< BUILD_LOG( GetCharUID() );
 
-						// RejectedUser¿¡ µî·ÏÇÏ±â!
+						// RejectedUserï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï±ï¿½!
 						KELG_REG_REJECTED_USER_NOT kPacketNot;
 						kPacketNot.m_iUserUID = GetUID();
 						SendToLoginServer( ELG_REG_REJECTED_USER_NOT, kPacketNot );
 
 						if( m_cHackingUserType == SEnum::HUT_NORMAL )
 						{
-							START_LOG( clog, L"ÇØÅ· À¯Àú ½Å°í.!" )
+							START_LOG( clog, L"ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½Å°ï¿½.!" )
 								<< BUILD_LOG( GetUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 								<< BUILD_LOG( GetName() )
@@ -7558,16 +7558,16 @@ bool KGSUser::CheckCharLevelUp()
 								<< BUILD_LOGc( m_cHackingUserType )
 								;
 
-								// ÇÙÀ¯Àú·Î Ã¼Å©!
+								// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 								m_cHackingUserType = SEnum::HUT_DISAGREE_HACK_USER;
 
-								// AccountDB¿¡µµ µî·ÏÇÏÀÚ!
+								// AccountDBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 								SendToAccountDB( DBE_REPORT_HACK_USER_NOT, GetUID() );
 							}
 
-							//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+							//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
-							//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+							//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 							KEGS_SERVER_CHECK_HACK_USER_REQ kPacket;
 							kPacket.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_CHECK_FAST_LEVEL_UP;
@@ -7575,7 +7575,7 @@ bool KGSUser::CheckCharLevelUp()
 #endif SERV_CHECK_KICK_USER_IN_GAMESERVER
 							//}}
 #else
-							//{{ 2012. 03. 20	±è¹Î¼º		Game Server ¿¡¼­ Á¾·á »çÀ¯º° ÇØÅ· Á¤º¸ Ã¼Å©
+							//{{ 2012. 03. 20	ï¿½ï¿½Î¼ï¿½		Game Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #ifdef SERV_CHECK_KICK_USER_IN_GAMESERVER
 							KEGS_SERVER_CHECK_HACK_USER_NOT kPacket;
 							kPacket.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_NOT::HCT_CHECK_FAST_LEVEL_UP;
@@ -7597,7 +7597,7 @@ bool KGSUser::CheckCharLevelUp()
 						//kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-7753-3789" ) );
 						//kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-8421-1075" ) );
 						//kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-9317-0790" ) );
-						//kPacketNot.m_wstrSMSMessage += L"·¹¾÷°£°Ý¹ß°ß! UserUID : ";
+						//kPacketNot.m_wstrSMSMessage += L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¹ß°ï¿½! UserUID : ";
 						//kPacketNot.m_wstrSMSMessage += boost::str( boost::wformat( L"%d" ) % GetUID() );
 						//kPacketNot.m_wstrSMSMessage += L", UnitUID : ";
 						//kPacketNot.m_wstrSMSMessage += boost::str( boost::wformat( L"%d" ) % GetCharUID() );
@@ -7608,7 +7608,7 @@ bool KGSUser::CheckCharLevelUp()
 				}			
 #endif SERV_AUTO_HACK_CHECK_LEVEL
 			//}}
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT// ÀÛ¾÷³¯Â¥: 2013-07-14	// ¹Ú¼¼ÈÆ
+#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-14	// ï¿½Ú¼ï¿½ï¿½ï¿½
 			}
 #endif // SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT			
 			//////////////////////////////////////////////////////////////////////////
@@ -7616,26 +7616,26 @@ bool KGSUser::CheckCharLevelUp()
 			//////////////////////////////////////////////////////////////////////////
 			//}}
 
-			// Ã¼ÇèID ±â´É Á¦ÇÑ
+			// Ã¼ï¿½ï¿½ID ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			if( IsGuestUser() )
 			{
-				// Ã¼ÇèID ·¹º§ Á¦ÇÑ
+				// Ã¼ï¿½ï¿½ID ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				if( GetLevel() > SiKGameSysVal()->GetGuestUserLimitLevel() )
 				{
 					SendID( EGS_GUEST_USER_LIMIT_LEVEL_NOT );
 				}
 			}
 
-			// »õ·Î¿î ¹Ì¼Ç °Ë»ç
+			// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½Ì¼ï¿½ ï¿½Ë»ï¿½
 			m_kUserTitleManager.CheckNewMission( GetThisPtr<KGSUser>() );
 
-			//{{ 2009. 10. 8  ÃÖÀ°»ç	±æµå
+			//{{ 2009. 10. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 			SendUpdateGuildMemberInfo();
 #endif GUILD_TEST
 			//}}
 
-			//{{ 2011. 08. 29	ÃÖÀ°»ç	Ä³¸¯ÅÍ ·¹º§¾÷ ÀÌº¥Æ®
+			//{{ 2011. 08. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_CHAR_LEVEL_UP_ITEM
 			KEGS_UPDATE_UNIT_INFO_NOT kPacketUnitInfo;
 			GetUnitInfo( kPacketUnitInfo.m_kUnitInfo );
@@ -7643,20 +7643,20 @@ bool KGSUser::CheckCharLevelUp()
 #endif SERV_CHAR_LEVEL_UP_ITEM
 			//}}
 
-			//{{ QUEST °³Æí - ±è¹Î¼º
+			//{{ QUEST ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_QUEST
 			m_kUserQuestManager.CheckLimitLevelQuest( GetThisPtr<KGSUser>() );
 			m_kUserQuestManager.CheckEventQuest( GetThisPtr<KGSUser>() );
 #endif SERV_REFORM_QUEST
 			//}}
 
-			// ½Ç½Ã°£ ·¹º§¾÷
+			// ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			if( GetStateID() == KGSFSM::S_ROOM  &&  GetRoomUID() != 0 )
 			{
 				switch( CXSLRoom::GetRoomType( GetRoomUID() ) )
 				{
 				case CXSLRoom::RT_DUNGEON:
-					//{{ 2012. 02. 16	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+					//{{ 2012. 02. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 				case CXSLRoom::RT_BATTLE_FIELD:
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -7671,7 +7671,7 @@ bool KGSUser::CheckCharLevelUp()
 
 				default:
 					{
-						// Å¬¶óÀÌ¾ðÆ®·Î ¹Ù·Î º¸³»ÀÚ!
+						// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 						KEGS_CHAR_LEVEL_UP_NOT kPacketNot;
 						kPacketNot.m_iUnitUID = GetCharUID();
 						kPacketNot.m_ucLevel = GetLevel();
@@ -7683,7 +7683,7 @@ bool KGSUser::CheckCharLevelUp()
 			}
 			else
 			{
-				// Å¬¶óÀÌ¾ðÆ®·Î ¹Ù·Î º¸³»ÀÚ!
+				// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				KEGS_CHAR_LEVEL_UP_NOT kPacketNot;
 				kPacketNot.m_iUnitUID = GetCharUID();
 				kPacketNot.m_ucLevel = GetLevel();
@@ -7691,11 +7691,11 @@ bool KGSUser::CheckCharLevelUp()
 				SendPacket( EGS_CHAR_LEVEL_UP_NOT, kPacketNot );				
 			}
 
-			//{{ 2011. 12. 19	ÃÖÀ°»ç	Ä³¸¯ÅÍ ·¹º§¾÷ ½Ç½Ã°£ DBÀû¿ë
+			//{{ 2011. 12. 19	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç½Ã°ï¿½ DBï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_LEVEL_UP_REALTIME_DB_UPDATE
 			WriteUnitInfoToDB( false );
 
-			//{{ 2012. 09. 22	¹Ú¼¼ÈÆ	ºù°í ÀÌº¥Æ®
+			//{{ 2012. 09. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_BINGO
 			BingoEventDBWrite();
 #endif SERV_EVENT_BINGO
@@ -7704,7 +7704,7 @@ bool KGSUser::CheckCharLevelUp()
 #endif SERV_LEVEL_UP_REALTIME_DB_UPDATE
 			//}}
 
-			//{{ 2013. 09. 24	ÃÖÀ°»ç	ÀÏº» ÀÌº¥Æ® Áß°èDBÀÛ¾÷
+			//{{ 2013. 09. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ïºï¿½ ï¿½Ìºï¿½Æ® ï¿½ß°ï¿½DBï¿½Û¾ï¿½
 #ifdef SERV_RELAY_DB_CONNECTION
 			SendUpdateUnitInfoToRelayDB( KDBE_UPDATE_USER_INFO_TO_RELAY_DB_JP_EVENT_NOT::UT_LEVEL_UP );
 #endif SERV_RELAY_DB_CONNECTION
@@ -7715,7 +7715,7 @@ bool KGSUser::CheckCharLevelUp()
         else
 		{
 			START_LOG_WITH_NAME( cerr )
-				<< L"UNIT STAT DATA ÆÄ½Ì ½ÇÆÐ.!(ÀÌ·¯¸é ¾ÈµÇ´Âµ¥)" << dbg::endl
+				<< L"UNIT STAT DATA ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½.!(ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½ÈµÇ´Âµï¿½)" << dbg::endl
 				<< BUILD_LOGc( GetUnitClass() )
 				<< BUILD_LOG( GetLevel() )
 				<< END_LOG;
@@ -7729,7 +7729,7 @@ bool KGSUser::CheckCharLevelUp()
 
 bool KGSUser::ResetStat()
 {
-	//ÀüÁ÷ÈÄ ÀüÁ÷ÇÑ Ä³¸¯ÅÍ ½ºÅÈÀ¸·Î ±³Ã¼ÇÏ±âÀ§ÇÑ ÇÔ¼ö.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½.
 	KStatTable::KUnitStatInfo	sUnitStat;
 	if( SiKStatTable()->GetUnitStat( GetUnitClass(), m_ucLevel, sUnitStat ) == true )
 	{
@@ -7744,7 +7744,7 @@ bool KGSUser::ResetStat()
 	else
 	{
 		START_LOG_WITH_NAME( cerr )
-			<< L"UNIT STAT DATA ÆÄ½Ì ½ÇÆÐ.!(ÀÌ·¯¸é ¾ÈµÇ´Âµ¥)" << dbg::endl
+			<< L"UNIT STAT DATA ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½.!(ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½ÈµÇ´Âµï¿½)" << dbg::endl
 			<< BUILD_LOGc( GetUnitClass() )
 			<< BUILD_LOG( m_ucLevel )
 			<< END_LOG;
@@ -7753,17 +7753,17 @@ bool KGSUser::ResetStat()
 	}
 }
 
-//{{ 2010. 8. 18	ÃÖÀ°»ç	¼­¹ö ÄÚµå Á¤¸®
+//{{ 2010. 8. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 void KGSUser::ClearTempInventory()
 {
-	// ÀÓ½Ã ÀÎº¥Åä¸®¿¡ ¾ÆÀÌÅÛÀÌ ³²¾ÆÀÖ´ÂÁö È®ÀÎ!
+	// ï¿½Ó½ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½!
 	if( m_kTempInventory.IsEmpty() == true )
 		return;
 	
-	// ÀÓ½Ã ÀÎº¥À» ºñ¿ìÀÚ!
+	// ï¿½Ó½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½!
 	m_kTempInventory.Clear();
 
-	// Å¬¶óÀÌ¾ðÆ®¿¡µµ ¾Ë·ÁÁÖÀÚ!
+	// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½!
 	SendID( EGS_CLEAR_TEMP_INVENTORY_NOT );
 }
 //}}
@@ -7804,7 +7804,7 @@ char KGSUser::GetUnitState()
 	}
 	else
 	{
-		//{{ 2011. 07. 29	ÃÖÀ°»ç	´ëÀü °³Æí
+		//{{ 2011. 07. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 		if( GetRoomListID() != 0  &&  GetRoomListID() != SiKRoomListManager()->GetPvpOffcialRoomListID() )
 #else
@@ -7821,17 +7821,17 @@ bool KGSUser::GetPVPChannelClass( OUT int& iPvpChannelClass ) const
 {
 	iPvpChannelClass = KPVPChannelInfo::PCC_NONE; // default
 
-	// RoomListIDµµ ¾øÀ¸¸é¼­ ¿©±â·Î µé¾î¿À³ª? Ã¼Å©!
+	// RoomListIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½? Ã¼Å©!
 	if( GetRoomListID() == 0 )
 	{
 		return false;
 	}
 
-	// RoomListID·Î ´ëÀü Ã¤³Î Á¤º¸ ¾ò±â!
+	// RoomListIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½!
 	const int iPvpChannelClassByRoomListID = SiKRoomListManager()->GetPVPChannelClassByRoomListID( GetRoomListID() );
 	if( iPvpChannelClassByRoomListID == KPVPChannelInfo::PCC_NONE )
 	{
-		START_LOG( cerr, L"Á¸Àç ÇÏÁö ¾Ê´Â ´ëÀü Ã¤³ÎÀÇ RoomListID°ªÀ» °¡Áö°í ÀÖ½À´Ï´Ù! ÀÖÀ» ¼ö ¾ø´Â ¿¡·¯!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ï¿½ï¿½ RoomListIDï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( GetRoomListID() )
 			<< BUILD_LOG( GetRoomUID() )
@@ -7841,10 +7841,10 @@ bool KGSUser::GetPVPChannelClass( OUT int& iPvpChannelClass ) const
 		return false;
 	}
 
-	// ¸®ÅÏ°ª ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	iPvpChannelClass = iPvpChannelClassByRoomListID;
 
-	// RoomUID°ªÀÌ ÀÖ´Ù¸é ´ëÀü Ã¤³Î Á¤º¸¸¦ °ËÁõÇÏÀÚ!
+	// RoomUIDï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	if( GetRoomUID() > 0 )
 	{
 		const int iPvpChannelClassByRoomUID = SiKRoomListManager()->GetPVPChannelClassByRoomUID( GetRoomUID() );
@@ -7852,7 +7852,7 @@ bool KGSUser::GetPVPChannelClass( OUT int& iPvpChannelClass ) const
 		{
 			if( iPvpChannelClassByRoomUID != iPvpChannelClassByRoomListID )
 			{
-				START_LOG( cerr, L"RoomListID·Î ¾òÀº ´ëÀüÃ¤³Î°ú RoomUID·Î ¾òÀº ´ëÀü Ã¤³ÎÀÌ ´Ù¸£´Ù? ÀÖÀ» ¼ö ¾ø´Â ¿¡·¯!" )
+				START_LOG( cerr, L"RoomListIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½Î°ï¿½ RoomUIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( GetCharUID() )
 					<< BUILD_LOG( GetRoomListID() )
 					<< BUILD_LOG( GetRoomUID() )
@@ -7869,10 +7869,10 @@ bool KGSUser::GetPVPChannelClass( OUT int& iPvpChannelClass ) const
 	return true;
 }
 
-//{{ 2011. 12. 20	ÃÖÀ°»ç	 ¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2011. 12. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	 ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 #else
-//{{ 2010. 02. 09  ÃÖÀ°»ç	ºü¸¥ÆÄÆ¼ ±â´É°³¼±
+//{{ 2010. 02. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ ï¿½ï¿½É°ï¿½ï¿½ï¿½
 //#ifdef SERV_QUICK_PARTY_UPGRADE
 //void KGSUser::AddKickedPartyUID( IN UidType iPartyUID )
 //{
@@ -7894,7 +7894,7 @@ bool KGSUser::GetPVPChannelClass( OUT int& iPvpChannelClass ) const
 //	std::map< UidType, boost::timer >::const_iterator mit;
 //	for( mit = m_mapKickedPartyUIDList.begin(); mit != m_mapKickedPartyUIDList.end(); ++mit )
 //	{
-//		// 20ÃÊ ÀÌ»ó Áö³µ´Ù¸é »èÁ¦ÇÑ´Ù!
+//		// 20ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½!
 //		if( mit->second.elapsed() > 20.0 )
 //		{
 //			vecDeletePartyUIDList.push_back( mit->first );
@@ -7915,7 +7915,7 @@ bool KGSUser::GetPVPChannelClass( OUT int& iPvpChannelClass ) const
 void KGSUser::GetPartyUserInfo( KPartyUserInfo& kInfo )
 {
 	//////////////////////////////////////////////////////////////////////////
-	//{{ 2010. 02. 17  ÃÖÀ°»ç	Ã¤³ÎÆÄÆ¼ÅëÇÕ
+	//{{ 2010. 02. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHANNEL_PARTY
 	//////////////////////////////////////////////////////////////////////////
 
@@ -7928,16 +7928,16 @@ void KGSUser::GetPartyUserInfo( KPartyUserInfo& kInfo )
 	kInfo.m_ucLevel			= GetLevel();
 	kInfo.m_bIsGuestUser	= IsGuestUser();
 	kInfo.m_cState			= GetUnitState();
-	//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó
+	//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COME_BACK_USER_REWARD
 	CTime tComeBackBuffEnd	= m_kComeBackUserInfo.GetComeBackBuffEnd();
 	kInfo.m_bComeBack		= m_kComeBackUserInfo.GetIsComeBackUser();
 	kInfo.m_wsrtComeBackEnd = tComeBackBuffEnd.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 #endif SERV_COME_BACK_USER_REWARD
 	//}} 
-	//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
-	//{{ 2012. 09. 11	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 09. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	kInfo.m_cRank				= GetPvpRankForClient();
 	kInfo.m_iOfficialMatchCnt	= GetOfficialMatchCount();
@@ -7951,24 +7951,24 @@ void KGSUser::GetPartyUserInfo( KPartyUserInfo& kInfo )
 	{
 		kInfo.m_iStateCode = GetMapID();
 	}	
-	//{{ 2012. 05. 29	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 05. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_kUserUnitManager.GetPartyMemberStatus( kInfo.m_kGamePlayStatus );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
-	//{{ ÇÎ »óÅÂÃ¼Å© È£½ºÆ® º¯°æ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼Å© È£ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_CHOOSE_FASTEST_HOST
 	kInfo.m_wstrIP = GetP2PIP();
 	kInfo.m_usPort = GetP2PPort();
 #endif SERV_CHOOSE_FASTEST_HOST
 	//}
 
-	//{{ 2013. 1. 8	¹Ú¼¼ÈÆ	Merge °øÀÎIP ¿¬°á ½ÇÆÐ½Ã ³»ºÎIP·Î ½Ãµµ( ¹ÚÁø¿õ )
+	//{{ 2013. 1. 8	ï¿½Ú¼ï¿½ï¿½ï¿½	Merge ï¿½ï¿½ï¿½ï¿½IP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð½ï¿½ ï¿½ï¿½ï¿½ï¿½IPï¿½ï¿½ ï¿½Ãµï¿½( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
 //#ifdef SERV_KTDX_RETRY_USING_INTERNAL_IP
 	kInfo.m_wstrInternalIP = GetP2PInternalIP();
 	kInfo.m_usInternalPort = GetP2PInternalPort();
 
-	START_LOG( clog, L"IP, Æ÷Æ® È®ÀÎ" )
+	START_LOG( clog, L"IP, ï¿½ï¿½Æ® È®ï¿½ï¿½" )
 		<< BUILD_LOG( kInfo.m_wstrInternalIP )
 		<< BUILD_LOG( kInfo.m_usInternalPort )
 		<< END_LOG;
@@ -7979,7 +7979,7 @@ void KGSUser::GetPartyUserInfo( KPartyUserInfo& kInfo )
 #else
 	//////////////////////////////////////////////////////////////////////////
 
-	//ÀÚ½ÅÀÇ Á¤º¸¸¦ ´ã¾Æ ÆÄÆ¼·Î º¸³½´Ù.
+	//ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 	kInfo.m_iUnitUID		= GetCharUID();
 	kInfo.m_wstrNickName	= GetCharName();
 	kInfo.m_cUnitClass		= GetUnitClass();
@@ -8009,7 +8009,7 @@ void KGSUser::SendUpdatePartyUnitInfo( bool bChangeField /* = false  */)
 		//	kInfo.m_iStateCode = GetMapID();
 
 		//_SendToCnRoom( m_iPartyUID, ERM_UPDATE_PARTY_USER_INFO_NOT, kInfo );
-		//{{ 2010. 02. 22  ÃÖÀ°»ç	Ã¤³Î ÆÄÆ¼ ÅëÇÕ
+		//{{ 2010. 02. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHANNEL_PARTY
 		if( SiKPartyListManager()->E_UpdatePartyUserInfo( GetThisPtr<KGSUser>(), bChangeField ) == false )
 #else
@@ -8017,7 +8017,7 @@ void KGSUser::SendUpdatePartyUnitInfo( bool bChangeField /* = false  */)
 #endif SERV_CHANNEL_PARTY
 		//}}
 		{
-			START_LOG( cerr, L"ÆÄÆ¼À¯Àú Á¤º¸ ¾÷µ¥ÀÌÆ® ½ÇÆÐ." )
+			START_LOG( cerr, L"ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½." )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharUID() )
 #else
@@ -8030,7 +8030,7 @@ void KGSUser::SendUpdatePartyUnitInfo( bool bChangeField /* = false  */)
 
 void KGSUser::SendLeaveParty( int iReason )
 {
-	//{{ 2010. 03. 10  ÃÖÀ°»ç	Ã¤³Î ÅëÇÕ ÆÄÆ¼
+	//{{ 2010. 03. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼
 #ifdef SERV_CHANNEL_PARTY
 	if( GetPartyUID() > 0  ||  GetCandidatePartyUID() > 0 )
 #else
@@ -8041,7 +8041,7 @@ void KGSUser::SendLeaveParty( int iReason )
 		KEGS_LEAVE_PARTY_REQ kPacket;
 		kPacket.m_iReason = iReason;
 
-		//{{ 2010. 02. 22  ÃÖÀ°»ç	Ã¤³Î ÆÄÆ¼ ÅëÇÕ
+		//{{ 2010. 02. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHANNEL_PARTY
 		if( SiKPartyListManager()->E_LeavePartyReq( GetThisPtr<KGSUser>(), kPacket ) == false )
 #else
@@ -8049,7 +8049,7 @@ void KGSUser::SendLeaveParty( int iReason )
 #endif SERV_CHANNEL_PARTY
 		//}}
 		{
-			START_LOG( cerr, L"ÆÄÆ¼ ³ª°¡±â ½ÇÆÐ.!" )
+			START_LOG( cerr, L"ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharUID() )
 #else
@@ -8081,7 +8081,7 @@ void KGSUser::SendLeavePVPLobby()
 
 		SetRoomListID( 0 );
 
-		//{{ 2009. 10. 23  ÃÖÀ°»ç	±æµå
+		//{{ 2009. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 		SendUpdateGuildMemberInfo();
 #endif GUILD_TEST
@@ -8089,7 +8089,7 @@ void KGSUser::SendLeavePVPLobby()
 	}
 }
 
-//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 void KGSUser::SendLeavePVPMatch( IN const int iReason )
 {
@@ -8108,13 +8108,13 @@ void KGSUser::SendLeavePVPMatch( IN const int iReason )
 #endif SERV_PVP_NEW_SYSTEM
 //}}
 
-//{{ 2012. 02. 10	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 02. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KGSUser::SendLeaveAutoParty( IN const int iReason )
 {
 	if( m_kUserDungeonManager.GetAutoPartyUID() != 0  ||  m_kUserDungeonManager.GetAutoPartyWaitNumber() != 0 )
 	{
-		// ÀÏ´ÜÀº Áßº¹ Àû¿ëÀ» ÇÇÇÏ±â À§ÇØ ±âÁ¸¿¡ ÀúÀåµÇ¾îÀÖ´ø°ÍÀº Ãë¼Ò ½ÃÅ°ÀÚ!
+		// ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½!
 		KEGB_CANCEL_AUTO_PARTY_MAKING_REQ kPacketReq;
 		kPacketReq.m_iAutoPartyUID = m_kUserDungeonManager.GetAutoPartyUID();
 		kPacketReq.m_iAutoPartyWaitNumber = m_kUserDungeonManager.GetAutoPartyWaitNumber();
@@ -8129,15 +8129,15 @@ void KGSUser::SendLeaveAutoParty( IN const int iReason )
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2012. 03. 05	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 03. 05	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KGSUser::SetRoomUID( IN const UidType iUID )
 {
-	// ¹æ Á¤º¸ ¾÷µ¥ÀÌÆ®
-	m_iBeforeRoomUID = GetRoomUID(); // ÀÌÀü ¹æ Á¤º¸´Â µû·Î ÀúÀåÇØµÎÀÚ! ( ¹èÆ²ÇÊµå¿¡¼­ ¿ø·¡ ÇÊµå·Î µ¹¾Æ°¥¶§ »ç¿ë )
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+	m_iBeforeRoomUID = GetRoomUID(); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½! ( ï¿½ï¿½Æ²ï¿½Êµå¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ )
 	m_iRoomUID = iUID;
 
-	// ÆÄÆ¼ ¼Ò¼ÓÀÌ¶ó¸é ¹æ ÀÔÀå¿¡ ´ëÇÑ Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ÇÏÀÚ!
+	// ï¿½ï¿½Æ¼ ï¿½Ò¼ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½!
 	if( GetPartyUID() != 0 )
 	{
 		KEPM_UPDATE_PARTY_USER_JOIN_ROOM_INFO_NOT kPacketNot;
@@ -8146,12 +8146,12 @@ void KGSUser::SetRoomUID( IN const UidType iUID )
 		SendToCnParty( EPM_UPDATE_PARTY_USER_JOIN_ROOM_INFO_NOT, kPacketNot );
 	}
 
-	// ¿¹¿Ü Ã³¸®!
+	// ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!
 	if( GetBeforeRoomUID() == 0 )
 	{
 		if( iUID == 0 )
 		{
-			START_LOG( cerr, L"¹æ¿¡¼­ ÀÌ¹Ì ³ª°¬´Âµ¥ ¶Ç ³ª°¡¶ó°í Á¤º¸°¡ ¿Ô³×? ÀÌ»óÇÑ ¿À·ù´Ù!" )
+			START_LOG( cerr, L"ï¿½æ¿¡ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô³ï¿½? ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( GetStateIDString() )
@@ -8159,7 +8159,7 @@ void KGSUser::SetRoomUID( IN const UidType iUID )
 		}
 		else
 		{
-            // ¹æ¿¡ ÀÔÀå
+            // ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 	else
@@ -8170,13 +8170,13 @@ void KGSUser::SetRoomUID( IN const UidType iUID )
 			{
 			case CXSLRoom::RT_DUNGEON:
 				{
-					//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+					//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
-					// ´øÀü¹æ¿¡ ÀÖ´Ù°¡ ÀÌÅ»ÇÏ´Â °æ¿ì!
+					// ï¿½ï¿½ï¿½ï¿½ï¿½æ¿¡ ï¿½Ö´Ù°ï¿½ ï¿½ï¿½Å»ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½!
 					std::vector<int> vecDeleteBuff;
-					//{{ 2013. 01. 09 ´øÀü °­Åð ½Ã½ºÅÛ - ±è¹Î¼º
+					//{{ 2013. 01. 09 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 
-					std::vector< KBuffInfo > vecActivateBuff;	// ÇØ¿ÜÆÀ À§Ä¡ º¯°æ
+					std::vector< KBuffInfo > vecActivateBuff;	// ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 					m_kUserBuffManager.OnLeaveDungeonRoom( GetThisPtr<KGSUser>(), vecActivateBuff, vecDeleteBuff, false );
 #else
@@ -8186,7 +8186,7 @@ void KGSUser::SetRoomUID( IN const UidType iUID )
 
 					if( vecDeleteBuff.empty() == false )
 					{
-						// ·Î±×ÀÎ ¼­¹ö ¹öÇÁ ¸Å´ÏÀú¿¡ ¾÷µ¥ÀÌÆ®
+						// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 						KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
 						kReq.m_iUnitUID = GetCharUID();
 						kReq.m_vecDeActivateBuff = vecDeleteBuff;
@@ -8206,7 +8206,7 @@ void KGSUser::SetRoomUID( IN const UidType iUID )
 
 					if( vecDeleteBuff.empty() == false )
 					{
-						// ·Î±×ÀÎ ¼­¹ö ¹öÇÁ ¸Å´ÏÀú¿¡ ¾÷µ¥ÀÌÆ®
+						// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 						KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
 						kReq.m_iUnitUID = GetCharUID();
 						kReq.m_vecDeActivateBuff = vecDeleteBuff;
@@ -8218,7 +8218,7 @@ void KGSUser::SetRoomUID( IN const UidType iUID )
 		}
 		else
 		{
-			START_LOG( cerr, L"ÀÌ¹Ì ¹æ¿¡ ÀÔÀåÇØ ÀÖ´Âµ¥ ¶Ç ÀÔÀåÇÏ·Á°í ÇÏ³×? ÀÌ·¯¸é ¾ÈµÇ!" )
+			START_LOG( cerr, L"ï¿½Ì¹ï¿½ ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Âµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½? ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½Èµï¿½!" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( GetStateIDString() )
@@ -8233,16 +8233,16 @@ void KGSUser::SetRoomUID( IN const UidType iUID )
 
 void KGSUser::SetFieldUID( IN const UidType iUID )
 {
-	// ÇÊµå Á¤º¸ ¾÷µ¥ÀÌÆ®
+	// ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	const UidType iBeforeFieldUID = GetFieldUID();
 	m_iFieldUID = iUID;
 
-	// ¿¹¿Ü Ã³¸®!
+	// ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!
 	if( iBeforeFieldUID == 0 )
 	{
 		if( iUID == 0 )
 		{
-			START_LOG( cerr, L"ÇÊµå¿¡¼­ ÀÌ¹Ì ³ª°¬´Âµ¥ ¶Ç ³ª°¡¶ó°í Á¤º¸°¡ ¿Ô³×? ÀÌ»óÇÑ ¿À·ù´Ù!" )
+			START_LOG( cerr, L"ï¿½Êµå¿¡ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô³ï¿½? ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( GetStateIDString() )
@@ -8250,20 +8250,20 @@ void KGSUser::SetFieldUID( IN const UidType iUID )
 		}
 		else
 		{
-			// ÇÊµå¿¡ ÀÔÀå
+			// ï¿½Êµå¿¡ ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 	else
 	{
 		if( iUID == 0 )
 		{
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 			std::vector< int > vecDeactivateBuff;
 			m_kUserBuffManager.OnLeaveField( GetThisPtr<KGSUser>(), vecDeactivateBuff );
 			if( vecDeactivateBuff.empty() == false )
 			{
-				// ·Î±×ÀÎ ¼­¹ö ¹öÇÁ ¸Å´ÏÀú¿¡ ¾÷µ¥ÀÌÆ®
+				// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 				KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
 				kReq.m_iUnitUID = GetCharUID();
 				kReq.m_vecDeActivateBuff = vecDeactivateBuff;
@@ -8274,23 +8274,23 @@ void KGSUser::SetFieldUID( IN const UidType iUID )
 		}
 		else
 		{
-			// ´Ù¸¥ ÇÊµå¿¡ ÀÔÀå
+			// ï¿½Ù¸ï¿½ ï¿½Êµå¿¡ ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 }
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}			
 
-//{{ 2010. 02. 20  ÃÖÀ°»ç	Ã¤³Î ÆÄÆ¼ ÅëÇÕ
+//{{ 2010. 02. 20  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_CHANNEL_PARTY
 //////////////////////////////////////////////////////////////////////////
 
 void KGSUser::SendUpdatePartyMemberList( IN UidType iPartyUID, IN const std::set< UidType >& setPartyUIDList )
 {
-	// ÇöÀç °°Àº ÆÄÆ¼¿¡ ¼Ò¼ÓµÈ À¯ÀúµéÀÇ UID¸¦ ÇÊµå¿¡ ³¯·ÁÁØ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Ò¼Óµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UIDï¿½ï¿½ ï¿½Êµå¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
 
-	//È£ÃâµÇ´Â °æ¿ì´Â ÆÄÆ¼¸Å´ÏÁ®¿¡¼­
+	//È£ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	//## 1. E_CreateParty
 	//## 2. E_JoinPartyInviteReply
 	//## 3. E_InvitePartyReply
@@ -8302,8 +8302,8 @@ void KGSUser::SendUpdatePartyMemberList( IN UidType iPartyUID, IN const std::set
 
 	if( GetFieldUID() == 0 )
 	{
-		// ÇÊµå»óÅÂÀÌÁö¸¸ FieldUID°¡ 0ÀÎ °æ¿ì°¡ ÀÖ´Ù. [´ëÀü·Îºñ, ÈÆ·Ã¼Ò·Îºñ]
-		START_LOG( clog, L"ÇöÀç ÇÊµå »óÅÂÀÎµ¥ UID°¡ Àß¸øµÇ¾úÀ½." )
+		// ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FieldUIDï¿½ï¿½ 0ï¿½ï¿½ ï¿½ï¿½ì°¡ ï¿½Ö´ï¿½. [ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½, ï¿½Æ·Ã¼Ò·Îºï¿½]
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ UIDï¿½ï¿½ ï¿½ß¸ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½." )
 #ifdef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 #else
@@ -8326,9 +8326,9 @@ void KGSUser::SendUpdatePartyMemberList( IN UidType iPartyUID, IN const std::set
 
 void KGSUser::SendUpdatePartyList()
 {
-	// ÇöÀç °°Àº ÆÄÆ¼¿¡ ¼Ò¼ÓµÈ À¯ÀúµéÀÇ UID¸¦ ÇÊµå¿¡ ³¯·ÁÁØ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Ò¼Óµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UIDï¿½ï¿½ ï¿½Êµå¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
 
-	//È£ÃâµÇ´Â °æ¿ì´Â ÆÄÆ¼¸Å´ÏÁ®¿¡¼­
+	//È£ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	//## 1. E_CreateParty
 	//## 2. E_JoinPartyInviteReply
 	//## 3. E_InvitePartyReply
@@ -8340,8 +8340,8 @@ void KGSUser::SendUpdatePartyList()
 
 	if( GetFieldUID() == 0 )
 	{
-		// ÇÊµå»óÅÂÀÌÁö¸¸ FieldUID°¡ 0ÀÎ °æ¿ì°¡ ÀÖ´Ù. [´ëÀü·Îºñ, ÈÆ·Ã¼Ò·Îºñ]
-		START_LOG( clog, L"ÇöÀç ÇÊµå »óÅÂÀÎµ¥ UID°¡ Àß¸øµÇ¾úÀ½." )
+		// ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FieldUIDï¿½ï¿½ 0ï¿½ï¿½ ï¿½ï¿½ì°¡ ï¿½Ö´ï¿½. [ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½, ï¿½Æ·Ã¼Ò·Îºï¿½]
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ UIDï¿½ï¿½ ï¿½ß¸ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½." )
 #ifdef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 #else
@@ -8357,20 +8357,20 @@ void KGSUser::SendUpdatePartyList()
 	
 	if( GetPartyUID() == 0 )
 	{
-		// ÆÄÆ¼ÀÌÅ»ÇÑ À¯Àú¿¡°Ô ºó ÆÄÆ¼¸®½ºÆ®¸¦ ³¯·ÁÁÜ.
+		// ï¿½ï¿½Æ¼ï¿½ï¿½Å»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		_SendToGSField( GetFieldUID(), ERM_UPDATE_PARTY_NOT, kNot );
 		return;
 	}
 	else
 	{
-		// ÆÄÆ¼¸®½ºÆ® º¯°æÀÌ ÀÖ´Â À¯Àú¿¡°Ô ÀÚ½ÅÀ» Æ÷ÇÔÇÑ ÆÄÆ¼¸®½ºÆ®¸¦ ³¯·ÁÁÜ.
+		// ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		if( SiKPartyManager()->GetUserUIDList( GetPartyUID(), kNot.m_setPartyUIDList ) == true )
 		{
 			_SendToGSField( GetFieldUID(), ERM_UPDATE_PARTY_NOT, kNot );
 		}
 		else
 		{
-			START_LOG( cerr, L"ÆÄÆ¼¿ø UID ¸®½ºÆ® ¹Þ¾Æ¿À±â ½ÇÆÐ.!" )
+			START_LOG( cerr, L"ï¿½ï¿½Æ¼ï¿½ï¿½ UID ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharUID() )
 #else
@@ -8387,18 +8387,18 @@ void KGSUser::SendUpdatePartyList()
 //////////////////////////////////////////////////////////////////////////
 //}}
 
-//{{ 2009. 4. 14  ÃÖÀ°»ç	Ä£±¸¸®½ºÆ®
+//{{ 2009. 4. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 void KGSUser::SendUpdateFriendList()
 {
-	// Á¢¼ÓÁßÀÎ Ä£±¸¸®½ºÆ®¸¦ ÇÊµå¿¡ ³¯·ÁÁØ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Êµå¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
 
 	if( GetStateID() != KGSFSM::S_FIELD_MAP )
 		return;
 
 	if( GetFieldUID() == 0 )
 	{
-		// ÇÊµå»óÅÂÀÌÁö¸¸ FieldUID°¡ 0ÀÎ °æ¿ì°¡ ÀÖ´Ù. [´ëÀü·Îºñ, ÈÆ·Ã¼Ò·Îºñ]
-		START_LOG( clog, L"ÇöÀç ÇÊµå »óÅÂÀÎµ¥ UID°¡ Àß¸øµÇ¾úÀ½." )
+		// ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FieldUIDï¿½ï¿½ 0ï¿½ï¿½ ï¿½ï¿½ì°¡ ï¿½Ö´ï¿½. [ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½, ï¿½Æ·Ã¼Ò·Îºï¿½]
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ UIDï¿½ï¿½ ï¿½ß¸ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½." )
 #ifdef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 #else
@@ -8421,7 +8421,7 @@ void KGSUser::SendUpdateFriendList()
 }
 //}}
 
-//{{ 2009. 10. 8  ÃÖÀ°»ç	±æµå
+//{{ 2009. 10. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 void KGSUser::SendUpdateGuildMemberInfo()
 {
@@ -8436,7 +8436,7 @@ void KGSUser::SendUpdateGuildMemberInfo()
 #endif GUILD_TEST
 //}}
 
-//{{ 2010. 01. 11  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 void KGSUser::SendUpdateRecommendUserInfo( IN const KRecommendUserInfo::RECOMMEND_USER_INFO_TYPE eType )
 {
 	if( m_kUserRecommendManager.GetRecommendedUnitUID() > 0 )
@@ -8450,7 +8450,7 @@ void KGSUser::SendUpdateRecommendUserInfo( IN const KRecommendUserInfo::RECOMMEN
 	}
 
 #ifdef SERV_RECRUIT_EVENT_BASE
-	// ÇÇÃßÃµÀÎ ¸®½ºÆ® °¡Á®¿Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
 	std::vector< KRecommendUserInfo > vecRecruitUnitInfo;
 	m_kUserRecommendManager.GetRecruitUnitList( vecRecruitUnitInfo );
 	for( int i = 0; i < vecRecruitUnitInfo.size(); ++i )
@@ -8465,7 +8465,7 @@ void KGSUser::SendUpdateRecommendUserInfo( IN const KRecommendUserInfo::RECOMMEN
 		SendToLoginServer( ELG_RECRUIT_RECRUITER_INFO_NOT, kPacketToLg );
 	}
 
-	// ÃßÃµÀÎ ¸®½ºÆ® °¡Á®¿Â´Ù. (ÇöÀç·Î¼± ÇÏ³ª°ÚÁö)
+	// ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½. (ï¿½ï¿½ï¿½ï¿½Î¼ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ï¿½ï¿½)
 	std::vector< KRecommendUserInfo > vecRecruiterUnitInfo;
 	m_kUserRecommendManager.GetRecruiterUnitList( vecRecruiterUnitInfo );
 	for( int i = 0; i < vecRecruiterUnitInfo.size(); ++i )
@@ -8483,26 +8483,26 @@ void KGSUser::SendUpdateRecommendUserInfo( IN const KRecommendUserInfo::RECOMMEN
 }
 //}}
 
-//{{ 2009. 4. 22  ÃÖÀ°»ç	´ëÀüÀ¯Àú¸®½ºÆ®
+//{{ 2009. 4. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 void KGSUser::SendUpdatePVPUserInfo( char cState )
 {
-	// ·Îºñ ÁøÀÔ
+	// ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( cState == KCommunityUserInfo::US_ENTER_LOBBY )
 	{
 		if( GetRoomListID() <= 0 )
 		{
-			START_LOG( cerr, L"´ëÀü·Îºñ¿¡ ÀÔÀåÇÏ·Á´Âµ¥ RoomListID°ªÀÌ ÀÌ»óÇÕ´Ï´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½Âµï¿½ RoomListIDï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½!" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetRoomListID() )
 				<< END_LOG;
 
-			// ´ëÀü·Îºñ ÀÔÀåÃ³¸® ÇÏÁö¸»ÀÚ!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 			return;
 		}
 
-		//{{ 2011. 07. 26	ÃÖÀ°»ç	´ëÀü °³Æí
+		//{{ 2011. 07. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
-		// °ø½Ä´ëÀü ·Îºñ¶ó¸é?
+		// ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½?
 		if( GetRoomListID() == SiKRoomListManager()->GetPvpOffcialRoomListID() )
 			return;
 #endif SERV_PVP_NEW_SYSTEM
@@ -8519,18 +8519,18 @@ void KGSUser::SendUpdatePVPUserInfo( char cState )
 		kPacketNot.m_kUserInfo.m_iRoomUID	  = GetRoomUID();
 		SendToCnServer( ECN_NEW_PVP_USER_INFO_NOT, kPacketNot );
 
-		//{{ 2009. 10. 23  ÃÖÀ°»ç	±æµå
+		//{{ 2009. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 		SendUpdateGuildMemberInfo();
 #endif GUILD_TEST
 		//}}
 	}
-	// Á¤º¸ °»½Å
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	else
 	{
-		//{{ 2011. 07. 26	ÃÖÀ°»ç	´ëÀü °³Æí
+		//{{ 2011. 07. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
-		// °ø½Ä´ëÀü ·Îºñ¶ó¸é?
+		// ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½?
 		if( GetRoomListID() == SiKRoomListManager()->GetPvpOffcialRoomListID() )
 			return;
 #endif SERV_PVP_NEW_SYSTEM
@@ -8548,21 +8548,21 @@ void KGSUser::SendUpdatePVPUserInfo( char cState )
 	}
 }
 
-//{{ 2009. 6. 5  ÃÖÀ°»ç		ÀåÂøÁ¤º¸ º¯°æ
+//{{ 2009. 6. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 void KGSUser::SendUpdateChangeEquippedItem()
 {	
-	//{{ 2008. 12. 3  ÃÖÀ°»ç	ÇÊµå¿¡¼­ ±â°£´ÙµÈ ¾ÆÀÌÅÛ °»½Å
+	//{{ 2008. 12. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Êµå¿¡ï¿½ï¿½ ï¿½â°£ï¿½Ùµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( GetStateID() == KGSFSM::S_FIELD_MAP )
 	{
 		if( GetFieldUID() <= 0 )
 		{
-			// ÇÊµå »óÅÂÀÌ¸é¼­ fielduid°¡ 0ÀÎ°æ¿ìµµ ÀÖ´Ù.
+			// ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸é¼­ fielduidï¿½ï¿½ 0ï¿½Î°ï¿½ìµµ ï¿½Ö´ï¿½.
 			return;
 		}
 
 		KERM_CHANGE_EQUIPPED_ITEM_IN_FIELD_NOT kPacketNot;
 		kPacketNot.m_iUnitUID = GetCharUID();
-		//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+		//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 		kPacketNot.m_iEquippedTitleID = m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -8572,12 +8572,12 @@ void KGSUser::SendUpdateChangeEquippedItem()
 		SendToGSField( ERM_CHANGE_EQUIPPED_ITEM_IN_FIELD_NOT, kPacketNot );
 	}
 	//}}
-	// ÀåÂø Å¸ÀÌÆ²À» ·ë¿¡¼­ ¹Ù²åÀ¸¸é ·ë ¸â¹öµé¿¡°Ô ¾Ë·ÁÁØ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½ë¿¡ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ø´ï¿½.
 	else if( GetStateID() == KGSFSM::S_ROOM )
 	{
 		if( GetRoomUID() <= 0 )
 		{
-			START_LOG( cerr, L"·ë UID ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½ UID ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( GetRoomUID() )
 				<< BUILD_LOG( GetCharUID() )
 				<< END_LOG;
@@ -8590,14 +8590,14 @@ void KGSUser::SendUpdateChangeEquippedItem()
 		case CXSLRoom::RT_PVP:
 		case CXSLRoom::RT_DUNGEON:
 		case CXSLRoom::RT_TRAININGCENTER:
-			//{{ 2012. 02. 15	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+			//{{ 2012. 02. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		case CXSLRoom::RT_BATTLE_FIELD:
 #endif SERV_BATTLE_FIELD_SYSTEM
 			//}}
 			{
 				KERM_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT kPacketNot;
-				//{{ 2010. 12. 23	ÃÖÀ°»ç	Àåºñ º¯°æ ÆÐÅ¶ Å¸ÀÔ
+				//{{ 2010. 12. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ Å¸ï¿½ï¿½
 #ifdef SERV_CHANGE_EQUIPPED_PACKET_REFAC
 				kPacketNot.m_cChangeEquippedPacketType = KEGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT::CEPT_CHANGE_EQUIP;
 #endif SERV_CHANGE_EQUIPPED_PACKET_REFAC
@@ -8612,7 +8612,7 @@ void KGSUser::SendUpdateChangeEquippedItem()
 			{
 				KERM_CHANGE_EQUIPPED_ITEM_IN_SQUARE_NOT kPacketNot;
 				kPacketNot.m_UnitUID = GetCharUID();
-				//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+				//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 				kPacketNot.m_iEquippedTitleID = m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -8625,7 +8625,7 @@ void KGSUser::SendUpdateChangeEquippedItem()
 
 		default:
 			{
-				START_LOG( cerr, L"ÀÌ»óÇÑ ¹æ Å¸ÀÔ." )
+				START_LOG( cerr, L"ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½." )
 					<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
 					<< BUILD_LOG( GetCharUID() )
 					<< END_LOG;
@@ -8636,15 +8636,15 @@ void KGSUser::SendUpdateChangeEquippedItem()
 }
 //}}
 
-//{{ 2010. 02. 08  ÃÖÀ°»ç	PC¹æ Ã¤³Î ÀÌµ¿ ¿À·ù ¼öÁ¤
+//{{ 2010. 02. 08  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ Ã¤ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 void KGSUser::SendUpdateChangeEquippedItem( IN const std::vector< KInventoryItemInfo >& vecInventorySlotInfo )
 {
-	//{{ 2008. 12. 3  ÃÖÀ°»ç	ÇÊµå¿¡¼­ ±â°£´ÙµÈ ¾ÆÀÌÅÛ °»½Å
+	//{{ 2008. 12. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Êµå¿¡ï¿½ï¿½ ï¿½â°£ï¿½Ùµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( GetStateID() == KGSFSM::S_FIELD_MAP )
 	{
 		if( GetFieldUID() <= 0 )
 		{
-			// ÇÊµå »óÅÂÀÌ¸é¼­ fielduid°¡ 0ÀÎ°æ¿ìµµ ÀÖ´Ù.
+			// ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸é¼­ fielduidï¿½ï¿½ 0ï¿½Î°ï¿½ìµµ ï¿½Ö´ï¿½.
 			return;
 		}
 
@@ -8661,7 +8661,7 @@ void KGSUser::SendUpdateChangeEquippedItem( IN const std::vector< KInventoryItem
 
 		if( kPacketNot.m_vecInventorySlotInfo.empty() == false )
 		{
-			//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+			//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 			kPacketNot.m_iEquippedTitleID = m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -8676,7 +8676,7 @@ void KGSUser::SendUpdateChangeEquippedItem( IN const std::vector< KInventoryItem
 	{
 		if( GetRoomUID() <= 0 )
 		{
-			START_LOG( cerr, L"·ë UID ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½ UID ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( GetRoomUID() )
 				<< BUILD_LOG( GetCharUID() )
 				<< END_LOG;
@@ -8689,14 +8689,14 @@ void KGSUser::SendUpdateChangeEquippedItem( IN const std::vector< KInventoryItem
 		case CXSLRoom::RT_PVP:
 		case CXSLRoom::RT_DUNGEON:			
 		case CXSLRoom::RT_TRAININGCENTER:
-			//{{ 2012. 02. 15	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+			//{{ 2012. 02. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		case CXSLRoom::RT_BATTLE_FIELD:
 #endif SERV_BATTLE_FIELD_SYSTEM
 			//}}
 			{
 				KERM_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT kPacketNot;
-				//{{ 2010. 12. 23	ÃÖÀ°»ç	Àåºñ º¯°æ ÆÐÅ¶ Å¸ÀÔ
+				//{{ 2010. 12. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ Å¸ï¿½ï¿½
 #ifdef SERV_CHANGE_EQUIPPED_PACKET_REFAC
 				kPacketNot.m_cChangeEquippedPacketType = KEGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT::CEPT_CHANGE_EQUIP;
 #endif SERV_CHANGE_EQUIPPED_PACKET_REFAC
@@ -8734,7 +8734,7 @@ void KGSUser::SendUpdateChangeEquippedItem( IN const std::vector< KInventoryItem
 
 				if( kPacketNot.m_vecInventorySlotInfo.empty() == false )
 				{
-					//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+					//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 					kPacketNot.m_iEquippedTitleID = m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -8748,7 +8748,7 @@ void KGSUser::SendUpdateChangeEquippedItem( IN const std::vector< KInventoryItem
 
 		default:
 			{
-				START_LOG( cerr, L"ÀÌ»óÇÑ ¹æ Å¸ÀÔ." )
+				START_LOG( cerr, L"ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½." )
 					<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
 					<< BUILD_LOG( GetCharUID() )
 					<< END_LOG;
@@ -8759,18 +8759,18 @@ void KGSUser::SendUpdateChangeEquippedItem( IN const std::vector< KInventoryItem
 }
 //}}
 
-//{{ 2010. 02. 10  ÃÖÀ°»ç	ÀÏÀÏ ÀÌº¥Æ® Äù½ºÆ®
+//{{ 2010. 02. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_DAY_QUEST
 
 void KGSUser::SendUpdateDropQuestItemByIngQuest()
 {
-	// ¹æ»óÅÂÀÌ°í pvp & dungeon ¹æÀÌ¸é Á¤º¸¾÷µ¥ÀÌÆ® ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì°ï¿½ pvp & dungeon ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ñ´ï¿½.
 	if( GetStateID() == KGSFSM::S_ROOM )
 	{
 		switch( CXSLRoom::GetRoomType( GetRoomUID() ) )
 		{
 		case CXSLRoom::RT_DUNGEON:
-			//{{ ÇÊµå µå·Ó °³Æí - ±è¹Î¼º
+			//{{ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_ITEM_DROP
 		case CXSLRoom::RT_BATTLE_FIELD:
 #endif SERV_REFORM_ITEM_DROP
@@ -8779,7 +8779,7 @@ void KGSUser::SendUpdateDropQuestItemByIngQuest()
 				//Update Server quest item data
 				KERM_SET_QUEST_ITEM_INFO_NOT kInfo;
 
-				//{{ 2010. 10. 26	ÃÖÀ°»ç	Äù½ºÆ® Á¶°Ç Ãß°¡
+				//{{ 2010. 10. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_QUEST_CLEAR_EXPAND
 				m_kUserQuestManager.GetOngoingQuestForRoom( GetThisPtr<KGSUser>(), kInfo.m_mapDropQuestItembyIngQuest );
 #else
@@ -8797,13 +8797,13 @@ void KGSUser::SendUpdateDropQuestItemByIngQuest()
 #endif SERV_DAY_QUEST
 //}}
 
-//{{ 2010. 8. 19	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+//{{ 2010. 8. 19	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 
 void KGSUser::SendPetAction( IN CXSLPetManager::PET_ACTION_COMMAND ePetAction )
 {
 	//////////////////////////////////////////////////////////////////////////
-	// ¸¶À»ÀÎÁö ¹æÀÎÁö Ã¼Å©ÇØ¼­ ³¯¸®ÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	if( GetStateID() == KGSFSM::S_FIELD_MAP )
 	{
 		if( GetFieldUID() <= 0 )
@@ -8825,7 +8825,7 @@ void KGSUser::SendPetAction( IN CXSLPetManager::PET_ACTION_COMMAND ePetAction )
 	{
 		if( GetRoomUID() <= 0 )
 		{
-			START_LOG( cerr, L"·ë UID ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½ UID ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( GetRoomUID() )
 				<< BUILD_LOG( GetCharUID() )
 				<< END_LOG;
@@ -8838,7 +8838,7 @@ void KGSUser::SendPetAction( IN CXSLPetManager::PET_ACTION_COMMAND ePetAction )
 		case CXSLRoom::RT_PVP:
 		case CXSLRoom::RT_DUNGEON:
 		case CXSLRoom::RT_TRAININGCENTER:
-			//{{ 2012. 10. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+			//{{ 2012. 10. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		case CXSLRoom::RT_BATTLE_FIELD:
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -8852,12 +8852,12 @@ void KGSUser::SendPetAction( IN CXSLPetManager::PET_ACTION_COMMAND ePetAction )
 			break;
 
 		case CXSLRoom::RT_SQUARE:
-			// ±¤ÀåÀÌ¸é ¾Èº¸³½´Ù!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½Èºï¿½ï¿½ï¿½ï¿½ï¿½!
 			break;
 
 		default:
 			{
-				START_LOG( cerr, L"ÀÌ»óÇÑ ¹æ Å¸ÀÔ." )
+				START_LOG( cerr, L"ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½." )
 					<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
 					<< BUILD_LOG( GetCharUID() )
 					<< END_LOG;
@@ -8867,7 +8867,7 @@ void KGSUser::SendPetAction( IN CXSLPetManager::PET_ACTION_COMMAND ePetAction )
 	}
 	else
 	{
-		START_LOG( cerr, L"ÀÌ»óÇÑ »óÅÂ¿¡¼­ Æê ¾×¼ÇÀ» Àü¼ÛÇÏ·Á°í ÇÕ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½×¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½." )
 			<< BUILD_LOG( GetStateIDString() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( ePetAction )
@@ -8878,7 +8878,7 @@ void KGSUser::SendPetAction( IN CXSLPetManager::PET_ACTION_COMMAND ePetAction )
 #endif SERV_PET_SYSTEM
 //}}
 
-//{{ 2013. 05. 29	ÃÖÀ°»ç	Á¦Àç ¸®½ºÆ® ÅëÇÕ
+//{{ 2013. 05. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_BLOCK_LIST
 void KGSUser::SendCheckBlockUser( IN const KBlockInfo::BLOCK_TYPE eBlockType )
 {
@@ -8899,7 +8899,7 @@ void KGSUser::SendCheckBlockUser( IN const std::vector< int >& vecBlockType )
 #endif SERV_BLOCK_LIST
 //}}
 
-//{{ 2013. 06. 03	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+//{{ 2013. 06. 03	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 void KGSUser::SendEnchantNotice( IN const int iItemID, IN const int iEnchantLevel, IN const int iRandomItemID /*= 0 */) const
 {
@@ -8914,14 +8914,14 @@ void KGSUser::SendEnchantNotice( IN const int iItemID, IN const int iEnchantLeve
 		return ;
 	}
 #endif SERV_EVENT_ENCHANT_RANDOM_CUBE_NO_NOTIFY
-	// 9°­ ÀÌ»ó °­È­ ¼º°ø½Ã ÀüÃ¼ °øÁö!
+	// 9ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½!
 	if( iEnchantLevel >= 9 )
 	{
 		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( iItemID );
 		if( pItemTemplet != NULL )
 		{
 			KEGS_NOTIFY_MSG_NOT	kPacket;
-			kPacket.m_cNotifyType = KEGS_NOTIFY_MSG_NOT::NT_DROP_GET_ITEM; // ¾ÆÀÌÅÛ È¹µæ °øÁö
+			kPacket.m_cNotifyType = KEGS_NOTIFY_MSG_NOT::NT_DROP_GET_ITEM; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			kPacket.m_Count			= 1;
 #ifdef SERV_UNITED_SERVER_EU
 			kPacket.m_wstrMSG		+= boost::str( boost::wformat( L"%s;+%d; %s" ) % GetCharName() % iEnchantLevel % pItemTemplet->m_ItemID );
@@ -8933,7 +8933,7 @@ void KGSUser::SendEnchantNotice( IN const int iItemID, IN const int iEnchantLeve
 		}
 		else
 		{
-			START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â ¾ÆÀÌÅÛÀ» °­È­Çß´Ù? °øÁö ³¯¸®±â ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ß´ï¿½? ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( iItemID )
 				<< END_LOG;
@@ -8943,7 +8943,7 @@ void KGSUser::SendEnchantNotice( IN const int iItemID, IN const int iEnchantLeve
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 //}}
 
-//{{ 2013. 09. 23	ÃÖÀ°»ç	ÀÏº» ÀÌº¥Æ® Áß°èDBÀÛ¾÷
+//{{ 2013. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ïºï¿½ ï¿½Ìºï¿½Æ® ï¿½ß°ï¿½DBï¿½Û¾ï¿½
 #ifdef SERV_RELAY_DB_CONNECTION
 void KGSUser::SendUpdateUnitInfoToRelayDB( IN const int iUpdateType, IN const bool bDeletedUnit /*= false*/ ) const
 {
@@ -8955,37 +8955,37 @@ void KGSUser::SendUpdateUnitInfoToRelayDB( IN const int iUpdateType, IN const bo
 	kPacketToDB.m_cLevel		= GetLevel();
 	kPacketToDB.m_cUnitClass	= GetUnitClass();
 	kPacketToDB.m_bDeletedUnit	= bDeletedUnit;
-	kPacketToDB.m_wstrUserRegDate = m_kUserStatistics.GetAccountRegDate();	// °èÁ¤ °¡ÀÔ ³¯Â¥
-	kPacketToDB.m_wstrUnitRegDate = m_kUserStatistics.GetUnitCreateDate();	// Ä³¸¯ÅÍ »ý¼º ³¯Â¥
+	kPacketToDB.m_wstrUserRegDate = m_kUserStatistics.GetAccountRegDate();	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â¥
+	kPacketToDB.m_wstrUnitRegDate = m_kUserStatistics.GetUnitCreateDate();	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â¥
 	kPacketToDB.m_iUpdateType	= iUpdateType;
 	SendToRelayDB( DBE_UPDATE_USER_INFO_TO_RELAY_DB_JP_EVENT_NOT, kPacketToDB );
 }
 #endif SERV_RELAY_DB_CONNECTION
 //}}
 
-//{{ 2011. 03. 02	ÃÖÀ°»ç	°³ÀÎ °Å·¡ Â÷´Ü
+//{{ 2011. 03. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_HACK_USER_TRADE_BLOCK
 void KGSUser::HackUserRegRejectedUser( IN const char cReason
-#ifdef SERV_PERIOD_ACCOUNT_BLOCK// ÀÛ¾÷³¯Â¥: 2013-05-27	// ¹Ú¼¼ÈÆ
+#ifdef SERV_PERIOD_ACCOUNT_BLOCK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-27	// ï¿½Ú¼ï¿½ï¿½ï¿½
 									 , IN const char cPeriodUAL /*= 0*/
 									 , IN const std::wstring& wstrBlockReason /*= L""*/
 #endif // SERV_PERIOD_ACCOUNT_BLOCK
 									 )
 {
-	// ÇÙ À¯Àú Á¢¼Ó Â÷´Ü ÀÚµ¿µî·Ï
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½
 	if( SiKGameSysVal()->IsHackUserRegRejected() == false )
 		return;
 
 	if( SEnum::UAL_DEVELOPER <= GetAuthLevel() )
 	{
-		START_LOG( cout, L"°èÁ¤ ±ÇÇÑÀÌ °³¹ßÀÚ±Þ ÀÌ»óÀÌ¹Ç·Î ºí·Ï Á¶Ä¡¸¦ ÃëÇÏÁö ¾Ê½À´Ï´Ù!" )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú±ï¿½ ï¿½Ì»ï¿½ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½!" )
 			<< BUILD_LOG( GetName() )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOGc( GetAuthLevel() )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( cReason )
-#ifdef SERV_PERIOD_ACCOUNT_BLOCK// ÀÛ¾÷³¯Â¥: 2013-05-27	// ¹Ú¼¼ÈÆ
+#ifdef SERV_PERIOD_ACCOUNT_BLOCK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-27	// ï¿½Ú¼ï¿½ï¿½ï¿½
 			<< BUILD_LOG( cPeriodUAL )
 			<< BUILD_LOG( wstrBlockReason )
 #endif // SERV_PERIOD_ACCOUNT_BLOCK
@@ -8993,17 +8993,17 @@ void KGSUser::HackUserRegRejectedUser( IN const char cReason
 		return;
 	}
 
-	// RejectedUser¿¡ µî·ÏÇÏ±â!
+	// RejectedUserï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï±ï¿½!
 	KELG_REG_REJECTED_USER_NOT kPacketNot;
 	kPacketNot.m_iUserUID			= GetUID();
 	kPacketNot.m_cRejectedReason	= cReason;
-#ifdef SERV_PERIOD_ACCOUNT_BLOCK// ÀÛ¾÷³¯Â¥: 2013-05-27	// ¹Ú¼¼ÈÆ
+#ifdef SERV_PERIOD_ACCOUNT_BLOCK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-27	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	kPacketNot.m_cPeriodUAL			= cPeriodUAL;
 	kPacketNot.m_wstrBlockReason	= wstrBlockReason;
 #endif // SERV_PERIOD_ACCOUNT_BLOCK
 	SendToLoginServer( ELG_REG_REJECTED_USER_NOT, kPacketNot );
 
-	START_LOG( cout, L"¼­¹ö°¡ ¿ÀÅäÇÙ À¯Àú·Î ÆÇ´Ü! Rejected User·Î µî·Ï!" )
+	START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½! Rejected Userï¿½ï¿½ ï¿½ï¿½ï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 		<< BUILD_LOG( GetUID() )
 		<< BUILD_LOG( GetCharUID() )
@@ -9012,7 +9012,7 @@ void KGSUser::HackUserRegRejectedUser( IN const char cReason
 		<< BUILD_LOG( GetCharName() )
 #endif SERV_PRIVACY_AGREEMENT
 		<< BUILD_LOGc( cReason )
-#ifdef SERV_PERIOD_ACCOUNT_BLOCK// ÀÛ¾÷³¯Â¥: 2013-05-27	// ¹Ú¼¼ÈÆ
+#ifdef SERV_PERIOD_ACCOUNT_BLOCK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-27	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		<< BUILD_LOGc( cPeriodUAL )
 		<< BUILD_LOG( wstrBlockReason )
 #endif // SERV_PERIOD_ACCOUNT_BLOCK
@@ -9021,24 +9021,24 @@ void KGSUser::HackUserRegRejectedUser( IN const char cReason
 
 void KGSUser::HackUserRegTradeBlock( IN const char cReason )
 {
-	// °³ÀÎ °Å·¡ Â÷´Ü µî·Ï ¿©ºÎ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( SiKGameSysVal()->IsHackUserBlockTrade() == false )
 		return;
 
-	// ÀÌ¹Ì °Å·¡ Â÷´Ü À¯ÀúÀÎÁö È®ÀÎ
+	// ï¿½Ì¹ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	if( m_kUserAbuserManager.IsTradeBlockUser() == true )
 		return;
 	
-	// TradeBlock¿¡ µî·ÏÇÏ±â!
+	// TradeBlockï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï±ï¿½!
 	KELG_REG_REJECTED_USER_NOT kPacketNot;
 	kPacketNot.m_iUserUID = GetUID();
 	kPacketNot.m_cRejectedReason = cReason;
 	SendToLoginServer( ELG_REG_TRADE_BLOCK_USER_NOT, kPacketNot );
 
-	// °³ÀÎ°Å·¡ Â÷´Ü!
+	// ï¿½ï¿½ï¿½Î°Å·ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	m_kUserAbuserManager.SetTradeBlockUser( true );
 
-	START_LOG( cout, L"¼­¹ö°¡ ¿ÀÅäÇÙ À¯Àú·Î ÆÇ´Ü! Trade Block User·Î µî·Ï!" )
+	START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½! Trade Block Userï¿½ï¿½ ï¿½ï¿½ï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 		<< BUILD_LOG( GetUID() )
 		<< BUILD_LOG( GetCharUID() )
@@ -9051,14 +9051,14 @@ void KGSUser::HackUserRegTradeBlock( IN const char cReason )
 
 void KGSUser::HackUserRegMonitorsUser( IN const char cReason )
 {
-	// ÇÙÀ¯Àú °¨½Ã ´ë»ó ÀÚµ¿ µî·Ï
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½
 	if( SiKGameSysVal()->IsHackUserRegMonitors() == false )
 		return;
 
 	if( m_cHackingUserType != SEnum::HUT_NORMAL )
 		return;
 
-	START_LOG( clog, L"ÇØÅ· À¯Àú ½Å°í.!" )
+	START_LOG( clog, L"ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½Å°ï¿½.!" )
 		<< BUILD_LOG( GetUID() )
 #ifdef SERV_PRIVACY_AGREEMENT
 		<< BUILD_LOG( GetUID() )
@@ -9070,13 +9070,13 @@ void KGSUser::HackUserRegMonitorsUser( IN const char cReason )
 		<< BUILD_LOGc( m_cHackingUserType )
 		;
 
-	// ÇÙÀ¯Àú·Î Ã¼Å©!
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©!
 	m_cHackingUserType = SEnum::HUT_DISAGREE_HACK_USER;
 
-	// AccountDB¿¡µµ µî·ÏÇÏÀÚ!
+	// AccountDBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	SendToAccountDB( DBE_REPORT_HACK_USER_NOT, GetUID() );
 
-	START_LOG( cout, L"¼­¹ö°¡ ¿ÀÅäÇÙ À¯Àú·Î ÆÇ´Ü! ÇØÅ· ÀÇ½É À¯Àú·Î µî·Ï!" )
+	START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½! ï¿½ï¿½Å· ï¿½Ç½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 		<< BUILD_LOG( GetUID() )
 		<< BUILD_LOG( GetCharUID() )
@@ -9087,22 +9087,22 @@ void KGSUser::HackUserRegMonitorsUser( IN const char cReason )
 		<< BUILD_LOGc( cReason );
 }
 
-//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 void KGSUser::HackUserKick( IN const KEGS_SERVER_CHECK_HACK_USER_REQ& kPacket )
 {
-	// ÇÙÀ¯Àú ¼­¹ö Á¢¼Ó Á¾·á
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( SiKGameSysVal()->IsHackUserKick() == false )
 		return;
 
 	SendPacket( EGS_SERVER_CHECK_HACK_USER_REQ, kPacket );
 
-	//{{ 2010. 07. 09  ÃÖÀ°»ç	ÇÙÀ¯Àú Á¾·áÃ³¸®
+	//{{ 2010. 07. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 	SetDisconnectReason( KStatistics::eSIColDR_Client_Hacking );
 	ReserveDestroy();
 	//}}
 
-	START_LOG( cout, L"¼­¹ö°¡ ¿ÀÅäÇÙ À¯Àú·Î ÆÇ´Ü! Á¢¼Ó Á¾·á Ã³¸®!" )
+	START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!" )
 		<< BUILD_LOG( GetUserName() )
 		<< BUILD_LOG( GetCharName() )
 		<< BUILD_LOGc( kPacket.m_cHackingCheckType );
@@ -9110,18 +9110,18 @@ void KGSUser::HackUserKick( IN const KEGS_SERVER_CHECK_HACK_USER_REQ& kPacket )
 #else
 void KGSUser::HackUserKick( IN const KEGS_SERVER_CHECK_HACK_USER_NOT& kPacket )
 {
-	// ÇÙÀ¯Àú ¼­¹ö Á¢¼Ó Á¾·á
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( SiKGameSysVal()->IsHackUserKick() == false )
 		return;
 
 	SendPacket( EGS_SERVER_CHECK_HACK_USER_NOT, kPacket );
 
-	//{{ 2010. 07. 09  ÃÖÀ°»ç	ÇÙÀ¯Àú Á¾·áÃ³¸®
+	//{{ 2010. 07. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 	SetDisconnectReason( KStatistics::eSIColDR_Client_Hacking );
 	ReserveDestroy();
 	//}}
 
-	START_LOG( cout, L"¼­¹ö°¡ ¿ÀÅäÇÙ À¯Àú·Î ÆÇ´Ü! Á¢¼Ó Á¾·á Ã³¸®!" )
+	START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 		<< BUILD_LOG( GetUID() )
 		<< BUILD_LOG( GetCharUID() )
@@ -9136,11 +9136,11 @@ void KGSUser::HackUserKick( IN const KEGS_SERVER_CHECK_HACK_USER_NOT& kPacket )
 #endif SERV_HACK_USER_TRADE_BLOCK
 //}}
 
-//{{ 2011. 09. 08	ÃÖÀ°»ç	¿ÀÅäÇÙ ÆÐÅ¶ ¸ð´ÏÅÍ¸µ
+//{{ 2011. 09. 08	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 #ifdef SERV_AUTO_HACK_PACKET_MORNITOING
 void KGSUser::HackUserRegPacketMornitor()
 {
-	// ÇÙÀ¯Àú ¼­¹ö Á¢¼Ó Á¾·á
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( SiKGameSysVal()->IsHackUserPacketMornitor() == false )
 		return;
 
@@ -9149,16 +9149,16 @@ void KGSUser::HackUserRegPacketMornitor()
 #endif SERV_AUTO_HACK_PACKET_MORNITOING
 //}}
 
-//{{ 2009. 9. 7  ÃÖÀ°»ç		Äù½ºÆ® ±â´É ¼öÁ¤
+//{{ 2009. 9. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 bool KGSUser::IsDungeonGetExp( int iDungeonID, char cDifficulty )
 {
 	int nConst = abs( SiCXSLDungeonManager()->GetDungeonMinLevel( static_cast<int>(iDungeonID + cDifficulty) ) - static_cast<int>(GetLevel()) );
 
-	return ( nConst <= 19 ); // ·¾Â÷°¡ 20ÀÌ µÇ¸é °æÇèÄ¡ È¹µæ ºÒ°¡ ´øÀüÀÌ´Ù!
+	return ( nConst <= 19 ); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 20ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ È¹ï¿½ï¿½ ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½!
 }
 //}}
 
-//{{ 2010. 05. 12  ÃÖÀ°»ç	´ëÀü ´øÀü ¼­¹ö±º ÅëÇÕ
+//{{ 2010. 05. 12  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_INTEGRATION
 
 bool KGSUser::IsSameServerGroupUID( IN UidType iUID )
@@ -9176,13 +9176,13 @@ bool KGSUser::IsEnoughItemExist( IN const std::map< int, int >& mapRequiredItem,
 }
 #endif SERV_PAYMENT_ITEM_ON_GOING_QUEST
 
-//{{ 2010. 01. 11  ÃÖÀ°»ç	¼­¹öÄÚµåÁ¤¸®
+//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½
 bool KGSUser::IsEnoughItemExistOnlyInventory( IN const std::map< int, int >& mapRequiredItem )
 {
     return m_kInventory.IsEnoughItemExistOnlyInventory( mapRequiredItem );
 }
 
-//{{ 2010. 07. 05  ÃÖÀ°»ç	À¯Àú ¾îºäÀú ¸Å´ÏÀú
+//{{ 2010. 07. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_USER_ABUSER_MANAGER
 
 void KGSUser::CheckEDAbuser( IN int iGetEDState, IN int iBeforeED )
@@ -9202,7 +9202,7 @@ void KGSUser::UserStatisticsIncreaseCount( int iTableID, int iSubTableID , int i
 {
     m_kUserStatistics.IncreaseCount( iTableID, iSubTableID , iColumn, iCount );
 
-	//{{ 2010. 11. 17	ÃÖÀ°»ç	¿ÀÅäÇÙ °ËÁõ ±â´É
+	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_AUTO_HACK_CHECK_GET_ITEM
 	if( iColumn == KUserStatistics::US_Etc_Obtained_Item )
 	{
@@ -9235,7 +9235,7 @@ void KGSUser::UserStatisticsIncreaseCount( int iTableID, int iSubTableID , int i
 //{
 //	if( m_pCSA == NULL )
 //	{
-//		START_LOG( cerr, L"nProtect ¸ðµâ Æ÷ÀÎÅÍ ÀÌ»ó.!" )
+//		START_LOG( cerr, L"nProtect ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½.!" )
 //			<< BUILD_LOG( GetUID() )
 //			<< BUILD_LOG( GetChannelID() )
 //			<< END_LOG;
@@ -9250,7 +9250,7 @@ void KGSUser::UserStatisticsIncreaseCount( int iTableID, int iSubTableID , int i
 //		KPacketOK kShowDown;
 //		kShowDown.m_iOK = NetError::ERR_KNP_00;
 //
-//		//¿¡·¯Ã³¸®
+//		//ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //		WCHAR			wszError[MAX_PATH] = L"";
 //		std::wstring	wstrError;
 //
@@ -9264,7 +9264,7 @@ void KGSUser::UserStatisticsIncreaseCount( int iTableID, int iSubTableID , int i
 //
 //		wstrError = wszError;
 //
-//		START_LOG( cerr, L"nProtect ÀÎÁõ »ý¼º ½ÇÆÐ.!" )
+//		START_LOG( cerr, L"nProtect ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 //			<< BUILD_LOG( GetUID )
 //			<< BUILD_LOG( GetCharUID() )
 //			<< BUILD_LOG( wstrError )
@@ -9275,7 +9275,7 @@ void KGSUser::UserStatisticsIncreaseCount( int iTableID, int iSubTableID , int i
 //			kShowDown.m_iOK = NetError::ERR_KNP_01;
 //		}
 //
-//		//Á¾·á ÀÌÀ¯¸¦ Å¬¶óÀÌ¾ðÆ®¿¡°Ô ¾Ë·ÁÁÖ¾î¾ß ÇÑ´Ù.
+//		//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ö¾ï¿½ï¿½ ï¿½Ñ´ï¿½.
 //		SendPacket( EGS_KNPROTECT_USER_SHOWDOWN_NOT, kShowDown );
 //
 //		return false;
@@ -9284,13 +9284,13 @@ void KGSUser::UserStatisticsIncreaseCount( int iTableID, int iSubTableID , int i
 //	return true;
 //}
 
-//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 //////////////////////////////////////////////////////////////////////////
 bool KGSUser::CheckingSpirit( IN const int iDungeonID )
 {
-	// ±Ù¼ºµµ ¸Å´ÏÀú¿¡¼­ °Ë»ç
+	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 #ifdef SERV_PC_BANG_TYPE
 	bool bSpiritFree = ExistActivateBuff( CXSLBuffManager::BTI_BUFF_PREMIUM_PC_ROOM ) & SiKGameSysVal()->IsSpiritFree( GetPcBangType() );
 	return m_kUserSpiritManager.CheckingSpirit( iDungeonID, bSpiritFree );
@@ -9302,12 +9302,12 @@ bool KGSUser::CheckingSpirit( IN const int iDungeonID )
 bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount, IN const short sStageNpcCount, IN const bool bIsTutorial, IN const bool bIsBattleField )
 {
 #ifdef GUILD_TEST
-	// 4. ±æµå À¯ÀúÀÏ °æ¿ì ¸í¼ºÄ¡ °è»ê
+	// 4. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½
 	if( GetGuildUID() > 0 )
 	{
-		// ±Ù¼ºµµ ÀÌº¥Æ® & PC¹æ ÀÌº¥Æ® ÀÌÀü¿¡ Ã³¸® ÇÕ´Ï´Ù. ¼Ò¸ðÇÑ°Í°ú µ¿ÀÏÇÏ°Ô Ã³¸®ÇÏ±â À§ÇØ¼­..
-		// [ÁÖÀÇ] ¼Ò¸ð ±Ù¼ºµµ °ø½Ä°è»êÀº »çÁ¦°ü°è°¡ ¾Æ´Ñ°ÍÀ¸·Î °è»êÇØ¾ßÇÔ!
-		//{{ 2011. 09. 23	ÃÖÀ°»ç	°øÁ¸ÀÇ ÃàÁ¦ ±Ù¼ºµµ ¼Ò¸ð ÀÌº¥Æ®
+		// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® & PCï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. ï¿½Ò¸ï¿½ï¿½Ñ°Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½..
+		// [ï¿½ï¿½ï¿½ï¿½] ï¿½Ò¸ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è°¡ ï¿½Æ´Ñ°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½!
+		//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½Ìºï¿½Æ®
 //#ifdef SERV_COEXISTENCE_FESTIVAL
 		const int iCalculatedDecreaseSpirit = m_kUserSpiritManager.CalculateDecreaseSpirit( cUserCount, sStageNpcCount, false, false, bIsBattleField );
 //#else
@@ -9315,14 +9315,14 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 //#endif SERV_COEXISTENCE_FESTIVAL
 		//}}
 
-		// ±Ù¼ºµµ ÀÌº¥Æ® & PC¹æ ÀÌº¥Æ® ÀÌÀü¿¡ Ã³¸® ÇÕ´Ï´Ù. ¼Ò¸ðÇÑ°Í°ú µ¿ÀÏÇÏ°Ô Ã³¸®ÇÏ±â À§ÇØ¼­..
-		// [ÁÖÀÇ] ¼Ò¸ð ±Ù¼ºµµ °ø½Ä°è»êÀº »çÁ¦°ü°è°¡ ¾Æ´Ñ°ÍÀ¸·Î °è»êÇØ¾ßÇÔ!
+		// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® & PCï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. ï¿½Ò¸ï¿½ï¿½Ñ°Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½..
+		// [ï¿½ï¿½ï¿½ï¿½] ï¿½Ò¸ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è°¡ ï¿½Æ´Ñ°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½!
 		m_kUserGuildManager.OnDecreaseSpirit( GetThisPtr<KGSUser>(), iCalculatedDecreaseSpirit );
 	}
 #endif GUILD_TEST
 
 	//////////////////////////////////////////////////////////////////////////
-	// ±Ù¼ºµµ °¨¼Ò Ã³¸®!
+	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½!
 #if defined( SERV_LOCAL_RANKING_SYSTEM ) || defined( SERV_CHINA_SPIRIT_EVENT )
 	int iAbsoluteDecreaseSpirit = 0;
 #endif	// SERV_LOCAL_RANKING_SYSTEM
@@ -9385,7 +9385,7 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 	}
 #endif SERV_CHINA_SPIRIT_EVENT
 
-	//{{ 2013. 3. 17	¹Ú¼¼ÈÆ	 ·ÎÄÃ ·©Å· ½Ã½ºÅÛ
+	//{{ 2013. 3. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 	if( 0 < iAbsoluteDecreaseSpirit )
 	{
@@ -9404,7 +9404,7 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 		KSIManager.IncreaseCount( KStatistics::SI_LOC_SPIRIT, kKey, KStatistics::eSIColSpirit_Play, 1 );
 		KSIManager.IncreaseCount( KStatistics::SI_LOC_SPIRIT, kKey, KStatistics::eSIColSpirit_UseSpirit, iDecreaseSpirit );
 
-		//{{ 2010. 06. 30  ÃÖÀ°»ç	±Ù¼ºµµ Åë°è
+		//{{ 2010. 06. 30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_SPIRIT_STATISTICS
 		m_kUserStatistics.AddUsedSpirit( iDecreaseSpirit );
 #endif SERV_SPIRIT_STATISTICS
@@ -9428,14 +9428,14 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 //////////////////////////////////////////////////////////////////////////
 bool KGSUser::CheckingSpirit( IN const int iDungeonID )
 {
-	// ±Ù¼ºµµ¿Í °ü·Ã¾ø´Â ´øÀüÀÌ¸é ¹Ù·Î ÀÔÀåÃ³¸®
+	// ï¿½Ù¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 	if( CXSLDungeon::IsTutorialDungeon( iDungeonID )  ||
 		CXSLDungeon::IsEventDungeon( iDungeonID ) )
 	{
 		return true;
 	}
 
-	//{{ 2010. 12. 30	ÃÖÀ°»ç	ÇÏ¸á ¸¶À» Ãß°¡
+	//{{ 2010. 12. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_SHIP_DUNGEON
 	if( CXSLDungeon::IsShipDungeon( iDungeonID ) )
 	{
@@ -9444,26 +9444,26 @@ bool KGSUser::CheckingSpirit( IN const int iDungeonID )
 #endif SERV_SHIP_DUNGEON
 	//}}
 
-	//{{ 2009. 7. 3  ÃÖÀ°»ç		Çì´Ï¸£ ½Ã°ø
+	//{{ 2009. 7. 3  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½
 	if( SiCXSLDungeonManager()->GetDungeonType( iDungeonID ) == CXSLDungeon::DT_HENIR )
 	{
 		return true;
 	}
 	//}}
 
-	// [ÀÌº¥Æ®] 080611.hoons.±Ù¼ºµµ ÀÌº¥Æ® ÁßÀÏ°æ¿ì..
+	// [ï¿½Ìºï¿½Æ®] 080611.hoons.ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½Ï°ï¿½ï¿½..
 	if( SiKGameEventManager()->CheckSpiritEvent() == true )
 		return true;
 	//}}
 
-	//{{ 2009. 10. 26  ÃÖÀ°»ç	PC¹æ ÇýÅÃ
+	//{{ 2009. 10. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( IsPcBang() == true )
 	{
 		return true;
 	}
 	//}}
 
-	// ±Ù¼ºµµ°¡ ³²¾ÆÀÖ´ÂÁö °Ë»ç
+	// ï¿½Ù¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	if( m_iSpirit > 0 )
 		return true;
 
@@ -9472,14 +9472,14 @@ bool KGSUser::CheckingSpirit( IN const int iDungeonID )
 
 bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount, IN const short sStageNpcCount, IN const bool bIsTutorial )
 {	
-	// 1. ±Ù¼ºµµ ¼Ò¸ð¿Í´Â ÀüÇô °ü°è¾ø´Â ´øÀüÀÎ °æ¿ì¸¦ Ã¼Å©ÇÏ¿© returnÇÔ.
+	// 1. ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½Í´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¸¦ Ã¼Å©ï¿½Ï¿ï¿½ returnï¿½ï¿½.
 	if( CXSLDungeon::IsTutorialDungeon( iDungeonID )  ||
 		CXSLDungeon::IsEventDungeon( iDungeonID ) )
 	{
 		return false;
 	}
 
-	//{{ 2010. 12. 30	ÃÖÀ°»ç	ÇÏ¸á ¸¶À» Ãß°¡
+	//{{ 2010. 12. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_SHIP_DUNGEON
 	if( CXSLDungeon::IsShipDungeon( iDungeonID ) )
 	{
@@ -9488,25 +9488,25 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 #endif SERV_SHIP_DUNGEON
 	//}}
 
-	// 2. Çì´Ï¸£ ½Ã°øÀº ±Ù¼ºµµ¿Í´Â °ü°è ¾ø´Ù.
+	// 2. ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ï¿½Í´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	if( SiCXSLDungeonManager()->GetDungeonType( iDungeonID ) == CXSLDungeon::DT_HENIR )
 	{
 		return false;
 	}
 
-	// 3. ½ºÅ×ÀÌÁö¿¡ npc°¡ ÇÑ¸¶¸®µµ ¾ø´Ù¸é ±Ù¼ºµµ ¼Ò¸ð ¾øÀ½
+	// 3. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ npcï¿½ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( sStageNpcCount <= 0 )
 	{
 		return false;
 	}
 	
 #ifdef GUILD_TEST
-	// 4. ±æµå À¯ÀúÀÏ °æ¿ì ¸í¼ºÄ¡ °è»ê
+	// 4. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½
 	if( GetGuildUID() > 0 )
 	{
-		// ±Ù¼ºµµ ÀÌº¥Æ® & PC¹æ ÀÌº¥Æ® ÀÌÀü¿¡ Ã³¸® ÇÕ´Ï´Ù. ¼Ò¸ðÇÑ°Í°ú µ¿ÀÏÇÏ°Ô Ã³¸®ÇÏ±â À§ÇØ¼­..
-		// [ÁÖÀÇ] ¼Ò¸ð ±Ù¼ºµµ °ø½Ä°è»êÀº »çÁ¦°ü°è°¡ ¾Æ´Ñ°ÍÀ¸·Î °è»êÇØ¾ßÇÔ!
-		//{{ 2011. 09. 23	ÃÖÀ°»ç	°øÁ¸ÀÇ ÃàÁ¦ ±Ù¼ºµµ ¼Ò¸ð ÀÌº¥Æ®
+		// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® & PCï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. ï¿½Ò¸ï¿½ï¿½Ñ°Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½..
+		// [ï¿½ï¿½ï¿½ï¿½] ï¿½Ò¸ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è°¡ ï¿½Æ´Ñ°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½!
+		//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_COEXISTENCE_FESTIVAL
 		m_kUserGuildManager.OnDecreaseSpirit( GetThisPtr<KGSUser>(), CalculateDecreaseSpirit( cUserCount, sStageNpcCount, false, false ) );
 #else
@@ -9516,16 +9516,16 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 	}
 #endif GUILD_TEST	
 
-	// 5. »çÁ¦°ü°è°¡ ¾Æ´Ñ°æ¿ì ±Ù¼ºµµ ÀÌº¥Æ®¿Í PC¹æÇýÅÃ °Ë»ç
+	// 5. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è°¡ ï¿½Æ´Ñ°ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ PCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	if( bIsTutorial == false )
 	{
-		// [ÀÌº¥Æ®] 080611.hoons.±Ù¼ºµµ ÀÌº¥Æ® ÁßÀÏ°æ¿ì..
+		// [ï¿½Ìºï¿½Æ®] 080611.hoons.ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½Ï°ï¿½ï¿½..
 		if( SiKGameEventManager()->CheckSpiritEvent() == true )
 		{
 			return false;
 		}
 
-		//{{ 2009. 10. 26  ÃÖÀ°»ç	PC¹æ ÇýÅÃ
+		//{{ 2009. 10. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( IsPcBang() == true )
 		{
 			return false;
@@ -9533,12 +9533,12 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 		//}}
 	}
 
-	// 6. ¼Ò¸ð½ÃÅ³ ±Ù¼ºµµ °è»ê
-	//{{ 2011. 09. 23	ÃÖÀ°»ç	°øÁ¸ÀÇ ÃàÁ¦ ±Ù¼ºµµ ¼Ò¸ð ÀÌº¥Æ®
+	// 6. ï¿½Ò¸ï¿½ï¿½Å³ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_COEXISTENCE_FESTIVAL
-	int iDecreaseSpirit = CalculateDecreaseSpirit( cUserCount, sStageNpcCount, bIsTutorial, true ); // [ÁÖÀÇ] »çÁ¦°ü°èÀÏ°æ¿ì ±Ù¼ºµµ°¡ º¸ÃæµÈ´Ù.
+	int iDecreaseSpirit = CalculateDecreaseSpirit( cUserCount, sStageNpcCount, bIsTutorial, true ); // [ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È´ï¿½.
 #else
-	int iDecreaseSpirit = CalculateDecreaseSpirit( cUserCount, sStageNpcCount, bIsTutorial ); // [ÁÖÀÇ] »çÁ¦°ü°èÀÏ°æ¿ì ±Ù¼ºµµ°¡ º¸ÃæµÈ´Ù.
+	int iDecreaseSpirit = CalculateDecreaseSpirit( cUserCount, sStageNpcCount, bIsTutorial ); // [ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È´ï¿½.
 #endif SERV_COEXISTENCE_FESTIVAL
 	//}}	
 	int iRemain = m_iSpirit - iDecreaseSpirit;
@@ -9547,11 +9547,11 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 		iDecreaseSpirit += iRemain;
 	}
 
-	// ±Ù¼ºµµ ¼Ò¸ð ( »çÁ¦°ü°èÀÏ°æ¿ì Áõ°¡Ã³¸® )
+	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ )
 	m_iSpirit -= iDecreaseSpirit;
 
 	//////////////////////////////////////////////////////////////////////////
-	// Åë°è
+	// ï¿½ï¿½ï¿½
 	if( iDecreaseSpirit > 0 )
 	{
 		m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EtcData, 0, KUserStatistics::US_Etc_Used_Spirit, iDecreaseSpirit );
@@ -9562,19 +9562,19 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 		KSIManager.IncreaseCount( KStatistics::SI_LOC_SPIRIT, kKey, KStatistics::eSIColSpirit_Play, 1 );
 		KSIManager.IncreaseCount( KStatistics::SI_LOC_SPIRIT, kKey, KStatistics::eSIColSpirit_UseSpirit, iDecreaseSpirit );
 
-		//{{ 2010. 06. 30  ÃÖÀ°»ç	±Ù¼ºµµ Åë°è
+		//{{ 2010. 06. 30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_SPIRIT_STATISTICS
 		m_kUserStatistics.AddUsedSpirit( iDecreaseSpirit );
 #endif SERV_SPIRIT_STATISTICS
 		//}}
 	}
 
-	// ±Ù¼ºµµ Å©±â º¸Á¤
+	// ï¿½Ù¼ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( m_iSpirit <= 0 )
 	{
 		m_iSpirit = 0;
 
-		// ±Ù¼ºµµ ÇÏ·çÄ¡ ¸ðµÎ ¼Ò¸ð½Ã Ä«¿îÆ® [ÇÑ¹ø Ä«¿îÆ® ¿Ã¶ó°¡¸é ´Ù½Ã °»½Å¾ÈÇÔ]
+		// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ä¡ ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ï¿½ Ä«ï¿½ï¿½Æ® [ï¿½Ñ¹ï¿½ Ä«ï¿½ï¿½Æ® ï¿½Ã¶ó°¡¸ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½Å¾ï¿½ï¿½ï¿½]
 		if( m_bIsSpiritUpdated == false )
 		{
 			m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EtcData, 0, KUserStatistics::US_Etc_AllUsed_Spirit_Count,	1 );
@@ -9596,16 +9596,16 @@ bool KGSUser::DecreaseSpirit( IN const int iDungeonID, IN const char cUserCount,
 }
 
 //////////////////////////////////////////////////////////////////////////
-//{{ 2011. 09. 23	ÃÖÀ°»ç	°øÁ¸ÀÇ ÃàÁ¦ ±Ù¼ºµµ ¼Ò¸ð ÀÌº¥Æ®
+//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½Ìºï¿½Æ®
 //#ifdef SERV_COEXISTENCE_FESTIVAL
 int	KGSUser::CalculateDecreaseSpirit( IN const char cUserCount, IN const short sStageNpcCount, IN const bool bIsTutorial, IN const bool bHalfDecreaseEvent )
 {
 	//////////////////////////////////////////////////////////////////////////
-	// ±Ù¼ºµµ °ø½Ä
+	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//
-	// Y = (42-(2*X+A))/ÇØ´ç ½ºÅ×ÀÌÁö ¸ó½ºÅÍ ¼ö*B
-	// ( ¸ó½ºÅÍ°¡ ÇÑ¸¶¸® Á×À» ¶§ ¸ðµç ÆÄÆ¼¿øÀÇ ±Ù¼ºµµ °¨¼Ò·® = Y )
-	// Y ¡Â 1 ÀÇ °æ¿ì, Y = 1·Î Ã³¸® ÇÑ´Ù. 
+	// Y = (42-(2*X+A))/ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½*B
+	// ( ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò·ï¿½ = Y )
+	// Y ï¿½ï¿½ 1 ï¿½ï¿½ ï¿½ï¿½ï¿½, Y = 1ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ñ´ï¿½. 
 
 	if( sStageNpcCount <= 0 )
 		return 0;
@@ -9636,11 +9636,11 @@ int	KGSUser::CalculateDecreaseSpirit( IN const char cUserCount, IN const short s
 //int	KGSUser::CalculateDecreaseSpirit( IN const char cUserCount, IN const short sStageNpcCount, IN const bool bIsTutorial )
 //{
 //	//////////////////////////////////////////////////////////////////////////
-//	// ±Ù¼ºµµ °ø½Ä
+//	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //	//
-//	// Y = (42-(2*X+A))/ÇØ´ç ½ºÅ×ÀÌÁö ¸ó½ºÅÍ ¼ö*B
-//	// ( ¸ó½ºÅÍ°¡ ÇÑ¸¶¸® Á×À» ¶§ ¸ðµç ÆÄÆ¼¿øÀÇ ±Ù¼ºµµ °¨¼Ò·® = Y )
-//	// Y ¡Â 1 ÀÇ °æ¿ì, Y = 1·Î Ã³¸® ÇÑ´Ù. 
+//	// Y = (42-(2*X+A))/ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½*B
+//	// ( ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ñ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò·ï¿½ = Y )
+//	// Y ï¿½ï¿½ 1 ï¿½ï¿½ ï¿½ï¿½ï¿½, Y = 1ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ñ´ï¿½. 
 //
 //	if( sStageNpcCount <= 0 )
 //		return 0;
@@ -9665,7 +9665,7 @@ int	KGSUser::CalculateDecreaseSpirit( IN const char cUserCount, IN const short s
 //////////////////////////////////////////////////////////////////////////
 //}}
 
-//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 										  IN const char cDifficultyLevel,
@@ -9675,24 +9675,24 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 {
 	SET_ERROR( NET_OK );
 
-	////////////////////////////////////////////////////////////////////////// µ¥ÀÌÅÍ °ËÁõ
-	// DungeonID°Ë»ç
+	////////////////////////////////////////////////////////////////////////// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// DungeonIDï¿½Ë»ï¿½
 	const int iDungeonIDAndDif = ( iDungeonID + static_cast<int>(cDifficultyLevel) );
 	if( iDungeonIDAndDif <= 0 )
 	{
-		START_LOG( cerr, L"dungeonid°ªÀÌ ÀÌ»óÇÏ´Ù!" )
+		START_LOG( cerr, L"dungeonidï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Ï´ï¿½!" )
 			<< BUILD_LOG( iDungeonID )
 			<< BUILD_LOGc( cDifficultyLevel )
 			<< END_LOG;
 	}
 
-	//´øÀü ¾ÆÀÌµð°¡ Á¤»óÀÎÁö Ã¼Å©ÇÑ´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
 
 #ifdef SERV_NEW_EVENT_TYPES
 	bool bIsEventDungeon = SiCXSLDungeonManager()->IsSwitchingWithEventInfo( iDungeonID );
 	if( !SiKGameEventManager()->IsEnableDungeon( iDungeonID, bIsEventDungeon ) )
 	{
-		START_LOG( cerr, L"²¨Á®ÀÖ´Â ÀÌº¥Æ® DungeonIDÀÔ´Ï´Ù. Å¬¶ó¿¡¼­ °Ë»çÇßÀ»ÅÙµ¥.." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Ìºï¿½Æ® DungeonIDï¿½Ô´Ï´ï¿½. Å¬ï¿½ó¿¡¼ï¿½ ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ùµï¿½.." )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( iDungeonID )
 			<< BUILD_LOGc( cDifficultyLevel )
@@ -9704,7 +9704,7 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 #endif SERV_NEW_EVENT_TYPES
 
 
-	//{{ 2012. 03. 03	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+	//{{ 2012. 03. 03	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 	if( CXSLDungeon::IsDefenceDungeon( iDungeonID ) == true )
 	{
@@ -9727,7 +9727,7 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 #endif SERV_REFORM_THE_GATE_OF_DARKNESS
 	//}}
 
-	//{{ 2009. 10. 16  ÃÖÀ°»ç	º§´õ
+	//{{ 2009. 10. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½
 	if( false == CXSLDungeon::IsRubenDungeon( iDungeonID )  &&
 		false == CXSLDungeon::IsElderDungeon( iDungeonID )  &&
 		false == CXSLDungeon::IsBesmaDungeon( iDungeonID )  &&
@@ -9735,7 +9735,7 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 		false == CXSLDungeon::IsPeitaDungeon( iDungeonID )  &&
 		false == CXSLDungeon::IsVelderDungeon( iDungeonID ) &&
 		false == CXSLDungeon::IsHamelDungeon( iDungeonID )
-		//{{ 2012. 10. 29	¹Ú¼¼ÈÆ	»÷´õ ¸¶À» Ãß°¡
+		//{{ 2012. 10. 29	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_VILLAGE_SANDER
 		&& false == CXSLDungeon::IsSanderDungeon( iDungeonID )
 #endif SERV_VILLAGE_SANDER
@@ -9747,10 +9747,10 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 	}
 	//}}
 
-	//Çì´Ï¸£´øÀü¸ðµå°¡ Á¤»óÀÎÁö Ã¼Å©ÇÑ´Ù.
+	//ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
 	if( CXSLDungeon::IsValidDungeonMode( static_cast<CXSLDungeon::DUNGEON_MODE>(cDungeonMode) ) == false )
 	{
-		START_LOG( cerr, L"´øÀü ¸ðµå°ªÀÌ ÀÌ»óÇÕ´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å°ªï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½!" )
 			<< BUILD_LOGc( cDungeonMode )
 			<< END_LOG;
 
@@ -9758,8 +9758,8 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 		return false;
 	}
 
-	////////////////////////////////////////////////////////////////////////// À¯Àú Á¶°Ç
-	//{{ 2009. 8. 5  ÃÖÀ°»ç		Ã¼ÇèIDÁ¦ÇÑ
+	////////////////////////////////////////////////////////////////////////// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ 2009. 8. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ã¼ï¿½ï¿½IDï¿½ï¿½ï¿½ï¿½
 	if( IsGuestUser()  &&  CXSLDungeon::IsHenirDungeon( iDungeonID ) )
 	{
 		SET_ERROR( ERR_GUEST_USER_00 );
@@ -9767,7 +9767,7 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 	}
 	//}}
 
-	//ÀÌ¹Ì ÆÄÆ¼°¡ ÀÖ´Â°æ¿ì..
+	//ï¿½Ì¹ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Ö´Â°ï¿½ï¿½..
 	if( bDontCheckPartyUID == false )
 	{
 		if( GetPartyUID() != 0 )
@@ -9777,27 +9777,27 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 		}
 	}
 
-	//´ëÀü ·Îºñ¿¡ ÀÖ´Â°æ¿ì.
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ ï¿½Ö´Â°ï¿½ï¿½.
 	if( GetUnitState() == CXSLUnit::CUS_PVP_LOBBY )
 	{
 		SET_ERROR( ERR_PARTY_13 );
 		return false;
 	}
 
-	//::1. ±Ù¼ºµµ °Ë»ç.
+	//::1. ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½.
 	if( CheckingSpirit( iDungeonID ) == false )
 	{
 		SET_ERROR( ERR_ROOM_27 );
 		return false;
 	}
 
-	//::2. ÀÔÀåÇÊ¿ä ¾ÆÀÌÅÛ°Ë»ç.
+	//::2. ï¿½ï¿½ï¿½ï¿½ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û°Ë»ï¿½.
 	int iRequireItemID = 0;
 	int iRequireQuantity = 0;
 
 	if( CheckRequiredItemToEnterDungeonRoom( iDungeonIDAndDif, (CXSLDungeon::DUNGEON_MODE) cDungeonMode, iRequireItemID, iRequireQuantity ) == false )
 	{
-		//{{ 2010. 05. 06  ÃÖÀ°»ç	¿¡·¯ ÆË¾÷
+		//{{ 2010. 05. 06  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½
 		KEGS_ERROR_POPUP_NOT kNot;
 		kNot.m_iOK = NetError::ERR_DUNGEON_REQUIRE_ITEM_00;
 		kNot.m_iErrorData1 = iRequireItemID;
@@ -9817,10 +9817,10 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 	}
 #endif SERV_LIMITED_DUNGEON_PLAY_TIMES
 
-	//¿î¿µÀÚ ÀÌ»óÀÌ ¾Æ´Ï¸é Ã¼Å©ÇÑ´Ù.
+	//ï¿½î¿µï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
 	if( GetAuthLevel() < SEnum::UAL_GM )
 	{
-		//::3. ¼±Çà´øÀü Å¬¸®¾î¸¦ ÇÏÁö ¾Ê¾ÒÀ½.
+		//::3. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½î¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½.
 		const int iRequireDungeonID = SiCXSLDungeonManager()->GetRequireDungeonID( iDungeonID );
 		if( iRequireDungeonID != 0 )
 		{
@@ -9833,14 +9833,14 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 			}
 		}
 
-		//{{ 2010. 12. 30	ÃÖÀ°»ç	ÇÏ¸á ¸¶À» Ãß°¡
+		//{{ 2010. 12. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_SHIP_DUNGEON
 		if( CXSLDungeon::IsShipDungeon( iDungeonID ) == true )
 		{
 			if( CXSLDungeon::IsVelderDungeon( iDungeonID ) == true )
 			{
-				// ÇØ´ç map¿¡ µé¾î°¥ ¼ö ÀÖ´ÂÁö Á¶°Ç Ã¼Å©
-				//{{ 2012. 09. 21   ±è¹Î¼º   ¸¶À» ÀÔÀå ¿À·ù ¸Þ½ÃÁö ±¸ºÐ
+				// ï¿½Ø´ï¿½ mapï¿½ï¿½ ï¿½ï¿½î°¥ ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
+				//{{ 2012. 09. 21   ï¿½ï¿½Î¼ï¿½   ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ENTER_VILLAGE_ERROR
 				int iTempLevel = 0;
 				int iTempDungeonID = 0;
@@ -9850,7 +9850,7 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 #endif SERV_ENTER_VILLAGE_ERROR
 				//}}
 				{
-					START_LOG( cwarn, L"¸¶À»¿¡ ÀÔÀåÇÒ ¼ö ÀÖ´Â Á¶°ÇÀÌ ¾ÈµÊ." )
+					START_LOG( cwarn, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Èµï¿½." )
 						<< BUILD_LOG( GetCharUID() )
 						<< BUILD_LOG( iDungeonID )
 						<< END_LOG;
@@ -9865,7 +9865,7 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 	}
 	else
 	{
-		START_LOG( cout, L"¿î¿µÀÚ ÆÄÆ¼ »ý¼º ½Ãµµ!" )
+		START_LOG( cout, L"ï¿½î¿µï¿½ï¿½ ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 #else
@@ -9874,9 +9874,9 @@ bool KGSUser::CheckDungeonPartyCondition( IN const int iDungeonID,
 			<< BUILD_LOG( iDungeonID );
 	}
 
-	//{{ 2011. 03. 21  ±è¹Î¼º	´øÀü ³­ÀÌµµ º¸Á¤
+	//{{ 2011. 03. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_DIFFICULTY_REVISION
-	if( bCheckLowLevel == true )	// ·¹º§ Á¦ÇÑÀÌ ¼³Á¤ µÇ¾î ÀÖ´Ù¸é
+	if( bCheckLowLevel == true )	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½Ö´Ù¸ï¿½
 	{
 		int iDungeonMinLevel = SiCXSLDungeonManager()->GetDungeonMinLevel( iDungeonIDAndDif );
 
@@ -9896,12 +9896,12 @@ bool KGSUser::CheckPvpPartyCondition( IN const char cPVPGameType, IN const bool 
 {
 	SET_ERROR( NET_OK );
 
-	////////////////////////////////////////////////////////////////////////// µ¥ÀÌÅÍ °ËÁõ
-	// DungeonID°Ë»ç
+	////////////////////////////////////////////////////////////////////////// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// DungeonIDï¿½Ë»ï¿½
 
 	if( CXSLRoom::IsValidPvpGameType( (CXSLRoom::PVP_GAME_TYPE)cPVPGameType ) == false )
 	{
-		START_LOG( cerr, L"pvp game type°ªÀÌ ÀÌ»óÇÏ´Ù!" )
+		START_LOG( cerr, L"pvp game typeï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Ï´ï¿½!" )
 			<< BUILD_LOGc( cPVPGameType )
 			<< END_LOG;
 
@@ -9909,7 +9909,7 @@ bool KGSUser::CheckPvpPartyCondition( IN const char cPVPGameType, IN const bool 
 		return false;
 	}
 
-	//ÀÌ¹Ì ÆÄÆ¼°¡ ÀÖ´Â°æ¿ì..
+	//ï¿½Ì¹ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Ö´Â°ï¿½ï¿½..
 	if( bDontCheckPartyUID == false )
 	{
 		if( GetPartyUID() != 0 )
@@ -9919,10 +9919,10 @@ bool KGSUser::CheckPvpPartyCondition( IN const char cPVPGameType, IN const bool 
 		}
 	}
 
-	//¿î¿µÀÚ ÀÌ»óÀÌ ¾Æ´Ï¸é Ã¼Å©ÇÑ´Ù.
+	//ï¿½î¿µï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
 	if( GetAuthLevel() >= SEnum::UAL_GM )
 	{
-		START_LOG( cout, L"¿î¿µÀÚ ´ëÀü ÆÄÆ¼ »ý¼º ½Ãµµ!" )
+		START_LOG( cout, L"ï¿½î¿µï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 #else
@@ -9932,10 +9932,10 @@ bool KGSUser::CheckPvpPartyCondition( IN const char cPVPGameType, IN const bool 
 	}
 	else
 	{
-		// ´ëÀü ÆÄÆ¼ Á¦ÇÑ ·¹º§
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( GetLevel() < SEnum::PE_PVP_OFFICIAL_LIMIT_LEVEL )
 		{
-			START_LOG( cerr, L"°ø½Ä ´ëÀüÀ» ÇÏ±â¿¡ ºÎÁ·ÇÑ Ä³¸¯ÅÍ ·¹º§ÀÔ´Ï´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±â¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 				<< BUILD_LOG( GetUID() )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetMatchUID() )
@@ -9952,7 +9952,7 @@ bool KGSUser::CheckPvpPartyCondition( IN const char cPVPGameType, IN const bool 
 #endif SERV_PVP_NEW_SYSTEM
 //}}
 
-//{{ 2012. 05. 10	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode, 
 										IN const int iDungeonID, 
@@ -9962,13 +9962,13 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 {
 	SET_ERROR( NET_OK );
 
-	////////////////////////////////////////////////////////////////////////// À¯Àú °Ë»ç
-	//{{ 2009. 8. 5  ÃÖÀ°»ç		Ã¼ÇèIDÁ¦ÇÑ
+	////////////////////////////////////////////////////////////////////////// ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	//{{ 2009. 8. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ã¼ï¿½ï¿½IDï¿½ï¿½ï¿½ï¿½
 	if( IsGuestUser() )
 	{
 		if( GetLevel() > SiKGameSysVal()->GetGuestUserLimitLevel() )
 		{
-			START_LOG( cerr, L"Å¬¶óÀÌ¾ðÆ®¿¡¼­ Ã¼ÇèID°¡ ·¹º§20µÇ¾úÀ»¶§ À¯Àú¸¦ Ä³¸¯¼±ÅÃÀ¸·Î ÀÌµ¿½ÃÄ×À»ÅÙµ¥ ¾ÆÁ÷ °ÔÀÓÀ» ÇÏ°íÀÖ³×?" )
+			START_LOG( cerr, L"Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½20ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ùµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ï¿½Ö³ï¿½?" )
 				<< BUILD_LOG( GetCharUID() )
 				<< END_LOG;
 
@@ -9983,7 +9983,7 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 		}
 	}
 
-	// 5. ±Ù¼ºµµ °Ë»ç
+	// 5. ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	if( CheckingSpirit( iDungeonID ) == false )
 	{
 		SET_ERROR( ERR_ROOM_27 );
@@ -10001,7 +10001,7 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 		}
 		else if( SiKPartyListManager()->GetPartyNumMember( GetPartyUID(), iNumMember ) == false )
 		{
-			START_LOG( cerr, L"ÆÄÆ¼ ¸É¹ö ÀÌ»ó.!" )
+			START_LOG( cerr, L"ï¿½ï¿½Æ¼ ï¿½É¹ï¿½ ï¿½Ì»ï¿½.!" )
 				<< BUILD_LOG( GetPartyUID() )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( iNumMember )
@@ -10023,7 +10023,7 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 	bool bIsEventDungeon = SiCXSLDungeonManager()->IsSwitchingWithEventInfo( iDungeonID );
 	if( !SiKGameEventManager()->IsEnableDungeon( iDungeonID, bIsEventDungeon ) )
 	{
-		START_LOG( cerr, L"²¨Á®ÀÖ´Â ÀÌº¥Æ® DungeonIDÀÔ´Ï´Ù. Å¬¶ó¿¡¼­ °Ë»çÇßÀ»ÅÙµ¥.." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Ìºï¿½Æ® DungeonIDï¿½Ô´Ï´ï¿½. Å¬ï¿½ó¿¡¼ï¿½ ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ùµï¿½.." )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( iDungeonID )
 			<< BUILD_LOGc( (int)cDifficultyLevel )
@@ -10034,14 +10034,14 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 	}
 #endif SERV_NEW_EVENT_TYPES
 
-	// 6. ÀÔÀåÇÊ¿ä ¾ÆÀÌÅÛ°Ë»ç.
+	// 6. ï¿½ï¿½ï¿½ï¿½ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û°Ë»ï¿½.
 	int iRequireItemID = 0;
 	int iRequireQuantity = 0;
 	const int iDungeonIDAndDif = iDungeonID + static_cast<int>(cDifficultyLevel);
 
 	if( CheckRequiredItemToEnterDungeonRoom( iDungeonIDAndDif, (CXSLDungeon::DUNGEON_MODE) cDungeonMode, iRequireItemID, iRequireQuantity ) == false )
 	{
-		//{{ 2010. 05. 06  ÃÖÀ°»ç	¿¡·¯ ÆË¾÷
+		//{{ 2010. 05. 06  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½
 		if( bSendErrorPopUp )
 		{
 			KEGS_ERROR_POPUP_NOT kNot;
@@ -10066,26 +10066,26 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 
 	if( bCheckForAutoParty )
 	{
-		// 7. Ä³¸¯ÅÍ ·¹º§ °Ë»ç
+		// 7. Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 		if( SiCXSLDungeonManager()->CheckMinLevelForEnterDungeon( iDungeonIDAndDif, GetLevel() ) == false )
 		{
 			SET_ERROR( ERR_DUNGEON_GAME_START_00 );
 			return false;
 		}
 
-		// 8. ¾ÆÀÌÅÛ ·¹º§ °Ë»ç
+		// 8. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 		{
-			//{{ 2012. 10. 09	±è¹Î¼º	¹èÆ²ÇÊµå ¾ÆÀÌÅÛ ·¹º§ ½Ã½ºÅÛ
+			//{{ 2012. 10. 09	ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_ITEM_LEVEL
-			// È¥ÀÚ ÀÌ¹Ç·Î ½ÅÃ»ÀÚ¸¸ Ã¼Å©ÇÏÀÚ
+			// È¥ï¿½ï¿½ ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½Ã»ï¿½Ú¸ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½
 			std::map< int, KInventoryItemInfo > mapEquippedItem;
 			std::set< CXSLItem::ITEM_TYPE > setItemType;
 
-			setItemType.insert( CXSLItem::IT_WEAPON );	// ¹«±â
-            setItemType.insert( CXSLItem::IT_DEFENCE );	// ¹æ¾î±¸
+			setItemType.insert( CXSLItem::IT_WEAPON );	// ï¿½ï¿½ï¿½ï¿½
+            setItemType.insert( CXSLItem::IT_DEFENCE );	// ï¿½ï¿½î±¸
 
-			// µî·ÏµÈ µÎ°¡Áö ¾ÆÀÌÅÛ¸¸ ·¹º§ °Ë»ç¿¡ »ç¿ëÇÑ´Ù
-			// ¾Æ¹ÙÅ¸°¡ ¾Æ´Ñ Àåºñ¸¸ °¡Á®¿ÀÀÚ
+			// ï¿½ï¿½Ïµï¿½ ï¿½Î°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¿¡ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½
+			// ï¿½Æ¹ï¿½Å¸ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			m_kInventory.GetEquippedItem( setItemType, false, mapEquippedItem ); 
 
 			if( CheckItemLevel( mapEquippedItem, iDungeonIDAndDif ) == false )
@@ -10098,7 +10098,7 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 		}
 	}
 
-	// 9. ¼±Çà´øÀü Å¬¸®¾î¸¦ °Ë»ç --> ¼±Çà´øÀüÀº ÀÌÁ¦ Ã¼Å©ÇÏÁö ¾Ê½À´Ï´Ù!
+	// 9. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½î¸¦ ï¿½Ë»ï¿½ --> ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½!
 	//if( GetAuthLevel() < SEnum::UAL_GM )
 	//{
 	//	int iRequireDungeonID = SiCXSLDungeonManager()->GetRequireDungeonID( iDungeonIDAndDif );
@@ -10114,12 +10114,12 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 	//	}
 	//}
 
-	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
-	//	µðÆæ½º´øÀü °Ë»ç
+	//	ï¿½ï¿½ï¿½æ½ºï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	if( CXSLDungeon::IsDefenceDungeon( iDungeonID ) == true )
 	{
-		//	´øÀü ¿ÀÇÂ °Ë»ç
+		//	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 		if( false == SiKGSWorldMissionManager()->GetIsActive() )
 		{
 			SET_ERROR( ERR_WORLD_MISSION_02 );
@@ -10143,7 +10143,7 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 		}
 	}
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+	//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
 	return true;
 }
@@ -10151,9 +10151,9 @@ bool KGSUser::CheckForDungeonGameStart( IN const char cDungeonMode,
 bool KGSUser::CheckItemLevel( IN std::map< int, KInventoryItemInfo >& mapEquippedItem, IN int iDungeonIDAndDif )
 {
 	//////////////////////////////////////////////////////////////////////////
-	// À¯ÀúÀÇ ¾ÆÀÌÅÛ Æò±Õ ·¹º§ °è»ê ¹æ¹ý
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	//
-	// ( ¹«±â* 4 + »óÀÇ + ÇÏÀÇ + Àå°© + ½Å¹ß ) / 8
+	// ( ï¿½ï¿½ï¿½ï¿½* 4 + ï¿½ï¿½ï¿½ï¿½ + ï¿½ï¿½ï¿½ï¿½ + ï¿½å°© + ï¿½Å¹ï¿½ ) / 8
 	//////////////////////////////////////////////////////////////////////////
 	int iDungeonItemLevel = SiCXSLDungeonManager()->GetRequireItemLevel( iDungeonIDAndDif );
 	if( iDungeonItemLevel == 0 )
@@ -10164,7 +10164,7 @@ bool KGSUser::CheckItemLevel( IN std::map< int, KInventoryItemInfo >& mapEquippe
 	for( ; mit != mapEquippedItem.end() ; ++mit )
 	{
 		int iEquippedItemLevel = 0;
-		//{{ 2013. 05. 15	ÃÖÀ°»ç	¾ÆÀÌÅÛ °³Æí
+		//{{ 2013. 05. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		if( SiCXSLItemManager()->GetItemLevel( GetUnitType(), GetUnitClass(), mit->second.m_kItemInfo, iEquippedItemLevel ) == false )
 #else
@@ -10173,11 +10173,11 @@ bool KGSUser::CheckItemLevel( IN std::map< int, KInventoryItemInfo >& mapEquippe
 		//}}
 			return false;
 
-		// ¹«±â¶ó¸é * 4 À» ÇØÁØ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ * 4 ï¿½ï¿½ ï¿½ï¿½ï¿½Ø´ï¿½.
 		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( mit->second.m_kItemInfo.m_iItemID );
 		if( pItemTemplet == NULL )
 		{
-			START_LOG( cerr, L"¾ÆÀÌÅÛ Á¤º¸°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½!" )
 				<< BUILD_LOG( mit->second.m_kItemInfo.m_iItemID )
 				<< END_LOG;
 			return false;
@@ -10188,7 +10188,7 @@ bool KGSUser::CheckItemLevel( IN std::map< int, KInventoryItemInfo >& mapEquippe
 			iEquippedItemLevel = iEquippedItemLevel * 4;
 		}
 
-		// ÀåºñµéÀÇ ¾ÆÀÌÅÛ ·¹º§À» ¸ðµÎ ´õÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 		iAllEquippedItemLevel += iEquippedItemLevel;
 	}
 
@@ -10214,7 +10214,7 @@ bool KGSUser::CheckRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon::
 {
 	if( iDungeonID <= 0 )
 	{
-		START_LOG( cerr, L"´øÀüid°¡ ÀÌ»óÇÕ´Ï´Ù" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½idï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½" )
 			<< BUILD_LOG( iDungeonID )
 			<< BUILD_LOG( (int)eDungeonMode )
 			<< BUILD_LOG( GetRoomUID() )
@@ -10226,7 +10226,7 @@ bool KGSUser::CheckRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon::
 
 	if( CXSLDungeon::IsValidDungeonMode( eDungeonMode ) == false )
 	{
-		START_LOG( cerr, L"ºñÁ¤»óÀûÀÎ DungeonMode°ªÀÔ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DungeonModeï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iDungeonID )
 			<< BUILD_LOG( (int)eDungeonMode )
 			<< END_LOG;
@@ -10234,14 +10234,14 @@ bool KGSUser::CheckRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon::
 		return false;
 	}
 
-	// [ÀÌº¥Æ®] 080610.hoons.ºñ´ø ÀÌº¥Æ®
+	// [ï¿½Ìºï¿½Æ®] 080610.hoons.ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 	if( SiKGameEventManager()->CheckSecretDungeonEvent( iDungeonID, static_cast<int>(eDungeonMode) ) == true )
 		return true;
 
-	//{{ 2010. 01. 05  ÃÖÀ°»ç	PC¹æ ÇÁ¸®¹Ì¾ö
+	//{{ 2010. 01. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½
 #ifdef SERV_PC_BANG_PRE
 
-	// PC¹æ ÇÁ¸®¹Ì¾ö - PC¹æÀÌ¸é ºñ´ø ¹× Çì´Ï¸£ ½Ã°ø ¹«·á ÀÔÀå
+	// PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ - PCï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( IsPcBang() == true
 #ifdef SERV_PC_BANG_TYPE
 		&& SiKGameSysVal()->IsSecretDungeonFree( GetPcBangType() ) == true
@@ -10249,7 +10249,7 @@ bool KGSUser::CheckRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon::
 		)
 	{
 		if( eDungeonMode != CXSLDungeon::DM_HENIR_CHALLENGE  &&
-			//{{ 2010. 05. 03  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+			//{{ 2010. 05. 03  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
 			eDungeonMode != CXSLDungeon::DM_SECRET_HELL  &&
 #endif SERV_SECRET_HELL
@@ -10270,7 +10270,7 @@ bool KGSUser::CheckRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon::
 	if( SiCXSLDungeonManager()->GetRequireItemIDAndCount( iDungeonID, eDungeonMode, iRequireItemID, iRequireQuantity ) == false )
 #endif SERV_ADDITIONAL_TICKET
 	{
-		START_LOG( cerr, L"´øÀü¿¡ ÇÊ¿äÇÑ ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Á®¿À´Ù°¡ ½ÇÆÐÇß½À´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½!" )
 			<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharName() )
@@ -10279,7 +10279,7 @@ bool KGSUser::CheckRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon::
 			<< BUILD_LOG( eDungeonMode )
 			<< END_LOG;
 
-#ifdef SERV_FIX_DUNGEON_REQUIRE_ITEM_INFO_PROCESS// ÀÛ¾÷³¯Â¥: 2013-09-04	// ¹Ú¼¼ÈÆ
+#ifdef SERV_FIX_DUNGEON_REQUIRE_ITEM_INFO_PROCESS// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-09-04	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		return false;
 #endif // SERV_FIX_DUNGEON_REQUIRE_ITEM_INFO_PROCESS
 	}
@@ -10320,13 +10320,13 @@ bool KGSUser::CheckRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon::
 	else
 		mapRequiredItem.insert( std::make_pair( iRequireItemID, iRequireQuantity ) );
 
-	//{{ 2009. 8. 7  ÃÖÀ°»ç		ÀºÇà
+	//{{ 2009. 8. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½
     return m_kInventory.IsEnoughItemExistOnlyInventory( mapRequiredItem );
 	//}}
 #endif SERV_ADDITIONAL_TICKET
 }
 
-//{{ 2011. 02. 21  ±è¹Î¼º	Æ¯Á¤ ´øÀü ÀÔÀå ¾ÆÀÌÅÛ ¹ö±× ¼öÁ¤
+//{{ 2011. 02. 21  ï¿½ï¿½Î¼ï¿½	Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_REQUIRED_ITEM_BUG
 bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon::DUNGEON_MODE eDungeonMode, std::vector< KInventoryItemInfo >& vecInventorySlotInfo, OUT int & iItemID  )
 #else
@@ -10336,24 +10336,24 @@ bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon:
 {
 	if( iDungeonID <= 0 )
 	{
-		START_LOG( cerr, L"´øÀüid°¡ ÀÌ»óÇÕ´Ï´Ù! ÀÏ¾î³¯¼ö ¾ø´Â ¿¡·¯!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½idï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½! ï¿½Ï¾î³¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iDungeonID )
 			<< BUILD_LOG( GetRoomUID() ) 
 			<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
 			<< END_LOG;
 
-		// ÀÏ´Ü ÁøÇàÃ³¸®..
+		// ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½..
 		return true;
 	}
 
-	// [ÀÌº¥Æ®] 080610.hoons.ºñ´ø ÀÌº¥Æ®
+	// [ï¿½Ìºï¿½Æ®] 080610.hoons.ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 	if( SiKGameEventManager()->CheckSecretDungeonEvent( iDungeonID, static_cast<int>(eDungeonMode) ) == true )
 		return true;
 
-	//{{ 2010. 01. 05  ÃÖÀ°»ç	PC¹æ ÇÁ¸®¹Ì¾ö
+	//{{ 2010. 01. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½
 #ifdef SERV_PC_BANG_PRE
 
-	// PC¹æ ÇÁ¸®¹Ì¾ö - PC¹æÀÌ¸é ºñ´ø ¹× Çì´Ï¸£ ½Ã°ø ¹«·á ÀÔÀå
+	// PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ - PCï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( IsPcBang() == true
 #ifdef SERV_PC_BANG_TYPE
 		&& SiKGameSysVal()->IsSecretDungeonFree( GetPcBangType() ) == true
@@ -10361,7 +10361,7 @@ bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon:
 		)
 	{
 		if( eDungeonMode != CXSLDungeon::DM_HENIR_CHALLENGE  &&
-			//{{ 2010. 05. 03  ÃÖÀ°»ç	ºñ¹Ð´øÀü Çï¸ðµå
+			//{{ 2010. 05. 03  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SECRET_HELL
 			eDungeonMode != CXSLDungeon::DM_SECRET_HELL  &&
 #endif SERV_SECRET_HELL
@@ -10375,7 +10375,7 @@ bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon:
 #endif SERV_PC_BANG_PRE
 	//}}
 
-	//{{ 2011. 02. 21  ±è¹Î¼º	Æ¯Á¤ ´øÀü ÀÔÀå ¾ÆÀÌÅÛ ¹ö±× ¼öÁ¤
+	//{{ 2011. 02. 21  ï¿½ï¿½Î¼ï¿½	Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DUNGEON_REQUIRED_ITEM_BUG
 	
 #else
@@ -10391,7 +10391,7 @@ bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon:
 	if( false == SiCXSLDungeonManager()->GetRequireItemIDAndCount( iDungeonID, eDungeonMode, iItemID, iQuantity ) )
 #endif SERV_ADDITIONAL_TICKET
 	{
-		START_LOG( cerr, L"´øÀü¿¡ ÇÊ¿äÇÑ ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Á®¿À´Ù°¡ ½ÇÆÐÇß½À´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½!" )
 			<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharName() )
@@ -10400,7 +10400,7 @@ bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon:
 			<< BUILD_LOG( (int)eDungeonMode )
 			<< END_LOG;
 
-#ifdef SERV_FIX_DUNGEON_REQUIRE_ITEM_INFO_PROCESS// ÀÛ¾÷³¯Â¥: 2013-09-04	// ¹Ú¼¼ÈÆ
+#ifdef SERV_FIX_DUNGEON_REQUIRE_ITEM_INFO_PROCESS// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-09-04	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		return false;
 #endif // SERV_FIX_DUNGEON_REQUIRE_ITEM_INFO_PROCESS
 	}
@@ -10411,9 +10411,9 @@ bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon:
 		return true;
 	}
 	
-	// ±âº»Æ¼ÄÏ¿¡¼­ Ãß°¡Æ¼ÄÏ ÀÎµ¦½º ¾Õ¹øÈ£ºÎÅÍ µÞ¹øÈ£ ¼ø¼­·Î ÀÖ´Â °ÍÀ» È®ÀÎÇÏ°í,
-	// °¡Àå ¸ÕÀú ¹ß°ßµÈ Æ¼ÄÏÀÌ ¼Ò¸ð¼ºÀÏ °æ¿ì Áö¿ó´Ï´Ù.
-	// ±×¸®°í ÇØ´ç Æ¼ÄÏÀ» iItemID ¿¡ ´ëÀÔÇÑ »óÅÂ·Î ¸®ÅÏÇÕ´Ï´Ù.
+	// ï¿½âº»Æ¼ï¿½Ï¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½Æ¼ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ ï¿½Õ¹ï¿½È£ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¹ï¿½È£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï°ï¿½,
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ßµï¿½ Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
+	// ï¿½×¸ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ Æ¼ï¿½ï¿½ï¿½ï¿½ iItemID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
 	std::vector< std::pair< int, int > >::iterator vitTicketInformation = vecTicketInformation.begin();
 	for( ; vitTicketInformation != vecTicketInformation.end(); ++vitTicketInformation )
 	{
@@ -10437,7 +10437,7 @@ bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon:
 				KStatisticsKey kKeyES;
 				kKeyES.m_vecIntKey.push_back( iItemID );
 				KSIManager.IncreaseCount( KStatistics::SI_LOC_ITEM, kKeyES, KStatistics::SI_ITEM_USE, iQuantity );
-				//{{ 2011. 04. 13	ÃÖÀ°»ç	¾ÆÀÌÅÛ Åë°è DB±â·Ï
+				//{{ 2011. 04. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½
 #ifdef SERV_ITEM_STATISTICS_TO_DB
 				KSIManager.IncreaseCount( KStatistics::SI_ITEM_DB, kKeyES, KStatistics::SI_ITEM_USE, iQuantity );
 #endif SERV_ITEM_STATISTICS_TO_DB
@@ -10455,16 +10455,16 @@ bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon:
 	}
 
     std::map< int, int > mapRequiredItem;
-	//¼ö·®ÀÌ 0ÀÌ¸é ÀÖ´ÂÁö¸¸ È®ÀÎ
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½Ì¸ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	if( iQuantity <= 0 )
 	{
 		mapRequiredItem.insert( std::make_pair( iItemID, 1 ) );
 
-		//{{ 2009. 8. 7  ÃÖÀ°»ç		ÀºÇà
+		//{{ 2009. 8. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½
 		return m_kInventory.IsEnoughItemExistOnlyInventory( mapRequiredItem );
 		//}}
 	}
-	//¼ö·®ÀÌ 1ÀÌ»óÀÏ°æ¿ì ÇØ´ç ¾ÆÀÌÅÛÀ» Áö¿öÁØ´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½Ì»ï¿½ï¿½Ï°ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
 	else
 	{
 		mapRequiredItem.insert( std::make_pair( iItemID, iQuantity ) );
@@ -10475,7 +10475,7 @@ bool KGSUser::DeleteRequiredItemToEnterDungeonRoom( int iDungeonID, CXSLDungeon:
 			KStatisticsKey kKeyES;
 			kKeyES.m_vecIntKey.push_back( iItemID );
 			KSIManager.IncreaseCount( KStatistics::SI_LOC_ITEM, kKeyES, KStatistics::SI_ITEM_USE, iQuantity );
-			//{{ 2011. 04. 13	ÃÖÀ°»ç	¾ÆÀÌÅÛ Åë°è DB±â·Ï
+			//{{ 2011. 04. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½
 #ifdef SERV_ITEM_STATISTICS_TO_DB
 			KSIManager.IncreaseCount( KStatistics::SI_ITEM_DB, kKeyES, KStatistics::SI_ITEM_USE, iQuantity );
 #endif SERV_ITEM_STATISTICS_TO_DB
@@ -10495,9 +10495,9 @@ void KGSUser::GetConnectionUnitInfo( KConnectionUnitInfo& kInfo )
 	kInfo.m_cUnitClass		= GetUnitClass();
 	kInfo.m_ucLevel			= m_ucLevel;
 	kInfo.m_wstrCharName	= GetCharName();
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
-	//{{ 2012. 09. 11	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 09. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	kInfo.m_cRank			= GetPvpRankForClient();
 #else
@@ -10509,8 +10509,8 @@ void KGSUser::GetConnectionUnitInfo( KConnectionUnitInfo& kInfo )
 	kInfo.m_iPVPEmblem		= (int)m_ePVPEmblem;
 #endif SERV_PVP_NEW_SYSTEM
 	//}}	
-	kInfo.m_uiPVPRanking	= 0;			//ÃßÈÄ ·©Å· ½Ã½ºÅÛ ¿Ï¼ºÈÄ ³Ö¾îÁà¾ßÇÔ
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	kInfo.m_uiPVPRanking	= 0;			//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½Ï¼ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 	kInfo.m_iWin			= GetWin();
 	kInfo.m_iLose			= GetLose();
@@ -10519,7 +10519,7 @@ void KGSUser::GetConnectionUnitInfo( KConnectionUnitInfo& kInfo )
 	kInfo.m_iLose			= m_iLose;
 #endif SERV_PVP_NEW_SYSTEM
 	//}}	
-	kInfo.m_uiKillNum		= 0;			//±â´ÉÃß°¡ÈÄ ³Ö¾îÁà¾ßÇÔ.
+	kInfo.m_uiKillNum		= 0;			//ï¿½ï¿½ï¿½ï¿½ß°ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 	kInfo.m_iRoomUID		= GetRoomUID();
 	kInfo.m_bPublic			= false;
 	kInfo.m_bCanIntrude		= false;
@@ -10528,19 +10528,19 @@ void KGSUser::GetConnectionUnitInfo( KConnectionUnitInfo& kInfo )
 	kInfo.m_cState			= GetUnitState();
 	kInfo.m_iStateCode		= 0;
 
-	//{{ 2009. 4. 17  ÃÖÀ°»ç	½Å¸¶À»
+	//{{ 2009. 4. 17  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Å¸ï¿½ï¿½ï¿½
 	kInfo.m_iChannelID		= SiKChannelManager()->GetChannelID();
 	kInfo.m_iPartyUID		= GetPartyUID();
 	kInfo.m_iRoomListID		= GetRoomListID();
 	//}}
 
-	//{{ 2009. 10. 23  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 10. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 	kInfo.m_wstrGuildName	= m_kUserGuildManager.GetGuildName();
 #endif GUILD_TEST
 	//}}
 
-#ifdef	SERV_LOCAL_RANKING_SYSTEM // Àû¿ë³¯Â¥: 2013-03-31
+#ifdef	SERV_LOCAL_RANKING_SYSTEM // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-03-31
 	m_kUserLocalRankingInfo.GetFilteredUserInfo( kInfo.m_kLocalRankingUserInfo );
 #endif	// SERV_LOCAL_RANKING_SYSTEM
 
@@ -10565,7 +10565,7 @@ void KGSUser::GetConnectionUnitInfo( KConnectionUnitInfo& kInfo )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	//±¤Àå¿¡¼­ À¯´ÖÁ¤º¸¸¦ º¸´Â °æ¿ì°¡ ÀÖ¾î¼­.
+	//ï¿½ï¿½ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì°¡ ï¿½Ö¾î¼­.
 	//if( GetRoomUID() != 0  &&  GetRoomType( GetRoomUID() ) != CXSLRoom::RT_SQUARE )
 	//{
 	//	KRoomInfoPtr spRoomInfo = SiKRoomListManager()->GetRoomInfo( GetRoomUID() );
@@ -10623,7 +10623,7 @@ void KGSUser::GetConnectionUnitInfo( KConnectionUnitInfo& kInfo )
 	//	}
 	//	else
 	//	{
-	//		START_LOG( cerr, L"roomuid°¡ 0ÀÌ ¾Æ´Ñµ¥ ¹æÁ¤º¸°¡ ¾øÀ½.!" )
+	//		START_LOG( cerr, L"roomuidï¿½ï¿½ 0ï¿½ï¿½ ï¿½Æ´Ñµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 	//			<< BUILD_LOG( GetCharName() )
 	//			<< BUILD_LOG( GetRoomUID() )
 	//			<< END_LOG
@@ -10632,24 +10632,24 @@ void KGSUser::GetConnectionUnitInfo( KConnectionUnitInfo& kInfo )
 	//}
 }
 
-//{{ 2010. 01. 15  ÃÖÀ°»ç	±æµå°Ô½ÃÆÇ
+//{{ 2010. 01. 15  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ô½ï¿½ï¿½ï¿½
 #ifdef SERV_GUILD_AD
 
 void KGSUser::GetApplyJoinGuildInfo( KApplyJoinGuildInfo& kInfo )
 {
-	//kInfo.m_iApplyJoinGuildUID; // ¾Æ¹«°Íµµ ´ãÁö ¾ÊÀ½
+	//kInfo.m_iApplyJoinGuildUID; // ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	kInfo.m_iUnitUID	 = GetCharUID();
 	kInfo.m_wstrNickName = GetCharName();
 	kInfo.m_cUnitClass	 = GetUnitClass();
 	kInfo.m_ucLevel		 = GetLevel();
-	//kInfo.m_wstrMessage; // ¾Æ¹«°Íµµ ´ãÁö ¾ÊÀ½
-	//kInfo.m_wstrRegDate; // ¾Æ¹«°Íµµ ´ãÁö ¾ÊÀ½
+	//kInfo.m_wstrMessage; // ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//kInfo.m_wstrRegDate; // ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 }
 
 #endif SERV_GUILD_AD
 //}}
 
-//{{ 2011. 06. 23	ÃÖÀ°»ç	´ëÀü °³Æí
+//{{ 2011. 06. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
 void KGSUser::GetMatchUserInfo( OUT KMatchUserInfo& kInfo )
 {
@@ -10660,7 +10660,7 @@ void KGSUser::GetMatchUserInfo( OUT KMatchUserInfo& kInfo )
 	kInfo.m_cUnitClass		= GetUnitClass();
 	kInfo.m_ucLevel			= GetLevel();
 
-	//{{ 2012. 06. 20	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 06. 20	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	kInfo.m_cCurrentRank		= GetPvpRank();
 	kInfo.m_iOfficialMatchCnt	= GetOfficialMatchCount();
@@ -10673,7 +10673,7 @@ void KGSUser::GetMatchUserInfo( OUT KMatchUserInfo& kInfo )
 #endif SERV_PVP_NEW_SYSTEM
 //}}
 
-//{{ 2012. 02. 07	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 02. 07	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KGSUser::GetAutoPartyUserInfo( OUT KAutoPartyUserInfo& kInfo )
 {
@@ -10686,7 +10686,7 @@ void KGSUser::GetAutoPartyUserInfo( OUT KAutoPartyUserInfo& kInfo )
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2012. 04. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 04. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 //////////////////////////////////////////////////////////////////////////
 bool KGSUser::IsHenirDungeonChallengeMode()
@@ -10709,7 +10709,7 @@ bool KGSUser::IsHenirDungeonChallengeMode()
 		int iDungeonID = 0;
 		char cDifficultyLevel = 0;
 		char cDungeonMode = 0;
-		//{{ 2010. 02. 22  ÃÖÀ°»ç	Ã¤³Î ÆÄÆ¼ ÅëÇÕ
+		//{{ 2010. 02. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHANNEL_PARTY
 		if( !SiKPartyListManager()->GetDungeonInfo( GetPartyUID(), iDungeonID, cDifficultyLevel, cDungeonMode ) )
 #else
@@ -10717,7 +10717,7 @@ bool KGSUser::IsHenirDungeonChallengeMode()
 #endif SERV_CHANNEL_PARTY
 			//}}
 		{
-			START_LOG( cerr, L"´øÀü Á¤º¸¸¦ ¾òÀ» ¼ö ¾ø½À´Ï´Ù! ÀÖÀ»¼ö ¾ø´Â ¿¡·¯!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetPartyUID() )
 				<< END_LOG;
@@ -10728,14 +10728,14 @@ bool KGSUser::IsHenirDungeonChallengeMode()
 		CXSLDungeon::DUNGEON_TYPE eDungeonType = SiCXSLDungeonManager()->GetDungeonType( iDungeonID + static_cast<int>(cDifficultyLevel) );
 		if( eDungeonType != CXSLDungeon::DT_HENIR )
 		{
-			// Çì´Ï¸£ ½Ã°øÀÌ ¾Æ´Ï¸é false
+			// ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ false
 			return false;
 		}
 
 		//CXSLDungeon::HENIR_DUNGEON_MODE eHenirDungeonMode = CXSLDungeon::HDM_INVALID;
 		//if( !SiKPartyManager()->GetHenirDungeonMode( GetPartyUID(), eHenirDungeonMode ) )
 		//{
-		//	START_LOG( cerr, L"´øÀü ¸ðµå¸¦ ¾òÀ» ¼ö ¾ø½À´Ï´Ù! ÀÖÀ»¼ö ¾ø´Â ¿¡·¯!" )
+		//	START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 		//		<< BUILD_LOG( GetCharUID() )
 		//		<< BUILD_LOG( GetPartyUID() )
 		//		<< END_LOG;
@@ -10743,11 +10743,11 @@ bool KGSUser::IsHenirDungeonChallengeMode()
 		//	return false;
 		//}
 
-		// Çì´Ï¸£ ½Ã°ø µµÀü¸ðµå ¿©ºÎ
+		// ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		return ( (CXSLDungeon::DUNGEON_MODE)cDungeonMode == CXSLDungeon::DM_HENIR_CHALLENGE );
 	}
 
-	// ÆÄÆ¼¿¡ ¼ÓÇØÀÖÁö ¾Ê´Ù¸é Çì´Ï¸£ ½Ã°øÀÌ ¾Æ´Ï´Ù
+	// ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½ ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Æ´Ï´ï¿½
 	return false;
 }
 //////////////////////////////////////////////////////////////////////////
@@ -10755,14 +10755,14 @@ bool KGSUser::IsHenirDungeonChallengeMode()
 //////////////////////////////////////////////////////////////////////////
 //}}
 
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iRoomType_ )
 {
 	kRoomUserInfo.m_iGSUID		   = KBaseServer::GetKObj()->GetUID();
 	kRoomUserInfo.m_iOwnerUserUID  = GetUID();
 	kRoomUserInfo.m_cAuthLevel	   = GetAuthLevel();
 
-	//{{ 2011. 12. 06	ÃÖÀ°»ç	Æ¯Á¤ ¼­¹ö±º ÀÌº¥Æ® ½Ã½ºÅÛ
+	//{{ 2011. 12. 06	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Ã½ï¿½ï¿½ï¿½
 	kRoomUserInfo.m_sServerGroupID = KBaseServer::GetKObj()->GetServerGroupID();
 
 	kRoomUserInfo.m_bMale		   = m_kNexonAccountInfo.m_bSex;
@@ -10773,16 +10773,16 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	kRoomUserInfo.m_ucLevel		   = GetLevel();
 	kRoomUserInfo.m_bIsGuestUser   = IsGuestUser();
 
-	//{{ 2012. 04. 17	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+	//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 	kRoomUserInfo.m_iNumResurrectionStone = m_iNumResurrectionStone;
 
-	//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	kRoomUserInfo.m_iOfficialMatchCnt = m_kUserPvpManager.GetOfficialMatchCount();
 	kRoomUserInfo.m_iRating		   = GetRating();
 	kRoomUserInfo.m_iMaxRating	   = m_kUserPvpManager.GetMaxRating();
 	kRoomUserInfo.m_bIsWinBeforeMatch = m_kUserPvpManager.IsWinBeforeMatch();
 
-	//{{ 2012. 06. 25	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 06. 25	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 	kRoomUserInfo.m_cRank					= GetPvpRankForClient();
 	kRoomUserInfo.m_cRankForServer			= GetPvpRank();
 	kRoomUserInfo.m_fKFactor				= m_kUserPvpManager.GetKFactor();
@@ -10792,63 +10792,63 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	kRoomUserInfo.m_wstrIP		   = GetP2PIP();
 	kRoomUserInfo.m_usPort		   = GetP2PPort();
 
-	//{{ 2013. 1. 8	¹Ú¼¼ÈÆ	Merge °øÀÎIP ¿¬°á ½ÇÆÐ½Ã ³»ºÎIP·Î ½Ãµµ( ¹ÚÁø¿õ )
+	//{{ 2013. 1. 8	ï¿½Ú¼ï¿½ï¿½ï¿½	Merge ï¿½ï¿½ï¿½ï¿½IP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð½ï¿½ ï¿½ï¿½ï¿½ï¿½IPï¿½ï¿½ ï¿½Ãµï¿½( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
 	kRoomUserInfo.m_wstrInternalIP	= GetP2PInternalIP();
 	kRoomUserInfo.m_usInternalPort	= GetP2PInternalPort();
 
-	//{{ 2011. 11. 1	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2011. 11. 1	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 	kRoomUserInfo.m_iPartyUID	   = GetPartyUID();
 
-	//{{ 2009. 9. 25  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 9. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 	kRoomUserInfo.m_iGuildUID	   = GetGuildUID();
 	kRoomUserInfo.m_wstrGuildName  = m_kUserGuildManager.GetGuildName();
 	kRoomUserInfo.m_ucMemberShipGrade = m_kUserGuildManager.GetMemberShipGrade();
 
-	//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó
+	//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	kRoomUserInfo.m_bComeBackUser	= m_kComeBackUserInfo.GetIsComeBackUser();
 
-	//{{ 2012. 11. 9	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
-	m_kUserDungeonManager.IsPossibleHenirReward(); // °Ë»ç¸¸ ÇÑ´Ù. ÀÌºÎºÐ ³ªÁß¿¡ Á¤¸®ÇØ¾ßÇÒµí.. - À°»ç
+	//{{ 2012. 11. 9	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
+	m_kUserDungeonManager.IsPossibleHenirReward(); // ï¿½Ë»ç¸¸ ï¿½Ñ´ï¿½. ï¿½ÌºÎºï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Òµï¿½.. - ï¿½ï¿½ï¿½ï¿½
 
-	//{{ 2012. 09. 19   ±è¹Î¼º   Ä³½Ã¼¥ ¹æ¹® »óÅÂ
+	//{{ 2012. 09. 19   ï¿½ï¿½Î¼ï¿½   Ä³ï¿½Ã¼ï¿½ ï¿½æ¹® ï¿½ï¿½ï¿½ï¿½
 	kRoomUserInfo.m_bEnterCashShop	= m_kUserUnitManager.GetEnterCashShop();
 
-	//{{ 2011. 07. 08    ±è¹Î¼º    ¿É¼Ç ¼öÄ¡È­
-	unsigned int uiHP_OnePoint = CXSLUnit::UPHP_INIT + ( CXSLUnit::UPHP_INCREASE_ONE_POINT * (GetLevel() - 1)); // ÇöÀç ·¹º§´ç 1´ÜÀ§ °ª
-	unsigned int uiUnitLevel = static_cast<unsigned int>(GetLevel());	//	À¯´Ö ·¹º§ ¹Ì¸® ¾ò±â
+	//{{ 2011. 07. 08    ï¿½ï¿½Î¼ï¿½    ï¿½É¼ï¿½ ï¿½ï¿½Ä¡È­
+	unsigned int uiHP_OnePoint = CXSLUnit::UPHP_INIT + ( CXSLUnit::UPHP_INCREASE_ONE_POINT * (GetLevel() - 1)); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	unsigned int uiUnitLevel = static_cast<unsigned int>(GetLevel());	//	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½
 
-	//080611.hoons.ÀåÂøÁßÀÎ ¾ÆÀÌÅÛÀ» °Ë»çÇÏ¿© È¿°úÁ¤º¸¸¦ Àü´ÞÇÏ±âÀ§ÇØ.
-	kRoomUserInfo.m_bIsRingofpvprebirth = m_kInventory.IsEquippedItem( CXSLItem::SI_RING_OF_PVP_REBIRTH ); //::1st. ¸®½ºÆù¹ÝÁö
+	//080611.hoons.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ï¿ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½.
+	kRoomUserInfo.m_bIsRingofpvprebirth = m_kInventory.IsEquippedItem( CXSLItem::SI_RING_OF_PVP_REBIRTH ); //::1st. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 #ifdef EVENT_REBIRTH_RING_CN
 	if(kRoomUserInfo.m_bIsRingofpvprebirth == false)
-		kRoomUserInfo.m_bIsRingofpvprebirth = m_kInventory.IsEquippedItem( CXSLItem::SI_RING_OF_PVP_REBIRTH_EVENT ); //Áß±¹ Àü¿ë ¸®½ºÆù¹ÝÁö
+		kRoomUserInfo.m_bIsRingofpvprebirth = m_kInventory.IsEquippedItem( CXSLItem::SI_RING_OF_PVP_REBIRTH_EVENT ); //ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif //EVENT_REBIRTH_RING_CN
 
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 	kRoomUserInfo.m_iGateOfDarknessSupportEventTime = m_iGateOfDarknessSupportEventTime;
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-	//±âº» ½ºÅÈ
+	//ï¿½âº» ï¿½ï¿½ï¿½ï¿½
 	KStat kModifiedBaseStatBySkill = m_kStat;
 
-	//{{ 2010. 10. 27	ÃÖÀ°»ç	Æê ¿À¶ó ½ºÅ³
+	//{{ 2010. 10. 27	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
 	KStatIncreaseRate kStatIncreaseRateInfo;
 
-	////////////////////////////////////////////////////////////////////////// [ÁÖÀÇ!]
-	// ½ºÅ³Áß¿¡ BaseHP¸¦ Áõ°¡½ÃÅ°´Â °ÍºÎÅÍ ¹Ì¸® °è»êÇÏÀÚ!
+	////////////////////////////////////////////////////////////////////////// [ï¿½ï¿½ï¿½ï¿½!]
+	// ï¿½ï¿½Å³ï¿½ß¿ï¿½ BaseHPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Íºï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	{
 		m_kSkillTree.CheckAddSkillStat_BaseHP( m_kStat, kModifiedBaseStatBySkill );
 	}
 	//////////////////////////////////////////////////////////////////////////
 
 	//////////////////////////////////////////////////////////////////////////
-	// RoomType ¾ò±â
+	// RoomType ï¿½ï¿½ï¿½
 	CXSLRoom::ROOM_TYPE eRoomType = static_cast<CXSLRoom::ROOM_TYPE>(iRoomType_);
 	if( iRoomType_ < 0 )
 	{
 		if( GetRoomUID() == 0 )
 		{
-			START_LOG( cerr, L"Àü´ÞÀÎÀÚ RoomTypeÀÌ -1ÀÌ¶ó¼­ RoomUID·Î RoomTypeÀ» ¾òÀ»·Á°í ÇÏ´Âµ¥ RoomUID°¡ 0ÀÌ´Ù?" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RoomTypeï¿½ï¿½ -1ï¿½Ì¶ï¿½ RoomUIDï¿½ï¿½ RoomTypeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´Âµï¿½ RoomUIDï¿½ï¿½ 0ï¿½Ì´ï¿½?" )
 				<< BUILD_LOG( iRoomType_ )
 				<< BUILD_LOG( GetCharName() )
 				<< END_LOG;
@@ -10857,30 +10857,30 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		eRoomType = CXSLRoom::GetRoomType( GetRoomUID() );
 	}
 
-	//{{ 2012. 11. 05	¹Ú¼¼ÈÆ	´øÀü Àü¿ë ¼ÒÄÏÀÇ °æ¿ì ÇÊµå¿¡µµ Àû¿ë
+	//{{ 2012. 11. 05	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Êµå¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	const bool bIsDungeonRoom = ( ( eRoomType == CXSLRoom::RT_DUNGEON ) || ( eRoomType == CXSLRoom::RT_BATTLE_FIELD ) );
 
 	switch( eRoomType )
 	{
 	case CXSLRoom::RT_PVP:
 		{
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 			m_kUserBuffManager.GetBuffList( kRoomUserInfo.m_vecBuffInfo, CXSLRoom::RT_PVP );
 
 			int iPVPChannelClass = 0;
 			//LIF( GetPVPChannelClass( iPVPChannelClass ) );
 			GetPVPChannelClass( iPVPChannelClass );
 
-			// PVP Å¸ÀÔº° ½ºÅÝ Á¤º¸ ¼ÂÆÃ
+			// PVP Å¸ï¿½Ôºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			CalculatePvpUnitStat( iPVPChannelClass, kModifiedBaseStatBySkill, bIsDungeonRoom, uiHP_OnePoint, uiUnitLevel, kRoomUserInfo );
 
-			//{{ 2010. 05. 11  ÃÖÀ°»ç	´ëÀü ´øÀü ¼­¹ö±º ÅëÇÕ
+			//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			SiKGameEventManager()->GetRewardEvent( kRoomUserInfo
 				, 0
 				, GetLevel()
 				, GetUnitClass()
 				, 0
-#ifdef SERV_PCBANG_USER_REWARD_EVENT// ÀÛ¾÷³¯Â¥: 2013-07-02	// ¹Ú¼¼ÈÆ
+#ifdef SERV_PCBANG_USER_REWARD_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-02	// ï¿½Ú¼ï¿½ï¿½ï¿½
 				, IsPcBang()
 #endif // SERV_PCBANG_USER_REWARD_EVENT
 				);
@@ -10889,25 +10889,25 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	case CXSLRoom::RT_DUNGEON:
 		{
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 			m_kUserBuffManager.GetBuffList( kRoomUserInfo.m_vecBuffInfo, CXSLRoom::RT_DUNGEON );
 
-			// º¸Á¤ ´øÀüÀÎ°¡?
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 			bool bRevisionDungeon = IsHenirDungeonChallengeMode()  ||  CXSLDungeon::IsEventDungeon( m_kUserDungeonManager.GetDungeonID() );
 
-			// Dungeon ½ºÅÝ Á¤º¸ ¼ÂÆÃ
+			// Dungeon ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			CalculateDungeonUnitStat( bRevisionDungeon, kModifiedBaseStatBySkill, bIsDungeonRoom, uiHP_OnePoint, uiUnitLevel, kRoomUserInfo, kStatIncreaseRateInfo );
 
 			if( bRevisionDungeon == false )
 			{
-				//{{ 2009. 2. 2  ÃÖÀ°»ç		¼ÒÄÏ¿É¼Ç º¸»ó º¸³Ê½º
+				//{{ 2009. 2. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Ï¿É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 				float fAddSocketOptExpRate	= 0.0f;
 				float fAddSocketOptEDRate	= 0.0f;
 
-				// ÀåÂø ¾ÆÀÌÅÛ ¼ÒÄÏ ¿É¼Ç
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 				m_kInventory.GetEquippedItemBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 
-				// ÄªÈ£ ¼ÒÄÏ ¿É¼Ç
+				// ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 				m_kUserTitleManager.GetEquippedTitleBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 				//}}
 
@@ -10921,40 +10921,40 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 				}
 			}
 	
-			//{{ 2010. 05. 11  ÃÖÀ°»ç	´ëÀü ´øÀü ¼­¹ö±º ÅëÇÕ
+			//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			SiKGameEventManager()->GetRewardEvent( kRoomUserInfo
 				, m_kUserDungeonManager.GetDungeonID()
 				, GetLevel()
 				, GetUnitClass()
 				, 1
-#ifdef SERV_PCBANG_USER_REWARD_EVENT// ÀÛ¾÷³¯Â¥: 2013-07-02	// ¹Ú¼¼ÈÆ
+#ifdef SERV_PCBANG_USER_REWARD_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-02	// ï¿½Ú¼ï¿½ï¿½ï¿½
 				, IsPcBang()
 #endif // SERV_PCBANG_USER_REWARD_EVENT
 				);
 		}
 		break;
 
-		//{{ 2011. 11. 7	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2011. 11. 7	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 	case CXSLRoom::RT_BATTLE_FIELD:
 		{
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 			m_kUserBuffManager.GetBuffList( kRoomUserInfo.m_vecBuffInfo, CXSLRoom::RT_BATTLE_FIELD );
 
-			// Dungeon ½ºÅÝ Á¤º¸ ¼ÂÆÃ
+			// Dungeon ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			CalculateBattleFieldUnitStat( kModifiedBaseStatBySkill, bIsDungeonRoom, uiHP_OnePoint, uiUnitLevel, kRoomUserInfo, kStatIncreaseRateInfo );
 
-			//{{ 2009. 2. 2  ÃÖÀ°»ç		¼ÒÄÏ¿É¼Ç º¸»ó º¸³Ê½º
+			//{{ 2009. 2. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Ï¿É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 			float fAddSocketOptExpRate	= 0.0f;
 			float fAddSocketOptEDRate	= 0.0f;
 
-			// ÀåÂø ¾ÆÀÌÅÛ ¼ÒÄÏ ¿É¼Ç
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kInventory.GetEquippedItemBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 
-			// ÄªÈ£ ¼ÒÄÏ ¿É¼Ç
+			// ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kUserTitleManager.GetEquippedTitleBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 			//}}
 
-			//{{ 2010. 05. 11  ÃÖÀ°»ç	ÀÌº¥Æ® º¸»ó ÄÚµå Á¤¸®
+			//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 			if( fAddSocketOptExpRate > 0.0f )
 			{
 				kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_SOCKET_OPT_EXP_RATE, fAddSocketOptExpRate );
@@ -10964,13 +10964,13 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 				kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_SOCKET_OPT_ED_RATE, fAddSocketOptEDRate );
 			}
 
-			//{{ 2012. 12. 18	ÃÖÀ°»ç	ÇÊµå¿¡¼­µµ °æÇèÄ¡ ÀÌº¥Æ® Àû¿ë
+			//{{ 2012. 12. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Êµå¿¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 			SiKGameEventManager()->GetRewardEvent( kRoomUserInfo
 				, m_kUserDungeonManager.GetDungeonID()
 				, GetLevel()
 				, GetUnitClass()
 				, 1
-#ifdef SERV_PCBANG_USER_REWARD_EVENT// ÀÛ¾÷³¯Â¥: 2013-07-02	// ¹Ú¼¼ÈÆ
+#ifdef SERV_PCBANG_USER_REWARD_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-02	// ï¿½Ú¼ï¿½ï¿½ï¿½
 				, IsPcBang()
 #endif // SERV_PCBANG_USER_REWARD_EVENT
 				);
@@ -10979,20 +10979,20 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	case CXSLRoom::RT_TRAININGCENTER:
 		{
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 			m_kUserBuffManager.GetBuffList( kRoomUserInfo.m_vecBuffInfo );
 
-			// TrainingCenter ½ºÅÝ Á¤º¸ ¼ÂÆÃ
+			// TrainingCenter ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			CalculateTrainingCenterUnitStat( kModifiedBaseStatBySkill, bIsDungeonRoom, uiHP_OnePoint, uiUnitLevel, kRoomUserInfo, kStatIncreaseRateInfo );
 
-			//{{ 2009. 2. 2  ÃÖÀ°»ç		¼ÒÄÏ¿É¼Ç º¸»ó º¸³Ê½º
+			//{{ 2009. 2. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Ï¿É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 			float fAddSocketOptExpRate	= 0.0f;
 			float fAddSocketOptEDRate	= 0.0f;
 
-			// ÀåÂø ¾ÆÀÌÅÛ ¼ÒÄÏ ¿É¼Ç
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kInventory.GetEquippedItemBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 
-			// ÄªÈ£ ¼ÒÄÏ ¿É¼Ç
+			// ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kUserTitleManager.GetEquippedTitleBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 			//}}
 
@@ -11007,7 +11007,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		}
 		break;
 
-		//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+		//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	case CXSLRoom::RT_WEDDING_HALL:
 		{
@@ -11018,7 +11018,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	default:
 		{
-			START_LOG( cerr, L"À¯´ÖÁ¤º¸ ¼ÂÆÃÁß Àß¸øµÈ ·ëÅ¸ÀÔ.!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½.!" )
 				<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharUID() )
@@ -11030,13 +11030,13 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		break;
 	}
 
-	//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 	m_kUserBuffManager.GetBuffBonusRate( kRoomUserInfo );
 
-	// ½ºÅ³ ½ºÅÝ Á¤º¸ ¼ÂÆÃ
+	// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	CalculateSkillUnitStat( kRoomUserInfo, kStatIncreaseRateInfo );
 
-	//{{ 2012. 02. 06	¹Ú¼¼ÈÆ	¹ß·»Å¸ÀÎ µ¥ÀÌ ÀÌº¥Æ®
+	//{{ 2012. 02. 06	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ß·ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_VALENTINE_DAY_EVENT
 	if( (SiKGameSysVal()->GetMenBuffEvent() == true ) && ( eRoomType == CXSLRoom::RT_DUNGEON ) )
 	{
@@ -11063,9 +11063,9 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	KSkillData aSkillData[ KUserSkillTree::MAX_SKILL_SLOT];
 	m_kSkillTree.GetSkillSlot( aSkillData );
 
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 	for( int iSkillSlotID = 0 ; iSkillSlotID < KUserSkillTree::MAX_SKILL_SLOT ; ++iSkillSlotID )
 	{
 		if( aSkillData[iSkillSlotID].m_iSkillID == CXSLSkillTree::SI_ETC_WS_COMMON_LOVE )
@@ -11075,7 +11075,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	}
 #endif //SERV_RELATIONSHIP_SYSTEM
 
-	// ½ºÅ³ ½½·Ô Á¤º¸
+	// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	kRoomUserInfo.m_UnitSkillData.m_aEquippedSkill[0] = aSkillData[KUserSkillTree::SKILL_SLOT_A1];
 	kRoomUserInfo.m_UnitSkillData.m_aEquippedSkill[1] = aSkillData[KUserSkillTree::SKILL_SLOT_A2];
 	kRoomUserInfo.m_UnitSkillData.m_aEquippedSkill[2] = aSkillData[KUserSkillTree::SKILL_SLOT_A3];
@@ -11091,10 +11091,10 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	m_kSkillTree.GetPassiveSkillData( kRoomUserInfo.m_UnitSkillData.m_vecPassiveSkill );
 
-	//{{ 2010. 04. 08  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+	//{{ 2010. 04. 08  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 	m_kSkillTree.GetSkillNote( kRoomUserInfo.m_UnitSkillData.m_vecSkillNote );
 
-	//{{ 2009. 11. 27  ÃÖÀ°»ç	±æµå½ºÅ³
+	//{{ 2009. 11. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 	float fAddGuildBonusExpRate = 0.0f;
 	float fAddSocketOptEDRate = 0.0f;
 
@@ -11111,10 +11111,10 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_SOCKET_OPT_ED_RATE, fAddSocketOptEDRate );
 	}
 
-	//{{ 2013. 03. 14	 »ç¿ëÇÏÁö ¾Ê´Â RoomUserInfo ÀÇ µ¥ÀÌÅÍ »èÁ¦ - ±è¹Î¼º
+	//{{ 2013. 03. 14	 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ RoomUserInfo ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DELETE_ROOM_USER_INFO_DATA
 #else
-	//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	kRoomUserInfo.m_iSpiritMax	= m_kUserSpiritManager.GetSpiritMax();
 	kRoomUserInfo.m_iSpirit		= m_kUserSpiritManager.GetSpirit();
@@ -11126,7 +11126,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 #endif SERV_DELETE_ROOM_USER_INFO_DATA
 	//}
 
-	//{{ 2010. 01. 29  ÃÖÀ°»ç	PC¹æ »ó¿ëÈ­
+	//{{ 2010. 01. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½È­
 	kRoomUserInfo.m_bIsGameBang = IsPcBang();
 	//}}    
 	
@@ -11134,10 +11134,10 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	kRoomUserInfo.m_iPcBangType = GetPcBangType();
 #endif SERV_PC_BANG_TYPE
 
-	//2008. 03. 10. hoons : ÇöÀç ÁøÇàÁßÀÎ Äù½ºÆ®Áß Äù½ºÆ® ¾ÆÀÌÅÛ ¼öÁýÄù½ºÆ® Á¤º¸¸¦ °¡Á®¿Â´Ù.
+	//2008. 03. 10. hoons : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
 	m_kUserQuestManager.GetOngoingQuestForRoom( GetThisPtr<KGSUser>(), kRoomUserInfo.m_mapOngoingQuest );
 
-	//{{ 2011. 05. 04  ±è¹Î¼º	´øÀü Å¬¸®¾î½Ã ¾ÆÀÌÅÛ Áö±Þ Á¶°Ç Ãß°¡
+	//{{ 2011. 05. 04  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 	m_kUserQuestManager.GetUserAllQuest( kRoomUserInfo.m_setQuestInfo );
 #ifdef SERV_PAYMENT_ITEM_ON_GOING_QUEST
 	m_kUserQuestManager.GetUserGoingQuest( GetThisPtr<KGSUser>(), kRoomUserInfo.m_setGoingQuestInfo );
@@ -11146,12 +11146,12 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	// ÄªÈ£ID
 	kRoomUserInfo.m_iTitleID = m_kUserTitleManager.GetEquippedTitleID();
 
-	// °æÇèÄ¡ ¸Þ´Þ ¼ÒÁö ½Ã Ãß°¡ °æÇèÄ¡ ¼ÂÆÃ
+	// ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 	CheckInventoryExpMedal( kRoomUserInfo );
 	
-	//{{ 2009. 5. 5  ÃÖÀ°»ç		Ã¤³Îº° º¸³Ê½º
+	//{{ 2009. 5. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ã¤ï¿½Îºï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 	float fAddChannelBonusExpRate = 0.0f;
-	float fAddChannelBonusEDRate = 0.0f; // ¾ÆÁ÷ ¹ÌÀû¿ë
+	float fAddChannelBonusEDRate = 0.0f; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	SiKChannelManager()->GetChannelBonus( GetLevel(), fAddChannelBonusExpRate, fAddChannelBonusEDRate );
 
 	if( fAddChannelBonusExpRate > 0.0f )
@@ -11159,17 +11159,17 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_CHANNEL_BONUS_EXP_RATE, fAddChannelBonusExpRate );
 	}
 
-	//{{ 2010. 07. 21  ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 07. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 	m_kUserPetManager.GetSummonedPetInfo( kRoomUserInfo.m_vecPet );
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-20
-	// Å»°Í Æê
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-20
+	// Å»ï¿½ï¿½ ï¿½ï¿½
 	m_kUserRidingPetManager.GetSummonedRidingPetInfo( kRoomUserInfo.m_iRidingPetUID, kRoomUserInfo.m_usRidingPetID );
 #endif //SERV_RIDING_PET_SYSTM
 
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 	kRoomUserInfo.m_iLoverUnitUID = m_kUserRelationshipManager.GetLoverUnitUID();
 #endif SERV_RELATIONSHIP_SYSTEM
 	//}
@@ -11186,18 +11186,18 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	if( false == vecRecruiterUnitList.empty() )
 	{
-		// ÃßÃµÀÎ µî·Ï
+		// ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½
 		kRoomUserInfo.m_iRecruiterUnitUID = vecRecruiterUnitList[0].m_iUnitUID;
-		START_LOG( cout, L"ÃßÃµÀÎ µî·Ï" )
+		START_LOG( cout, L"ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kRoomUserInfo.m_iRecruiterUnitUID );
 	}
 	else if( false == vecRecruitUnitList.empty() )
 	{
-		// ÇÇÃßÃµÀÎ µî·Ï
+		// ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½
 		BOOST_TEST_FOREACH( KRecommendUserInfo&, kInfo, vecRecruitUnitList )
 		{
 			kRoomUserInfo.m_vecRecruitUnitUID.push_back( kInfo.m_iUnitUID );
-			START_LOG( cout, L"ÇÇÃßÃµÀÎ µî·Ï" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kInfo.m_iUnitUID );
 		}
 	}
@@ -11216,14 +11216,14 @@ void KGSUser::CalculatePvpUnitStat( IN int iPVPChannelClass,
 	default:
 	case KPVPChannelInfo::PCC_PLAY:
 		{
-			// ÀÏ¹ÝÃ¤³Î°ú ³î¹æÃ¤³ÎÀº 10% ´É·ÂÄ¡¸¦ Àû¿ëÇØÁØ´Ù.
+			// ï¿½Ï¹ï¿½Ã¤ï¿½Î°ï¿½ ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ï¿½ï¿½ 10% ï¿½É·ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
 			const float RESIZE_FACTOR = 0.1f;
 
-			// ±âº» ´É·ÂÄ¡´Â 1·¾ ±âÁØÀ¸·Î gap Â÷ÀÌ¸¸ ÁÙÀÎ´Ù
+			// ï¿½âº» ï¿½É·ï¿½Ä¡ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ gap ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Î´ï¿½
 			KStatTable::KUnitStatInfo sUnitStatLv1;
 			SiKStatTable()->GetUnitStat( GetUnitClass(), 1,	sUnitStatLv1 );
 
-			// ·Ñ¹é¿ë : kRoomUserInfo.m_kGameStat.m_iBaseHP		= (int)(sUnitStatLv1.m_uiHP)			+ (int)((float)(kModifiedBaseStatBySkill.m_iBaseHP		- sUnitStatLv1.m_uiHP)          * fResizeFactor);
+			// ï¿½Ñ¹ï¿½ï¿½ : kRoomUserInfo.m_kGameStat.m_iBaseHP		= (int)(sUnitStatLv1.m_uiHP)			+ (int)((float)(kModifiedBaseStatBySkill.m_iBaseHP		- sUnitStatLv1.m_uiHP)          * fResizeFactor);
 			//}}
 			kRoomUserInfo.m_kGameStat.m_iAtkPhysic	= (int)(sUnitStatLv1.m_usAtkPhysic)		+ (int)((float)(kModifiedBaseStatBySkill.m_iAtkPhysic	- sUnitStatLv1.m_usAtkPhysic)   * RESIZE_FACTOR);
 			kRoomUserInfo.m_kGameStat.m_iAtkMagic	= (int)(sUnitStatLv1.m_usAtkMagic)		+ (int)((float)(kModifiedBaseStatBySkill.m_iAtkMagic	- sUnitStatLv1.m_usAtkMagic)    * RESIZE_FACTOR);
@@ -11231,24 +11231,24 @@ void KGSUser::CalculatePvpUnitStat( IN int iPVPChannelClass,
 			kRoomUserInfo.m_kGameStat.m_iDefMagic	= (int)(sUnitStatLv1.m_usDefMagic)		+ (int)((float)(kModifiedBaseStatBySkill.m_iDefMagic	- sUnitStatLv1.m_usDefMagic)    * RESIZE_FACTOR);
 
 
-			// ½ºÅ³°ú ¾ÆÀÌÅÛÀº ±âº»ÀûÀ¸·Î ¹ÌÂø¿ë »óÅÂ°¡ µðÆúÆ®ÀÌ¹Ç·Î 0±âÁØÀ¸·Î ÁÙÀÎ´Ù
+			// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ì¹Ç·ï¿½ 0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î´ï¿½
 			float fTotalIncHPRate = 0.0f;
 			KStat kStat;
 
-			// ½ºÅ³½ºÅÈ Ãß°¡
+			// ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			m_kSkillTree.GetSkillStat( kStat );
 			kStat.MultiplyStat( RESIZE_FACTOR );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-			//{{ 2009. 11. 26  ÃÖÀ°»ç	±æµå½ºÅ³
+			//{{ 2009. 11. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 			m_kUserGuildManager.GetGuildSkillStat( kStat );
 			kStat.MultiplyStat( RESIZE_FACTOR );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );					
 
 			m_kInventory.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 
-			//{{ 2012. 09. 17	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
-			// ÀåÂø ¾ÆÀÌÅÛÀÇ hp ¼ÒÄÏ ¿É¼ÇÀº RESIZE_FACTOR º¸Á¤ÇÏÁö ¾Ê´Â´Ù. ÃÖÁ¾ hp °è»ê ºÎºÐ¿¡¼­ Àû¿ëµÇ´Â º¸Á¤ °ø½ÄÀÌ Á¸ÀçÇÑ´Ù.
+			//{{ 2012. 09. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ hp ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ï¿½ï¿½ RESIZE_FACTOR ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½. ï¿½ï¿½ï¿½ï¿½ hp ï¿½ï¿½ï¿½ ï¿½ÎºÐ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 			kStat.MultiplyAttPhysic( RESIZE_FACTOR );
 			kStat.MultiplyAtkMagic( RESIZE_FACTOR );
 			kStat.MultiplyDefPhysic( RESIZE_FACTOR );
@@ -11261,7 +11261,7 @@ void KGSUser::CalculatePvpUnitStat( IN int iPVPChannelClass,
 			kStat.MultiplyStat( RESIZE_FACTOR );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-			//{{ 2009. 11. 16  ÃÖÀ°»ç	´ëÀü±æµåÆ÷ÀÎÆ® - (·¹º§+Àåºñ+ÄªÈ£+ÆÐ½Ãºê½ºÅ³ º¸³Ê½º ¸ðµÎ Àû¿ëµÈ°ª)
+			//{{ 2009. 11. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® - (ï¿½ï¿½ï¿½ï¿½+ï¿½ï¿½ï¿½+ÄªÈ£+ï¿½Ð½Ãºê½ºÅ³ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È°ï¿½)
 			const int iTotalCalcBaseHP = kRoomUserInfo.m_kGameStat.m_iBaseHP + kModifiedBaseStatBySkill.m_iBaseHP;
 
 			kRoomUserInfo.m_kGameStat.m_iBaseHP	= (int)( sUnitStatLv1.m_uiHP * 2.7f ) + (int)((float)( iTotalCalcBaseHP - sUnitStatLv1.m_uiHP ) * 0.6f );
@@ -11272,11 +11272,11 @@ void KGSUser::CalculatePvpUnitStat( IN int iPVPChannelClass,
 	case KPVPChannelInfo::PCC_FREE:
 	case KPVPChannelInfo::PCC_TOURNAMENT:
 		{
-			//±âº» ´É·ÂÄ¡´Â 1·¾ ±âÁØÀ¸·Î gap Â÷ÀÌ¸¸ ÁÙÀÎ´Ù
+			//ï¿½âº» ï¿½É·ï¿½Ä¡ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ gap ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Î´ï¿½
 			KStatTable::KUnitStatInfo sUnitStatLv1;
 			SiKStatTable()->GetUnitStat( GetUnitClass(), 1,			sUnitStatLv1	);
 
-			kRoomUserInfo.m_kGameStat.m_iBaseHP		= (int)((float)sUnitStatLv1.m_uiHP * 2.7f); // ÀÚÀ¯Ã¤³Î°ú ´ëÈ¸Ã¤³ÎÀº 1·¹º§ HPÀÇ 2.7À» °öÇÑ´Ù.
+			kRoomUserInfo.m_kGameStat.m_iBaseHP		= (int)((float)sUnitStatLv1.m_uiHP * 2.7f); // ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½Î°ï¿½ ï¿½ï¿½È¸Ã¤ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ HPï¿½ï¿½ 2.7ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 			kRoomUserInfo.m_kGameStat.m_iAtkPhysic	= (int)(sUnitStatLv1.m_usAtkPhysic);
 			kRoomUserInfo.m_kGameStat.m_iAtkMagic	= (int)(sUnitStatLv1.m_usAtkMagic);
 			kRoomUserInfo.m_kGameStat.m_iDefPhysic	= (int)(sUnitStatLv1.m_usDefPhysic);
@@ -11286,7 +11286,7 @@ void KGSUser::CalculatePvpUnitStat( IN int iPVPChannelClass,
 
 	case KPVPChannelInfo::PCC_NONE:
 		{
-			START_LOG( clog, L"´ëÀü Ã¤³Î Á¤º¸°¡ ÀÌ»óÇÕ´Ï´Ù!" )
+			START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½!" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetRoomListID() )
 				<< BUILD_LOG( GetRoomUID() )
@@ -11304,13 +11304,13 @@ void KGSUser::CalculateDungeonUnitStat( IN bool bRevisionDungeon,
 										IN OUT KRoomUserInfo& kRoomUserInfo,
 										IN OUT KStatIncreaseRate& kStatIncreaseRateInfo )
 {
-	//{{ 2012. 04. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 04. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 	if( bRevisionDungeon == true )			
 	{
-		//±âº» ´É·ÂÄ¡´Â 1·¾ ±âÁØÀ¸·Î gap Â÷ÀÌ¸¸ ÁÙÀÎ´Ù
+		//ï¿½âº» ï¿½É·ï¿½Ä¡ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ gap ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Î´ï¿½
 		KStatTable::KUnitStatInfo sUnitStatLv1;
 
-		//{{ 2012. 05. 02	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+		//{{ 2012. 05. 02	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		uiUnitLevel = 1;
 		SiKStatTable()->GetUnitStat( GetUnitClass(), uiUnitLevel,			sUnitStatLv1	);
 		//}}
@@ -11321,13 +11321,13 @@ void KGSUser::CalculateDungeonUnitStat( IN bool bRevisionDungeon,
 		kRoomUserInfo.m_kGameStat.m_iDefPhysic	= (int)(sUnitStatLv1.m_usDefPhysic);
 		kRoomUserInfo.m_kGameStat.m_iDefMagic	= (int)(sUnitStatLv1.m_usDefMagic);
 
-		//{{ 2011. 07. 08    ±è¹Î¼º    ¿É¼Ç ¼öÄ¡È­
-		uiHP_OnePoint = CXSLUnit::UPHP_INIT; // 1 ·¹º§ÀÇ ´ÜÀ§ °ªÀ¸·Î º¸Á¤
+		//{{ 2011. 07. 08    ï¿½ï¿½Î¼ï¿½    ï¿½É¼ï¿½ ï¿½ï¿½Ä¡È­
+		uiHP_OnePoint = CXSLUnit::UPHP_INIT; // 1 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-		// GMÀÌ¶ó¸é GM¹«±â´Â Àû¿ë¹Þµµ·Ï ÇÏÀÚ!
+		// GMï¿½Ì¶ï¿½ï¿½ GMï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Þµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		if( GetAuthLevel() >= SEnum::UAL_GM )
 		{
-			// ÀåÂø¾ÆÀÌÅÛ ½ºÅÈ Ãß°¡
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			KStat kStat;
 			m_kInventory.GetEquippedStatOnlyGMWeapon( kStat );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
@@ -11340,16 +11340,16 @@ void KGSUser::CalculateDungeonUnitStat( IN bool bRevisionDungeon,
 		float fTotalIncHPRate = 0.0f;
 		KStat kStat;
 
-		// ½ºÅ³½ºÅÈ Ãß°¡
+		// ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 		m_kSkillTree.GetSkillStat( kStat );
 		kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-		//{{ 2009. 11. 26  ÃÖÀ°»ç	±æµå½ºÅ³
+		//{{ 2009. 11. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 
 		m_kUserGuildManager.GetGuildSkillStat( kStat );
 		kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-		// ÀåÂø¾ÆÀÌÅÛ ½ºÅÈ Ãß°¡
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 		m_kInventory.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 		kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
@@ -11357,11 +11357,11 @@ void KGSUser::CalculateDungeonUnitStat( IN bool bRevisionDungeon,
 		m_kUserTitleManager.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 		kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-		// Æê ¿À¶ó ½ºÅ³(add stat)
+		// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(add stat)
 		m_kUserPetManager.GetStatByPetSkill( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 		kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-		// Æê ¿À¶ó ½ºÅ³(increase rate)
+		// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(increase rate)
 		m_kUserPetManager.GetStatIncreaseRateByPetSkill( bIsDungeonRoom, kStatIncreaseRateInfo );
 	}
 }
@@ -11378,15 +11378,15 @@ void KGSUser::CalculateBattleFieldUnitStat( IN KStat& kModifiedBaseStatBySkill,
 	float fTotalIncHPRate = 0.0f;
 	KStat kStat;
 
-	// ½ºÅ³½ºÅÈ Ãß°¡
+	// ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 	m_kSkillTree.GetSkillStat( kStat );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-	//{{ 2009. 11. 26  ÃÖÀ°»ç	±æµå½ºÅ³
+	//{{ 2009. 11. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 	m_kUserGuildManager.GetGuildSkillStat( kStat );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-	// ÀåÂø¾ÆÀÌÅÛ ½ºÅÈ Ãß°¡
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 	m_kInventory.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
@@ -11394,11 +11394,11 @@ void KGSUser::CalculateBattleFieldUnitStat( IN KStat& kModifiedBaseStatBySkill,
 	m_kUserTitleManager.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-	// Æê ¿À¶ó ½ºÅ³(add stat)
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(add stat)
 	m_kUserPetManager.GetStatByPetSkill( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-	// Æê ¿À¶ó ½ºÅ³(increase rate)
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(increase rate)
 	m_kUserPetManager.GetStatIncreaseRateByPetSkill( bIsDungeonRoom, kStatIncreaseRateInfo );
 }
 
@@ -11414,15 +11414,15 @@ void KGSUser::CalculateTrainingCenterUnitStat( IN KStat& kModifiedBaseStatBySkil
 	float fTotalIncHPRate = 0.0f;
 	KStat kStat;
 
-	// ½ºÅ³½ºÅÈ Ãß°¡
+	// ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 	m_kSkillTree.GetSkillStat( kStat );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-	//{{ 2009. 11. 26  ÃÖÀ°»ç	±æµå½ºÅ³
+	//{{ 2009. 11. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 	m_kUserGuildManager.GetGuildSkillStat( kStat );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-	// ÀåÂø¾ÆÀÌÅÛ ½ºÅÈ Ãß°¡
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 	m_kInventory.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
@@ -11430,17 +11430,17 @@ void KGSUser::CalculateTrainingCenterUnitStat( IN KStat& kModifiedBaseStatBySkil
 	m_kUserTitleManager.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-	// Æê ¿À¶ó ½ºÅ³(add stat)
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(add stat)
 	m_kUserPetManager.GetStatByPetSkill( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 	kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-	// Æê ¿À¶ó ½ºÅ³(increase rate)
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(increase rate)
 	m_kUserPetManager.GetStatIncreaseRateByPetSkill( bIsDungeonRoom, kStatIncreaseRateInfo );
 }
 
 void KGSUser::CalculateSkillUnitStat( IN OUT KRoomUserInfo& kRoomUserInfo, IN OUT KStatIncreaseRate& kStatIncreaseRateInfo )
 {
-	//{{ 2010. 10. 27	ÃÖÀ°»ç	Æê ¿À¶ó ½ºÅ³
+	//{{ 2010. 10. 27	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
 	{
 		kRoomUserInfo.m_kGameStat.m_iAtkPhysic	+= static_cast<int>( static_cast<float>(kRoomUserInfo.m_kGameStat.m_iAtkPhysic) * kStatIncreaseRateInfo.m_fIncreaseAtkPhysicRate );
 		kRoomUserInfo.m_kGameStat.m_iAtkMagic	+= static_cast<int>( static_cast<float>(kRoomUserInfo.m_kGameStat.m_iAtkMagic) * kStatIncreaseRateInfo.m_fIncreaseAtkMagicRate );
@@ -11451,9 +11451,9 @@ void KGSUser::CalculateSkillUnitStat( IN OUT KRoomUserInfo& kRoomUserInfo, IN OU
 	KStat kModifiedFinalStatBySkill = kRoomUserInfo.m_kGameStat;
 
 
-	//{{ 2010. 11. 24	ÃÖÀ°»ç	¸¶¹æ ÆÐ½Ãºê ½ºÅ³
+	//{{ 2010. 11. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³
 	{
-		// oasis907 : ±è»óÀ± [2010.12.3] // ·é ½½·¹ÀÌ¾î - ¸¶¹ýÀúÇ× ¼ö·Ã
+		// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.12.3] // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( (int) CXSLSkillTree::SI_P_ERS_MAGIC_RESISTANCE );
 		if( iSkillLevel > 0 )
 		{
@@ -11466,7 +11466,7 @@ void KGSUser::CalculateSkillUnitStat( IN OUT KRoomUserInfo& kRoomUserInfo, IN OU
 		}
 	}
 
-	//{{ kimhc // 2010-12-14 // ½ÂÈ­µÈ ºÐ³ë - ·¹ÇÇ ÆÐ½Ãºê
+	//{{ kimhc // 2010-12-14 // ï¿½ï¿½È­ï¿½ï¿½ ï¿½Ð³ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½Ãºï¿½
 	{
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( CXSLSkillTree::SI_P_RRF_SPIRITUALIZED_FURY );
 		if( iSkillLevel > 0)
@@ -11481,7 +11481,7 @@ void KGSUser::CalculateSkillUnitStat( IN OUT KRoomUserInfo& kRoomUserInfo, IN OU
 	}
 
 	{
-		// oasis907 : ±è»óÀ± [2011.6.28] Ã» 2Â÷ ÀüÁ÷ - ¾ÆÀÌ¾ð ÆÈ¶óµò - ±»°ÇÇÑ ÀÇÁö
+		// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.6.28] Ã» 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½È¶ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( (int) CXSLSkillTree::SI_P_CIP_IRON_WILL );
 		if( iSkillLevel > 0 )
 		{
@@ -11495,7 +11495,7 @@ void KGSUser::CalculateSkillUnitStat( IN OUT KRoomUserInfo& kRoomUserInfo, IN OU
 		}
 	}
 
-	//{{2010. 10. 27	±èÅÂÈ¯	·¹ÀÌºì ºí·¹ÀÌµå ¸¶½ºÅÍ º§·±½º °³Æí - ½Â¸®ÀÇ ÀÚ½Å°¨ ¹°¸® °ø°Ý·Â Áõ°¡ È¿°ú Ãß°¡
+	//{{2010. 10. 27	ï¿½ï¿½ï¿½ï¿½È¯	ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Â¸ï¿½ï¿½ï¿½ ï¿½Ú½Å°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ý·ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ß°ï¿½
 	{
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( (int) CXSLSkillTree::SI_P_RRF_CONFIDENCE_VICTORY );
 		if( iSkillLevel > 0 )
@@ -11540,7 +11540,7 @@ void KGSUser::CalculateSkillUnitStat( IN OUT KRoomUserInfo& kRoomUserInfo, IN OU
 		}
 	}
 
-	// È£½Å°­±â
+	// È£ï¿½Å°ï¿½ï¿½ï¿½
 	{
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( CXSLSkillTree::SI_P_ASD_SELF_PROTECTION_FORTITUDE );
 		if( iSkillLevel > 0 )
@@ -11549,17 +11549,17 @@ void KGSUser::CalculateSkillUnitStat( IN OUT KRoomUserInfo& kRoomUserInfo, IN OU
 
 			if( NULL != pSkillTemplet )
 			{
-				// ¹°¹æ
+				// ï¿½ï¿½ï¿½ï¿½
 				{
 					float fRate = CXSLSkillTree::CalulateIncreaseingRate( pSkillTemplet->GetSkillAbilityValue( CXSLSkillTree::SA_DEF_PHYSIC_REL, iSkillLevel ) );
 					kModifiedFinalStatBySkill.m_iDefPhysic += static_cast<int>( kRoomUserInfo.m_kGameStat.m_iDefPhysic * fRate );
 				}
-				// ¸¶¹æ
+				// ï¿½ï¿½ï¿½ï¿½
 				{
 					float fRate = CXSLSkillTree::CalulateIncreaseingRate( pSkillTemplet->GetSkillAbilityValue( CXSLSkillTree::SA_DEF_MAGIC_REL, iSkillLevel ) );
 					kModifiedFinalStatBySkill.m_iDefMagic += static_cast<int>( kRoomUserInfo.m_kGameStat.m_iDefMagic * fRate );
 				}
-				// HP Áõ°¡´Â KUserSkillTree::CheckAddSkillStat_BaseHP() ¿©±â¼­ Ã³¸®
+				// HP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ KUserSkillTree::CheckAddSkillStat_BaseHP() ï¿½ï¿½ï¿½â¼­ Ã³ï¿½ï¿½
 			}
 		}
 	}
@@ -11569,25 +11569,25 @@ void KGSUser::CalculateSkillUnitStat( IN OUT KRoomUserInfo& kRoomUserInfo, IN OU
 
 void KGSUser::CheckInventoryExpMedal( IN OUT KRoomUserInfo& kRoomUserInfo )
 {
-	//080421.hoons. ÀÎº¥¿¡¼­ Ãàº¹ÀÇ ¸Þ´Þ ¾ÆÀÌÅÛÀ» °Ë»çÇÑ´Ù.
+	//080421.hoons. ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àº¹ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 	if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_BLESSING_MEDAL ) == true )
 	{
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_PREMIUM_EXP_RATE, SiKGameSysVal()->GetPremiumEXPRate() );
 	}
 
-	// [ÀÌº¥Æ®] 081220 ~ 081221 yuksa. ½ÅÄ³¸¯ÅÍ ±â³ä °æÇèÄ¡ ¸Þ´Þ
+	// [ï¿½Ìºï¿½Æ®] 081220 ~ 081221 yuksa. ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Þ´ï¿½
 	if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_EXP_15_PERCENT_MEDAL ) == true )
 	{
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_PREMIUM_EXP_RATE, 0.15f );
 	}
 
-	//{{ 2009. 3. 30  ÃÖÀ°»ç	°æÇèÄ¡ 100% ¸Þ´Þ
+	//{{ 2009. 3. 30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Ä¡ 100% ï¿½Þ´ï¿½
 	if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_EXP_100_PERCENT_MEDAL ) == true )
 	{
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_PREMIUM_EXP_RATE, 1.0f );
 	}
 
-	//{{ 2011. 10. 19    ±è¹Î¼º    200% °æÇèÄ¡ Ãß°¡ ¸Þ´Þ(ÀÌº¥Æ® ¾ÆÀÌÅÛ)
+	//{{ 2011. 10. 19    ï¿½ï¿½Î¼ï¿½    200% ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ß°ï¿½ ï¿½Þ´ï¿½(ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
 	if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_EXP_200_PERCENT_MEDAL ) == true )
 	{
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_PREMIUM_EXP_RATE, 2.0f );
@@ -11627,7 +11627,7 @@ void KGSUser::CheckInventoryExpMedal( IN OUT KRoomUserInfo& kRoomUserInfo )
 	}
 #endif
 
-#ifdef SERV_VIP_SYSTEM // ÀÎº¥¿¡¼­ VIP Æ¼Ä¹ÀÌ ÀÖ´ÂÁö °Ë»ç ÇÑ´Ù.
+#ifdef SERV_VIP_SYSTEM // ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½ VIP Æ¼Ä¹ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½Ñ´ï¿½.
 	if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_VIP_TICKET ) == true)
 	{
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_PREMIUM_EXP_RATE, SiKGameSysVal()->GetVIPEXPRate() );
@@ -11699,7 +11699,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	kRoomUserInfo.m_iGSUID		   = KBaseServer::GetKObj()->GetUID();
 	kRoomUserInfo.m_iOwnerUserUID  = GetUID();
 	kRoomUserInfo.m_cAuthLevel	   = GetAuthLevel();
-	//{{ 2011. 12. 06	ÃÖÀ°»ç	Æ¯Á¤ ¼­¹ö±º ÀÌº¥Æ® ½Ã½ºÅÛ
+	//{{ 2011. 12. 06	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_GROUP_EVENT_SYSTEM
 	kRoomUserInfo.m_sServerGroupID = KBaseServer::GetKObj()->GetServerGroupID();
 #endif SERV_SERVER_GROUP_EVENT_SYSTEM
@@ -11709,19 +11709,19 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	kRoomUserInfo.m_nUnitUID	   = GetCharUID();
 	kRoomUserInfo.m_uiKNMSerialNum = m_uiKNMSerialNum;
 	kRoomUserInfo.m_cUnitClass	   = GetUnitClass();
-	//{{ 2012. 04. 17	ÃÖÀ°»ç	´øÀü ·Î±× ÄÃ·³ Ãß°¡
+	//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½Ã·ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 	kRoomUserInfo.m_iNumResurrectionStone = m_iNumResurrectionStone;
 #endif SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 	//}}
-	//{{ 2011. 07. 11	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 07. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//#ifdef SERV_PVP_NEW_SYSTEM
 	kRoomUserInfo.m_iOfficialMatchCnt = m_kUserPvpManager.GetOfficialMatchCount();
 	kRoomUserInfo.m_iRating		   = GetRating();
 	kRoomUserInfo.m_iMaxRating	   = m_kUserPvpManager.GetMaxRating();
 	kRoomUserInfo.m_bIsWinBeforeMatch = m_kUserPvpManager.IsWinBeforeMatch();
 
-	//{{ 2012. 06. 25	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 06. 25	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	kRoomUserInfo.m_cRank					= GetPvpRankForClient();
 	kRoomUserInfo.m_cRankForServer			= GetPvpRank();
@@ -11735,12 +11735,12 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	kRoomUserInfo.m_wstrIP		   = GetP2PIP();
 	kRoomUserInfo.m_usPort		   = GetP2PPort();
 
-	//{{ 2013. 1. 8	¹Ú¼¼ÈÆ	Merge °øÀÎIP ¿¬°á ½ÇÆÐ½Ã ³»ºÎIP·Î ½Ãµµ( ¹ÚÁø¿õ )
+	//{{ 2013. 1. 8	ï¿½Ú¼ï¿½ï¿½ï¿½	Merge ï¿½ï¿½ï¿½ï¿½IP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð½ï¿½ ï¿½ï¿½ï¿½ï¿½IPï¿½ï¿½ ï¿½Ãµï¿½( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
 #ifdef SERV_RETRY_USING_INTERNAL_IP
 	kRoomUserInfo.m_wstrInternalIP	= GetP2PInternalIP();
 	kRoomUserInfo.m_usInternalPort	= GetP2PInternalPort();
 
-	START_LOG( clog, L"IP, Æ÷Æ® È®ÀÎ" )
+	START_LOG( clog, L"IP, ï¿½ï¿½Æ® È®ï¿½ï¿½" )
 		<< BUILD_LOG( kRoomUserInfo.m_wstrIP )
 		<< BUILD_LOG( kRoomUserInfo.m_usPort )
 		<< BUILD_LOG( kRoomUserInfo.m_wstrInternalIP )
@@ -11749,7 +11749,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 #endif SERV_RETRY_USING_INTERNAL_IP
 	//}}
 
-	//{{ 2011. 11. 1	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2011. 11. 1	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	kRoomUserInfo.m_iPartyUID	   = GetPartyUID();
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -11758,47 +11758,47 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	kRoomUserInfo.m_ucLevel		   = GetLevel();
 	kRoomUserInfo.m_bIsGuestUser   = IsGuestUser();
 
-	//{{ 2009. 9. 25  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 9. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 	kRoomUserInfo.m_iGuildUID	   = GetGuildUID();
 	kRoomUserInfo.m_wstrGuildName  = m_kUserGuildManager.GetGuildName();
 	kRoomUserInfo.m_ucMemberShipGrade = m_kUserGuildManager.GetMemberShipGrade();
 #endif GUILD_TEST
 	//}}
-	//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó
+	//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COME_BACK_USER_REWARD
 	kRoomUserInfo.m_bComeBackUser	= m_kComeBackUserInfo.GetIsComeBackUser();
 #endif SERV_COME_BACK_USER_REWARD
 	//}} 
 
-	//{{ 2012. 09. 19   ±è¹Î¼º   Ä³½Ã¼¥ ¹æ¹® »óÅÂ
+	//{{ 2012. 09. 19   ï¿½ï¿½Î¼ï¿½   Ä³ï¿½Ã¼ï¿½ ï¿½æ¹® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_VISIT_CASH_SHOP
 	kRoomUserInfo.m_bEnterCashShop	= m_kUserUnitManager.GetEnterCashShop();
 #endif SERV_VISIT_CASH_SHOP
 	//}}
-	//{{ 2011. 07. 08    ±è¹Î¼º    ¿É¼Ç ¼öÄ¡È­
+	//{{ 2011. 07. 08    ï¿½ï¿½Î¼ï¿½    ï¿½É¼ï¿½ ï¿½ï¿½Ä¡È­
 #ifdef SERV_USE_PERCENT_IN_OPTION_DATA
-	unsigned int uiHP_OnePoint = CXSLUnit::UPHP_INIT + ( CXSLUnit::UPHP_INCREASE_ONE_POINT * (GetLevel() - 1)); // ÇöÀç ·¹º§´ç 1´ÜÀ§ °ª
-	unsigned int uiUnitLevel = static_cast<unsigned int>(GetLevel());	//	À¯´Ö ·¹º§ ¹Ì¸® ¾ò±â
+	unsigned int uiHP_OnePoint = CXSLUnit::UPHP_INIT + ( CXSLUnit::UPHP_INCREASE_ONE_POINT * (GetLevel() - 1)); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	unsigned int uiUnitLevel = static_cast<unsigned int>(GetLevel());	//	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½
 #endif SERV_USE_PERCENT_IN_OPTION_DATA
 	//}} 
 
-	//080611.hoons.ÀåÂøÁßÀÎ ¾ÆÀÌÅÛÀ» °Ë»çÇÏ¿© È¿°úÁ¤º¸¸¦ Àü´ÞÇÏ±âÀ§ÇØ.
-	kRoomUserInfo.m_bIsRingofpvprebirth = m_kInventory.IsEquippedItem( CXSLItem::SI_RING_OF_PVP_REBIRTH ); //::1st. ¸®½ºÆù¹ÝÁö
+	//080611.hoons.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ï¿ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½.
+	kRoomUserInfo.m_bIsRingofpvprebirth = m_kInventory.IsEquippedItem( CXSLItem::SI_RING_OF_PVP_REBIRTH ); //::1st. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	bool bAllSkillLevelUp = false;
 
-	//±âº» ½ºÅÈ
+	//ï¿½âº» ï¿½ï¿½ï¿½ï¿½
 	KStat kModifiedBaseStatBySkill = m_kStat;
 
-	//{{ 2010. 10. 27	ÃÖÀ°»ç	Æê ¿À¶ó ½ºÅ³
+	//{{ 2010. 10. 27	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
 #ifdef SERV_PET_AURA_SKILL
 	KStatIncreaseRate kStatIncreaseRateInfo;
 #endif SERV_PET_AURA_SKILL
 	//}}
 
-	////////////////////////////////////////////////////////////////////////// [ÁÖÀÇ!]
-	// ½ºÅ³Áß¿¡ BaseHP¸¦ Áõ°¡½ÃÅ°´Â °ÍºÎÅÍ ¹Ì¸® °è»êÇÏÀÚ!
+	////////////////////////////////////////////////////////////////////////// [ï¿½ï¿½ï¿½ï¿½!]
+	// ï¿½ï¿½Å³ï¿½ß¿ï¿½ BaseHPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Íºï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	{
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( (int) CXSLSkillTree::SI_P_COMMON_POWERFUL_VITAL );
 		if( iSkillLevel > 0 )
@@ -11810,7 +11810,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			}
 		}
 
-		//{{ kimhc // 2011.1.14 // Ã» 1Â÷ ÀüÁ÷, Ç»¸®°¡µð¾ðÀÇ ¹æ¾î ¼÷·Ã
+		//{{ kimhc // 2011.1.14 // Ã» 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, Ç»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		const int iSkillLevelGuardMastery = m_kSkillTree.GetSkillLevel( static_cast<int>( CXSLSkillTree::SI_P_CFG_GUARD_MASTERY ) );
 		if ( 0 < iSkillLevelGuardMastery )
 		{
@@ -11820,18 +11820,18 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 				kModifiedBaseStatBySkill.m_iBaseHP += static_cast<int>( m_kStat.m_iBaseHP * CXSLSkillTree::CalulateIncreaseingRate( pSkillTemplet->GetSkillAbilityValue( CXSLSkillTree::SA_MAX_HP_REL ) ) );
 			} // if
 		} // if
-		//}} kimhc // 2011.1.14 // Ã» 1Â÷ ÀüÁ÷, Ç»¸®°¡µð¾ðÀÇ ¹æ¾î ¼÷·Ã
+		//}} kimhc // 2011.1.14 // Ã» 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, Ç»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	}
 	//////////////////////////////////////////////////////////////////////////
 
 	//////////////////////////////////////////////////////////////////////////
-	// RoomType ¾ò±â
+	// RoomType ï¿½ï¿½ï¿½
 	CXSLRoom::ROOM_TYPE eRoomType = static_cast<CXSLRoom::ROOM_TYPE>(iRoomType_);
 	if( iRoomType_ < 0 )
 	{
 		if( GetRoomUID() == 0 )
 		{
-			START_LOG( cerr, L"Àü´ÞÀÎÀÚ RoomTypeÀÌ -1ÀÌ¶ó¼­ RoomUID·Î RoomTypeÀ» ¾òÀ»·Á°í ÇÏ´Âµ¥ RoomUID°¡ 0ÀÌ´Ù?" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RoomTypeï¿½ï¿½ -1ï¿½Ì¶ï¿½ RoomUIDï¿½ï¿½ RoomTypeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´Âµï¿½ RoomUIDï¿½ï¿½ 0ï¿½Ì´ï¿½?" )
 				<< BUILD_LOG( iRoomType_ )
 				<< BUILD_LOG( GetCharName() )
 				<< END_LOG;
@@ -11840,7 +11840,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		eRoomType = CXSLRoom::GetRoomType( GetRoomUID() );
 	}
 
-	//{{ 2012. 11. 05	¹Ú¼¼ÈÆ	´øÀü Àü¿ë ¼ÒÄÏÀÇ °æ¿ì ÇÊµå¿¡µµ Àû¿ë
+	//{{ 2012. 11. 05	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Êµå¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_APPLY_DUNGEON_SOCKET_OPTION_TO_FIELD
 	const bool bIsDungeonRoom = ( ( eRoomType == CXSLRoom::RT_DUNGEON ) || ( eRoomType == CXSLRoom::RT_BATTLE_FIELD ) );
 #else
@@ -11851,7 +11851,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	{
 	case CXSLRoom::RT_PVP:
 		{
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 			m_kUserBuffManager.GetBuffList( kRoomUserInfo.m_vecBuffInfo, CXSLRoom::RT_PVP );
 #endif SERV_SERVER_BUFF_SYSTEM
@@ -11865,14 +11865,14 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			default:
 			case KPVPChannelInfo::PCC_PLAY:
 				{
-					// ÀÏ¹ÝÃ¤³Î°ú ³î¹æÃ¤³ÎÀº 10% ´É·ÂÄ¡¸¦ Àû¿ëÇØÁØ´Ù.
+					// ï¿½Ï¹ï¿½Ã¤ï¿½Î°ï¿½ ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ï¿½ï¿½ 10% ï¿½É·ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
 					const float RESIZE_FACTOR = 0.1f;
 
-					// ±âº» ´É·ÂÄ¡´Â 1·¾ ±âÁØÀ¸·Î gap Â÷ÀÌ¸¸ ÁÙÀÎ´Ù
+					// ï¿½âº» ï¿½É·ï¿½Ä¡ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ gap ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Î´ï¿½
 					KStatTable::KUnitStatInfo sUnitStatLv1;
 					SiKStatTable()->GetUnitStat( GetUnitClass(), 1,	sUnitStatLv1 );
 
-					// ·Ñ¹é¿ë : kRoomUserInfo.m_kGameStat.m_iBaseHP		= (int)(sUnitStatLv1.m_uiHP)			+ (int)((float)(kModifiedBaseStatBySkill.m_iBaseHP		- sUnitStatLv1.m_uiHP)          * fResizeFactor);
+					// ï¿½Ñ¹ï¿½ï¿½ : kRoomUserInfo.m_kGameStat.m_iBaseHP		= (int)(sUnitStatLv1.m_uiHP)			+ (int)((float)(kModifiedBaseStatBySkill.m_iBaseHP		- sUnitStatLv1.m_uiHP)          * fResizeFactor);
 					//}}
 					kRoomUserInfo.m_kGameStat.m_iAtkPhysic	= (int)(sUnitStatLv1.m_usAtkPhysic)		+ (int)((float)(kModifiedBaseStatBySkill.m_iAtkPhysic	- sUnitStatLv1.m_usAtkPhysic)   * RESIZE_FACTOR);
 					kRoomUserInfo.m_kGameStat.m_iAtkMagic	= (int)(sUnitStatLv1.m_usAtkMagic)		+ (int)((float)(kModifiedBaseStatBySkill.m_iAtkMagic	- sUnitStatLv1.m_usAtkMagic)    * RESIZE_FACTOR);
@@ -11880,16 +11880,16 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 					kRoomUserInfo.m_kGameStat.m_iDefMagic	= (int)(sUnitStatLv1.m_usDefMagic)		+ (int)((float)(kModifiedBaseStatBySkill.m_iDefMagic	- sUnitStatLv1.m_usDefMagic)    * RESIZE_FACTOR);
 
 
-					// ½ºÅ³°ú ¾ÆÀÌÅÛÀº ±âº»ÀûÀ¸·Î ¹ÌÂø¿ë »óÅÂ°¡ µðÆúÆ®ÀÌ¹Ç·Î 0±âÁØÀ¸·Î ÁÙÀÎ´Ù
+					// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ì¹Ç·ï¿½ 0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î´ï¿½
 					float fTotalIncHPRate = 0.0f;
 					KStat kStat;
 
-					// ½ºÅ³½ºÅÈ Ãß°¡
+					// ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 					m_kSkillTree.GetSkillStat( kStat );
 					kStat.MultiplyStat( RESIZE_FACTOR );
 					kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-					//{{ 2009. 11. 26  ÃÖÀ°»ç	±æµå½ºÅ³
+					//{{ 2009. 11. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 #ifdef GUILD_SKILL_TEST					
 					m_kUserGuildManager.GetGuildSkillStat( kStat );
 					kStat.MultiplyStat( RESIZE_FACTOR );
@@ -11899,9 +11899,9 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 					m_kInventory.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 
-					//{{ 2012. 09. 17	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+					//{{ 2012. 09. 17	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
-					// ÀåÂø ¾ÆÀÌÅÛÀÇ hp ¼ÒÄÏ ¿É¼ÇÀº RESIZE_FACTOR º¸Á¤ÇÏÁö ¾Ê´Â´Ù. ÃÖÁ¾ hp °è»ê ºÎºÐ¿¡¼­ Àû¿ëµÇ´Â º¸Á¤ °ø½ÄÀÌ Á¸ÀçÇÑ´Ù.
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ hp ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ï¿½ï¿½ RESIZE_FACTOR ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½. ï¿½ï¿½ï¿½ï¿½ hp ï¿½ï¿½ï¿½ ï¿½ÎºÐ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 					kStat.MultiplyAttPhysic( RESIZE_FACTOR );
 					kStat.MultiplyAtkMagic( RESIZE_FACTOR );
 					kStat.MultiplyDefPhysic( RESIZE_FACTOR );
@@ -11917,7 +11917,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 					kStat.MultiplyStat( RESIZE_FACTOR );
 					kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-					//{{ 2009. 11. 16  ÃÖÀ°»ç	´ëÀü±æµåÆ÷ÀÎÆ® - (·¹º§+Àåºñ+ÄªÈ£+ÆÐ½Ãºê½ºÅ³ º¸³Ê½º ¸ðµÎ Àû¿ëµÈ°ª)
+					//{{ 2009. 11. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® - (ï¿½ï¿½ï¿½ï¿½+ï¿½ï¿½ï¿½+ÄªÈ£+ï¿½Ð½Ãºê½ºÅ³ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È°ï¿½)
 					const int iTotalCalcBaseHP = kRoomUserInfo.m_kGameStat.m_iBaseHP + kModifiedBaseStatBySkill.m_iBaseHP;
 
 					kRoomUserInfo.m_kGameStat.m_iBaseHP	= (int)( sUnitStatLv1.m_uiHP * 2.7f ) + (int)((float)( iTotalCalcBaseHP - sUnitStatLv1.m_uiHP ) * 0.6f );
@@ -11928,11 +11928,11 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			case KPVPChannelInfo::PCC_FREE:
 			case KPVPChannelInfo::PCC_TOURNAMENT:
 				{
-					//±âº» ´É·ÂÄ¡´Â 1·¾ ±âÁØÀ¸·Î gap Â÷ÀÌ¸¸ ÁÙÀÎ´Ù
+					//ï¿½âº» ï¿½É·ï¿½Ä¡ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ gap ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Î´ï¿½
 					KStatTable::KUnitStatInfo sUnitStatLv1;
 					SiKStatTable()->GetUnitStat( GetUnitClass(), 1,			sUnitStatLv1	);
 
-					kRoomUserInfo.m_kGameStat.m_iBaseHP		= (int)((float)sUnitStatLv1.m_uiHP * 2.7f); // ÀÚÀ¯Ã¤³Î°ú ´ëÈ¸Ã¤³ÎÀº 1·¹º§ HPÀÇ 2.7À» °öÇÑ´Ù.
+					kRoomUserInfo.m_kGameStat.m_iBaseHP		= (int)((float)sUnitStatLv1.m_uiHP * 2.7f); // ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½Î°ï¿½ ï¿½ï¿½È¸Ã¤ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ HPï¿½ï¿½ 2.7ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 					kRoomUserInfo.m_kGameStat.m_iAtkPhysic	= (int)(sUnitStatLv1.m_usAtkPhysic);
 					kRoomUserInfo.m_kGameStat.m_iAtkMagic	= (int)(sUnitStatLv1.m_usAtkMagic);
 					kRoomUserInfo.m_kGameStat.m_iDefPhysic	= (int)(sUnitStatLv1.m_usDefPhysic);
@@ -11942,7 +11942,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 			case KPVPChannelInfo::PCC_NONE:
 				{
-					START_LOG( clog, L"´ëÀü Ã¤³Î Á¤º¸°¡ ÀÌ»óÇÕ´Ï´Ù!" )
+					START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½!" )
 						<< BUILD_LOG( GetCharUID() )
 						<< BUILD_LOG( GetRoomListID() )
 						<< BUILD_LOG( GetRoomUID() )
@@ -11952,7 +11952,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			}
 
 			//////////////////////////////////////////////////////////////////////////
-			//{{ 2010. 05. 11  ÃÖÀ°»ç	´ëÀü ´øÀü ¼­¹ö±º ÅëÇÕ
+			//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_INTEGRATION
 			SiKGameEventManager()->GetRewardEvent( kRoomUserInfo, 0, GetLevel(), GetUnitClass() );
 #endif SERV_INTEGRATION
@@ -11963,22 +11963,22 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	case CXSLRoom::RT_DUNGEON:
 		{
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 			m_kUserBuffManager.GetBuffList( kRoomUserInfo.m_vecBuffInfo, CXSLRoom::RT_DUNGEON );
 #endif SERV_SERVER_BUFF_SYSTEM
 			//}
 
-			//{{ 2012. 04. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+			//{{ 2012. 04. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 			if( IsHenirDungeonChallengeMode()  ||  CXSLDungeon::IsEventDungeon( m_kUserDungeonManager.GetDungeonID() ) )
 #endif SERV_BATTLE_FIELD_SYSTEM
 				//}}			
 			{
-				//±âº» ´É·ÂÄ¡´Â 1·¾ ±âÁØÀ¸·Î gap Â÷ÀÌ¸¸ ÁÙÀÎ´Ù
+				//ï¿½âº» ï¿½É·ï¿½Ä¡ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ gap ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Î´ï¿½
 				KStatTable::KUnitStatInfo sUnitStatLv1;
 
-				//{{ 2012. 05. 02	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+				//{{ 2012. 05. 02	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 				uiUnitLevel = 1;
 				SiKStatTable()->GetUnitStat( GetUnitClass(), uiUnitLevel,			sUnitStatLv1	);
@@ -11993,16 +11993,16 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 				kRoomUserInfo.m_kGameStat.m_iDefPhysic	= (int)(sUnitStatLv1.m_usDefPhysic);
 				kRoomUserInfo.m_kGameStat.m_iDefMagic	= (int)(sUnitStatLv1.m_usDefMagic);
 
-				//{{ 2011. 07. 08    ±è¹Î¼º    ¿É¼Ç ¼öÄ¡È­
+				//{{ 2011. 07. 08    ï¿½ï¿½Î¼ï¿½    ï¿½É¼ï¿½ ï¿½ï¿½Ä¡È­
 #ifdef SERV_USE_PERCENT_IN_OPTION_DATA
-				uiHP_OnePoint = CXSLUnit::UPHP_INIT; // 1 ·¹º§ÀÇ ´ÜÀ§ °ªÀ¸·Î º¸Á¤
+				uiHP_OnePoint = CXSLUnit::UPHP_INIT; // 1 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif SERV_USE_PERCENT_IN_OPTION_DATA
 				//}} 
 
-				// GMÀÌ¶ó¸é GM¹«±â´Â Àû¿ë¹Þµµ·Ï ÇÏÀÚ!
+				// GMï¿½Ì¶ï¿½ï¿½ GMï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Þµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				if( GetAuthLevel() >= SEnum::UAL_GM )
 				{
-					// ÀåÂø¾ÆÀÌÅÛ ½ºÅÈ Ãß°¡
+					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 					KStat kStat;
 					m_kInventory.GetEquippedStatOnlyGMWeapon( kStat );
 					kRoomUserInfo.m_kGameStat.AddStat( kStat );
@@ -12015,18 +12015,18 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 				float fTotalIncHPRate = 0.0f;
 				KStat kStat;
 
-				// ½ºÅ³½ºÅÈ Ãß°¡
+				// ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 				m_kSkillTree.GetSkillStat( kStat );
 				kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-				//{{ 2009. 11. 26  ÃÖÀ°»ç	±æµå½ºÅ³
+				//{{ 2009. 11. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 #ifdef GUILD_SKILL_TEST
 				m_kUserGuildManager.GetGuildSkillStat( kStat );
 				kRoomUserInfo.m_kGameStat.AddStat( kStat );
 #endif GUILD_SKILL_TEST
 				//}}
 
-				// ÀåÂø¾ÆÀÌÅÛ ½ºÅÈ Ãß°¡
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 				m_kInventory.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 				kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
@@ -12034,22 +12034,22 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 				m_kUserTitleManager.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 				kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-				// Æê ¿À¶ó ½ºÅ³(add stat)
+				// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(add stat)
 				m_kUserPetManager.GetStatByPetSkill( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 				kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-				// Æê ¿À¶ó ½ºÅ³(increase rate)
+				// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(increase rate)
 				m_kUserPetManager.GetStatIncreaseRateByPetSkill( bIsDungeonRoom, kStatIncreaseRateInfo );
 			}
 
-			//{{ 2009. 2. 2  ÃÖÀ°»ç		¼ÒÄÏ¿É¼Ç º¸»ó º¸³Ê½º
+			//{{ 2009. 2. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Ï¿É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 			float fAddSocketOptExpRate	= 0.0f;
 			float fAddSocketOptEDRate	= 0.0f;
 
-			// ÀåÂø ¾ÆÀÌÅÛ ¼ÒÄÏ ¿É¼Ç
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kInventory.GetEquippedItemBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 
-			// ÄªÈ£ ¼ÒÄÏ ¿É¼Ç
+			// ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kUserTitleManager.GetEquippedTitleBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 			//}}
 
@@ -12063,9 +12063,9 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			}
 
 			//////////////////////////////////////////////////////////////////////////
-			//{{ 2010. 05. 11  ÃÖÀ°»ç	´ëÀü ´øÀü ¼­¹ö±º ÅëÇÕ
+			//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_INTEGRATION
-			//{{ 2012. 04. 23	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+			//{{ 2012. 04. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 			SiKGameEventManager()->GetRewardEvent( kRoomUserInfo, m_kUserDungeonManager.GetDungeonID(), GetLevel(), GetUnitClass(), 1  );
 #else
@@ -12078,11 +12078,11 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		}
 		break;
 
-		//{{ 2011. 11. 7	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2011. 11. 7	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	case CXSLRoom::RT_BATTLE_FIELD:
 		{
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 			m_kUserBuffManager.GetBuffList( kRoomUserInfo.m_vecBuffInfo, CXSLRoom::RT_BATTLE_FIELD );
 #endif SERV_SERVER_BUFF_SYSTEM
@@ -12093,18 +12093,18 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			float fTotalIncHPRate = 0.0f;
 			KStat kStat;
 
-			// ½ºÅ³½ºÅÈ Ãß°¡
+			// ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			m_kSkillTree.GetSkillStat( kStat );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-			//{{ 2009. 11. 26  ÃÖÀ°»ç	±æµå½ºÅ³
+			//{{ 2009. 11. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 #ifdef GUILD_SKILL_TEST
 			m_kUserGuildManager.GetGuildSkillStat( kStat );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 #endif GUILD_SKILL_TEST
 			//}}
 
-			// ÀåÂø¾ÆÀÌÅÛ ½ºÅÈ Ãß°¡
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			m_kInventory.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
@@ -12112,25 +12112,25 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			m_kUserTitleManager.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-			// Æê ¿À¶ó ½ºÅ³(add stat)
+			// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(add stat)
 			m_kUserPetManager.GetStatByPetSkill( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-			// Æê ¿À¶ó ½ºÅ³(increase rate)
+			// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(increase rate)
 			m_kUserPetManager.GetStatIncreaseRateByPetSkill( bIsDungeonRoom, kStatIncreaseRateInfo );
 
-			//{{ 2009. 2. 2  ÃÖÀ°»ç		¼ÒÄÏ¿É¼Ç º¸»ó º¸³Ê½º
+			//{{ 2009. 2. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Ï¿É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 			float fAddSocketOptExpRate	= 0.0f;
 			float fAddSocketOptEDRate	= 0.0f;
 
-			// ÀåÂø ¾ÆÀÌÅÛ ¼ÒÄÏ ¿É¼Ç
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kInventory.GetEquippedItemBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 
-			// ÄªÈ£ ¼ÒÄÏ ¿É¼Ç
+			// ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kUserTitleManager.GetEquippedTitleBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 			//}}
 
-			//{{ 2010. 05. 11  ÃÖÀ°»ç	ÀÌº¥Æ® º¸»ó ÄÚµå Á¤¸®
+			//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 			if( fAddSocketOptExpRate > 0.0f )
 			{
 				kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_SOCKET_OPT_EXP_RATE, fAddSocketOptExpRate );
@@ -12141,7 +12141,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			}
 
 			//////////////////////////////////////////////////////////////////////////
-			//{{ 2012. 12. 18	ÃÖÀ°»ç	ÇÊµå¿¡¼­µµ °æÇèÄ¡ ÀÌº¥Æ® Àû¿ë
+			//{{ 2012. 12. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Êµå¿¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_EVENT_EXP_BONUS_IN_BATTLE_FIELD
 			SiKGameEventManager()->GetRewardEvent( kRoomUserInfo, m_kUserDungeonManager.GetDungeonID(), GetLevel(), GetUnitClass(), 1 );
 #endif SERV_EVENT_EXP_BONUS_IN_BATTLE_FIELD
@@ -12154,7 +12154,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	case CXSLRoom::RT_TRAININGCENTER:
 		{
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 			m_kUserBuffManager.GetBuffList( kRoomUserInfo.m_vecBuffInfo );
 #endif SERV_SERVER_BUFF_SYSTEM
@@ -12165,18 +12165,18 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			float fTotalIncHPRate = 0.0f;
 			KStat kStat;
 
-			// ½ºÅ³½ºÅÈ Ãß°¡
+			// ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			m_kSkillTree.GetSkillStat( kStat );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-			//{{ 2009. 11. 26  ÃÖÀ°»ç	±æµå½ºÅ³
+			//{{ 2009. 11. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 #ifdef GUILD_SKILL_TEST
 			m_kUserGuildManager.GetGuildSkillStat( kStat );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 #endif GUILD_SKILL_TEST
 			//}}
 
-			// ÀåÂø¾ÆÀÌÅÛ ½ºÅÈ Ãß°¡
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 			m_kInventory.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
@@ -12184,21 +12184,21 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			m_kUserTitleManager.GetEquippedStat( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-			// Æê ¿À¶ó ½ºÅ³(add stat)
+			// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(add stat)
 			m_kUserPetManager.GetStatByPetSkill( bIsDungeonRoom, kModifiedBaseStatBySkill, fTotalIncHPRate, kStat, uiHP_OnePoint, uiUnitLevel );
 			kRoomUserInfo.m_kGameStat.AddStat( kStat );
 
-			// Æê ¿À¶ó ½ºÅ³(increase rate)
+			// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(increase rate)
 			m_kUserPetManager.GetStatIncreaseRateByPetSkill( bIsDungeonRoom, kStatIncreaseRateInfo );
 
-			//{{ 2009. 2. 2  ÃÖÀ°»ç		¼ÒÄÏ¿É¼Ç º¸»ó º¸³Ê½º
+			//{{ 2009. 2. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Ï¿É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 			float fAddSocketOptExpRate	= 0.0f;
 			float fAddSocketOptEDRate	= 0.0f;
 
-			// ÀåÂø ¾ÆÀÌÅÛ ¼ÒÄÏ ¿É¼Ç
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kInventory.GetEquippedItemBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 
-			// ÄªÈ£ ¼ÒÄÏ ¿É¼Ç
+			// ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½
 			m_kUserTitleManager.GetEquippedTitleBonusRate( bIsDungeonRoom, fAddSocketOptExpRate, fAddSocketOptEDRate );
 			//}}
 
@@ -12212,7 +12212,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			}
 		}
 		break;
-		//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+		//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	case CXSLRoom::RT_WEDDING_HALL:
 		{
@@ -12222,7 +12222,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		//}
 	default:
 		{
-			START_LOG( cerr, L"À¯´ÖÁ¤º¸ ¼ÂÆÃÁß Àß¸øµÈ ·ëÅ¸ÀÔ.!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½.!" )
 				<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
 				<< BUILD_LOG( GetCharName() )
 				<< END_LOG;
@@ -12230,13 +12230,13 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		break;
 	}
 
-	//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 	m_kUserBuffManager.GetBuffBonusRate( kRoomUserInfo );
 #endif SERV_SERVER_BUFF_SYSTEM
 	//}
 
-	//{{ 2010. 10. 27	ÃÖÀ°»ç	Æê ¿À¶ó ½ºÅ³
+	//{{ 2010. 10. 27	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
 	//#ifdef SERV_PET_AURA_SKILL
 	{
 		kRoomUserInfo.m_kGameStat.m_iAtkPhysic	+= static_cast<int>( static_cast<float>(kRoomUserInfo.m_kGameStat.m_iAtkPhysic) * kStatIncreaseRateInfo.m_fIncreaseAtkPhysicRate );
@@ -12302,10 +12302,10 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	}
 #endif SERV_RENA_NIGHT_WATCHER
 
-	//{{ 2010. 11. 24	ÃÖÀ°»ç	¸¶¹æ ÆÐ½Ãºê ½ºÅ³
+	//{{ 2010. 11. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³
 #ifdef SERV_MAGIC_RESISTANCE_SKILL
 	{
-		// oasis907 : ±è»óÀ± [2010.12.3] // ·é ½½·¹ÀÌ¾î - ¸¶¹ýÀúÇ× ¼ö·Ã
+		// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.12.3] // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( (int) CXSLSkillTree::SI_P_ERS_MAGIC_RESISTANCE );
 		if( iSkillLevel > 0 )
 		{
@@ -12317,7 +12317,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 		}
 	}
 
-	//{{ kimhc // 2010-12-14 // ½ÂÈ­µÈ ºÐ³ë - ·¹ÇÇ ÆÐ½Ãºê
+	//{{ kimhc // 2010-12-14 // ï¿½ï¿½È­ï¿½ï¿½ ï¿½Ð³ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½Ãºï¿½
 	{
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( CXSLSkillTree::SI_P_RRF_SPIRITUALIZED_FURY );
 		if( iSkillLevel > 0)
@@ -12331,13 +12331,13 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 			}
 		}
 	}
-	//}} kimhc // 2010-12-14 // ½ÂÈ­µÈ ºÐ³ë - ·¹ÇÇ ÆÐ½Ãºê
+	//}} kimhc // 2010-12-14 // ï¿½ï¿½È­ï¿½ï¿½ ï¿½Ð³ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½Ãºï¿½
 #endif SERV_MAGIC_RESISTANCE_SKILL
 	//}}
 
 #ifdef SERV_CHUNG_SECOND_CLASS_CHANGE
 	{
-		// oasis907 : ±è»óÀ± [2011.6.28] Ã» 2Â÷ ÀüÁ÷ - ¾ÆÀÌ¾ð ÆÈ¶óµò - ±»°ÇÇÑ ÀÇÁö
+		// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.6.28] Ã» 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½È¶ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( (int) CXSLSkillTree::SI_P_CIP_IRON_WILL );
 		if( iSkillLevel > 0 )
 		{
@@ -12352,7 +12352,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	}
 #endif SERV_CHUNG_SECOND_CLASS_CHANGE
 
-	//{{2010. 10. 27	±èÅÂÈ¯	·¹ÀÌºì ºí·¹ÀÌµå ¸¶½ºÅÍ º§·±½º °³Æí - ½Â¸®ÀÇ ÀÚ½Å°¨ ¹°¸® °ø°Ý·Â Áõ°¡ È¿°ú Ãß°¡
+	//{{2010. 10. 27	ï¿½ï¿½ï¿½ï¿½È¯	ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½Â¸ï¿½ï¿½ï¿½ ï¿½Ú½Å°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ý·ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_CONFIDENCE_VICTORY_PHYSIC_ATTACK
 	{
 		const int iSkillLevel = m_kSkillTree.GetSkillLevel( (int) CXSLSkillTree::SI_P_COMMON_CONFIDENCE_VICTORY );
@@ -12373,7 +12373,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	kRoomUserInfo.m_kGameStat = kModifiedFinalStatBySkill;
 
-	//{{ 2012. 02. 06	¹Ú¼¼ÈÆ	¹ß·»Å¸ÀÎ µ¥ÀÌ ÀÌº¥Æ®
+	//{{ 2012. 02. 06	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ß·ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_VALENTINE_DAY_EVENT
 	if( (SiKGameSysVal()->GetMenBuffEvent() == true ) && ( eRoomType == CXSLRoom::RT_DUNGEON ) )
 	{
@@ -12396,7 +12396,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	KSkillData aSkillData[ KUserSkillTree::MAX_SKILL_SLOT];
 	m_kSkillTree.GetSkillSlot( aSkillData );
 
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	for( int iSkillSlotID = 0 ; iSkillSlotID < KUserSkillTree::MAX_SKILL_SLOT ; ++iSkillSlotID )
 	{
@@ -12424,13 +12424,13 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	m_kSkillTree.GetPassiveSkillData( kRoomUserInfo.m_UnitSkillData.m_vecPassiveSkill );
 
-	//{{ 2010. 04. 08  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+	//{{ 2010. 04. 08  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
 	m_kSkillTree.GetSkillNote( kRoomUserInfo.m_UnitSkillData.m_vecSkillNote );
 #endif SERV_SKILL_NOTE
 	//}}
 
-	//{{ 2009. 11. 27  ÃÖÀ°»ç	±æµå½ºÅ³
+	//{{ 2009. 11. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½å½ºÅ³
 #ifdef GUILD_SKILL_TEST
 	float fAddGuildBonusExpRate = 0.0f;
 	float fAddSocketOptEDRate = 0.0f;
@@ -12439,7 +12439,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 
 	m_kUserGuildManager.GetGuildSkillBonusRate( fAddGuildBonusExpRate, fAddSocketOptEDRate );
 
-	//{{ 2010. 05. 11  ÃÖÀ°»ç	ÀÌº¥Æ® º¸»ó ÄÚµå Á¤¸®
+	//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 	//#ifdef SERV_ROOMUSERINFO_REFAC
 	if( fAddGuildBonusExpRate > 0.0f )
 	{
@@ -12454,10 +12454,10 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 #endif GUILD_SKILL_TEST
 	//}}
 
-	//{{ 2013. 03. 14	 »ç¿ëÇÏÁö ¾Ê´Â RoomUserInfo ÀÇ µ¥ÀÌÅÍ »èÁ¦ - ±è¹Î¼º
+	//{{ 2013. 03. 14	 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ RoomUserInfo ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_DELETE_ROOM_USER_INFO_DATA
 #else
-	//{{ 2012. 03. 20	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 03. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	kRoomUserInfo.m_iSpiritMax	= m_kUserSpiritManager.GetSpiritMax();
 	kRoomUserInfo.m_iSpirit		= m_kUserSpiritManager.GetSpirit();
@@ -12469,12 +12469,12 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 #endif SERV_DELETE_ROOM_USER_INFO_DATA
 	//}
 
-	//{{ 2010. 01. 29  ÃÖÀ°»ç	PC¹æ »ó¿ëÈ­
+	//{{ 2010. 01. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½È­
 	kRoomUserInfo.m_bIsGameBang = IsPcBang();
 	//}}    
 
-	//2008. 03. 10. hoons : ÇöÀç ÁøÇàÁßÀÎ Äù½ºÆ®Áß Äù½ºÆ® ¾ÆÀÌÅÛ ¼öÁýÄù½ºÆ® Á¤º¸¸¦ °¡Á®¿Â´Ù.
-	//{{ 2010. 10. 26	ÃÖÀ°»ç	Äù½ºÆ® Á¶°Ç Ãß°¡
+	//2008. 03. 10. hoons : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
+	//{{ 2010. 10. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_QUEST_CLEAR_EXPAND
 	m_kUserQuestManager.GetOngoingQuestForRoom( GetThisPtr<KGSUser>(), kRoomUserInfo.m_mapOngoingQuest );
 #else
@@ -12482,14 +12482,14 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 #endif SERV_QUEST_CLEAR_EXPAND
 	//}}
 
-	//{{ 2011. 05. 04  ±è¹Î¼º	´øÀü Å¬¸®¾î½Ã ¾ÆÀÌÅÛ Áö±Þ Á¶°Ç Ãß°¡
+	//{{ 2011. 05. 04  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM
 	m_kUserQuestManager.GetUserAllQuest( kRoomUserInfo.m_setQuestInfo );
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM
 	//}}
 
 	// ÄªÈ£ID
-	//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 	//#ifdef SERV_TITLE_DATA_SIZE
 	kRoomUserInfo.m_iTitleID = m_kUserTitleManager.GetEquippedTitleID();
 	//#else
@@ -12497,43 +12497,43 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	//#endif SERV_TITLE_DATA_SIZE
 	//}}
 
-	//080421.hoons. ÀÎº¥¿¡¼­ Ãàº¹ÀÇ ¸Þ´Þ ¾ÆÀÌÅÛÀ» °Ë»çÇÑ´Ù.
+	//080421.hoons. ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àº¹ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 	if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_BLESSING_MEDAL ) == true )
 	{
-		//{{ 2010. 05. 11  ÃÖÀ°»ç	ÀÌº¥Æ® º¸»ó ÄÚµå Á¤¸®
+		//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 		//#ifdef SERV_ROOMUSERINFO_REFAC
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_PREMIUM_EXP_RATE, SiKGameSysVal()->GetPremiumEXPRate() );
 		//#endif SERV_ROOMUSERINFO_REFAC
 		//}}
 	}
 
-	// [ÀÌº¥Æ®] 080619~26.hoons.´ëÇÑ¹Î±¹ÀÇ Èû Äù½ºÆ® ÀÌº¥Æ®.
+	// [ï¿½Ìºï¿½Æ®] 080619~26.hoons.ï¿½ï¿½ï¿½Ñ¹Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ìºï¿½Æ®.
 	//if( m_kInventory.IsExistOnlyInventory( 129765 ) == true )
 	//	kRoomUserInfo.m_fAddExpRate += 0.15f;
 
-	// [ÀÌº¥Æ®] 080626~ 3ÁÖ.hoons.¾×Æ®3 Àü¾ß ÀÌº¥Æ® ¸Þ´Þ
+	// [ï¿½Ìºï¿½Æ®] 080626~ 3ï¿½ï¿½.hoons.ï¿½ï¿½Æ®3 ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Þ´ï¿½
 	//if( m_kInventory.IsExistOnlyInventory( 129770 ) == true )
 	//	kRoomUserInfo.m_fAddExpRate += 0.15f;
 
-	//080811.hoons. cpa(¿ÜÁÖ¾÷Ã¼ Á¦ÈÞ ¾ÆÀÌÅÛ)
+	//080811.hoons. cpa(ï¿½ï¿½ï¿½Ö¾ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
 	//if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_EXP_15_PERCENT_MEDAL ) == true )
 	//	kRoomUserInfo.m_fAddExpRate += 0.15f;
 
-	// [ÀÌº¥Æ®] 080828 ~ 080910 yuksa. ½ÅÇÐ±â ±â³ä °æÇèÄ¡ ¸Þ´Þ
+	// [ï¿½Ìºï¿½Æ®] 080828 ~ 080910 yuksa. ï¿½ï¿½ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Þ´ï¿½
 	//if( m_kInventory.IsExistOnlyInventory( 130028 ) == true )
 	//	kRoomUserInfo.m_fAddExpRate += 0.15f;
 
-	// [ÀÌº¥Æ®] 081220 ~ 081221 yuksa. ½ÅÄ³¸¯ÅÍ ±â³ä °æÇèÄ¡ ¸Þ´Þ
+	// [ï¿½Ìºï¿½Æ®] 081220 ~ 081221 yuksa. ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Þ´ï¿½
 	if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_EXP_15_PERCENT_MEDAL ) == true )
 	{
-		//{{ 2010. 05. 11  ÃÖÀ°»ç	ÀÌº¥Æ® º¸»ó ÄÚµå Á¤¸®
+		//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 		//#ifdef SERV_ROOMUSERINFO_REFAC
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_PREMIUM_EXP_RATE, 0.15f );
 		//#endif SERV_ROOMUSERINFO_REFAC
 		//}}
 	}
 
-	//{{ 2009. 3. 30  ÃÖÀ°»ç	°æÇèÄ¡ 100% ¸Þ´Þ
+	//{{ 2009. 3. 30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Ä¡ 100% ï¿½Þ´ï¿½
 	if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_EXP_100_PERCENT_MEDAL ) == true )
 	{
 		//#ifdef SERV_ROOMUSERINFO_REFAC
@@ -12543,7 +12543,7 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	}
 	//}}
 
-	//{{ 2011. 10. 19    ±è¹Î¼º    200% °æÇèÄ¡ Ãß°¡ ¸Þ´Þ(ÀÌº¥Æ® ¾ÆÀÌÅÛ)
+	//{{ 2011. 10. 19    ï¿½ï¿½Î¼ï¿½    200% ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ß°ï¿½ ï¿½Þ´ï¿½(ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_ADD_EXP_200_MEDAL
 	if( m_kInventory.IsExistOnlyInventory( CXSLItem::SI_EXP_200_PERCENT_MEDAL ) == true )
 	{
@@ -12552,13 +12552,13 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 #endif SERV_ADD_EXP_200_MEDAL
 	//}} 
 
-	//{{ 2009. 5. 5  ÃÖÀ°»ç		Ã¤³Îº° º¸³Ê½º
+	//{{ 2009. 5. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ã¤ï¿½Îºï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 	float fAddChannelBonusExpRate = 0.0f;
-	float fAddChannelBonusEDRate = 0.0f; // ¾ÆÁ÷ ¹ÌÀû¿ë
+	float fAddChannelBonusEDRate = 0.0f; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	SiKChannelManager()->GetChannelBonus( GetLevel(), fAddChannelBonusExpRate, fAddChannelBonusEDRate );
 	//}}
 
-	//{{ 2010. 05. 11  ÃÖÀ°»ç	ÀÌº¥Æ® º¸»ó ÄÚµå Á¤¸®
+	//{{ 2010. 05. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 	//#ifdef SERV_ROOMUSERINFO_REFAC
 	if( fAddChannelBonusExpRate > 0.0f )
 	{
@@ -12567,17 +12567,17 @@ void KGSUser::GetRoomUserInfo( OUT KRoomUserInfo& kRoomUserInfo, IN const int iR
 	//#endif SERV_ROOMUSERINFO_REFAC
 	//}}
 
-	//{{ 2010. 07. 21  ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 07. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 	m_kUserPetManager.GetSummonedPetInfo( kRoomUserInfo.m_vecPet );
 #endif SERV_PET_SYSTEM
 	//}}
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 	m_kUserRidingPetManager.GetSummonedRidingPetInfo( kRoomUserInfo.m_iRidingPetUID, kRoomUserInfo.m_usRidingPetID );
 #endif	// SERV_RIDING_PET_SYSTM
 
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	kRoomUserInfo.m_iLoverUnitUID = m_kUserRelationshipManager.GetLoverUnitUID();
 #endif SERV_RELATIONSHIP_SYSTEM
@@ -12609,9 +12609,9 @@ void KGSUser::GetSquareUserInfo( KSquareUserInfo& kSquareUserInfo )
 
     kSquareUserInfo.m_cUnitClass        = GetUnitClass();
     kSquareUserInfo.m_ucLevel           = GetLevel();	
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
-	//{{ 2012. 09. 11	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 09. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	kSquareUserInfo.m_cRank				= GetPvpRankForClient();
 #else
@@ -12625,15 +12625,15 @@ void KGSUser::GetSquareUserInfo( KSquareUserInfo& kSquareUserInfo )
 
     kSquareUserInfo.m_bIsParty          = ( GetPartyUID() > 0 );
 
-	// ÀåÂø Àåºñ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	m_kInventory.GetEquippedItem( kSquareUserInfo.m_vecEquippedItem );
 
-	// °³ÀÎ»óÁ¡
+	// ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½
 	kSquareUserInfo.m_cPersonalShopState = CXSLSquareUnit::PSS_NONE;
 	kSquareUserInfo.m_cPersonalShopType = CXSLSquareUnit::PST_NONE;
 
-	// Å¸ÀÌÆ²
-	//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+	// Å¸ï¿½ï¿½Æ²
+	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 	kSquareUserInfo.m_iTitleID = m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -12641,13 +12641,13 @@ void KGSUser::GetSquareUserInfo( KSquareUserInfo& kSquareUserInfo )
 #endif SERV_TITLE_DATA_SIZE
 	//}}	
 
-	//{{ 2009. 9. 25  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 9. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 	kSquareUserInfo.m_wstrGuildName = m_kUserGuildManager.GetGuildName();
 #endif GUILD_TEST
 	//}}
 
-	//{{ 2011. 09. 20  ±è¹Î¼º	°ÔÀÓ³» ED °¨½Ã ¸ð´ÏÅÍ¸µ
+	//{{ 2011. 09. 20  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½Ó³ï¿½ ED ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 #ifdef SERV_ED_MONITORING_IN_GAME
 	kSquareUserInfo.m_iED = GetED();
 #endif SERV_ED_MONITORING_IN_GAME
@@ -12658,16 +12658,16 @@ void KGSUser::GetSquareUserInfo( KSquareUserInfo& kSquareUserInfo )
 #endif SERV_GROW_UP_SOCKET
 }
 
-//{{ 2008. 11. 4  ÃÖÀ°»ç	±¤Àå°³Æí
+//{{ 2008. 11. 4  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½å°³ï¿½ï¿½
 void KGSUser::GetFieldUserInfo( KFieldUserInfo& kFieldUserInfo )
 {
 	kFieldUserInfo.m_iUnitUID			= GetCharUID();
 	kFieldUserInfo.m_wstrNickName		= GetCharName();
 	kFieldUserInfo.m_cUnitClass			= GetUnitClass();
 	kFieldUserInfo.m_ucLevel			= GetLevel();
-	//{{ 2011. 06. 20	ÃÖÀ°»ç	´ëÀü °³Æí
+	//{{ 2011. 06. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PVP_NEW_SYSTEM
-	//{{ 2012. 09. 11	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+	//{{ 2012. 09. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 	kFieldUserInfo.m_cRank				= GetPvpRankForClient();
 #else
@@ -12678,23 +12678,23 @@ void KGSUser::GetFieldUserInfo( KFieldUserInfo& kFieldUserInfo )
 	kFieldUserInfo.m_cPVPEmblem			= static_cast<char>( CXSLUnit::PvpEmblemToPvpEmblemEnum( m_ePVPEmblem ) );
 #endif SERV_PVP_NEW_SYSTEM
 	//}}	
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	kFieldUserInfo.m_iLoverUnitUID = m_kUserRelationshipManager.GetLoverUnitUID();
 #endif SERV_RELATIONSHIP_SYSTEM
 	//}
-	// ÀåÂø Àåºñ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	m_kInventory.GetEquippedItem( kFieldUserInfo.m_vecEquippedItem );
 
 	//////////////////////////////////////////////////////////////////////////
-	// ·Îº¿ÀÎ °æ¿ì °­Á¦·Î ·£´ý ¿ÊÀÔÈ÷±â
+	// ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ROBOT_TEST
 	SiKRobotTestManager()->RobotFullEquip( GetCharName(), GetUnitType(), kFieldUserInfo.m_vecEquippedItem );
 #endif SERV_ROBOT_TEST
 	//////////////////////////////////////////////////////////////////////////
 
-	//{{ 2008. 10. 7  ÃÖÀ°»ç	Å¸ÀÌÆ²
-	//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+	//{{ 2008. 10. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å¸ï¿½ï¿½Æ²
+	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 	kFieldUserInfo.m_iTitleID = m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -12703,22 +12703,22 @@ void KGSUser::GetFieldUserInfo( KFieldUserInfo& kFieldUserInfo )
 	//}}	
 	//}}
 
-	//{{ 2009. 9. 25  ÃÖÀ°»ç	±æµå
+	//{{ 2009. 9. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 	kFieldUserInfo.m_wstrGuildName = m_kUserGuildManager.GetGuildName();
 #endif GUILD_TEST
 	//}}
 
-	//{{ 2009. 2. 24  ÃÖÀ°»ç	ÆÄÆ¼ ¸»Ç³¼±
+	//{{ 2009. 2. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ¼ ï¿½ï¿½Ç³ï¿½ï¿½
 	kFieldUserInfo.m_iPartyUID = GetPartyUID();
 
-	//{{ 2011. 09. 20  ±è¹Î¼º	°ÔÀÓ³» ED °¨½Ã ¸ð´ÏÅÍ¸µ
+	//{{ 2011. 09. 20  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½Ó³ï¿½ ED ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 #ifdef SERV_ED_MONITORING_IN_GAME
 	kFieldUserInfo.m_iED = GetED();
 #endif SERV_ED_MONITORING_IN_GAME
 	//}}
 
-	//{{ 2010. 07. 21  ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 07. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 	m_kUserPetManager.GetSummonedPetInfo( kFieldUserInfo.m_vecPet );
 #endif SERV_PET_SYSTEM
@@ -12727,7 +12727,7 @@ void KGSUser::GetFieldUserInfo( KFieldUserInfo& kFieldUserInfo )
 	kFieldUserInfo.m_bInvisible = IsInvisible();
 #endif SERV_INVISIBLE_GM
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 	m_kUserRidingPetManager.GetSummonedRidingPetInfo( kFieldUserInfo.m_iRidingPetUID, kFieldUserInfo.m_usRidingPetID );
 #endif	// SERV_RIDING_PET_SYSTM
 
@@ -12737,7 +12737,7 @@ void KGSUser::GetFieldUserInfo( KFieldUserInfo& kFieldUserInfo )
 }
 //}}
 
-//{{ 2009. 9. 22  ÃÖÀ°»ç	±æµå
+//{{ 2009. 9. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 void KGSUser::GetGuildMemberInfo( KGuildMemberInfo& kInfo )
 {
@@ -12749,10 +12749,10 @@ void KGSUser::GetGuildMemberInfo( KGuildMemberInfo& kInfo )
 	kInfo.m_ucMemberShipGrade = m_kUserGuildManager.GetMemberShipGrade();
 	kInfo.m_iChannelID	 = SiKChannelManager()->GetChannelID();
 	kInfo.m_iMapID		 = GetMapID();
-	kInfo.m_tLogOutTime	 = 0; // »õ·Î Á¢¼ÓÇßÀ¸¹Ç·Î 0À¸·Î ÃÊ±âÈ­!
+	kInfo.m_tLogOutTime	 = 0; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­!
 	//kInfo.m_wstrMessage	 = L"";
 
-	// RoomListID°¡ Á¸ÀçÇÏ¸é PVP·ÎºñÀÌ´Ù.
+	// RoomListIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ PVPï¿½Îºï¿½ï¿½Ì´ï¿½.
 	if( GetRoomListID() > 0 )
 	{
 		kInfo.m_cPosition = CXSLRoom::RT_PVP;
@@ -12765,7 +12765,7 @@ void KGSUser::GetGuildMemberInfo( KGuildMemberInfo& kInfo )
 		}
 		else
 		{
-			kInfo.m_cPosition = -1; // ¹æÀÌ ¾Æ´Ï¸é -1
+			kInfo.m_cPosition = -1; // ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ -1
 		}
 	}
 }
@@ -12792,7 +12792,7 @@ bool KGSUser::IsExistInventoryItemWithBank( int iItemID )
 	return m_kInventory.IsExistWithBank( iItemID );
 }
 
-//{{ 2010. 10. 26	ÃÖÀ°»ç	Äù½ºÆ® Á¶°Ç Ãß°¡
+//{{ 2010. 10. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_QUEST_CLEAR_EXPAND
 bool KGSUser::IsEnoughSpaceExist( IN const std::map< int, int >& mapItem )
 {
@@ -12806,12 +12806,12 @@ bool KGSUser::IsCompleteQuest( int iQuestID )
     return m_kUserQuestManager.IsCompleteQuest( iQuestID );
 }
 
-//{{ 2012. 09. 21   ±è¹Î¼º   ¸¶À» ÀÔÀå ¿À·ù ¸Þ½ÃÁö ±¸ºÐ
+//{{ 2012. 09. 21   ï¿½ï¿½Î¼ï¿½   ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ENTER_VILLAGE_ERROR
-//{{ 2009. 3. 9  ÃÖÀ°»ç		¸¶À» ÀÔÀå Á¶°Ç
+//{{ 2009. 3. 9  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 bool KGSUser::CheckEnterTheVillage( IN int iMapID, OUT int& iLimitLevel, OUT int& iRequireDungeonID )
 {
-	//{{ 2009. 4. 21  ÃÖÀ°»ç	¿î¿µÀÚ´Â ±×³É Åë°ú
+	//{{ 2009. 4. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½î¿µï¿½Ú´ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½
 	if( GetAuthLevel() >= SEnum::UAL_GM )
 		return true;
 	//}}
@@ -12823,7 +12823,7 @@ bool KGSUser::CheckEnterTheVillage( IN int iMapID, OUT int& iLimitLevel, OUT int
 
 bool KGSUser::CheckEnterTheVillage( IN const int iMapID )
 {
-	//{{ 2009. 4. 21  ÃÖÀ°»ç	¿î¿µÀÚ´Â ±×³É Åë°ú
+	//{{ 2009. 4. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½î¿µï¿½Ú´ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½
 	if( GetAuthLevel() >= SEnum::UAL_GM )
 		return true;
 	//}}
@@ -12833,7 +12833,7 @@ bool KGSUser::CheckEnterTheVillage( IN const int iMapID )
 	return SiCXSLMapData()->CheckRequireData( iMapID, GetLevel(), m_mapDungeonClear, iDummy1, iDummy2 );
 }
 
-//{{ 2009. 4. 28  ÃÖÀ°»ç	ÃÖ´ëED °Ë»ç
+//{{ 2009. 4. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ö´ï¿½ED ï¿½Ë»ï¿½
 bool KGSUser::CheckMaxED( __int64 iAddED )
 {
 	iAddED += GetED();
@@ -12853,19 +12853,19 @@ bool KGSUser::IsClearDungeon(int iDungeonID, char cDiffLevel)
 	return true;
 }
 
-//{{ 2009. 6. 12  ÃÖÀ°»ç	µ¥ÀÌÅÍ °ËÁõ
+//{{ 2009. 6. 12  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 bool KGSUser::CheckValidNickName( const std::wstring& wstrNickName )
 {
 	if( wstrNickName.empty()  ||  wstrNickName.size() > 12 )
 	{
-		// ºñÁ¤»óÀûÀÎ Å©±âÀÇ NickName
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ï¿½ NickName
 		SET_ERROR( ERR_CREATE_UNIT_04 );
 		return false;
 	}
 
 	if( KODBC::IsInvalidMarkIn( wstrNickName ) )
 	{
-		// Çã¿ëµÇÁö ¾Ê´Â Æ¯¼ö¹®ÀÚ°¡ Æ÷ÇÔµÇ¾îÀÖÀ½
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ÔµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½
 		SET_ERROR( ERR_ODBC_00 );
 		return false;
 	}
@@ -12874,16 +12874,16 @@ bool KGSUser::CheckValidNickName( const std::wstring& wstrNickName )
 }
 //}}
 
-//{{ 2009. 11. 10  ÃÖÀ°»ç	PC¹æ Ã¤³ÎÀÌµ¿
+//{{ 2009. 11. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ Ã¤ï¿½ï¿½ï¿½Ìµï¿½
 void KGSUser::GetChannelChangeInfo( KChannelChangeInfo& kInfo )
 {
-	// Ã¤³ÎÀÌµ¿ ¿¹¾à½Ã ÇÔ²² °¡Á®°¥ Á¤º¸¸¦ ¾ò½À´Ï´Ù.
+	// Ã¤ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô²ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 
-	//{{ 2009. 10. 26  ÃÖÀ°»ç	Á¢¼Ó½Ã°£ÀÌº¥Æ®
+	//{{ 2009. 10. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ó½Ã°ï¿½ï¿½Ìºï¿½Æ®
 	m_kUserEventManager.GetEventTimerInfo( kInfo.m_mapEventDurationTime );
 	//}}
-	//{{ 2009. 11. 10  ÃÖÀ°»ç	ÄªÈ£
-	//{{ 2010. 11. 17	ÃÖÀ°»ç	ÄªÈ£ µ¥ÀÌÅÍ Å©±â ´ÃÀÌ±â
+	//{{ 2009. 11. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£
+	//{{ 2010. 11. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 #ifdef SERV_TITLE_DATA_SIZE
 	kInfo.m_iEquippedTitleID = m_kUserTitleManager.GetEquippedTitleID();
 #else
@@ -12896,35 +12896,35 @@ void KGSUser::GetChannelChangeInfo( KChannelChangeInfo& kInfo )
 	kInfo.m_iPcBangType = GetPcBangType();
 #endif SERV_PC_BANG_TYPE
 
-	//{{ 2010. 02. 08  ÃÖÀ°»ç	PC¹æ Ã¤³Î ÀÌµ¿ ¿À·ù ¼öÁ¤
+	//{{ 2010. 02. 08  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ Ã¤ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_kInventory.GetChannelChangeInventoryInfo( kInfo.m_vecPcBangItemInfo );
 	//}}
 
-	//{{ 2012. 06. 14	¹Ú¼¼ÈÆ	¸ÅÀÏ¸ÅÀÏ ¼±¹° »óÀÚ
+	//{{ 2012. 06. 14	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 	kInfo.m_mmapDailyGiftBoxList = m_mmapDailyGiftBoxList;
 #endif SERV_EVENT_DAILY_GIFT_BOX
 	//}}
-	//{{ 2012. 12. 12	¹Ú¼¼ÈÆ	°Ü¿ï ¹æÇÐ Àü¾ß ÀÌº¥Æ®( ÀÓ½Ã, ÇÏµå ÄÚµù )
+	//{{ 2012. 12. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®( ï¿½Ó½ï¿½, ï¿½Ïµï¿½ ï¿½Úµï¿½ )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 	kInfo.m_wstrWinterVacationEventRegDate	= m_wstrWinterVacationEventRegDate;
 	kInfo.m_iWinterVacationEventCount		= m_iWinterVacationEventCount;
 #endif SERV_2012_WINTER_VACATION_EVENT
 	//}}
-	//{{ 2012. 1. 2		Merge ¹Ú¼¼ÈÆ	( 2013.1.2 ÁöÇå : ¹Ì´Ï¸Ê Ã¤³Î ÀÌµ¿ ½Ã ´©¶ô‰ç¾ú´ø Á¤º¸ Ãß°¡ )
+	//{{ 2012. 1. 2		Merge ï¿½Ú¼ï¿½ï¿½ï¿½	( 2013.1.2 ï¿½ï¿½ï¿½ï¿½ : ï¿½Ì´Ï¸ï¿½ Ã¤ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ )
 #ifdef SERV_CHANNEL_CHANGE_BUG_FIX
 	kInfo.m_nUnitSlot = m_nUnitSlot;
 #endif SERV_CHANNEL_CHANGE_BUG_FIX
 	//}}
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-30
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-30
 	USHORT usRidingPetID;
 	m_kUserRidingPetManager.GetSummonedRidingPetInfo( kInfo.m_iSummonedRidingPetUID, usRidingPetID );
 #endif	// SERV_RIDING_PET_SYSTM
 }
 //}}
 
-//{{ 2009. 1. 20  ÃÖÀ°»ç	°æÇèÄ¡ Á¦ÇÑ
+//{{ 2009. 1. 20  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 void KGSUser::KUserExpManager::AddExp( int iExp )
 {
 	_JIF( iExp >= 0, return; );
@@ -12966,7 +12966,7 @@ bool KGSUser::IsTransactionEnabled( unsigned short usEventID )
 
 			if( false == bTransactionEnabled )
 			{
-				START_LOG( cwarn, L"ÆÐÅ¶ Ã³¸®ÇÒ·Á°í ÇÏ´Âµ¥ ´Ù¸¥ ÆÐÅ¶ Ã³¸®¿Í °ãÃÄ¼­ Å¸ÀÌ¹Ö¹®Á¦¸¦ ÇÇÇÏ±â À§ÇØ ÆÐÅ¶ Ã³¸® ¾ÈÇÏ°í ¹«½Ã!" )
+				START_LOG( cwarn, L"ï¿½ï¿½Å¶ Ã³ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½Ï´Âµï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½Å¶ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¼ï¿½ Å¸ï¿½Ì¹Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( GetCharUID() )
 #ifndef SERV_PRIVACY_AGREEMENT
 					<< BUILD_LOG( GetCharName() )
@@ -13015,12 +13015,12 @@ void KGSUser::CheckTransactionAckEvent( unsigned short usEventID )
 
 void KGSUser::OnBuyCashItemAck( const KEGS_BUY_CASH_ITEM_ACK& kPacket_ )
 {
-	// ¾î´À »óÅÂ ¸·À»Áö ¾ÆÁ÷ ¹ÌÁ¤ÀÌ
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	KEGS_BUY_CASH_ITEM_ACK kPacket = kPacket_;
 	kPacket.m_bIsWishList = m_kUserWishList.GetBuyCashItemInWishList();
 	SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
 
-	// ½Ç½Ã°£ ºÎÈ°¼®
+	// ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 	if( m_kUserCashInventory.IsCashResurrectionStone() == true  &&  kPacket_.m_iOK != NetError::NET_OK )
 	{
 		KEGS_RESURRECT_TO_CONTINUE_DUNGEON_ACK kPacketAck;
@@ -13028,35 +13028,35 @@ void KGSUser::OnBuyCashItemAck( const KEGS_BUY_CASH_ITEM_ACK& kPacket_ )
 		SendPacket( EGS_RESURRECT_TO_CONTINUE_DUNGEON_ACK, kPacketAck );
 	}
 
-	//{{ 2011. 02. 08	ÃÖÀ°»ç	Ä³½¬ÅÛ ±¸¸Å ·Î±×
+	//{{ 2011. 02. 08	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_BUY_CASH_ITEM_LOG
 	BOOST_TEST_FOREACH( const KNXBTPurchaseReqInfo&, kReq, kPacket_.m_vecPurchaseReqInfo )
 	{
 		KNXBTProductInfo kProductInfo;
 		if( SiKNexonBillingTCPManager()->GetProductInfo( kReq.m_ulProductNo, kProductInfo ) == false )
 		{
-			START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â »óÇ°À» ±¸¸ÅÇÏ¿´½À´Ï´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½Ç°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½!" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( kReq.m_ulProductNo )
 				<< END_LOG;
 			continue;
 		}
 
-		// Ä³½¬ÅÛ ±¸¸Å Ä«¿îÆ® Ã¼Å©
+		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® Ã¼Å©
 		m_kUserStatistics.IncreaseCharacterCount( KUserStatistics::CGCT_BUY_CASH_ITEM );
 		m_kUserStatistics.IncreaseAccountCount( KUserStatistics::AGCT_BUY_CASH_ITEM );
 
-		// ÇØ´ç Ä³¸¯ÅÍ°¡ ÃÖÃÊ·Î Ä³½¬ÅÛ ±¸¸ÅÇÑ°ÍÀÌ¶ó¸é?
+		// ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½Ê·ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ°ï¿½ï¿½Ì¶ï¿½ï¿½?
 		if( m_kUserStatistics.GetCharacterCount( KUserStatistics::CGCT_BUY_CASH_ITEM ) == 1 )
 		{
-			//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+			//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 			WriteCharacterLogToDBWithProductNo( KELOG_USER_CHARACTER_LOG_NOT::LT_FIRST_BUY_CASH_ITEM, kReq.m_ulProductNo );
 #endif SERV_CHAR_LOG
 			//}}
 		}
 
-		// Ä³½¬ÅÛ ±¸¸Å ·Î±× ³²±â±â
+		// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 		CTime tCurTime = CTime::GetCurrentTime();
 		KELOG_BUY_CASH_ITEM_LOG_NOT kPacketToLog;
 		kPacketToLog.m_iUserUID			= GetUID();
@@ -13079,7 +13079,7 @@ void KGSUser::OnBuyCashItemAck( const KEGS_BUY_CASH_ITEM_ACK& kPacket_ )
 
 int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& kPacket_, const KEGS_BILL_GET_PURCHASED_CASH_ITEM_REQ& kPacket2_ )
 {
-	// 1. »óÇ° ¾ÆÀÌÅÛID ¾ò±â
+	// 1. ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID ï¿½ï¿½ï¿½
 	int iItemID = 0;
 	KBillProductInfo kBillProductInfo;
 
@@ -13094,7 +13094,7 @@ int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& 
 
 	if( iItemID <= 0 )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ID º¯È¯ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ID ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket_.m_ulProductNo )
 			<< BUILD_LOG( kPacket_.m_wstrProductID )
 			<< BUILD_LOG( kPacket2_.m_iTransNo )
@@ -13105,12 +13105,12 @@ int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& 
 		return NetError::ERR_NX_SHOP_01;
 	}
 
-	std::map< int, int > mapItem; // ÀÎº¥Åä¸® °Ë»ç¿ë
+	std::map< int, int > mapItem; // ï¿½Îºï¿½ï¿½ä¸® ï¿½Ë»ï¿½ï¿½
 
-	// 2. »óÇ° Á¾·ù¸¦ °Ë»çÇÑ´Ù.
+	// 2. ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 	if( SiKBillManager()->IsPackage( kPacket2_.m_iProductNo ) )
 	{
-		START_LOG( cerr, L"ÆÐÅ°Áö ¾ÆÀÌÅÛ °¡Á®¿À±â ½Ãµµ" )
+		START_LOG( cerr, L"ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½" )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( kPacket2_.m_iProductNo )
 			<< END_LOG;
@@ -13118,19 +13118,19 @@ int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& 
 		return NetError::ERR_NX_SHOP_01;
 	}
 
-	// 3. ÀåÂø °¡´ÉÇÑ Å¬·¡½ºÀÎÁö °Ë»çÇÑ´Ù.
+	// 3. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 	if( !m_kInventory.CompareUnitClass( iItemID ) )
 	{
 		return NetError::ERR_NX_SHOP_07;
 	}
 
-	// 3-1. ±¸¸Å Á¦ÇÑ ·¹º§À» °Ë»çÇÑ´Ù.
+	// 3-1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 	if( kBillProductInfo.m_cLimitLevel > GetLevel() )
 	{
 		return NetError::ERR_BUY_CASH_ITEM_59;
 	}
 
-	// 4. °¡Á®¿À·Á´Â ¾ÆÀÌÅÛÀÌ ÀÎº¥Åä¸® ¶Ç´Â ÀºÇà¿¡ ÀÖÀ¸¸é¼­ ±â°£Á¦ÀÌ¸é ¸·´Â´Ù.
+	// 4. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸® ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½à¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½â°£ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
 	if( m_kInventory.IsExistWithBank( iItemID ) )
 	{
 		if( kBillProductInfo.m_cPeriod > 0 )
@@ -13139,14 +13139,14 @@ int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& 
 		}
 	}
 
-	//{{ 2012. 02. 22	¹Ú¼¼ÈÆ	±æµå ÀÌ¸§ º¯°æ±Ç
+	//{{ 2012. 02. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GUILD_CHANGE_NAME
 	switch( iItemID )
 	{
 	case CXSLItem::CI_GUILD_NAME_CHANGE:
 		if( m_kUserGuildManager.IsGuildMaster() == true )
 		{
-			// ±æµå ÀÌ¸§ º¯°æ±ÇÀº ¿¹¿Ü Ã³¸®
+			// ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 			KEGS_BILL_GET_PURCHASED_CASH_ITEM_ACK kPacket;
 			kPacket.m_iOK = NetError::NET_OK;
 			kPacket.m_iExceptionProcessItemID = iItemID;
@@ -13163,10 +13163,10 @@ int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& 
 #endif SERV_GUILD_CHANGE_NAME
 		//}}
 
-	// Ä³¸¯ÅÍ ÀÎº¥¿¡¼­´Â ¾ÆÀÌÅÛÀ¸·Î Á¸ÀçÇÏÁö ¾Ê´Â Ä³½Ã¾ÆÀÌÅÛÀÇ °æ¿ì¿¡ Áßº¹±¸¸Å¿¡ ´ëÇÑ ¿¹¿Ü Ã³¸®
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ Ä³ï¿½Ã¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ ï¿½ßºï¿½ï¿½ï¿½ï¿½Å¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 	switch( iItemID )
 	{
-	case CXSLItem::CI_EXPAND_SKILL_SLOT: // 4.1 °¡Á®¿À·Á´Â ¾ÆÀÌÅÛÀÌ ½ºÅ³½½·ÔB(±â°£Á¦) ÀÌ¸é, ÀÌ¹Ì ½ºÅ³½½·ÔB(±â°£Á¦, È¤Àº ¿µ±¸)¸¦ »ç¿ëÁßÀÌ¸é °¡Á®¿Ã ¼ö ¾ø°Ô ¸·´Â´Ù
+	case CXSLItem::CI_EXPAND_SKILL_SLOT: // 4.1 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½B(ï¿½â°£ï¿½ï¿½) ï¿½Ì¸ï¿½, ï¿½Ì¹ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½B(ï¿½â°£ï¿½ï¿½, È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â´ï¿½
 		{
 			KUserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE eSkillSlotBExpireState = m_kSkillTree.GetSkillSlotBExpirationState();
 			if( KUserSkillTree::SSBES_EXPIRED != eSkillSlotBExpireState )
@@ -13176,8 +13176,8 @@ int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& 
 		} break;
 
 
-		// 4.2 Ä³½Ã½ºÅ³Æ÷ÀÎÆ®¸¦ ÀÌ¹Ì »ç¿ëÇÏ°í ÀÖ´Âµ¥ Æ÷ÀÎÆ®°¡ ´Ù¸¥ Ä³½Ã½ºÅ³Æ÷ÀÎÆ®¸¦ °¡Á®¿Í¼­ ±â°£ ¿¬ÀåÀ» ÇÏ·Á°í ÇÏ¸é ¸·´Â´Ù
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013// ÀÛ¾÷³¯Â¥: 2013-06-25	// ¹Ú¼¼ÈÆ
+		// 4.2 Ä³ï¿½Ã½ï¿½Å³ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´Âµï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ù¸ï¿½ Ä³ï¿½Ã½ï¿½Å³ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½Â´ï¿½
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-25	// ï¿½Ú¼ï¿½ï¿½ï¿½
 		case CXSLItem::CI_CASH_SKILL_POINT_60_15:
 	case CXSLItem::CI_CASH_SKILL_POINT_60_30:
 	case CXSLItem::CI_CASH_SKILL_POINT_30_15:
@@ -13204,17 +13204,17 @@ int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& 
 
 				if( iCSPoint != m_kSkillTree.GetMaxCSPoint() )
 				{
-					return NetError::ERR_BUY_CASH_ITEM_32;				// fix!! ¿¡·¯¸Þ¼¼Áö ¼öÁ¤
+					return NetError::ERR_BUY_CASH_ITEM_32;				// fix!! ï¿½ï¿½ï¿½ï¿½ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				}
 			}
 		} break;
 	}
 
-	// ÀÎº¥Åä¸® ¿©À¯ °ø°£ °Ë»ç
+	// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	switch( iItemID )
 	{
 	case CXSLItem::CI_EXPAND_SKILL_SLOT: 
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013// ÀÛ¾÷³¯Â¥: 2013-06-25	// ¹Ú¼¼ÈÆ
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-25	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	case CXSLItem::CI_CASH_SKILL_POINT_60_15:
 	case CXSLItem::CI_CASH_SKILL_POINT_60_30:
 	case CXSLItem::CI_CASH_SKILL_POINT_30_15:
@@ -13239,17 +13239,17 @@ int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& 
 	case CXSLItem::CI_GUILD_NAME_CHANGE:
 #endif //SERV_GUILD_CHANGE_NAME
 		{
-			// Ä³½ÃÀÎº¥¿¡¼­ ³» Ä³¸¯ÅÍ·Î °¡Á®¿Ã ¶§ ³» ÀÎº¥¿¡ ¾ÆÀÌÅÛÀ¸·Î µé¾î°¡Áö ¾Ê´Â °ÍµéÀº ÀÎº¥Åä¸® ¿©À¯°ø°£ °Ë»ç¸¦ ÇÏÁö ¾Ê´Â´Ù.
+			// Ä³ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½î°¡ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½Íµï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 
 		} break;
 
 	default:
 		{
-			// 5. ¿©À¯°ø°£ °Ë»ç¸¦ À§ÇÑ ÁØºñ
+			// 5. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ç¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½
 			int iQuantity = ( int )kBillProductInfo.m_cQuantity;           
 			mapItem.insert( std::make_pair( iItemID, iQuantity ) );	
 
-			// 6. ÀÎº¥Åä¸®ÀÇ ¿©À¯°ø°£ °Ë»ç
+			// 6. ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 			if( !m_kInventory.IsEnoughSpaceExist( mapItem ) )
 			{
 				return NetError::ERR_NX_SHOP_02;
@@ -13258,12 +13258,12 @@ int KGSUser::OnGetPurchasedCashItemReq( const KEGS_GET_PURCHASED_CASH_ITEM_REQ& 
 		break;
 	}
 
-	// 7. ¾ÆÀÌÅÛ¿¡ ºÎ¿©µÉ ¼ÒÄÏ¿É¼Ç
-	//{{ 2012. 11. 28 Ä³½Ã ¾ÆÀÌÅÛ ¼ÒÄÏ ¿É¼Ç ±â´É ¼öÁ¤ - ±è¹Î¼º
+	// 7. ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿É¼ï¿½
+	//{{ 2012. 11. 28 Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_CASH_ITEM_SOCKET_OPTION
 	if( m_kUserCashInventory.SetSocketForCash( kPacket2_.m_mapSocketForCash, kPacket2_.m_mapSocketGroupIDForCash ) == false )
 	{
-		// Á¤»óÀûÀÌÁö ¾Ê´Â ¼ÒÄÏ Á¤º¸¸¦ ¼ÂÆÃÇÏ·Á ÇÕ´Ï´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½Õ´Ï´ï¿½.
 		return NetError::ERR_SOCKET_ITEM_09;
 	}
 #else
@@ -13299,7 +13299,7 @@ bool KGSUser::IsDirectPickUpItem( IN const int iItemID )
 	case CXSLItem::CI_EXPAND_CHAR_SLOT_1:
 	case CXSLItem::CI_EXPAND_CHAR_SLOT_2:
 	case CXSLItem::CI_EXPAND_SKILL_SLOT_PERMANENT:
-		//{{ 2009. 8. 7  ÃÖÀ°»ç		ÀºÇà
+		//{{ 2009. 8. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½
 	case CXSLItem::CI_BANK_MEMBERSHIP_SILVER:
 	case CXSLItem::CI_BANK_MEMBERSHIP_GOLD:
 	case CXSLItem::CI_BANK_MEMBERSHIP_EMERALD:
@@ -13307,7 +13307,7 @@ bool KGSUser::IsDirectPickUpItem( IN const int iItemID )
 	case CXSLItem::CI_BANK_MEMBERSHIP_PLATINUM:
 	case CXSLItem::CI_BANK_MEMBERSHIP_ONE_PACKAGE:
 		//}}
-		//{{ 2009. 9. 22  ÃÖÀ°»ç	ÀüÁ÷Ä³½¬
+		//{{ 2009. 9. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½
 	case CXSLItem::CI_CHANGE_JOB_ELSWORD_KNIGHT:
 	case CXSLItem::CI_CHANGE_JOB_MAGIC_KNIGHT:
 	case CXSLItem::CI_CHANGE_JOB_COMBAT_RANGER:
@@ -13371,17 +13371,17 @@ bool KGSUser::IsDirectPickUpItem( IN const int iItemID )
 #endif
 		//}}
 
-		//{{ 2010. 04. 27  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+		//{{ 2010. 04. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
 	case CXSLItem::CI_CASH_SKILL_NOTE_ITEM:
 #endif SERV_SKILL_NOTE
 		//}}
-		//{{ 2011. 04. 14	ÃÖÀ°»ç	´ë¸® »óÀÎ / ´ë¸® »óÀÎÀº Ä³½¬ ÀÎº¥¿¡¼­ Á÷Á¢ »ç¿ëÇÒ ¼ö ÀÖµµ·Ï ÇÏÀÚ
+		//{{ 2011. 04. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½ / ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		//#ifdef SERV_PSHOP_AGENCY
 		//		case CXSLItem::CI_PERSONAL_SHOP_AGENCY:
 		//#endif
 		//}}
-		//{{ ÁöÇå - ÀºÇà °³Æí Äù½ºÆ®, Ä³½¬ ÀÛ¾÷ 
+		//{{ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®, Ä³ï¿½ï¿½ ï¿½Û¾ï¿½ 
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 	case CXSLItem::CI_CASH_SHARING_BACK_OPEN:
 #endif
@@ -13399,7 +13399,7 @@ bool KGSUser::IsDirectPickUpItem( IN const int iItemID )
 
 
 
-		//{{ 2009. 8. 4  ÃÖÀ°»ç		ºÀÀÎ½ºÅ³
+		//{{ 2009. 8. 4  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Î½ï¿½Å³
 	default:
 		{
 
@@ -13423,7 +13423,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 {
 	if( kPacket2_.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ä³½¬ ¾ÆÀÌÅÛ °¡Á® ¿À±â ½ÇÆÐ." )
+		START_LOG( cerr, L"Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( GetName() )
 			<< BUILD_LOG( kPacket2_.m_iOK )
@@ -13433,8 +13433,8 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 		return NetError::ERR_NX_SHOP_03;
 	}
 
-	std::map< int, KItemInfo > mapItem; // ÀÎº¥Åä¸®¿¡ µé¾î°¥ ¾ÆÀÌÅÛµé
-	//{{ 2009. 9. 2  ÃÖÀ°»ç		¹ÐºÀ
+	std::map< int, KItemInfo > mapItem; // ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½î°¥ ï¿½ï¿½ï¿½ï¿½ï¿½Ûµï¿½
+	//{{ 2009. 9. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Ðºï¿½
 	std::set< int > setSealCashItem;
 	//}}
 
@@ -13451,7 +13451,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 
 	if( iItemID <= 0 )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ID º¯È¯ ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ID ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket_.m_ulProductNo )
 			<< BUILD_LOG( kPacket2_.m_iProductNo )
 			<< BUILD_LOG( iItemID )
@@ -13463,16 +13463,16 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 	const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( iItemID );
 	if( pItemTemplet == NULL )
 	{
-		START_LOG( cerr, L"¾ÆÀÌÅÛ ÅÛÇÃ¸´À» ¾òÁö ¸øÇÔ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iItemID )
 			<< END_LOG;
 
 		return NetError::ERR_NX_SHOP_01;
 	}
 
-	// 20080416. ¿©±â±îÁö ¿À¸é Á¤»óÀûÀ¸·Î ¾ÆÀÌÅÛÀ» Ã¤¿öÁà¾ßÇÔ. ÄÚµå ¼öÁ¤½Ã ÀÌ Á¡ ÁÖÀÇ ¿ä¸Á.
+	// 20080416. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.
 
-	// Ä³½¬ ¾ÆÀÌÅÛ °¡Á®¿À±â ·Î±×
+	// Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 	KELOG_GET_PURCHASED_CASH_ITEM_NOT kPacketNot;
 	kPacketNot.m_iUnitUID = GetCharUID();
 	kPacketNot.m_iItemID = iItemID;
@@ -13486,15 +13486,15 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 
 	switch( pItemTemplet->m_ItemID )
 	{
-	case CXSLItem::CI_RESURRECTION_STONE: // ºÎÈ°¼®
+	case CXSLItem::CI_RESURRECTION_STONE: // ï¿½ï¿½È°ï¿½ï¿½
 		{
-			// ºÎÈ°¼®ÀÌ¸é ¹Ù·Î Ã¤¿öÁØ´Ù.
+			// ï¿½ï¿½È°ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½Ù·ï¿½ Ã¤ï¿½ï¿½ï¿½Ø´ï¿½.
 			m_iNumResurrectionStone += iQuantity;
 
 			START_LOG( clog2, L"resurr enter" )
 				<< END_LOG;
 
-			// ½Ç½Ã°£ ºÎÈ°¼®
+			// ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 			if( m_kUserCashInventory.IsCashResurrectionStone() )
 			{
 				START_LOG( clog2, L"resurr send" )
@@ -13520,9 +13520,9 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 		}
 		break;
 
-	case CXSLItem::CI_EXPAND_INVENTORY: // ¼ÒÁöÇ° È®Àå
+	case CXSLItem::CI_EXPAND_INVENTORY: // ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½
 		{
-			// ¼ÒÁöÇ° È®ÀåÀÌ¸é DB·Î ÀÌº¥Æ®¸¦ º¸³½´Ù.
+			// ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			int nSlot;
 			nSlot = CXSLInventory::SLOT_COUNT_ONE_LINE * iQuantity;
 
@@ -13540,9 +13540,9 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 		}
 		break;
 
-	case CXSLItem::CI_EXPAND_INVENTORY_EQUIP: // ¼ÒÁöÇ° È®Àå(Àåºñ)
+	case CXSLItem::CI_EXPAND_INVENTORY_EQUIP: // ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½(ï¿½ï¿½ï¿½)
 		{
-			// ¼ÒÁöÇ° È®ÀåÀÌ¸é DB·Î ÀÌº¥Æ®¸¦ º¸³½´Ù.
+			// ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			int nSlot = CXSLInventory::SLOT_COUNT_ONE_LINE;
 			KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
 			kPacket.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
@@ -13550,13 +13550,13 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_EQUIP, nSlot ) );
 			SendToGameDB( DBE_EXPAND_INVENTORY_SLOT_REQ, kPacket );
 			//continue;
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
 
-	case CXSLItem::CI_EXPAND_INVENTORY_ACCESSORY: // ¼ÒÁöÇ° È®Àå(¾×¼¼¼­¸®)
+	case CXSLItem::CI_EXPAND_INVENTORY_ACCESSORY: // ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½(ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½)
 		{
-			// ¼ÒÁöÇ° È®ÀåÀÌ¸é DB·Î ÀÌº¥Æ®¸¦ º¸³½´Ù.
+			// ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			int nSlot = CXSLInventory::SLOT_COUNT_ONE_LINE;
 			KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
 			kPacket.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
@@ -13564,13 +13564,13 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_ACCESSORY, nSlot ) );					
 			SendToGameDB( DBE_EXPAND_INVENTORY_SLOT_REQ, kPacket );
 			//continue;
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
 
-	case CXSLItem::CI_EXPAND_INVENTORY_QUICK_SLOT: // ¼ÒÁöÇ° È®Àå(¼Òºñ)
+	case CXSLItem::CI_EXPAND_INVENTORY_QUICK_SLOT: // ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½(ï¿½Òºï¿½)
 		{
-			// ¼ÒÁöÇ° È®ÀåÀÌ¸é DB·Î ÀÌº¥Æ®¸¦ º¸³½´Ù.
+			// ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			int nSlot = CXSLInventory::SLOT_COUNT_ONE_LINE;
 			KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
 			kPacket.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
@@ -13578,13 +13578,13 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_QUICK_SLOT, nSlot ) );
 			SendToGameDB( DBE_EXPAND_INVENTORY_SLOT_REQ, kPacket );
 			//continue;
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
 
-	case CXSLItem::CI_EXPAND_INVENTORY_MATERIAL: // ¼ÒÁöÇ° È®Àå(Àç·á)
+	case CXSLItem::CI_EXPAND_INVENTORY_MATERIAL: // ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½(ï¿½ï¿½ï¿½)
 		{
-			// ¼ÒÁöÇ° È®ÀåÀÌ¸é DB·Î ÀÌº¥Æ®¸¦ º¸³½´Ù.
+			// ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			int nSlot = CXSLInventory::SLOT_COUNT_ONE_LINE;
 			KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
 			kPacket.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
@@ -13592,13 +13592,13 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_MATERIAL, nSlot ) );					
 			SendToGameDB( DBE_EXPAND_INVENTORY_SLOT_REQ, kPacket );
 			//continue;
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
 
-	case CXSLItem::CI_EXPAND_INVENTORY_QUEST: // ¼ÒÁöÇ° È®Àå(Äù½ºÆ®)
+	case CXSLItem::CI_EXPAND_INVENTORY_QUEST: // ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Æ®)
 		{
-			// ¼ÒÁöÇ° È®ÀåÀÌ¸é DB·Î ÀÌº¥Æ®¸¦ º¸³½´Ù.
+			// ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			int nSlot = CXSLInventory::SLOT_COUNT_ONE_LINE;
 			KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
 			kPacket.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
@@ -13606,13 +13606,13 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_QUEST, nSlot ) );
 			SendToGameDB( DBE_EXPAND_INVENTORY_SLOT_REQ, kPacket );
 			//continue;
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
 
-	case CXSLItem::CI_EXPAND_INVENTORY_SPECIAL: // ¼ÒÁöÇ° È®Àå(Æ¯¼ö)
+	case CXSLItem::CI_EXPAND_INVENTORY_SPECIAL: // ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½(Æ¯ï¿½ï¿½)
 		{
-			// ¼ÒÁöÇ° È®ÀåÀÌ¸é DB·Î ÀÌº¥Æ®¸¦ º¸³½´Ù.
+			// ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			int nSlot = CXSLInventory::SLOT_COUNT_ONE_LINE;
 			KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
 			kPacket.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
@@ -13620,33 +13620,33 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_SPECIAL, nSlot ) );					
 			SendToGameDB( DBE_EXPAND_INVENTORY_SLOT_REQ, kPacket );
 			//continue;
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
-		//{{ 2011. 12. 13  ±è¹Î¼º	Äü ½½·Ô È®Àå ¾ÆÀÌÅÛ
+		//{{ 2011. 12. 13  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_EXPAND_QUICK_SLOT
 	case CXSLItem::CI_EXPAND_QUICK_SLOT:
 		{
-			// ¼ÒÁöÇ° È®ÀåÀÌ¸é DB·Î ÀÌº¥Æ®¸¦ º¸³½´Ù.
+			// ï¿½ï¿½ï¿½ï¿½Ç° È®ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			int nSlot = CXSLInventory::EXPAND_QUICK_SLOT;
 			KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
 			kPacket.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
 			kPacket.m_iUnitUID = GetCharUID();
 			kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_E_QUICK_SLOT, nSlot ) );					
 			SendToGameDB( DBE_EXPAND_INVENTORY_SLOT_REQ, kPacket );
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
 #endif SERV_EXPAND_QUICK_SLOT
 		//}}
 
-	case CXSLItem::CI_EXPAND_SKILL_SLOT: // ½ºÅ³ ½½·Ô Ã¼ÀÎÁö ¸Þ´Þ
+	case CXSLItem::CI_EXPAND_SKILL_SLOT: // ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´ï¿½
 		{
 			KDBE_EXPAND_SKILL_SLOT_REQ kPacket;
 			kPacket.m_iUnitUID		= GetCharUID();
 			kPacket.m_iPeriodExpire = iPeriod;
 			SendToGameDB( DBE_EXPAND_SKILL_SLOT_REQ, kPacket );
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
 
@@ -13656,7 +13656,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacket.m_iUnitUID		= GetCharUID();
 			kPacket.m_iPeriodExpire = 0;
 			SendToGameDB( DBE_EXPAND_SKILL_SLOT_REQ, kPacket );
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013
@@ -13685,11 +13685,11 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 				KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
 				kPacket.m_iUnitUID	= GetCharUID();
 				kPacket.m_iCSPoint	= iCSPoint;
-				//{{ 2009. 12. 2  ÃÖÀ°»ç	Ä³½¬ÅÛ±â°£Å¸ÀÔº¯°æ
+				//{{ 2009. 12. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½Û±â°£Å¸ï¿½Ôºï¿½ï¿½ï¿½
 				kPacket.m_iPeriod	= iPeriod;
 				//}}
 				kPacket.m_bUpdateEndDateOnly = false;
-				//{{ 2010. 12. 8	ÃÖÀ°»ç	ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹
+				//{{ 2010. 12. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹
 				kPacket.m_iSkillPointItemID = pItemTemplet->m_ItemID;
 				//}}
 				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
@@ -13701,21 +13701,21 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 					KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
 					kPacket.m_iUnitUID = GetCharUID();
 					kPacket.m_iCSPoint = iCSPoint;
-					//{{ 2009. 12. 2  ÃÖÀ°»ç	Ä³½¬ÅÛ±â°£Å¸ÀÔº¯°æ
+					//{{ 2009. 12. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½Û±â°£Å¸ï¿½Ôºï¿½ï¿½ï¿½
 					kPacket.m_iPeriod = iPeriod;
 					//}}
 					kPacket.m_bUpdateEndDateOnly = true;
-					//{{ 2010. 12. 8	ÃÖÀ°»ç	ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹
+					//{{ 2010. 12. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹
 					kPacket.m_iSkillPointItemID = pItemTemplet->m_ItemID;
 					//}}
 					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
 				}
 				else
 				{
-					START_LOG( cerr, L"ÇöÀç »ç¿ëÇÏ°í ÀÖ´Â Ä³½Ã½ºÅ³Æ÷ÀÎÆ®¿Í ´Ù¸¥ °ÍÀ¸·Î ±â°£¿¬Àå ÇÏ·Á°íÇÔ!!" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´ï¿½ Ä³ï¿½Ã½ï¿½Å³ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½â°£ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ï¿½ï¿½!!" )
 						<< BUILD_LOG( GetCharUID() )
 						<< BUILD_LOG( pItemTemplet->m_ItemID )
-						//{{ 2009. 12. 2  ÃÖÀ°»ç	Ä³½¬ÅÛ±â°£Å¸ÀÔº¯°æ
+						//{{ 2009. 12. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½Û±â°£Å¸ï¿½Ôºï¿½ï¿½ï¿½
 						<< BUILD_LOG( iPeriod )
 						//}}
 						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
@@ -13726,9 +13726,9 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 				}
 			}
 
-			return NetError::ERR_NX_SHOP_09; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::ERR_NX_SHOP_09; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		} break;
-		//{{ 2008. 12. 14  ÃÖÀ°»ç	Ä³¸¯ÅÍ ½½·Ô È®Àå
+		//{{ 2008. 12. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	case CXSLItem::CI_EXPAND_CHAR_SLOT_1:
 	case CXSLItem::CI_EXPAND_CHAR_SLOT_2:
 		{
@@ -13741,14 +13741,14 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 		break;
 		//}}
 
-		//{{ 2009. 8. 7  ÃÖÀ°»ç		ÀºÇà
+		//{{ 2009. 8. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½
 	case CXSLItem::CI_BANK_MEMBERSHIP_SILVER:
 	case CXSLItem::CI_BANK_MEMBERSHIP_GOLD:
 	case CXSLItem::CI_BANK_MEMBERSHIP_EMERALD:
 	case CXSLItem::CI_BANK_MEMBERSHIP_DIAMOND:
 	case CXSLItem::CI_BANK_MEMBERSHIP_PLATINUM:
 		{
-			// ÀºÇà È®ÀåÇÏ·¯ °¡ÀÚ!
+			// ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
 			kPacket.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
 			kPacket.m_iUnitUID = GetCharUID();
@@ -13760,7 +13760,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 
 	case CXSLItem::CI_BANK_MEMBERSHIP_ONE_PACKAGE:
 		{
-			// ÀºÇà È®ÀåÇÏ·¯ °¡ÀÚ!
+			// ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
 			kPacket.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
 			kPacket.m_iUnitUID = GetCharUID();
@@ -13771,17 +13771,17 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 		break;
 		//}}
 
-		//{{ 2010. 04. 09  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+		//{{ 2010. 04. 09  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
 	case CXSLItem::CI_CASH_SKILL_NOTE_ITEM:
 		{
 			char cSkillNoteMaxPageNum = 0;
 			if( m_kSkillTree.GetExpandSkillNotePage( GetLevel(), cSkillNoteMaxPageNum ) == true )
 			{
-				// ÀÏ´Ü ±â¼úÀÇ ³ëÆ® ÆäÀÌÁö ¼ö¸¦ ÀúÀåÇÏÀÚ!
+				// ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				m_kSkillTree.UpdateSkillNoteMaxPageNum( cSkillNoteMaxPageNum );
 
-				// ±â¼úÀÇ ³ëÆ®¸¦ È¹µæ ÇÏ·¯ °¡ÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				KDBE_EXPAND_SKILL_NOTE_PAGE_REQ kPacketToDB;
 				kPacketToDB.m_iUnitUID = GetCharUID();
 				kPacketToDB.m_cExpandedMaxPageNum = cSkillNoteMaxPageNum;
@@ -13791,7 +13791,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			}
 			else
 			{
-				START_LOG( cerr, L"±â¼úÀÇ ³ëÆ®¸¦ ½ÀµæÇÏ·Á°í ÇÏ´Âµ¥ ÆäÀÌÁö ¼ö ¾ò±â¸¦ ½ÇÆÐÇÏ¿´½À´Ï´Ù." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½Ï´Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 					<< BUILD_LOG( GetCharUID() )
 					<< BUILD_LOG( GetLevel() )
 					<< END_LOG;
@@ -13800,7 +13800,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 		break;
 #endif SERV_SKILL_NOTE
 		//}}
-		//{{ 2011. 04. 14	ÃÖÀ°»ç	´ë¸® »óÀÎ
+		//{{ 2011. 04. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 	case CXSLItem::CI_PERSONAL_SHOP_AGENCY:
 		{
@@ -13810,19 +13810,19 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacketToDB.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
 			SendToGameDB( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ, kPacketToDB );
 
-			// ÁöÇå : Ä³½¬ ÀÎº¥ ¸ñ·ÏÀ» °»½Å ÇØ¾ß ÇÏ´Âµ¥....
-			//		NET_OK ¸®ÅÏÇØÁÖ¸é µÇÁö ¾ÊÀ»±î?
+			// ï¿½ï¿½ï¿½ï¿½ : Ä³ï¿½ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½Ï´Âµï¿½....
+			//		NET_OK ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?
 			return NetError::NET_OK;
-			//return NetError::ERR_NX_SHOP_09;// ÁöÇå : ÀÓ½Ã
+			//return NetError::ERR_NX_SHOP_09;// ï¿½ï¿½ï¿½ï¿½ : ï¿½Ó½ï¿½
 		}
 		break;
 #endif SERV_PSHOP_AGENCY
 		//}}
-		//{{ ÁöÇå - ÀºÇà °³Æí Äù½ºÆ®, Ä³½¬ ÀÛ¾÷ 
+		//{{ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®, Ä³ï¿½ï¿½ ï¿½Û¾ï¿½ 
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 	case CXSLItem::CI_CASH_SHARING_BACK_OPEN:
 		{
-			// Ä³½¬·Î ÀºÇà °øÀ¯~
+			// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½~
 			KDBE_SHARING_BACK_OPEN_REQ kPacketToDB;
 			kPacketToDB.m_iUnitUID = GetCharUID();
 			kPacketToDB.m_iUserUID = GetUID();
@@ -13845,11 +13845,11 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacket.m_iPeriod	= 30;		
 			SendToGameDB( DBE_INSERT_WARP_VIP_REQ, kPacket );
 
-			return NetError::NET_OK; // ¾ÆÀÌÅÛ »ý¼ºÇÏÁö ¾Ê°í ¹Ù·Î ¸®ÅÏ
+			return NetError::NET_OK; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
 		}
 		break;
 #endif // SERV_ADD_WARP_BUTTON
-		//{{ 2012. 02. 22	¹Ú¼¼ÈÆ	±æµå ÀÌ¸§ º¯°æ±Ç
+		//{{ 2012. 02. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GUILD_CHANGE_NAME
 	case CXSLItem::CI_GUILD_NAME_CHANGE:
 		{
@@ -13857,21 +13857,21 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			kPacket.m_iUnitUID = GetCharUID();
 			kPacket.m_iGuildUID = GetGuildUID();
 			kPacket.m_wstrOldGuildName = m_kUserGuildManager.GetGuildName();
-			// m_wstrNewGuildNameÀº LoginServer ÂÊ¿¡¼­ ¾òÀ» °ÍÀÌ´Ù.
+			// m_wstrNewGuildNameï¿½ï¿½ LoginServer ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½.
 			SendToLoginServer( ELG_CHANGE_GUILD_NAME_REQ, kPacket );
 
 			return NetError::NET_OK;
 		}
 		break;
 #endif //SERV_GUILD_CHANGE_NAME
-		//{{ 2009. 8. 4  ÃÖÀ°»ç		ºÀÀÎ½ºÅ³
+		//{{ 2009. 8. 4  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Î½ï¿½Å³
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
 	case CXSLItem::CI_UNLIMITED_CHANGE_SECOND_JOB:
 		{
 			CStringW cwstrItemID;
 			cwstrItemID.Format( L"%d", CXSLItem::CI_UNLIMITED_CHANGE_SECOND_JOB );
-			// 2Â÷ ÀüÁ÷ itemº¸³½´Ù.
-			// DB·Î º¸»ó Á¤º¸¸¦ º¸³½´Ù.
+			// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ itemï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+			// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 			kPacketToDB.m_iFromUnitUID = GetCharUID();
 			kPacketToDB.m_iToUnitUID   = GetCharUID();
@@ -13886,10 +13886,10 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 #endif //SERV_UNLIMITED_SECOND_CHANGE_JOB
 	default:
 		{
-			//{{ 2009. 9. 22  ÃÖÀ°»ç	ÀüÁ÷Ä³½¬
+			//{{ 2009. 9. 22  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½
 			if( CXSLItem::IsJobChangeCashItem( iItemID ) )
 			{
-				// ÀüÁ÷ ÇÏ·¯ °¡ÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½!
 				KDBE_CHANGE_UNIT_CLASS_REQ kPacket;
 				kPacket.m_usEventID = EGS_BUY_CASH_ITEM_REQ;
 				kPacket.m_iUnitUID = GetCharUID();
@@ -13898,7 +13898,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 				int iDefaultSkill[6] = {0,};
 				if( SiCXSLSkillTree()->GetUnitClassDefaultSkill( kPacket.m_cUnitClass, iDefaultSkill[0], iDefaultSkill[1], iDefaultSkill[2], iDefaultSkill[3], iDefaultSkill[4], iDefaultSkill[5] ) == false )
 				{
-					START_LOG( cerr, L"ÀüÁ÷½Ã Áö±ÞÇÏ·Á´Â ±âº» ½ºÅ³ÀÌ ÀÌ»óÇÔ" )
+					START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½" )
 						<< BUILD_LOG( kPacket.m_iUnitUID )
 						<< BUILD_LOGc( kPacket.m_cUnitClass )
 						<< END_LOG;
@@ -13923,7 +13923,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 				return NetError::ERR_NX_SHOP_09;
 			}
 			//}}
-			//{{ 2011. 11. 21  ±è¹Î¼º	ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ
+			//{{ 2011. 11. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			int iUnitClass = 0;
 			if( CXSLItem::GetClassChangeCashItem( iItemID ) != CXSLUnit::UC_NONE )
 			{
@@ -13935,7 +13935,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 				}
 				else
 				{
-					START_LOG( cerr, L"Ä³½¬ ¾ÆÀÌÅÛ ÇÈ¾÷ °úÁ¤¿¡¼­ ½ÇÆÐ°¡ ³µ´Ù! º¹±Í ÇØ¾ß ÇÒ µí ÇÑµ¥!!!" )
+					START_LOG( cerr, L"Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð°ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ñµï¿½!!!" )
 						<< BUILD_LOG( GetCharUID() )
 						<< BUILD_LOG( iItemID )
 						<< END_LOG;
@@ -13944,7 +13944,7 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 			}
 			//}}
 
-			//{{ 2009. 8. 4  ÃÖÀ°»ç		ºÀÀÎ½ºÅ³
+			//{{ 2009. 8. 4  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Î½ï¿½Å³
 			std::vector<int> vecSkillID;
 			if( SiCXSLSkillTree()->GetUnsealItemInfo( iItemID, GetUnitClass(), vecSkillID ) == true )
 			{
@@ -13968,14 +13968,14 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 	kItemInfo.m_iQuantity	= iQuantity;
 	kItemInfo.m_sEndurance	= ( pItemTemplet->m_PeriodType == CXSLItem::PT_ENDURANCE ) ? pItemTemplet->m_Endurance : 0;
 	kItemInfo.m_sPeriod		= ( short )iPeriod;
-	//{{ 2009. 8. 27  ÃÖÀ°»ç	¹ÐºÀ
+	//{{ 2009. 8. 27  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ðºï¿½
 	if( SiCXSLItemManager()->IsCanSealForCashItem( iItemID ) == true )
 	{
 		setSealCashItem.insert( pItemTemplet->m_ItemID );
 	}
 	//}}
 
-	//{{ 2012. 11. 28 Ä³½Ã ¾ÆÀÌÅÛ ¼ÒÄÏ ¿É¼Ç ±â´É ¼öÁ¤ - ±è¹Î¼º
+	//{{ 2012. 11. 28 Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 	int iSocketOption = 0;
 	if( m_kUserCashInventory.GetSocketOptionForCash( iItemID, iSocketOption ) )
 	{
@@ -13991,16 +13991,16 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 	mapItem.insert( std::make_pair( iItemID, kItemInfo ) );
 
 
-	// ÀÎº¥Åä¸®¿¡ ¾ÆÀÌÅÛ ³ÖÀ» ÁØºñ
+	// ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½
 	KDBE_INSERT_ITEM_REQ kPacketReq;
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	¾ÆÀÌÅÛ È¹µæ »çÀ¯
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	kPacketReq.m_cGetItemReason = SEnum::GIR_BUY_CASH_ITEM;
 
 	m_kInventory.PrepareInsert( mapItem, kPacketReq.m_mapInsertedItem, kPacketReq.m_vecUpdatedInventorySlot, kPacketReq.m_vecItemInfo );
 
 	if( !kPacketReq.m_vecItemInfo.empty() )
 	{
-		//{{ 2009. 9. 2  ÃÖÀ°»ç		ºÀÀÎ
+		//{{ 2009. 9. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½
 		kPacketReq.m_setSealCashItem = setSealCashItem;
 		//}}
 		kPacketReq.m_iUnitUID = GetCharUID();
@@ -14015,19 +14015,19 @@ int KGSUser::OnPickUpAck( const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacke
 		vecInventorySlotInfo = kPacketReq.m_vecUpdatedInventorySlot;
 	}
 
-	// Ä³½¬ ¾ÆÀÌÅÛ Åë°è
+	// Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	std::map< int, int >::const_iterator mit;
 	for( mit = kPacketReq.m_mapInsertedItem.begin(); mit != kPacketReq.m_mapInsertedItem.end(); ++mit )
 	{
 		KStatisticsKey kKey;
 		kKey.m_vecIntKey.push_back( mit->first );
 		KSIManager.IncreaseCount( KStatistics::SI_LOC_ITEM, kKey, KStatistics::SI_ITEM_MALL, mit->second );
-		//{{ 2011. 04. 13	ÃÖÀ°»ç	¾ÆÀÌÅÛ Åë°è DB±â·Ï
+		//{{ 2011. 04. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½
 		KSIManager.IncreaseCount( KStatistics::SI_ITEM_DB, kKey, KStatistics::SI_ITEM_MALL, mit->second );
 	}
 
-	//{{ 2010. 07. 05  ÃÖÀ°»ç	À¯Àú ¾îºäÀú ¸Å´ÏÀú
-	// ¾ÆÀÌÅÛ ¾îºäÀú
+	//{{ 2010. 07. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_kUserAbuserManager.CheckItemAbuser( GetThisPtr<KGSUser>(), KAbuserLogManager::RS_CASH_ITEM, kPacketReq.m_mapInsertedItem );
 	//}}
 
@@ -14055,7 +14055,7 @@ std::wstring KGSUser::MakeOrderID()
 	return wstrRet;
 }
 
-// ±¹°¡º°·Î »ç¿ë°¡´ÉÇÑ Ä³½Ã Á¾·ù°¡ ´Ù¸§
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ë°¡ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½
 bool KGSUser::IsAbleToUseCashType(int iCashType)
 {
 	if(iCashType < 0 || iCashType >= KGlobalCashInfo::GCT_TOTAL_NUM)
@@ -14073,7 +14073,7 @@ bool KGSUser::IsAbleToUseCashType(int iCashType)
 	if (iCashType == KGlobalCashInfo::GCT_KOG_ELSWORD_CASH )
 		return true;
 #else // SERV_COUNTRY_XX
-	// Áß±¹,´ë¸¸È«Äá Á¦¿ÜÇÏ°í´Â Ä³½Ã Á¾·ù ÇÏ³ª¹Û¿¡ ¾È¾¸
+	// ï¿½ß±ï¿½,ï¿½ë¸¸È«ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½Û¿ï¿½ ï¿½È¾ï¿½
 	if (iCashType == KGlobalCashInfo::GCT_PUBLISHER_CASH)
 		return true;
 #endif // SERV_COUNTRY_XX
@@ -14090,7 +14090,7 @@ void KGSUser::ProcessEvent( const KEventPtr& spEvent_ )
 	if( RoutePacket( spEvent_.get() ) )
 		return;
 
-	//{{ 2010. 9. 8	ÃÖÀ°»ç	³×Æ®¿öÅ© Æ®·¡ÇÈ À¯¹ß À¯Àú ¸ð´ÏÅÍ¸µ
+	//{{ 2010. 9. 8	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ®ï¿½ï¿½Å© Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 #ifdef SERV_TRAFFIC_USER_MONITORING
 	m_kUserAbuserManager.CheckTrafficAbuser( spEvent_->m_usEventID );
 #endif SERV_TRAFFIC_USER_MONITORING
@@ -14104,9 +14104,9 @@ void KGSUser::ProcessEvent( const KEventPtr& spEvent_ )
 	CheckTransactionReqEvent( spEvent_->m_usEventID ); // EGS_
 	CheckTransactionAckEvent( spEvent_->m_usEventID ); // DBE_
 
-	//{{ 2010. 07. 05  ÃÖÀ°»ç	À¯Àú ¾îºäÀú ¸Å´ÏÀú
+	//{{ 2010. 07. 05  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_USER_ABUSER_MANAGER
-	//{{ 2013. 05. 29	ÃÖÀ°»ç	ÆÐÅ¶ ¸ð´ÏÅÍ¸µ ±Ù¼ºµµ Ç×¸ñ Ãß°¡
+	//{{ 2013. 05. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_PACKET_MORNITORING_SPIRIT_COL
 	m_kUserAbuserManager.CheckMornitoringAbuser( GetUID(), GetCharUID(), GetED(), m_kUserSpiritManager.GetSpirit(), spEvent_->m_usEventID );
 #else
@@ -14116,18 +14116,18 @@ void KGSUser::ProcessEvent( const KEventPtr& spEvent_ )
 #endif SERV_USER_ABUSER_MANAGER
 	//}}
 
-	//{{ 2009. 9. 13  ÃÖÀ°»ç	À¯Àú·Î±×
+	//{{ 2009. 9. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Î±ï¿½
 #ifdef USER_LOG
 	m_kUserLogManager.SaveProcessEvent( spEvent_->m_usEventID );
 #endif USER_LOG
 	//}}
 
-	DWORD dwElapTime = ::GetTickCount();  // 040428. ÆÐÅ¶ Ã³¸® ¼Ò¿ä½Ã°£À» ±¸ÇÑ´Ù.
+	DWORD dwElapTime = ::GetTickCount();  // 040428. ï¿½ï¿½Å¶ Ã³ï¿½ï¿½ ï¿½Ò¿ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 
 	switch( spEvent_->m_usEventID )
 	{
 	//////////////////////////////////////////////////////////////////////////
-		//{{ 2011. 06. 08	ÃÖÀ°»ç	KEvent ÃâÃ³ µî·Ï ±â´É
+		//{{ 2011. 06. 08	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	KEvent ï¿½ï¿½Ã³ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_KEVENT_FROM
 #	undef EVENT_HANDLER
 #	define EVENT_HANDLER( eventid ) CASE_CHECK_ERR_AND_FILTER( eventid );
@@ -14139,7 +14139,7 @@ void KGSUser::ProcessEvent( const KEventPtr& spEvent_ )
 #pragma message( "Server Packet Event Filter!!!!!" )
 #pragma message( "--------------------------------------------" )
 #else
-	//{{ 2011. 04. 04	ÃÖÀ°»ç	deserializing ½ÇÆÐ ·Î±×
+	//{{ 2011. 04. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	deserializing ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #	undef EVENT_HANDLER
 #	define EVENT_HANDLER( eventid ) CASE_CHECK_ERR( eventid );
 #	undef EVENT_HANDLER_NOPARAM
@@ -14150,12 +14150,12 @@ void KGSUser::ProcessEvent( const KEventPtr& spEvent_ )
 #endif SERV_KEVENT_FROM
 	//}}
 
-	// ¿©±â¼­ ºÎÅÍ GSUser Event HandlerÀÇ Çì´õ ÆÄÀÏÀ» Ãß°¡ÇÕ´Ï´Ù.
+	// ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½ GSUser Event Handlerï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Õ´Ï´ï¿½.
 #	include "GSUserSession.h"
 #	include "GSUserSecurity.h"
 #	include "GSUserGameCommon.h"
 #	include "GSUserField.h"
-	//{{ 2011. 12. 05	ÃÖÀ°»ç	¹èÆ²ÇÊµå
+	//{{ 2011. 12. 05	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 #	include "GSUserNewParty.h"
 #else
@@ -14175,7 +14175,7 @@ void KGSUser::ProcessEvent( const KEventPtr& spEvent_ )
 	default:
 		if( ProcessEventExpand( spEvent_ ) == false)
 		{
-			START_LOG( cerr, L"ÀÌº¥Æ® ÇÚµé·¯°¡ Á¤ÀÇµÇÁö ¾Ê¾ÒÀ½ - " << spEvent_->GetIDStr() )
+			START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ - " << spEvent_->GetIDStr() )
 				<< BUILD_LOG( spEvent_->m_usEventID );
 		}
 		break;
@@ -14190,14 +14190,14 @@ void KGSUser::ProcessEvent( const KEventPtr& spEvent_ )
 			<< BUILD_LOG( dwElapTime );
 	}
 
-	//{{ 2011. 12. 14	ÃÖÀ°»ç	ÆÐÅ¶ Ã³¸® Áö¿¬ ½Ã°£ Ã¼Å©
+	//{{ 2011. 12. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å¶ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ Ã¼Å©
 #ifdef SERV_PACKET_PROCESSING_LATENCY_CHECK
 	SiKPacketMornitoring()->CheckPacketProcessingLatency( spEvent_->m_usEventID, GetCharUID(), dwElapTime );
 #endif SERV_PACKET_PROCESSING_LATENCY_CHECK
 	//}}
 }
 
-// ÀÌÁ¦ Ãß°¡ µÇ´Â ÀÌº¥Æ®´Â ¿©±â¿¡ Ãß°¡ÇÏµµ·Ï ÇÑ´Ù.
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½Ç´ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½â¿¡ ï¿½ß°ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 bool KGSUser::ProcessEventExpand( const KEventPtr& spEvent_ )
 {
 	switch( spEvent_->m_usEventID )
@@ -14211,7 +14211,7 @@ bool KGSUser::ProcessEventExpand( const KEventPtr& spEvent_ )
 #	include "GSUserLetter.h"
 #	include "GSUserAdminCheat.h"
 #	include "GSUserMatch.h"
-		//{{ 2011. 10. 27	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+		//{{ 2011. 10. 27	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 #	include "GSUserBattleField.h"
 #	include "GSUserAutoParty.h"
@@ -14221,7 +14221,7 @@ bool KGSUser::ProcessEventExpand( const KEventPtr& spEvent_ )
 //#ifdef SERV_COUNTRY_CN
 #	include "GSUserGiant.h"
 //#endif SERV_COUNTRY_CN
-		//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+		//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 #	include "GSUserRelationship.h"
 #endif SERV_RELATIONSHIP_SYSTEM
@@ -14233,7 +14233,7 @@ bool KGSUser::ProcessEventExpand( const KEventPtr& spEvent_ )
 	return true;
 }
 
-//{{ 2011. 04. 05  ±è¹Î¼º	¿ìÆí ¹× °Å·¡ °¨½Ã
+//{{ 2011. 04. 05  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MONITORING_LETTER_AND_TRADE
 void KGSUser::CheckLetterAndTradeMonitoring()
 {
@@ -14255,7 +14255,7 @@ void KGSUser::CheckLetterAndTradeMonitoring()
 #endif SERV_MONITORING_LETTER_AND_TRADE
 //}}
 
-//{{ 2011. 04. 26	ÃÖÀ°»ç	deserialize ½ÇÆÐ Á¾·á
+//{{ 2011. 04. 26	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	deserialize ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_DESERIALIZE_FAIL_DISCONNECT
 void KGSUser::CheckDeserializeFailCount()
 {
@@ -14264,16 +14264,16 @@ void KGSUser::CheckDeserializeFailCount()
 
 	m_kTimer[TM_DESERIALIZE_FAIL].restart();
 
-	// Ã¼Å© ÇÒÁö ¾ÈÇÒÁö º¸ÀÚ!
+	// Ã¼Å© ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	if( SiKGameSysVal()->IsDeserializeFailCheck() == false )
 		return;
 	
-	// 5ºÐ¸¶´Ù ÇÑ¹ø¾¿ Ã¼Å©ÇÏÀÚ!
+	// 5ï¿½Ð¸ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½!
     if( m_kUserHackingManager.HackingCheckDeserializeFailCount() == true )
 	{
 		if( GetAuthLevel() >= SEnum::UAL_DEVELOPER )
 		{
-			START_LOG( cout, L"°³¹ßÀÚÀÎµ¥ Deserialize Fail Hacking Check¿¡ °É·Áµé¾ú³×? ÄÚµå Àß¸ø Â®³ª;;" )
+			START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ Deserialize Fail Hacking Checkï¿½ï¿½ ï¿½É·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½? ï¿½Úµï¿½ ï¿½ß¸ï¿½ Â®ï¿½ï¿½;;" )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetUID() )
 				<< BUILD_LOG( GetCharUID() );
@@ -14284,7 +14284,7 @@ void KGSUser::CheckDeserializeFailCount()
 		}
 		else
 		{
-			START_LOG( cout, L"[ÇØÅ·°¨Áö!] Deserialize Fail Hacking Check¿¡ À¯Àú°¡ Ã¼Å© µÇ¾ú½À´Ï´Ù! ¸ð´ÏÅÍ¸µ À¯Àú¿¡ µî·ÏÇÏ°í °Å·¡Â÷´Ü µÇ¾ú½À´Ï´Ù!" )
+			START_LOG( cout, L"[ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½!] Deserialize Fail Hacking Checkï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½!" )
 #ifdef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetUID() )
 				<< BUILD_LOG( GetCharUID() );
@@ -14292,7 +14292,7 @@ void KGSUser::CheckDeserializeFailCount()
 				<< BUILD_LOG( GetName() )
 				<< BUILD_LOG( GetCharName() );
 #endif SERV_PRIVACY_AGREEMENT
-			//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+			//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 			HackUserRegMonitorsUser( KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DESERIALIZE_FAIL );
 			HackUserRegTradeBlock( KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_DESERIALIZE_FAIL );
@@ -14317,7 +14317,7 @@ void KGSUser::CheckDeserializeFailCount()
 #endif SERV_DESERIALIZE_FAIL_DISCONNECT
 //}}
 
-//{{ 2012. 10. 15	ÃÖÀ°»ç		ED&¾ÆÀÌÅÛ ¸ð´ÏÅÍ¸µ ½Ã½ºÅÛ
+//{{ 2012. 10. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ED&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 void KGSUser::CheckEDAndItemMornitoring()
 {
@@ -14326,12 +14326,12 @@ void KGSUser::CheckEDAndItemMornitoring()
 
 	m_kTimer[TM_CHECK_ED_AND_ITEM_MORNITOING].restart();
 
-	// ¼öÁýµÈ ED Á¤º¸¸¦ Ã¼Å©ÇÏ¿© ºñÁ¤»óÀûÀÎ Çàµ¿À» ÇÏ´Â À¯Àú¸¦ Ã£¾Æ³»ÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ED ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àµ¿ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ³ï¿½ï¿½ï¿½!
 	const std::map< int, __int64 >& mapEDStatistics = m_kEDManager.GetEDStatistics();
 	m_kEDManager.ClearStatistics();
 
 
-	// ¼öÁýµÈ ¾ÆÀÌÅÛ Á¤º¸¸¦ Ã¼Å©ÇÏ¿© ºñÁ¤»óÀûÀÎ Çàµ¿À» ÇÏ´Â À¯Àú¸¦ Ã£¾Æ³»ÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àµ¿ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ³ï¿½ï¿½ï¿½!
 	const KItemQuantityVariation& kItemQuantity = m_kInventory.GetItemQuantityVariation();
 	m_kInventory.ClearItemQuantityVariation();
 }
@@ -14339,18 +14339,18 @@ void KGSUser::CheckEDAndItemMornitoring()
 //}}
 
 
-//{{ 2012. 05. 31	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+//{{ 2012. 05. 31	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 void KGSUser::CheckAutoPartyBonus()
 {
 	if( GetStateID() > KGSFSM::S_SERVER_SELECT  &&  GetStateID() < KGSFSM::STATE_SENTINEL )
 	{
-		if( m_kTimer[TM_AUTO_PARTY_BONUS_CHECK].elapsed() < 5.0 ) // °£°ÝÀÌ Âª´Ù Ã¼Å©¸¦ ÀßÇÏÀÚ!
+		if( m_kTimer[TM_AUTO_PARTY_BONUS_CHECK].elapsed() < 5.0 ) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Âªï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 			return;
 
 		m_kTimer[TM_AUTO_PARTY_BONUS_CHECK].restart();
 
-		// ÇöÀç º¸³Ê½º Á¤º¸ ¾ò¾î ¿ÀÀÚ!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		//KEGS_UPDATE_AUTO_PARTY_BONUS_INFO_NOT kPacket;
 		//m_kUserDungeonManager.CheckAutoPartyBonusRefresh( kPacket.m_mapDungeonBonusList );
 
@@ -14363,7 +14363,7 @@ void KGSUser::CheckAutoPartyBonus()
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-//{{ 2011. 05. 02  ±è¹Î¼º	2Â÷ º¸¾È ½Ã½ºÅÛ
+//{{ 2011. 05. 02  ï¿½ï¿½Î¼ï¿½	2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_SECOND_SECURITY
 bool KGSUser::GetSuccessSecondSecurity()
 { 
@@ -14391,7 +14391,7 @@ bool KGSUser::IsSameSecondSecurityPW( IN const std::wstring& wstrSecondPW )
 		return true;
 	}
 
-	START_LOG( clog, L"2Â÷ º¸¾È ºñ¹Ð¹øÈ£ÀÇ ¸ÂÁö ¾Ê½À´Ï´Ù." )
+	START_LOG( clog, L"2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." )
 		<< BUILD_LOG( GetUID() )
 		<< BUILD_LOG( m_wstrSecondPW )
 		<< BUILD_LOG( wstrSecondPW )
@@ -14404,28 +14404,28 @@ bool KGSUser::CheckIntegritySecondSecurityPW( IN const std::wstring& wstrSecondP
 {
 	iOK = NetError::NET_OK;
 
-	// ºñ¾î ÀÖ°Å³ª
+	// ï¿½ï¿½ï¿½ ï¿½Ö°Å³ï¿½
 	if( wstrSecondPW.empty() == true )	
 	{
 		iOK = NetError::ERR_SECOND_SECURITY_DEFECT_PW;
 		return false;
 	}
 
-	// 4ÀÚ¸® º¸´Ù ÀÛ°Å³ª
+	// 4ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û°Å³ï¿½
 	if( wstrSecondPW.size() < 4 )		
 	{
 		iOK = NetError::ERR_SECOND_SECURITY_DEFECT_PW;
 		return false;
 	}
 
-	// 6ÀÚ¸® º¸´Ù Å©°Å³ª
+	// 6ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ Å©ï¿½Å³ï¿½
 	if( wstrSecondPW.size() > 6 )		
 	{
 		iOK = NetError::ERR_SECOND_SECURITY_DEFECT_PW;
 		return false;
 	}
 
-	// µ¿ÀÏÇÑ ¼ýÀÚÀÎ°¡
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½
 	{
 		int iFirstNum = 0;
 		int iNextNum = 0;
@@ -14433,7 +14433,7 @@ bool KGSUser::CheckIntegritySecondSecurityPW( IN const std::wstring& wstrSecondP
 		WCHAR _wchar;
         
 		_wchar = wstrSecondPW[0];
-		iFirstNum = _wchar - 48;				// '0' ÀÇ °ªÀÌ 48 ÀÌ´Ù.
+		iFirstNum = _wchar - 48;				// '0' ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 48 ï¿½Ì´ï¿½.
 
 		for( unsigned int i = 0 ; i < wstrSecondPW.size() ; ++i )
 		{
@@ -14447,7 +14447,7 @@ bool KGSUser::CheckIntegritySecondSecurityPW( IN const std::wstring& wstrSecondP
 
  		if( iCheck == wstrSecondPW.size() )
 		{
-			START_LOG( clog, L"µ¿ÀÏÇÑ ¼ýÀÚ¸¦ ºñ¹Ð¹øÈ£·Î ¼³Á¤ÇÏ·ÁÇÑ´Ù." )
+			START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½Ñ´ï¿½." )
 				<< BUILD_LOG( GetName() )
 				<< BUILD_LOG( wstrSecondPW );
 
@@ -14456,17 +14456,17 @@ bool KGSUser::CheckIntegritySecondSecurityPW( IN const std::wstring& wstrSecondP
 		}
 	}
 		
-	// ¿¬¼ÓµÈ ¼ýÀÚÀÎ°¡
+	// ï¿½ï¿½ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½
 	{
 		int iFrontNum = 0;
 		int iNextNum = 0;
-		int iCheck = 1;			// Ã¹ÀÚ¸®´Â µ¿ÀÏÇÏ¹Ç·Î ¹Ì¸® ÇÏ³ª Áõ°¡, ºñ±³´Â µÎ¹øÂ° ºÎÅÍ
+		int iCheck = 1;			// Ã¹ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¹Ç·ï¿½ ï¿½Ì¸ï¿½ ï¿½Ï³ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ñ±³´ï¿½ ï¿½Î¹ï¿½Â° ï¿½ï¿½ï¿½ï¿½
 		WCHAR _wchar;
 		
 		_wchar = wstrSecondPW[0];
-		iFrontNum = _wchar - 48;				// '0' ÀÇ °ªÀÌ 48 ÀÌ´Ù.
+		iFrontNum = _wchar - 48;				// '0' ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 48 ï¿½Ì´ï¿½.
 
-		for( unsigned int i = 1 ; i < wstrSecondPW.size() ; ++i )	// ¿À¸§¼ø °Ë»ç
+		for( unsigned int i = 1 ; i < wstrSecondPW.size() ; ++i )	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 		{
 			_wchar = wstrSecondPW[i];
 			iNextNum = _wchar - 48;
@@ -14480,7 +14480,7 @@ bool KGSUser::CheckIntegritySecondSecurityPW( IN const std::wstring& wstrSecondP
 
 		if( iCheck == wstrSecondPW.size() )
 		{
-			START_LOG( clog, L"¿¬¼ÓµÈ ¼ýÀÚ¸¦ ºñ¹Ð¹øÈ£·Î ¼³Á¤ÇÏ·ÁÇÑ´Ù." )
+			START_LOG( clog, L"ï¿½ï¿½ï¿½Óµï¿½ ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½Ñ´ï¿½." )
 				<< BUILD_LOG( GetName() )
 				<< BUILD_LOG( wstrSecondPW );
 
@@ -14490,12 +14490,12 @@ bool KGSUser::CheckIntegritySecondSecurityPW( IN const std::wstring& wstrSecondP
 
 		iFrontNum = 0;
 		iNextNum = 0;
-		iCheck = 1;			// Ã¹ÀÚ¸®´Â µ¿ÀÏÇÏ¹Ç·Î ¹Ì¸® ÇÏ³ª Áõ°¡, ºñ±³´Â µÎ¹øÂ° ºÎÅÍ
+		iCheck = 1;			// Ã¹ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¹Ç·ï¿½ ï¿½Ì¸ï¿½ ï¿½Ï³ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ñ±³´ï¿½ ï¿½Î¹ï¿½Â° ï¿½ï¿½ï¿½ï¿½
 		
 		_wchar = wstrSecondPW[0];
-		iFrontNum = _wchar - 48;				// '0' ÀÇ °ªÀÌ 48 ÀÌ´Ù.
+		iFrontNum = _wchar - 48;				// '0' ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 48 ï¿½Ì´ï¿½.
 
-		for( unsigned int i = 1 ; i < wstrSecondPW.size() ; ++i )	// ³»¸²¼ø °Ë»ç
+		for( unsigned int i = 1 ; i < wstrSecondPW.size() ; ++i )	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 		{
 			_wchar = wstrSecondPW[i];
 			iNextNum = _wchar - 48;
@@ -14509,7 +14509,7 @@ bool KGSUser::CheckIntegritySecondSecurityPW( IN const std::wstring& wstrSecondP
 
 		if( iCheck == wstrSecondPW.size() )
 		{
-			START_LOG( clog, L"¿¬¼ÓµÈ ¼ýÀÚ¸¦ ºñ¹Ð¹øÈ£·Î ¼³Á¤ÇÏ·ÁÇÑ´Ù." )
+			START_LOG( clog, L"ï¿½ï¿½ï¿½Óµï¿½ ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½Ñ´ï¿½." )
 				<< BUILD_LOG( GetName() )
 				<< BUILD_LOG( wstrSecondPW );
 
@@ -14518,7 +14518,7 @@ bool KGSUser::CheckIntegritySecondSecurityPW( IN const std::wstring& wstrSecondP
 		}
 	}
 
-	// ¼ýÀÚ°¡ ¾Æ´Ñ ¹®ÀÚ°¡ ÀÖ°Å³ª
+	// ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Ö°Å³ï¿½
 	int _count = (int)wstrSecondPW.size();		
 
 	for( int i = 0 ; i < _count ; ++i )
@@ -14535,20 +14535,20 @@ bool KGSUser::CheckIntegritySecondSecurityPW( IN const std::wstring& wstrSecondP
 
 int KGSUser::GetSecurityType()
 {
-	// SecurityType ±¸ºÐ
-	// ¹Ì»ç¿ë							: 0 
-	// 2Â÷ º¸¾ÈÆÐµå »ç¿ë				: 1
-	// ÇÚµåÆù OTP »ç¿ë					: 2
-	// ÁöÁ¤ PC »ç¿ë						: 3
-	// ³Ø½¼ ½ºÆ½ »ç¿ë					: 4
-	// 2Â÷ º¸¾È ÆÐµå + ÇÚµåÆù OTP »ç¿ë	: 5
-	// 2Â÷ º¸¾È ÆÐµå + ÁöÁ¤ PC »ç¿ë		: 6
-	// 2Â÷ º¸¾È ÆÐµå + ³Ø½¼ ½ºÆ½ »ç¿ë	: 7
+	// SecurityType ï¿½ï¿½ï¿½ï¿½
+	// ï¿½Ì»ï¿½ï¿½							: 0 
+	// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ ï¿½ï¿½ï¿½				: 1
+	// ï¿½Úµï¿½ï¿½ï¿½ OTP ï¿½ï¿½ï¿½					: 2
+	// ï¿½ï¿½ï¿½ï¿½ PC ï¿½ï¿½ï¿½						: 3
+	// ï¿½Ø½ï¿½ ï¿½ï¿½Æ½ ï¿½ï¿½ï¿½					: 4
+	// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ðµï¿½ + ï¿½Úµï¿½ï¿½ï¿½ OTP ï¿½ï¿½ï¿½	: 5
+	// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ðµï¿½ + ï¿½ï¿½ï¿½ï¿½ PC ï¿½ï¿½ï¿½		: 6
+	// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ðµï¿½ + ï¿½Ø½ï¿½ ï¿½ï¿½Æ½ ï¿½ï¿½ï¿½	: 7
 
-	int iNexonSecurityType = GetNexonSecurityType();	// 0 OTP ¹Ì»ç¿ë, 1 ÇÚµåÆùOTP, 2 ÁöÁ¤PC, 3 ³Ø½¼½ºÆ½
+	int iNexonSecurityType = GetNexonSecurityType();	// 0 OTP ï¿½Ì»ï¿½ï¿½, 1 ï¿½Úµï¿½ï¿½ï¿½OTP, 2 ï¿½ï¿½ï¿½ï¿½PC, 3 ï¿½Ø½ï¿½ï¿½ï¿½Æ½
 	int iSecurityType = 0;
 
-	if( GetIsUseSecondPW() == true )	// 2Â÷ º¸¾È »ç¿ë Áß
+	if( GetIsUseSecondPW() == true )	// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½
 	{
 		switch( iNexonSecurityType )
 		{
@@ -14570,7 +14570,7 @@ int KGSUser::GetSecurityType()
 			}break;
 		default:
 			{
-				START_LOG( cerr, L"GetNexonSecurityType() ÀÇ °ªÀÌ ÀÌ»óÇÕ´Ï´Ù." )
+				START_LOG( cerr, L"GetNexonSecurityType() ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 					<< BUILD_LOG( GetUID() )
 					<< BUILD_LOG( iNexonSecurityType )
 					<< BUILD_LOG( GetIsUseSecondPW() )
@@ -14578,7 +14578,7 @@ int KGSUser::GetSecurityType()
 			}
 		}
 	}
-	else		// 2Â÷ º¸¾È ¹Ì»ç¿ë Áß
+	else		// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ ï¿½ï¿½
 	{
 		switch( iNexonSecurityType )
 		{
@@ -14600,7 +14600,7 @@ int KGSUser::GetSecurityType()
 			}break;
 		default:
 			{
-				START_LOG( cerr, L"GetNexonSecurityType() ÀÇ °ªÀÌ ÀÌ»óÇÕ´Ï´Ù." )
+				START_LOG( cerr, L"GetNexonSecurityType() ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 					<< BUILD_LOG( GetUID() )
 					<< BUILD_LOG( iNexonSecurityType )
 					<< BUILD_LOG( GetIsUseSecondPW() )
@@ -14637,7 +14637,7 @@ void KGSUser::SendFirstLoginSecurityInfo()
 
 void KGSUser::SetIsUseOTP( IN const int& iNexonSecurityType )
 {
-	if( iNexonSecurityType > 0 )	// 0 Àº ¹Ì»ç¿ë , 1~3 Àº OTP,ÁöÁ¤PC,³Ø½¼½ºÆ½
+	if( iNexonSecurityType > 0 )	// 0 ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ , 1~3 ï¿½ï¿½ OTP,ï¿½ï¿½ï¿½ï¿½PC,ï¿½Ø½ï¿½ï¿½ï¿½Æ½
 	{
 		m_bIsUseOTP = true;
 	}
@@ -14651,7 +14651,7 @@ void KGSUser::SetIsUseOTP( IN const int& iNexonSecurityType )
 #endif SERV_SECOND_SECURITY
 //}}
 
-//{{ 2011. 05. 27    ±è¹Î¼º    ÈÞ¸é º¹±Í À¯Àú º¸»ó
+//{{ 2011. 05. 27    ï¿½ï¿½Î¼ï¿½    ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_COME_BACK_USER_REWARD
 void KGSUser::CheckComeBackUser()
 {
@@ -14661,13 +14661,13 @@ void KGSUser::CheckComeBackUser()
 
 		if( m_kComeBackUserInfo.CheckComeBackBuffEnd() == true )
 		{
-			// ÈÞ¸é À¯Àú ÇØÅÃ Á¾·á DB¿¡ ±â·Ï
-			// DB¿¡ ±â·ÏÇÏÀÚ
+			// ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½
+			// DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			KDBE_WRITE_COME_BACK_END_NOT kNot;
 			kNot = GetUID();
 			SendToAccountDB( DBE_WRITE_COME_BACK_END_NOT, kNot );
 
-			//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+			//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 			KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kBuffReq;
 			kBuffReq.m_iUnitUID = GetCharUID();
@@ -14677,18 +14677,18 @@ void KGSUser::CheckComeBackUser()
 				SendToLoginServer( ELG_UPDATE_USER_UNIT_BUFF_INFO_REQ, kBuffReq );
 			}
 #else
-			// ÈÞ¸é À¯Àú ¹öÇÁ ½Ã°£ ¾Ë·ÁÁÖ±â
+			// ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ë·ï¿½ï¿½Ö±ï¿½
 			KEGS_COME_BACK_BUFF_NOT kComeBack;
 			kComeBack.m_bIsFinish = true;
 			kComeBack.m_iComeBackBuffEnd = tComeBackBuffEnd.GetTime();
 			SendPacket( EGS_COME_BACK_BUFF_NOT, kComeBack );
 				return;
 		}
-		if( m_kTimer[TM_COME_BACK_USER].elapsed() > 60 ) // 60ÃÊ ¸¶´Ù À¯Àú ¹öÇÁ ½Ã°£ ¾Ë·ÁÁÖ±â
+		if( m_kTimer[TM_COME_BACK_USER].elapsed() > 60 ) // 60ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ë·ï¿½ï¿½Ö±ï¿½
 		{
 			m_kTimer[TM_COME_BACK_USER].restart();
 
-			// ÈÞ¸é À¯Àú ¹öÇÁ ½Ã°£ ¾Ë·ÁÁÖ±â
+			// ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ë·ï¿½ï¿½Ö±ï¿½
 			KEGS_COME_BACK_BUFF_NOT kComeBack;
 			kComeBack.m_bIsFinish = false;
 			kComeBack.m_iComeBackBuffEnd = tComeBackBuffEnd.GetTime();
@@ -14749,7 +14749,7 @@ void KGSUser::SendComeBackLogOut()
 #endif SERV_COME_BACK_USER_REWARD
 //}} 
 
-//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 void KGSUser::CheckHenirRewardCountEvent()
 {
@@ -14781,14 +14781,14 @@ void KGSUser::CheckHenirRewardCountEvent()
 #endif SERV_NEW_HENIR_TEST
 //}}
 
-//{{ 2011. 09. 14  ±è¹Î¼º	ÇØÅ· ÇÁ·Î¼¼½º ¸ñ·Ï Àü´Þ - °ÔÀÓ ·Îµù ÀÌÀü ´Ü°è
+//{{ 2011. 09. 14  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½Å· ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½
 #ifdef SERV_DLL_LIST_CHECK_BEFOR_LOADING
 void KGSUser::SendRefreshChannalRandomKey()
 {
 	KDBE_UPDATE_CHANNEL_RANDOMKEY_ACK kPacket;
 	
 	kPacket.m_iRandomKey = rand();
-	kPacket.m_iRandomKey = kPacket.m_iRandomKey + ( rand() << 15) + 1;  // 0 ÃÊ°úÇÏ´Â °ª º¸Àå
+	kPacket.m_iRandomKey = kPacket.m_iRandomKey + ( rand() << 15) + 1;  // 0 ï¿½Ê°ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	kPacket.m_wstrUserID = GetUserID();
 	
@@ -14797,17 +14797,17 @@ void KGSUser::SendRefreshChannalRandomKey()
 #endif SERV_DLL_LIST_CHECK_BEFOR_LOADING
 //}}
 
-//{{ 2012. 06. 13	±è¹Î¼º       ¼±ÅÃÀû ¼Ë´Ù¿îÁ¦
+//{{ 2012. 06. 13	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë´Ù¿ï¿½ï¿½ï¿½
 #ifdef SERV_SELECTIVE_SHUTDOWN_SYSTEM
 bool KGSUser::IsRestrictionUser( IN std::map< unsigned short, KPropertyValue >& mapProperty, IN BYTE bytePolicyResultNo )
 {
 	bool bRet = false;
 	KPropertyValue kProperty;
 
-	std::map< unsigned short, KPropertyValue >::iterator mit = mapProperty.find( 19 ); // ³Ø½¼ Á¤Ã¥ ¸ñ·Ï
+	std::map< unsigned short, KPropertyValue >::iterator mit = mapProperty.find( 19 ); // ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½
 	if( mit == mapProperty.end() )
 	{
-		START_LOG( clog, L"³Ø½¼ Á¤Ã¥ ¸ñ·Ï Áß 19¹ø¿¡ ÇØ´çÇÏ´Â °ªÀÌ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½ ï¿½ï¿½ 19ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -14821,7 +14821,7 @@ bool KGSUser::IsRestrictionUser( IN std::map< unsigned short, KPropertyValue >& 
 	std::map< BYTE, KRolicyResults >::iterator mitProperty = mit->second.m_mapRolicyResult.find( bytePolicyResultNo );
 	if( mitProperty == mit->second.m_mapRolicyResult.end() )
 	{
-		START_LOG( clog, L"³Ø½¼ Á¤Ã¥ ¸ñ·Ï Áß 19¹øÀÇ °ÔÀÓ ÀÌ¿ë Á¦ÇÑ¿¡ ÇØ´çÇÏ´Â °ªÀÌ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½ ï¿½ï¿½ 19ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½Ñ¿ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -14839,7 +14839,7 @@ bool KGSUser::IsRestrictionUser( IN std::map< unsigned short, KPropertyValue >& 
 		}
 		else
 		{
-			// °ÔÀÓ ÀÌ¿ë Á¦ÇÑ À¯
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 			m_kUserInfoByNexon.SetRestrictionUser( KUserInfoByNexon::NOT_SHUTDOWN_USER );
 		}
 
@@ -14853,7 +14853,7 @@ bool KGSUser::IsRestrictionUser( IN std::map< unsigned short, KPropertyValue >& 
 			m_kUserInfoByNexon.SetRestrictionUserTime( wstrTime );
 			m_kUserInfoByNexon.SetExistRestrictionTime( bExistTime );
 
-			START_LOG( clog, L"¼Ë´Ù¿î Á¤Ã¥ÀÌ Àû¿ëµÈ À¯Àú! °ÔÀÓÀ» ÇÒ ¼ö ¾ø°Ô ÇÏÀÚ" )
+			START_LOG( clog, L"ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½Ã¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( kResults.m_wstrOption ) 
 				<< END_LOG;
 		}
@@ -14867,9 +14867,9 @@ bool KGSUser::IsRestrictionUser( IN std::map< unsigned short, KPropertyValue >& 
 bool KGSUser::SetRestrictionUserMSG( IN std::wstring& wstrOption, OUT int& iError, OUT std::wstring& wstrTime, OUT bool& bExistTime )
 {
 	//////////////////////////////////////////////////////////////////////////
-	// ½ºÆ®¸µ Çü½Ä
+	// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	// time -> YYMMDDHH
-	// error - ¼ýÀÚ
+	// error - ï¿½ï¿½ï¿½ï¿½
 
 	std::wstring wstrKeyTime = L"time=";
 	std::wstring wstrKeyError = L"error=";
@@ -14877,7 +14877,7 @@ bool KGSUser::SetRestrictionUserMSG( IN std::wstring& wstrOption, OUT int& iErro
 	std::wstring::size_type iIndex;
 
 	iIndex = wstrOption.find( wstrKeyTime );
-	if( iIndex != std::string::npos ) // Ã£À½
+	if( iIndex != std::string::npos ) // Ã£ï¿½ï¿½
 	{
 		bExistTime = true;
 
@@ -14888,15 +14888,15 @@ bool KGSUser::SetRestrictionUserMSG( IN std::wstring& wstrOption, OUT int& iErro
 
 		wstrTime = L"20" + wstrYY + L"-" + wstrMM + L"-" + wstrDD + L" " + wstrHH + L":00:00";
 
-		START_LOG( clog, L"°ÔÀÓ Á¦ÇÑ ½Ã°£ È®ÀÎ." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ È®ï¿½ï¿½." )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( wstrOption )
 			<< BUILD_LOG( wstrTime )
 			<< END_LOG;
 	}
-	else	// ¸øÃ£À½
+	else	// ï¿½ï¿½Ã£ï¿½ï¿½
 	{
-		START_LOG( clog, L"°ÔÀÓ Á¦ÇÑ ½Ã°£À» Ã£À» ¼ö ¾ø´Ù." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( wstrOption )
 			<< END_LOG;
@@ -14905,13 +14905,13 @@ bool KGSUser::SetRestrictionUserMSG( IN std::wstring& wstrOption, OUT int& iErro
 	}
 
 	iIndex = wstrOption.find( wstrKeyError );
-	if( iIndex != std::string::npos ) // Ã£À½
+	if( iIndex != std::string::npos ) // Ã£ï¿½ï¿½
 	{
 		std::wstring wstrError = wstrOption.substr( iIndex + wstrKeyError.size(), 2 );
 		std::string strError = KncUtil::toNarrowString( wstrError );
 		iError = atoi( strError.c_str() );
 
-		START_LOG( clog, L"°ÔÀÓ Á¦ÇÑ ¿¡·¯ È®ÀÎ." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½." )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( wstrOption )
 			<< BUILD_LOG( wstrError )
@@ -14919,9 +14919,9 @@ bool KGSUser::SetRestrictionUserMSG( IN std::wstring& wstrOption, OUT int& iErro
 			<< END_LOG;
 
 	}
-	else	// ¸øÃ£À½
+	else	// ï¿½ï¿½Ã£ï¿½ï¿½
 	{
-		START_LOG( clog, L"°ÔÀÓ Á¦ÇÑ ¿¡·¯¸¦ Ã£À» ¼ö ¾ø´Ù." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( wstrOption )
 			<< END_LOG;
@@ -14929,16 +14929,16 @@ bool KGSUser::SetRestrictionUserMSG( IN std::wstring& wstrOption, OUT int& iErro
 	return true;
 }
 #else
-//{{ 2011. 09. 29  ±è¹Î¼º	¼Ë´Ù¿îÁ¦ µµÀÔ
+//{{ 2011. 09. 29  ï¿½ï¿½Î¼ï¿½	ï¿½Ë´Ù¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SHUTDOWN_SYSTEM
 bool KGSUser::CheckShutdownUser( IN std::map< unsigned short, KPropertyValue >& mapProperty, IN BYTE bytePolicyResultNo )
 {
 	KPropertyValue kProperty;
 
-	std::map< unsigned short, KPropertyValue >::iterator mit = mapProperty.find( 19 ); // ³Ø½¼ Á¤Ã¥ ¸ñ·Ï
+	std::map< unsigned short, KPropertyValue >::iterator mit = mapProperty.find( 19 ); // ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½
 	if( mit == mapProperty.end() )
 	{
-		START_LOG( clog, L"³Ø½¼ Á¤Ã¥ ¸ñ·Ï Áß 19¹ø¿¡ ÇØ´çÇÏ´Â °ªÀÌ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½ ï¿½ï¿½ 19ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -14952,7 +14952,7 @@ bool KGSUser::CheckShutdownUser( IN std::map< unsigned short, KPropertyValue >& 
 	std::map< BYTE, KRolicyResults >::iterator mitProperty = mit->second.m_mapRolicyResult.find( bytePolicyResultNo );
 	if( mitProperty == mit->second.m_mapRolicyResult.end() )
 	{
-		START_LOG( clog, L"³Ø½¼ Á¤Ã¥ ¸ñ·Ï Áß 19¹øÀÇ ¼Ë´Ù¿î¿¡ ÇØ´çÇÏ´Â °ªÀÌ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½ ï¿½ï¿½ 19ï¿½ï¿½ï¿½ï¿½ ï¿½Ë´Ù¿î¿¡ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -14978,11 +14978,11 @@ bool KGSUser::CheckShutdownUser( IN std::map< unsigned short, KPropertyValue >& 
 			m_kUserInfoByNexon.SetShutdownUserMSG( true );
 		}
 
-		START_LOG( clog, L"¼Ë´Ù¿î Á¤Ã¥ÀÌ Àû¿ëµÈ À¯Àú! °ÔÀÓÀ» ÇÒ ¼ö ¾ø°Ô ÇÏÀÚ" )
+		START_LOG( clog, L"ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½Ã¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kResults.m_wstrOption ) 
 			<< END_LOG;
 
-		START_LOG( clog, L"¼Ë´Ù¿î Á¤Ã¥ÀÌ Àû¿ëµÈ À¯Àú! °ÔÀÓÀ» ÇÒ ¼ö ¾ø°Ô ÇÏÀÚ" )
+		START_LOG( clog, L"ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½Ã¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -14999,10 +14999,10 @@ bool KGSUser::CheckOutUserRetaining( IN std::map< unsigned short, KPropertyValue
 	KPropertyValue kProperty;
 	iOutUserRetaining = 0;
 
-	std::map< unsigned short, KPropertyValue >::iterator mit = mapProperty.find( 19 ); // ³Ø½¼ Á¤Ã¥ ¸ñ·Ï
+	std::map< unsigned short, KPropertyValue >::iterator mit = mapProperty.find( 19 ); // ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½
 	if( mit == mapProperty.end() )
 	{
-		START_LOG( clog, L"³Ø½¼ Á¤Ã¥ ¸ñ·Ï Áß 19¹ø¿¡ ÇØ´çÇÏ´Â °ªÀÌ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½ ï¿½ï¿½ 19ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -15016,7 +15016,7 @@ bool KGSUser::CheckOutUserRetaining( IN std::map< unsigned short, KPropertyValue
 	std::map< BYTE, KRolicyResults >::iterator mitProperty = mit->second.m_mapRolicyResult.find( bytePolicyResultNo );
 	if( mitProperty == mit->second.m_mapRolicyResult.end() )
 	{
-		START_LOG( clog, L"³Ø½¼ Á¤Ã¥ ¸ñ·Ï Áß 19¹øÀÇ ÀÌÅ»¹æÁö¿¡ ÇØ´çÇÏ´Â °ªÀÌ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½ ï¿½ï¿½ 19ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -15029,7 +15029,7 @@ bool KGSUser::CheckOutUserRetaining( IN std::map< unsigned short, KPropertyValue
 	{
 		iOutUserRetaining = static_cast<int>(kResults.m_byteRolicyResult);
 
-		START_LOG( clog, L"ÀÌÅ»¹æÁö Á¤Ã¥ÀÌ Àû¿ëµÈ À¯Àú!" )
+		START_LOG( clog, L"ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -15045,7 +15045,7 @@ bool KGSUser::CheckOutUserRetaining( IN std::map< unsigned short, KPropertyValue
 bool KGSUser::CheckShutdownUserMSG( IN std::wstring& wstrOption )
 {
 	std::wstring wstrFind_f = L"&";
-	std::wstring wstrFind_s = L"~";  // time= ÀÇ °ªÀÌ ÀÖÀ¸¸é ~ ÀÌ Á¸Àç ÇÑ´Ù.
+	std::wstring wstrFind_s = L"~";  // time= ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ~ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	size_t stFound_f = 0;
 	size_t stFound_s = 0;
 
@@ -15067,17 +15067,17 @@ bool KGSUser::CheckShutdownUserMSG( IN std::wstring& wstrOption )
 #endif SERV_SHUTDOWN_SYSTEM
 //}}
 
-//{{ 2012. 02. 14    ±è¹Î¼º   ³Ø½¼ ¾È½É ·Î±×ÀÎ - ¸ñÇ¥ À§Ä¡±â¹Ý ·Î±×ÀÎ
+//{{ 2012. 02. 14    ï¿½ï¿½Î¼ï¿½   ï¿½Ø½ï¿½ ï¿½È½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ - ï¿½ï¿½Ç¥ ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½
 #ifdef SERV_NEXON_PEACE_OF_MIND_LOGIN
 bool KGSUser::CheckPeaceOfMindLoginUser( IN std::map< unsigned short, KPropertyValue >& mapProperty, IN BYTE bytePolicyResultNo, OUT int& iResult )
 {
 	KPropertyValue kProperty;
 	iResult = 0;
 
-	std::map< unsigned short, KPropertyValue >::iterator mit = mapProperty.find( 19 ); // ³Ø½¼ Á¤Ã¥ ¸ñ·Ï
+	std::map< unsigned short, KPropertyValue >::iterator mit = mapProperty.find( 19 ); // ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½
 	if( mit == mapProperty.end() )
 	{
-		START_LOG( clog, L"³Ø½¼ Á¤Ã¥ ¸ñ·Ï Áß 19¹ø¿¡ ÇØ´çÇÏ´Â °ªÀÌ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½ ï¿½ï¿½ 19ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -15091,7 +15091,7 @@ bool KGSUser::CheckPeaceOfMindLoginUser( IN std::map< unsigned short, KPropertyV
 	std::map< BYTE, KRolicyResults >::iterator mitProperty = mit->second.m_mapRolicyResult.find( bytePolicyResultNo );
 	if( mitProperty == mit->second.m_mapRolicyResult.end() )
 	{
-		START_LOG( clog, L"³Ø½¼ Á¤Ã¥ ¸ñ·Ï Áß 19¹øÀÇ ¾È½É·Î±×ÀÎ¿¡ ÇØ´çÇÏ´Â °ªÀÌ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½Ø½ï¿½ ï¿½ï¿½Ã¥ ï¿½ï¿½ï¿½ ï¿½ï¿½ 19ï¿½ï¿½ï¿½ï¿½ ï¿½È½É·Î±ï¿½ï¿½Î¿ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -15104,7 +15104,7 @@ bool KGSUser::CheckPeaceOfMindLoginUser( IN std::map< unsigned short, KPropertyV
 	{
 		iResult = static_cast<int>(kResults.m_byteRolicyResult);
 
-		START_LOG( clog, L"¾È½É·Î±×ÀÎÀÌ Àû¿ëµÈ À¯Àú!" )
+		START_LOG( clog, L"ï¿½È½É·Î±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() ) 
 			<< BUILD_LOG( GetUID() ) 
 			<< BUILD_LOG( static_cast<int>(bytePolicyResultNo) ) 
@@ -15121,7 +15121,7 @@ bool KGSUser::CheckPeaceOfMindLoginUser( IN std::map< unsigned short, KPropertyV
 #endif SERV_SELECTIVE_SHUTDOWN_SYSTEM
 //}}
 
-//{{ 2011. 08. 29	ÃÖÀ°»ç	Ä³¸¯ÅÍ ·¹º§¾÷ ÀÌº¥Æ®
+//{{ 2011. 08. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_CHAR_LEVEL_UP_EVENT
 bool KGSUser::GetLevelUpRewardItem( IN u_char ucNowLevel, IN u_char ucLevel, OUT std::vector< int >& vecLevelUpRewardID )
 {
@@ -15129,7 +15129,7 @@ bool KGSUser::GetLevelUpRewardItem( IN u_char ucNowLevel, IN u_char ucLevel, OUT
 		return false;
 
 
-	//{{ 2012. 02. 03	¹Ú¼¼ÈÆ	ÀÌº¥Æ® °ü·ÃÁ¤º¸ Ã³¸®¹æ¹ý º¯°æ ( Script -> DB )
+	//{{ 2012. 02. 03	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( Script -> DB )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 	if( SiKEventRewardLevelUpRefreshManager()->GetLevelUpRewardItem( ucLevel, vecLevelUpRewardID ) == false )
 #else
@@ -15137,7 +15137,7 @@ bool KGSUser::GetLevelUpRewardItem( IN u_char ucNowLevel, IN u_char ucLevel, OUT
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 	//}}
 	{
-		START_LOG( clog, L"ÇØ´ç ·¹º§¾÷½Ã Áö±Þ µÇ´Â ÀÌº¥Æ® ¾ÆÀÌÅÛÀÌ ¾ø½À´Ï´Ù." )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOG( GetUserID() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOGc( ucNowLevel )
@@ -15151,7 +15151,7 @@ bool KGSUser::GetLevelUpRewardItem( IN u_char ucNowLevel, IN u_char ucLevel, OUT
 #endif SERV_CHAR_LEVEL_UP_EVENT
 //}}
 
-//{{ 2011.10.14     ±è¹Î¼º    ¿î¿µÀÚ ±â´ÉÀº Æ¯Á¤ IP ¿¡¼­¸¸ »ç¿ë °¡´É
+//{{ 2011.10.14     ï¿½ï¿½Î¼ï¿½    ï¿½î¿µï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ IP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_USE_GM_CHEAT_RESTRICTED_IP
 bool KGSUser::CheckAuthLevel()
 {
@@ -15161,16 +15161,16 @@ bool KGSUser::CheckAuthLevel()
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// iP°¡ Çã¿ë µÇÁö ¾ÊÀº °÷¿¡¼­ Ä¡Æ® »ç¿ë
+	// iPï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¡Æ® ï¿½ï¿½ï¿½
 	// userid
 	// ip
-	// sms Àü¼Û
+	// sms ï¿½ï¿½ï¿½ï¿½
 	if( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_INTERNAL )
 	{
 		return false;	
 	}
 
-	// ¼­ºñ½º¿¡¼­¸¸ Ã¼Å©
+	// ï¿½ï¿½ï¿½ñ½º¿ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 	if( KSimLayer::GetKObj()->GetVersionFlag() != KSimLayer::VF_SERVICE )
 	{
 		return false;	
@@ -15178,23 +15178,23 @@ bool KGSUser::CheckAuthLevel()
 
 	KDBE_SEND_PHONE_MSG_NOT kPacketNot;
 
-	//{{ 2012. 10. 9	¹Ú¼¼ÈÆ	SMS ÀüÈ­¹øÈ£ ÅëÇÕ °ü¸®
+	//{{ 2012. 10. 9	ï¿½Ú¼ï¿½ï¿½ï¿½	SMS ï¿½ï¿½È­ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SMS_TOTAL_MANAGER
 	SiKSMSPhoneNumberManager()->GetPhoneNumberList( KSMSPhoneNumberManager::FS_CHECK_AUTH_LEVEL, kPacketNot.m_vecPhoneNum );
 #else
-	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-8584-3123" ) );		// ±Ç¿À´ç ÆÀÀå´Ô
-	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-9023-1232" ) );		// ±èÇöÃ¶
-	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-8421-1075" ) );		// ÃÖÀ°»ç
-	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-5598-4163" ) );		// ±è¹Î¼º
-	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-3323-7753" ) );		// ¹Ú¼¼ÈÆ
-	//kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-9490-8761" ) );		// È²¿øÁØ
+	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-8584-3123" ) );		// ï¿½Ç¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-9023-1232" ) );		// ï¿½ï¿½ï¿½ï¿½Ã¶
+	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-8421-1075" ) );		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-5598-4163" ) );		// ï¿½ï¿½Î¼ï¿½
+	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-3323-7753" ) );		// ï¿½Ú¼ï¿½ï¿½ï¿½
+	//kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-9490-8761" ) );		// È²ï¿½ï¿½ï¿½ï¿½
 #endif SERV_SMS_TOTAL_MANAGER
 	//}}
-	//{{ 2013. 01. 17	ÃÖÀ°»ç	¼­¹ö°£ Åë½Å »ç¼³IP Àû¿ë
+	//{{ 2013. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ç¼³IP ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PRIVATE_IP_SERVER_NETWORKING
-	kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"Çã¿ë¾ÈµÈIP¿¡¼­ Ä¡Æ®»ç¿ë : UserUID(%d), IP(%s), ServerIP(%s)" ) % GetUID() % GetIPStr() % KBaseServer::GetKObj()->GetPublicIP() );
+	kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"ï¿½ï¿½ï¿½Èµï¿½IPï¿½ï¿½ï¿½ï¿½ Ä¡Æ®ï¿½ï¿½ï¿½ : UserUID(%d), IP(%s), ServerIP(%s)" ) % GetUID() % GetIPStr() % KBaseServer::GetKObj()->GetPublicIP() );
 #else // SERV_PRIVATE_IP_SERVER_NETWORKING
-	kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"Çã¿ë¾ÈµÈIP¿¡¼­ Ä¡Æ®»ç¿ë : UserUID(%d), IP(%s)" ) % GetUID() % GetIPStr() );
+	kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"ï¿½ï¿½ï¿½Èµï¿½IPï¿½ï¿½ï¿½ï¿½ Ä¡Æ®ï¿½ï¿½ï¿½ : UserUID(%d), IP(%s)" ) % GetUID() % GetIPStr() );
 #endif // SERV_PRIVATE_IP_SERVER_NETWORKING
 	SendToSMSDB( DBE_SEND_PHONE_MSG_NOT, kPacketNot );
 	//////////////////////////////////////////////////////////////////////////
@@ -15204,12 +15204,12 @@ bool KGSUser::CheckAuthLevel()
 #endif SERV_USE_GM_CHEAT_RESTRICTED_IP
 //}}
 
-//{{ 2011. 11. 21  ±è¹Î¼º	ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ
+//{{ 2011. 11. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_UNIT_CLASS_CHANGE_ITEM
 bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CHANGE_REQ& kPacketToDB )
 {
-	int iNewUnitClass = CXSLItem::GetClassChangeCashItem( iItemID ); // ½ÇÁ¦ ÀüÁ÷ÇÏ·Á´Â Á÷¾÷
-	char cItemUnitClass = static_cast<char>(iNewUnitClass);			// ¿¹¿ÜÃ³¸®·Î ±×·ì ¾ÆÀÌµð °Ë»ö ¿ë ( 2Â÷ -> 1Â÷)
+	int iNewUnitClass = CXSLItem::GetClassChangeCashItem( iItemID ); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	char cItemUnitClass = static_cast<char>(iNewUnitClass);			// ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ ( 2ï¿½ï¿½ -> 1ï¿½ï¿½)
 	
 	if( cItemUnitClass == CXSLUnit::UC_NONE )
 	{
@@ -15217,12 +15217,12 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ½ºÅ³ ÃÊ±âÈ­ Á¤º¸
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+	// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 	if( !SiCXSLSkillTree()->GetUnitClassDefaultSkill( iNewUnitClass, kPacketToDB.m_iDefaultSkillID1, kPacketToDB.m_iDefaultSkillID2, kPacketToDB.m_iDefaultSkillID3, 
 														kPacketToDB.m_iDefaultSkillID4, kPacketToDB.m_iDefaultSkillID5, kPacketToDB.m_iDefaultSkillID6 ) )
 	{
-		START_LOG( cerr, L"À¯´ÖÅ¸ÀÔÀÌ ÀÌ»óÇÔ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( cItemUnitClass )
@@ -15231,15 +15231,15 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 		return false;
 	}
 
-	// ¹è¿î ½ºÅ³ÀÌ ¾ø´Ù¸é..
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½..
 	int iUsedSPoint = 0;
 	int iUsedCSPoint = 0;
 	int iTotalSP = 0;
 	SiCXSLSkillTree()->GetCalcInitSkillPoint( GetLevel(), iTotalSP );
 
 
-	int iRetrievedSPoint = 0;	// µ¹·Á¹ÞÀ» SP
-	int iRetrievedCSPoint = 0;	// µ¹·Á¹ÞÀ» CSP
+	int iRetrievedSPoint = 0;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SP
+	int iRetrievedCSPoint = 0;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ CSP
 
 	if( false == m_kSkillTree.IsCashSkillPointExpired() )
 	{
@@ -15255,7 +15255,7 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 		}
 		else
 		{
-			START_LOG( cerr, L"cash skill point±âÇÑÀÌ ´ÙµÇ¾ú´Âµ¥ ½ºÅ³Æ®¸®¿¡ csp°¡ ³²¾ÆÀÖ´Ù." )
+			START_LOG( cerr, L"cash skill pointï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÙµÇ¾ï¿½ï¿½Âµï¿½ ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ cspï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½." )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( iUsedSPoint )
@@ -15280,7 +15280,7 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 /*
 	if( !SiCXSLSkillTree()->GetUnitTypeDefaultSkill( GetUnitType(), kPacketToDB.m_iDefaultSkillID, kPacketToDB.m_iDefaultSkillID2 ) )
 	{
-		START_LOG( cerr, L"À¯´ÖÅ¸ÀÔÀÌ ÀÌ»óÇÔ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( cItemUnitClass )
@@ -15289,14 +15289,14 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 		return false;
 	}
 
-	// ¹è¿î ½ºÅ³ÀÌ ¾ø´Ù¸é..
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½..
 	int iUsedSPoint = 0;
 	int iUsedCSPoint = 0;
 	m_kSkillTree.CalcUsedSPointAndCSPoint( iUsedSPoint, iUsedCSPoint );
 	if( (iUsedSPoint <= 2 && iUsedCSPoint <= 0 ) ||
 		(iUsedSPoint + iUsedCSPoint <= 0) )
 	{
-		START_LOG( cwarn, L"½ºÅ³À» ÇÏ³ªµµ ¹è¿ìÁö ¾Ê¾Ò°Å³ª ±âº» ½ºÅ³¸¸ ÀÖ´Â »óÅÂÀÎµ¥( Áï, ´õÀÌ»ó ÃÊ±âÈ­ ÇÒ ÇÊ¿ä°¡ ¾ø´Âµ¥) ÃÊ±âÈ­ ÇÏ·Á°í ÇÔ." )
+		START_LOG( cwarn, L"ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò°Å³ï¿½ ï¿½âº» ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½( ï¿½ï¿½, ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½Âµï¿½) ï¿½Ê±ï¿½È­ ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ï¿½." )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( iUsedSPoint )
@@ -15305,9 +15305,9 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 	}
 
 
-	const int DEFAULT_SKILL_SP = 2;		// default skill 2°³ 1·¹º§À» Á¦¿ÜÇÏ°í µ¹·Á¹ÞÀ» SP¸¦ °è»êÇØ¾ßÇÑ´Ù
-	int iRetrievedSPoint = 0 ;	// µ¹·Á¹ÞÀ» SP
-	int iRetrievedCSPoint = 0;	// µ¹·Á¹ÞÀ» CSP
+	const int DEFAULT_SKILL_SP = 2;		// default skill 2ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ñ´ï¿½
+	int iRetrievedSPoint = 0 ;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SP
+	int iRetrievedCSPoint = 0;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ CSP
 
 
 	if( false == m_kSkillTree.IsCashSkillPointExpired() )
@@ -15324,7 +15324,7 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 		}
 		else
 		{
-			START_LOG( cerr, L"cash skill point±âÇÑÀÌ ´ÙµÇ¾ú´Âµ¥ ½ºÅ³Æ®¸®¿¡ csp°¡ ³²¾ÆÀÖ´Ù." )
+			START_LOG( cerr, L"cash skill pointï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÙµÇ¾ï¿½ï¿½Âµï¿½ ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ cspï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½." )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( iUsedSPoint )
@@ -15347,16 +15347,16 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 
 
 	//////////////////////////////////////////////////////////////////////////
-	// ½ºÅ³
+	// ï¿½ï¿½Å³
 	std::set< int > setUnSealedSkillID;
 	setUnSealedSkillID.clear();
 	m_kSkillTree.GetUnSealedSkillList( setUnSealedSkillID );
-	if( setUnSealedSkillID.size() > 0 )		// ºÀÀÎ ÇØÁ¦ÇÑ ½ºÅ³ÀÌ Á¸ÀçÇÑ´Ù¸é ½ºÅ³ ±³È¯ ¸ñ·Ï¿¡ Ãß°¡
+	if( setUnSealedSkillID.size() > 0 )		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½È¯ ï¿½ï¿½Ï¿ï¿½ ï¿½ß°ï¿½
 	{
 		std::set< int >::iterator sit = setUnSealedSkillID.begin();
 		if( sit == setUnSealedSkillID.end() )
 		{
-			START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ »ç¿ë - ºÀÀÎ ÇØÁ¦ÇÑ ½ºÅ³ÀÌ Á¸ÀçÇÑ´Ù°í Çß´Âµ¥...µ¥ÀÌÅÍ°¡ ¾ø´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù°ï¿½ ï¿½ß´Âµï¿½...ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( GetUserID() )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOGc( GetUnitClass() )
@@ -15369,26 +15369,31 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 			int iNewSkill = 0;
 			for( ; sit != setUnSealedSkillID.end() ; ++sit )
 			{
-				if( SiKClassChangeTable()->GetClassChange_NewSkill( iNewUnitClass, (*sit), iNewSkill ) == true )
+				//{{ Iruha : 2026-08-27 // VS2010 port: VC7.1's std::set::iterator
+				// non-conformantly dereferenced to a mutable reference; VC10 dereferences to
+				// const, and GetClassChange_NewSkill takes int& (non-const). Copy into a local.
+				int iSkillID = *sit;
+				if( SiKClassChangeTable()->GetClassChange_NewSkill( iNewUnitClass, iSkillID, iNewSkill ) == true )
 				{
-					kPacketToDB.m_mapChangeSkill.insert( std::make_pair((*sit), iNewSkill) );
+					kPacketToDB.m_mapChangeSkill.insert( std::make_pair(iSkillID, iNewSkill) );
 				}
+				//}}
 				iNewSkill = 0;
 			}
 		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¸Þ¸ð
+	// ï¿½Þ¸ï¿½
 	std::map< char, int >	mapSkillNote;
 	mapSkillNote.clear();
 	m_kSkillTree.GetMemoList( mapSkillNote );
-	if( mapSkillNote.size() > 0 )		// ºÀÀÎ ÇØÁ¦ÇÑ ½ºÅ³ÀÌ Á¸ÀçÇÑ´Ù¸é ½ºÅ³ ±³È¯ ¸ñ·Ï¿¡ Ãß°¡
+	if( mapSkillNote.size() > 0 )		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½È¯ ï¿½ï¿½Ï¿ï¿½ ï¿½ß°ï¿½
 	{
 		std::map< char, int >::iterator mit = mapSkillNote.begin();
 		if( mit == mapSkillNote.end() )
 		{
-			START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ »ç¿ë - ÀåÂøÇÑ ¸Þ¸ð°¡ Á¸ÀçÇÑ´Ù°í Çß´Âµ¥...µ¥ÀÌÅÍ°¡ ¾ø´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù°ï¿½ ï¿½ß´Âµï¿½...ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( GetUserID() )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOGc( GetUnitClass() )
@@ -15411,21 +15416,21 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¾ÆÀÌÅÛ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	std::map< UidType, KInventoryItemInfo > mapInventoryItem;
 	std::map< UidType, KInventoryItemInfo >::iterator mitInventoryItem;
 
-	// Æ¯¼ö ÅÇÀÇ ¾ÆÀÌÅÛ Á¤º¸¸¸ ¾ò¾î ¿ÀÀÚ(Ä³½¬°ü·Ã ¾ÆÀÌÅÛÀº Æ¯¼ö ÅÇ¿¡ ÀÖ´Ù.)
+	// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½Ç¿ï¿½ ï¿½Ö´ï¿½.)
 	m_kInventory.GetInventoryInfo( CXSLInventory::ST_SPECIAL, mapInventoryItem, true );
-	// ÀºÇàÀÇ ¾ÆÀÌÅÛ Á¤º¸¸¸ ¾ò¾î ¿ÀÀÚ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_kInventory.GetInventoryInfo( CXSLInventory::ST_BANK, mapInventoryItem, true );
-	// ÆÖ ÅÇÀÇ ¾ÆÀÌÅÛ Á¤º¸¸¸ ¾ò¾î ¿ÀÀÚ
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_kInventory.GetInventoryInfo( CXSLInventory::ST_PET, mapInventoryItem, true );
 
 	mitInventoryItem = mapInventoryItem.begin();
-	if( mitInventoryItem == mapInventoryItem.end() )	// ¾ÆÀÌÅÛÀÌ Á¸ÀçÇÑ´Ù¸é ±³È¯ °¡´ÉÇÑ ¾ÆÀÌÅÛ ÀÎÁö È®ÀÎÇÏÀÚ
+	if( mitInventoryItem == mapInventoryItem.end() )	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	{
-		START_LOG( clog, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ »ç¿ë - Inventory Item µ¥ÀÌÅÍ°¡ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - Inventory Item ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOGc( GetUnitClass() )
@@ -15452,9 +15457,9 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 	}
 	
 	//////////////////////////////////////////////////////////////////////////
-	// Äù½ºÆ®
-	// ( ¿Ï·áµÈ )
-	// ¿Ï·á Äù½ºÆ® º¯°æ ÇÒ ¸ñ·Ï Ã£ÀÚ
+	// ï¿½ï¿½ï¿½ï¿½Æ®
+	// ( ï¿½Ï·ï¿½ï¿½ )
+	// ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 	{
 		std::vector< int > vecCompleteQuest;
 		m_kUserQuestManager.GetCompleteChangeClassQuest( vecCompleteQuest );
@@ -15493,8 +15498,8 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 		}
 	}
 
-	// Äù½ºÆ®
-	// ( ÁøÇàÁß )
+	// ï¿½ï¿½ï¿½ï¿½Æ®
+	// ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
 	{
 		std::vector< int > vecInProgressQuest;
 		m_kUserQuestManager.GetInProgressClassChangeQuest( vecInProgressQuest );
@@ -15541,15 +15546,15 @@ bool KGSUser::GetUnitClassChangeInfo( IN int iItemID, OUT KDBE_BUY_UNIT_CLASS_CH
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
 bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT_CLASS_CHANGE_REQ& kPacketToDB )
 {
-	char cItemUnitClass = static_cast<char>( iNewClassID );		// ¿¹¿ÜÃ³¸®·Î ±×·ì ¾ÆÀÌµð °Ë»ö ¿ë ( 2Â÷ -> 1Â÷)
+	char cItemUnitClass = static_cast<char>( iNewClassID );		// ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ ( 2ï¿½ï¿½ -> 1ï¿½ï¿½)
 	bool bValidSecondChangeJob = CXSLUnit::IsSecondChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) );
 	CXSLUnit::UNIT_TYPE eOldUnitType = CXSLUnit::GetUnitClassToUnitType( static_cast<CXSLUnit::UNIT_CLASS>( GetUnitClass() ) );
 	CXSLUnit::UNIT_TYPE eNewUnitType = CXSLUnit::GetUnitClassToUnitType( static_cast<CXSLUnit::UNIT_CLASS>( iNewClassID ) );
 
-	kPacketToDB.m_bUnlimitedSecondJobItem = true;						// ¹«Á¦ÇÑ ÀüÁ÷º¯°æ±Ç »ç¿ë ¿©ºÎ. º¸»ó Áö±Þ½Ã È®ÀÎÇÏ±â À§ÇÑ ¿ëµµ
+	kPacketToDB.m_bUnlimitedSecondJobItem = true;						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Þ½ï¿½ È®ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ëµµ
 	kPacketToDB.m_iOldUnitClass = static_cast<int>( GetUnitClass() );
 	
-	// ·¹º§ÀÌ 35º¸´Ù ÀÛ°Å³ª 2Â÷ ÀüÁ÷ÀÌ ¾Æ´Ï°Å³ª ±âÁ¸ À¯´ÖÅ¸ÀÔ°ú º¯°æ ÈÄ À¯´ÖÅ¸ÀÔÀÌ ´Ù¸£´Ù¸é ¿¡·¯
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 35ï¿½ï¿½ï¿½ï¿½ ï¿½Û°Å³ï¿½ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ï¿½Ô°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( eNewUnitType == CXSLUnit::UC_NONE
 		|| GetLevel() < 35 
 		|| bValidSecondChangeJob == false 
@@ -15559,12 +15564,12 @@ bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT
 	}
 	
 	//////////////////////////////////////////////////////////////////////////
-	// ½ºÅ³ ÃÊ±âÈ­ Á¤º¸
+	// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½
 
 	if( !SiCXSLSkillTree()->GetUnitClassDefaultSkill( iNewClassID, kPacketToDB.m_iDefaultSkillID1, kPacketToDB.m_iDefaultSkillID2, kPacketToDB.m_iDefaultSkillID3, 
 														kPacketToDB.m_iDefaultSkillID4, kPacketToDB.m_iDefaultSkillID5, kPacketToDB.m_iDefaultSkillID6 ) )
 	{
-		START_LOG( cerr, L"À¯´ÖÅ¸ÀÔÀÌ ÀÌ»óÇÔ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( cItemUnitClass )
@@ -15573,14 +15578,14 @@ bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT
 		return false;
 	}
 
-	// ¹è¿î ½ºÅ³ÀÌ ¾ø´Ù¸é..
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½..
 	int iUsedSPoint = 0;
 	int iUsedCSPoint = 0;
 	int iTotalSP = 0;
 	SiCXSLSkillTree()->GetCalcInitSkillPoint( GetLevel(), iTotalSP );
 
-	int iRetrievedSPoint = 0;	// µ¹·Á¹ÞÀ» SP
-	int iRetrievedCSPoint = 0;	// µ¹·Á¹ÞÀ» CSP
+	int iRetrievedSPoint = 0;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SP
+	int iRetrievedCSPoint = 0;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ CSP
 
 	if( false == m_kSkillTree.IsCashSkillPointExpired() )
 	{
@@ -15596,7 +15601,7 @@ bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT
 		}
 		else
 		{
-			START_LOG( cerr, L"cash skill point±âÇÑÀÌ ´ÙµÇ¾ú´Âµ¥ ½ºÅ³Æ®¸®¿¡ csp°¡ ³²¾ÆÀÖ´Ù." )
+			START_LOG( cerr, L"cash skill pointï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÙµÇ¾ï¿½ï¿½Âµï¿½ ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ cspï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½." )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( iUsedSPoint )
@@ -15621,16 +15626,16 @@ bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT
 
 
 	//////////////////////////////////////////////////////////////////////////
-	// ½ºÅ³
+	// ï¿½ï¿½Å³
 	std::set< int > setUnSealedSkillID;
 	setUnSealedSkillID.clear();
 	m_kSkillTree.GetUnSealedSkillList( setUnSealedSkillID );
-	if( setUnSealedSkillID.size() > 0 )		// ºÀÀÎ ÇØÁ¦ÇÑ ½ºÅ³ÀÌ Á¸ÀçÇÑ´Ù¸é ½ºÅ³ ±³È¯ ¸ñ·Ï¿¡ Ãß°¡
+	if( setUnSealedSkillID.size() > 0 )		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½È¯ ï¿½ï¿½Ï¿ï¿½ ï¿½ß°ï¿½
 	{
 		std::set< int >::iterator sit = setUnSealedSkillID.begin();
 		if( sit == setUnSealedSkillID.end() )
 		{
-			START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ »ç¿ë - ºÀÀÎ ÇØÁ¦ÇÑ ½ºÅ³ÀÌ Á¸ÀçÇÑ´Ù°í Çß´Âµ¥...µ¥ÀÌÅÍ°¡ ¾ø´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù°ï¿½ ï¿½ß´Âµï¿½...ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( GetUserID() )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOGc( GetUnitClass() )
@@ -15642,26 +15647,31 @@ bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT
 			int iNewSkill = 0;
 			for( ; sit != setUnSealedSkillID.end() ; ++sit )
 			{
-				if( SiKClassChangeTable()->GetClassChange_NewSkill( iNewClassID, (*sit), iNewSkill ) == true )
+				//{{ Iruha : 2026-08-27 // VS2010 port: VC7.1's std::set::iterator
+				// non-conformantly dereferenced to a mutable reference; VC10 dereferences to
+				// const, and GetClassChange_NewSkill takes int& (non-const). Copy into a local.
+				int iSkillID = *sit;
+				if( SiKClassChangeTable()->GetClassChange_NewSkill( iNewClassID, iSkillID, iNewSkill ) == true )
 				{
-					kPacketToDB.m_mapChangeSkill.insert( std::make_pair((*sit), iNewSkill) );
+					kPacketToDB.m_mapChangeSkill.insert( std::make_pair(iSkillID, iNewSkill) );
 				}
+				//}}
 				iNewSkill = 0;
 			}
 		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¸Þ¸ð
+	// ï¿½Þ¸ï¿½
 	std::map< char, int >	mapSkillNote;
 	mapSkillNote.clear();
 	m_kSkillTree.GetMemoList( mapSkillNote );
-	if( mapSkillNote.size() > 0 )		// ºÀÀÎ ÇØÁ¦ÇÑ ½ºÅ³ÀÌ Á¸ÀçÇÑ´Ù¸é ½ºÅ³ ±³È¯ ¸ñ·Ï¿¡ Ãß°¡
+	if( mapSkillNote.size() > 0 )		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½È¯ ï¿½ï¿½Ï¿ï¿½ ï¿½ß°ï¿½
 	{
 		std::map< char, int >::iterator mit = mapSkillNote.begin();
 		if( mit == mapSkillNote.end() )
 		{
-			START_LOG( cerr, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ »ç¿ë - ÀåÂøÇÑ ¸Þ¸ð°¡ Á¸ÀçÇÑ´Ù°í Çß´Âµ¥...µ¥ÀÌÅÍ°¡ ¾ø´Ù!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù°ï¿½ ï¿½ß´Âµï¿½...ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( GetUserID() )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOGc( GetUnitClass() )
@@ -15683,21 +15693,21 @@ bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¾ÆÀÌÅÛ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	std::map< UidType, KInventoryItemInfo > mapInventoryItem;
 	std::map< UidType, KInventoryItemInfo >::iterator mitInventoryItem;
 
-	// Æ¯¼ö ÅÇÀÇ ¾ÆÀÌÅÛ Á¤º¸¸¸ ¾ò¾î ¿ÀÀÚ(Ä³½¬°ü·Ã ¾ÆÀÌÅÛÀº Æ¯¼ö ÅÇ¿¡ ÀÖ´Ù.)
+	// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½Ç¿ï¿½ ï¿½Ö´ï¿½.)
 	m_kInventory.GetInventoryInfo( CXSLInventory::ST_SPECIAL, mapInventoryItem, true );
-	// ÀºÇàÀÇ ¾ÆÀÌÅÛ Á¤º¸¸¸ ¾ò¾î ¿ÀÀÚ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_kInventory.GetInventoryInfo( CXSLInventory::ST_BANK, mapInventoryItem, true );
-	// ÆÖ ÅÇÀÇ ¾ÆÀÌÅÛ Á¤º¸¸¸ ¾ò¾î ¿ÀÀÚ
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_kInventory.GetInventoryInfo( CXSLInventory::ST_PET, mapInventoryItem, true );
 
 	mitInventoryItem = mapInventoryItem.begin();
-	if( mitInventoryItem == mapInventoryItem.end() )	// ¾ÆÀÌÅÛÀÌ Á¸ÀçÇÑ´Ù¸é ±³È¯ °¡´ÉÇÑ ¾ÆÀÌÅÛ ÀÎÁö È®ÀÎÇÏÀÚ
+	if( mitInventoryItem == mapInventoryItem.end() )	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	{
-		START_LOG( clog, L"ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ »ç¿ë - Inventory Item µ¥ÀÌÅÍ°¡ ¾ø´Ù!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - Inventory Item ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetUserID() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOGc( GetUnitClass() )
@@ -15723,9 +15733,9 @@ bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT
 	}
 	
 	//////////////////////////////////////////////////////////////////////////
-	// Äù½ºÆ®
-	// ( ¿Ï·áµÈ )
-	// ¿Ï·á Äù½ºÆ® º¯°æ ÇÒ ¸ñ·Ï Ã£ÀÚ
+	// ï¿½ï¿½ï¿½ï¿½Æ®
+	// ( ï¿½Ï·ï¿½ï¿½ )
+	// ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 	{
 		std::vector< int > vecCompleteQuest;
 		m_kUserQuestManager.GetCompleteChangeClassQuest( vecCompleteQuest );
@@ -15764,8 +15774,8 @@ bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT
 		}
 	}
 
-	// Äù½ºÆ®
-	// ( ÁøÇàÁß )
+	// ï¿½ï¿½ï¿½ï¿½Æ®
+	// ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
 	{
 		std::vector< int > vecInProgressQuest;
 		m_kUserQuestManager.GetInProgressClassChangeQuest( vecInProgressQuest );
@@ -15807,7 +15817,7 @@ bool KGSUser::GetUnlimitedClassChangeInfo( IN int iNewClassID, OUT KDBE_BUY_UNIT
 }
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
 
-//{{  2011.11.24     ±è¹Î¼º    Ä³¸¯ÅÍ Á¢¼Ó ·Î±×
+//{{  2011.11.24     ï¿½ï¿½Î¼ï¿½    Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_CHAR_CONNECT_LOG
 void KGSUser::SendUpdateUnitConnectLog()
 {
@@ -15831,19 +15841,19 @@ void KGSUser::SendUpdateUnitConnectLog()
 
 	SendToLogDB( DBE_UNIT_CONNECT_LOG_NOT, kPacketLog );
 
-	START_LOG( clog, L"ÀÓ½Ã ÄÉ¸¯ÅÍ Á¢¼Ó ·Î±× Ãß°¡" )
+	START_LOG( clog, L"ï¿½Ó½ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ß°ï¿½" )
 		<<END_LOG;
 }
 #endif SERV_CHAR_CONNECT_LOG
 //}}
 
-//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 void KGSUser::CheckBuffPeriod()
 {		
 	if( GetStateID() > KGSFSM::S_SERVER_SELECT  &&  GetStateID() < KGSFSM::STATE_SENTINEL )
 	{
-		// °£°ÝÀº 5ÃÊ·Î µÓ´Ï´Ù. Ã¼Å© °£°ÝÀ» ³ÐÈú¼ö·Ï ¼­¹ö ÆÛÆ÷¸Õ½º¸¦ ¾Æ³¥¼ö ÀÖÀ½.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 5ï¿½Ê·ï¿½ ï¿½Ó´Ï´ï¿½. Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ï¿½ï¿½ ï¿½Æ³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		if( m_kTimer[TM_CHECK_BUFF_PERIOD].elapsed() < 1.0 )
 			return;
 
@@ -15854,7 +15864,7 @@ void KGSUser::CheckBuffPeriod()
 		m_kUserBuffManager.CheckBuffPeriod( vecDeactivateBuffList, CXSLRoom::GetRoomType( GetRoomUID() ) );
 		if( vecDeactivateBuffList.empty() == false )
 		{
-			// ·Î±×ÀÎ ¼­¹ö ¹öÇÁ ¸Å´ÏÀú¿¡ ¾÷µ¥ÀÌÆ®
+			// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 			KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
 			kReq.m_iUnitUID = GetCharUID();
 			kReq.m_vecDeActivateBuff = vecDeactivateBuffList;
@@ -15881,8 +15891,8 @@ void KGSUser::SendUpdateBuffInfo()
 					KRoomUserInfo kRoomUserInfo;
 					GetRoomUserInfo( kRoomUserInfo, iRoomType );				
 					m_kUserBuffManager.GetBuffList( kPacketNot.m_vecActivateBuffList, CXSLRoom::RT_PVP );
-					kPacketNot.m_kGameStat = kRoomUserInfo.m_kGameStat;						// ±×³É ¹öÇÁ Àû¿ë¾È µÈ ½ºÅÝ
-					//{{ 2012. 12. 18	ÃÖÀ°»ç	¾Æ¶ó ÆÄÆ¼ ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡
+					kPacketNot.m_kGameStat = kRoomUserInfo.m_kGameStat;						// ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					//{{ 2012. 12. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 					kPacketNot.m_mapBonusRate = kRoomUserInfo.m_mapBonusRate;
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
@@ -15900,8 +15910,8 @@ void KGSUser::SendUpdateBuffInfo()
 				KRoomUserInfo kRoomUserInfo;
 				GetRoomUserInfo( kRoomUserInfo, iRoomType );				
 				m_kUserBuffManager.GetBuffList( kPacketNot.m_vecActivateBuffList, CXSLRoom::RT_DUNGEON );
-				kPacketNot.m_kGameStat = kRoomUserInfo.m_kGameStat;						// ±×³É ¹öÇÁ Àû¿ë¾È µÈ ½ºÅÝ
-				//{{ 2012. 12. 18	ÃÖÀ°»ç	¾Æ¶ó ÆÄÆ¼ ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡
+				kPacketNot.m_kGameStat = kRoomUserInfo.m_kGameStat;						// ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				//{{ 2012. 12. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 				kPacketNot.m_mapBonusRate = kRoomUserInfo.m_mapBonusRate;
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
@@ -15916,8 +15926,8 @@ void KGSUser::SendUpdateBuffInfo()
 				KRoomUserInfo kRoomUserInfo;
 				GetRoomUserInfo( kRoomUserInfo, iRoomType );				
 				m_kUserBuffManager.GetBuffList( kPacketNot.m_vecActivateBuffList, CXSLRoom::RT_BATTLE_FIELD );
-				kPacketNot.m_kGameStat = kRoomUserInfo.m_kGameStat;						// ±×³É ¹öÇÁ Àû¿ë¾È µÈ ½ºÅÝ
-				//{{ 2012. 12. 18	ÃÖÀ°»ç	¾Æ¶ó ÆÄÆ¼ ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡
+				kPacketNot.m_kGameStat = kRoomUserInfo.m_kGameStat;						// ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				//{{ 2012. 12. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 				kPacketNot.m_mapBonusRate = kRoomUserInfo.m_mapBonusRate;
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
@@ -15948,11 +15958,11 @@ bool KGSUser::ActivateBuff( IN const int iBuffID, OUT std::vector< KBuffInfo >& 
 	KBuffInfo kBuff;
 	kBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID = iBuffID;
 
-	// Á¸ÀçÇÏ´Â ¹öÇÁÀÎÁö °Ë»ç
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	const CXSLBuffManager::BuffTemplet* pBuffTemplet = SiCXSLBuffManager()->GetBuffTemplet( iBuffID );
 	if( pBuffTemplet == NULL )
 	{
-		START_LOG( cerr, L"Á¸Àç ÇÏÁö ¾Ê´Â ¹öÇÁÀÔ´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 			<< BUILD_LOG( iBuffID )
 			<< END_LOG;
 		return false;
@@ -15969,7 +15979,7 @@ bool KGSUser::ActivateItemBuff( IN const int iUseItemID, OUT std::vector< KBuffI
 {
 	if( SiCXSLItemManager()->IsBuffItem( iUseItemID ) == false )
 	{
-		START_LOG( clog, L"Á¸ÀçÇÏÁö ¾ÆÀÌÅÛ(¹öÇÁ)ÀÔ´Ï´Ù." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½)ï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iUseItemID )
 			<< END_LOG;
 		return false;
@@ -15989,11 +15999,11 @@ bool KGSUser::ActivateItemBuff( IN const int iUseItemID, OUT std::vector< KBuffI
 			else if( iUseItemID == CXSLItem::SI_THE_GATE_OF_DARKNESS_ARCANUM_RACHEL )	{ iBuffID = CXSLBuffManager::BTI_BUFF_PROTECTION_OF_LAHEL; }
 			else if( iUseItemID == CXSLItem::SI_THE_GATE_OF_DARKNESS_ARCANUM_ZADKIEL )	{ iBuffID = CXSLBuffManager::BTI_BUFF_PROTECTION_OF_ZACHIEL; }
 
-			// Á¸ÀçÇÏ´Â ¹öÇÁÀÎÁö °Ë»ç
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 			const CXSLBuffManager::BuffTemplet* pBuffTemplet = SiCXSLBuffManager()->GetBuffTemplet( iBuffID );
 			if( pBuffTemplet == NULL )
 			{
-				START_LOG( cerr, L"Á¸Àç ÇÏÁö ¾Ê´Â ¹öÇÁÀÔ´Ï´Ù!" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 					<< BUILD_LOG( iBuffID )
 					<< END_LOG;
 				return false;
@@ -16004,14 +16014,14 @@ bool KGSUser::ActivateItemBuff( IN const int iUseItemID, OUT std::vector< KBuffI
 			DeactivateBuff( CXSLBuffManager::BTI_BUFF_PROTECTION_OF_LAHEL, vecDeactiveBuff );
 			DeactivateBuff( CXSLBuffManager::BTI_BUFF_PROTECTION_OF_ZACHIEL, vecDeactiveBuff );
 
-			// ¾ÆÀÌÅÛ »ç¿ë ¹öÇÁ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			ActivateBuff( iBuffID, vecActivatedBuff, tUseTime );
 
-			// ºñ¾à »ç¿ë µð¹öÇÁ
+			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 			const CXSLBuffManager::BuffTemplet* pDeBuffTemplet = SiCXSLBuffManager()->GetBuffTemplet( CXSLBuffManager::BTI_BUFF_STRENGTHENING_BODY );
 			if( pDeBuffTemplet == NULL )
 			{
-				START_LOG( cerr, L"Á¸Àç ÇÏÁö ¾Ê´Â ¹öÇÁÀÔ´Ï´Ù!" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 					<< BUILD_LOG( CXSLBuffManager::BTI_BUFF_STRENGTHENING_BODY )
 					<< END_LOG;
 				return false;
@@ -16024,7 +16034,7 @@ bool KGSUser::ActivateItemBuff( IN const int iUseItemID, OUT std::vector< KBuffI
 	case CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_GEB:
 	case CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_AMON:
 	case CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_CRONOS:
-		//{{ 2013. 04. 12	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+		//{{ 2013. 04. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	case CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_GIANT_POTION:
 	case CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_BLAZING_BOMB:
@@ -16050,7 +16060,7 @@ bool KGSUser::ActivateItemBuff( IN const int iUseItemID, OUT std::vector< KBuffI
 			else if( iUseItemID == CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_GEB )					{ iBuffID = CXSLBuffManager::BTI_BUFF_BELSSING_OF_GEB; }
 			else if( iUseItemID == CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_AMON )					{ iBuffID = CXSLBuffManager::BTI_BUFF_BELSSING_OF_AMON; }
 			else if( iUseItemID == CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_CRONOS )				{ iBuffID = CXSLBuffManager::BTI_BUFF_BELSSING_OF_CRONOS; }
-			//{{ 2013. 04. 12	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+			//{{ 2013. 04. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 			else if( iUseItemID == CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_GIANT_POTION )			{ iBuffID = CXSLBuffManager::BTI_BUFF_ELIXIR_GIANT_POTION; }
 			else if( iUseItemID == CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_BLAZING_BOMB )			{ iBuffID = CXSLBuffManager::BTI_BUFF_ELIXIR_BLAZING_BOMB; }
@@ -16071,11 +16081,11 @@ bool KGSUser::ActivateItemBuff( IN const int iUseItemID, OUT std::vector< KBuffI
 #endif SERV_EVENT_RURIEL_MANA_ENERGIZE_POTION
 
 
-			// Á¸ÀçÇÏ´Â ¹öÇÁÀÎÁö °Ë»ç
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 			const CXSLBuffManager::BuffTemplet* pBuffTemplet = SiCXSLBuffManager()->GetBuffTemplet( iBuffID );
 			if( pBuffTemplet == NULL )
 			{
-				START_LOG( cerr, L"Á¸Àç ÇÏÁö ¾Ê´Â ¹öÇÁÀÔ´Ï´Ù!" )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 					<< BUILD_LOG( iBuffID )
 					<< END_LOG;
 				return false;
@@ -16085,7 +16095,7 @@ bool KGSUser::ActivateItemBuff( IN const int iUseItemID, OUT std::vector< KBuffI
 			DeactivateBuff( CXSLBuffManager::BTI_BUFF_BELSSING_OF_GEB, vecDeactiveBuff );
 			DeactivateBuff( CXSLBuffManager::BTI_BUFF_BELSSING_OF_AMON, vecDeactiveBuff );
 			DeactivateBuff( CXSLBuffManager::BTI_BUFF_BELSSING_OF_CRONOS, vecDeactiveBuff );
-			//{{ 2013. 04. 12	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+			//{{ 2013. 04. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 			DeactivateBuff( CXSLBuffManager::BTI_BUFF_ELIXIR_GIANT_POTION, vecDeactiveBuff );
 			DeactivateBuff( CXSLBuffManager::BTI_BUFF_ELIXIR_BLAZING_BOMB, vecDeactiveBuff );
@@ -16105,14 +16115,14 @@ bool KGSUser::ActivateItemBuff( IN const int iUseItemID, OUT std::vector< KBuffI
 			DeactivateBuff( CXSLBuffManager::BTI_BUFF_RURIEL_MANA_ENERGIZE_POTION, vecDeactiveBuff );
 #endif SERV_EVENT_RURIEL_MANA_ENERGIZE_POTION
 
-			// ¾ÆÀÌÅÛ »ç¿ë ¹öÇÁ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			ActivateBuff( iBuffID, vecActivatedBuff, tUseTime );
 
 		}
 		break;
 	default:
 		{
-			START_LOG( cerr, L"¹öÇÁ Á¤º¸°¡ ¾ø´Â ¾ÆÀÌÅÛÀ» »ç¿ë Çß½À´Ï´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß½ï¿½ï¿½Ï´ï¿½." )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( iUseItemID )
 				<< END_LOG;
@@ -16126,11 +16136,11 @@ bool KGSUser::ActivateItemBuff( IN const int iUseItemID, OUT std::vector< KBuffI
 
 bool KGSUser::DeactivateBuff( IN const int iBuffID, OUT std::vector< int >& vecDeleteBuff )
 {
-	// Á¸ÀçÇÏ´Â ¹öÇÁÀÎÁö °Ë»ç
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	const CXSLBuffManager::BuffTemplet* pBuffTemplet = SiCXSLBuffManager()->GetBuffTemplet( iBuffID );
 	if( pBuffTemplet == NULL )
 	{
-		START_LOG( cerr, L"Á¸Àç ÇÏÁö ¾Ê´Â ¹öÇÁÀÔ´Ï´Ù!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½!" )
 			<< BUILD_LOG( iBuffID )
 			<< END_LOG;
 		return false;
@@ -16148,29 +16158,29 @@ void KGSUser::CheckDeselectUnitBuff( IN const bool bSendAck /*= true*/ )
 {
 	std::vector<int> vecDeleteBuff;
 	
-	// °ÔÀÓ Á¾·á ½Ã(Ä³¸¯ÅÍ ¼±ÅÃ ÇØÁ¦) Áö¿ö¾ß ÇÒ ¹öÇÁ Á¤º¸¸¦ Ã£ÀÚ.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½.
 	
-	// µû¶æÇÑ ¿¤ÀÇ ±â¿î (¸¶À» ¹öÇÁ)
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_WARM_ENERGE_OF_EL, vecDeleteBuff );
-	// ¿µ¿õÀÇ Áý°á ( ÀÚµ¿ÆÄÆ¼¹öÇÁ )
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½Úµï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ )
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_RALLY_OF_HERO_LEVEL_1, vecDeleteBuff );
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_RALLY_OF_HERO_LEVEL_2, vecDeleteBuff );
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_RALLY_OF_HERO_LEVEL_3, vecDeleteBuff );
-	// ¸®º¥Áö ¸ðµå ¹öÇÁ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_PVP_REVENGE_MODE_LEVEL_1, vecDeleteBuff );
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_PVP_REVENGE_MODE_LEVEL_2, vecDeleteBuff );
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_PVP_REVENGE_MODE_LEVEL_3, vecDeleteBuff );
-	//PC ¹æ À¯Àú¶ó°í ÇØµµ Áö¿î´Ù
+	//PC ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Øµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_PREMIUM_PC_ROOM, vecDeleteBuff );
-	//{{ 2012. 12. 18	ÃÖÀ°»ç	¾Æ¶ó ÆÄÆ¼ ÇÃ·¹ÀÌ º¸³Ê½º °æÇèÄ¡
+	//{{ 2012. 12. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ ï¿½ï¿½Æ¼ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 	DeactivateBuff( CXSLBuffManager::BTI_SECRET_OF_THOUSAND_YEARS_FOX, vecDeleteBuff );
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 	//}}
 
 #ifdef SERV_BONUS_BUFF_SYSTEM
-	// ´øÀü¿¡¼­ º¸³Ê½º·Î ¹ÞÀº ¹öÇÁµé ´Ù Áö¿öÁÝ´Ï´Ù.
-	// for µ¹¸é¼­ º¸³Ê½º ¹öÇÁµé ´Ù Áö¿ó½Ã´Ù
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ý´Ï´ï¿½.
+	// for ï¿½ï¿½ï¿½é¼­ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã´ï¿½
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_2YEARS_EVENT_CN_DAMAGE_UP, vecDeleteBuff );
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_2YEARS_EVENT_CN_MOVE_JUMP_SPEED_UP, vecDeleteBuff );
 	DeactivateBuff( CXSLBuffManager::BTI_BUFF_2YEARS_EVENT_CN_ACCURACY_AVOID_UP, vecDeleteBuff );
@@ -16203,13 +16213,13 @@ void KGSUser::CheckDeselectUnitBuff( IN const bool bSendAck /*= true*/ )
 #endif SERV_SERVER_BUFF_SYSTEM
 //}
 
-//{{ 2012. 04. 02	±è¹Î¼º		sn ¸ð´ÏÅÍ¸µ ±â´É ºÐ¸®
+//{{ 2012. 04. 02	ï¿½ï¿½Î¼ï¿½		sn ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½
 #ifdef SERV_SERIAL_NUMBER_MORNITORING
 void KGSUser::CheckServerSN_Monitoring()
 {
 	if( m_kUserSecurityManager.CheckServerSN_Monitoring() == true )
 	{
-		//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+		//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 		KEGS_SERVER_CHECK_HACK_USER_REQ kNot;
 		kNot.m_cHackingCheckType = KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_SERVER_SN_MONITORING;
@@ -16223,19 +16233,19 @@ void KGSUser::CheckServerSN_Monitoring()
 #endif SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 		//}}
 
-		START_LOG( clog, L"SN ¸ð´ÏÅÍ¸µ À¯Àú-°¨½ÃÆÐÅ¶ ³¯·ÈÀ½" )
+		START_LOG( clog, L"SN ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" )
 			<< END_LOG;
 	}
 }
 #endif SERV_SERIAL_NUMBER_MORNITORING
 //}}
 
-//{{ 2012. 03. 27	±è¹Î¼º		¸Ó½Å ½Ã°£À» °Ë»çÇÏÀÚ(50ºÐ ÀÌ»ó Â÷ÀÌ³ª¸é ¸ð´ÏÅÍ¸µ)
+//{{ 2012. 03. 27	ï¿½ï¿½Î¼ï¿½		ï¿½Ó½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½(50ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½Ì³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½)
 #ifdef SERV_CHECK_MACHINE_LOCALTIME
 bool KGSUser::CheckMachineLocalTime( SYSTEMTIME& st, std::wstring& wstrClientTime )
 {
 	CTime tServer = CTime::CTime( st );
-	CTimeSpan tSpan = CTimeSpan(0, 9, 0, 0); // ÇÑ±¹ ½Ã°£ º¸Á¤¿ë
+	CTimeSpan tSpan = CTimeSpan(0, 9, 0, 0); // ï¿½Ñ±ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	tServer += tSpan;
 
 	CTime tClient;
@@ -16243,7 +16253,7 @@ bool KGSUser::CheckMachineLocalTime( SYSTEMTIME& st, std::wstring& wstrClientTim
 
 	if( KncUtil::ConvertStringToCTime( wstrClientTime, tClient )  == false )
 	{
-		START_LOG( cerr, L"Å¬¶óÀÌ¾ðÆ® ½Ã°¢ Á¤º¸ º¯È¯ ½ÇÆÐ." )
+		START_LOG( cerr, L"Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( GetName() )
 			<< BUILD_LOG( wstrClientTime )
 			<< BUILD_LOG( wsrtServerTime )
@@ -16254,7 +16264,7 @@ bool KGSUser::CheckMachineLocalTime( SYSTEMTIME& st, std::wstring& wstrClientTim
 	CTimeSpan tSpan_min = CTimeSpan( 0, 0, 50, 0);
 	if( tClient < tServer - tSpan_min )
 	{
-		START_LOG( cerr, L"Å¬¶óÀÌ¾ðÆ® ½Ã°¢ Á¤º¸ ÀÌ»ó." )
+		START_LOG( cerr, L"Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 			<< BUILD_LOG( GetName() )
 			<< BUILD_LOG( wstrClientTime )
 			<< BUILD_LOG( wsrtServerTime )
@@ -16263,7 +16273,7 @@ bool KGSUser::CheckMachineLocalTime( SYSTEMTIME& st, std::wstring& wstrClientTim
 		return false;
 	}
 
-	START_LOG( clog, L"Å¬¶óÀÌ¾ðÆ® ½Ã°¢ Á¤º¸ ÀÌ»ó." )
+	START_LOG( clog, L"Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 		<< BUILD_LOG( GetName() )
 		<< BUILD_LOG( wstrClientTime )
 		<< BUILD_LOG( wsrtServerTime )
@@ -16274,11 +16284,11 @@ bool KGSUser::CheckMachineLocalTime( SYSTEMTIME& st, std::wstring& wstrClientTim
 #endif SERV_CHECK_MACHINE_LOCALTIME
 //}}
 
-//{{ 2012. 03. 29	±è¹Î¼º		x2.exe ¸ðµâ À¯¹« °Ë»ç
+//{{ 2012. 03. 29	ï¿½ï¿½Î¼ï¿½		x2.exe ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 #ifdef SERV_CHECK_X2_EXE_MODULE
 bool KGSUser::CheckModuleList_X2Module( IN std::vector< std::wstring >& vecModuleList, OUT std::map< std::wstring, bool >& mapExistModule )
 {
-	// Á¸Àç ÇØ¾ß ÇÏ´Â ¸ðµâ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
 	std::map< std::wstring, bool >::iterator mit;
 	SiKMornitoringManager()->GetCheckExistModule( mapExistModule );
 
@@ -16287,7 +16297,7 @@ bool KGSUser::CheckModuleList_X2Module( IN std::vector< std::wstring >& vecModul
 		mit = mapExistModule.find( wstrName );
 		if( mit != mapExistModule.end() )
 		{
-			START_LOG( clog, L"Á¸Àç ÇØ¾ßÇÏ´Â module ÀÌ ÀÖ´Ù!!!" );
+			START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ module ï¿½ï¿½ ï¿½Ö´ï¿½!!!" );
 
 			mit->second = true;
 		}
@@ -16297,7 +16307,7 @@ bool KGSUser::CheckModuleList_X2Module( IN std::vector< std::wstring >& vecModul
 	{
 		if( mit->second == false )
 		{
-			START_LOG( cerr, L"Á¸Àç ÇØ¾ßÇÏ´Â module ÀÌ ¾ø´Ù!!!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ module ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!!" )
 				<< BUILD_LOG( mit->first )
 				<< END_LOG;
 
@@ -16310,7 +16320,7 @@ bool KGSUser::CheckModuleList_X2Module( IN std::vector< std::wstring >& vecModul
 #endif SERV_CHECK_X2_EXE_MODULE
 //}}
 
-//{{ 2012. 05. 23	±è¹Î¼º       ÆÇ¸Å ºÒ°¡ ¾ÆÀÌÅÛ ÆÇ¸Å ½Ãµµ ÇØÅ· À¯Àú·Î ÆÇ´Ü
+//{{ 2012. 05. 23	ï¿½ï¿½Î¼ï¿½       ï¿½Ç¸ï¿½ ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½Ãµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½
 #ifdef SERV_IMPOSSIBLE_SELL_ITEM
 void KGSUser::SetRandomTimeKick( int iReason, int iMinTime, int iRange )
 {
@@ -16330,7 +16340,7 @@ void KGSUser::CheckRandomTimeKick()
 #endif SERV_IMPOSSIBLE_SELL_ITEM
 //}}
 
-//{{ 2012. 05. 29	±è¹Î¼º       °³ÀÎ »óÁ¡ °Å·¡ ·ÎÁ÷ º¯°æ
+//{{ 2012. 05. 29	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_LOGIC_CHANGE_PERSONAL_SHOP
 void KGSUser::SetPersonalShopBuyItemInfo( IN KERM_BUY_PERSONAL_SHOP_ITEM_REQ& kPacket )
 {
@@ -16353,7 +16363,7 @@ void KGSUser::GetPersonalShopBuyItemInfo( OUT KERM_BUY_PERSONAL_SHOP_ITEM_REQ& k
 #endif SERV_TRADE_LOGIC_CHANGE_PERSONAL_SHOP
 //}}
 
-//{{ 2012. 05. 31	±è¹Î¼º       ´ë¸® »óÁ¡ °Å·¡ ·ÎÁ÷ º¯°æ
+//{{ 2012. 05. 31	ï¿½ï¿½Î¼ï¿½       ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_TRADE_LOGIC_CHANGE_AGENCY_SHOP
 void KGSUser::SetAgencyShopPickUpItemInfo( IN std::vector< UidType >& vecPickUpItemList )
 {
@@ -16367,7 +16377,7 @@ void KGSUser::GetAgencyShopPickUpItemInfo( OUT std::vector< UidType >& vecPickUp
 #endif SERV_TRADE_LOGIC_CHANGE_AGENCY_SHOP
 //}}
 
-//{{ 2012. 06. 04	±è¹Î¼º       ¼­¹ö ÇØÅ· À¯Àú Ã¼Å© ¿äÃ» ÀÀ´äÀ¸·Î º¯°æ
+//{{ 2012. 06. 04	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 void KGSUser::SetHackingUserSendType( IN char cType )
 {
@@ -16376,11 +16386,11 @@ void KGSUser::SetHackingUserSendType( IN char cType )
 #endif SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 //}}
 
-//{{ 2012. 11. 13	ÃÖÀ°»ç		ÀÚµ¿ÆÄÆ¼ ´ë±â¿­ Ä«¿îÆ® Ç¥½Ã
+//{{ 2012. 11. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½Úµï¿½ï¿½ï¿½Æ¼ ï¿½ï¿½â¿­ Ä«ï¿½ï¿½Æ® Ç¥ï¿½ï¿½
 #ifdef SERV_AUTO_PARTY_WAIT_USER_COUNT_VIEW
 void KGSUser::CheckAutoPartyWaitUserCountRequest()
 {
-	// ¾ÖÃÊ¿¡ ÀÚµ¿ ÆÄÆ¼ ´ë±â¿­¿¡ µî·ÏµÈ »óÅÂ°¡ ¾Æ´Ï¶ó¸é Ã¼Å©ÇÏÁö ¾Ê´Â´Ù.
+	// ï¿½ï¿½ï¿½Ê¿ï¿½ ï¿½Úµï¿½ ï¿½ï¿½Æ¼ ï¿½ï¿½â¿­ï¿½ï¿½ ï¿½ï¿½Ïµï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 	if( GetAutoPartyWaitNumber() == 0 )
 		return;
 
@@ -16391,7 +16401,7 @@ void KGSUser::CheckAutoPartyWaitUserCountRequest()
 
 		m_kTimer[TM_AUTO_PARTY_WAIT_USER_COUNT].restart();
 		
-		// ÇöÀç µî·ÏµÈ ´ë±â¿­ÀÇ ´ë±â ÀÎ¿øÀ» ¿äÃ»ÇÑ´Ù!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ïµï¿½ ï¿½ï¿½â¿­ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ñ´ï¿½!
 		KEGB_REQUEST_AUTO_PARTY_WAIT_USER_COUNT_NOT kPacket;
 		kPacket.m_iAutoPartyWaitNumber = GetAutoPartyWaitNumber();
 		SendToAutoParty( EGB_REQUEST_AUTO_PARTY_WAIT_USER_COUNT_NOT, kPacket );
@@ -16400,7 +16410,7 @@ void KGSUser::CheckAutoPartyWaitUserCountRequest()
 #endif SERV_AUTO_PARTY_WAIT_USER_COUNT_VIEW
 //}}
 
-//{{ 2012. 02. 22	¹Ú¼¼ÈÆ	±æµå ÀÌ¸§ º¯°æ±Ç
+//{{ 2012. 02. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_GUILD_CHANGE_NAME
 bool KGSUser::IsGuildMaster( void )
 {
@@ -16410,20 +16420,20 @@ bool KGSUser::IsGuildMaster( void )
 //}}
 
 
-//{{ 2012. 06. 13	±è¹Î¼º       ¼±ÅÃÀû ¼Ë´Ù¿îÁ¦
+//{{ 2012. 06. 13	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë´Ù¿ï¿½ï¿½ï¿½
 #ifdef SERV_SELECTIVE_SHUTDOWN_SYSTEM
 void KGSUser::CheckRestrictionUser()
 {
-	// 10ÃÊ¸¶´Ù È®ÀÎ ÇÏÀÚ
+	// 10ï¿½Ê¸ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( m_kTimer[TM_SELECTIVE_SHUTDOWN_SYSTEM_CHECK].elapsed() < 10 )
 	{
-		// ÆÐ½º~
+		// ï¿½Ð½ï¿½~
 		return;
 	}
 
 	m_kTimer[TM_SELECTIVE_SHUTDOWN_SYSTEM_CHECK].restart();
 
-	//1. °ÔÀÓ ÀÌ¿ë Â÷´Ü ´ë»óÀÚ°¡ ¾Æ´Ï¶óµµ ¸Þ¼¼Áö Ãâ·ÂÀº ÇÑ´Ù.
+	//1. ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Æ´Ï¶ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	if( m_kUserInfoByNexon.GetRestrictionUser() < KUserInfoByNexon::SHUTDOWN_USER )
 	{
 		if( m_kUserInfoByNexon.IsExistRestrictionTime() == true )
@@ -16463,17 +16473,17 @@ void KGSUser::CheckRestrictionUser()
 		
 			if( KncUtil::ConvertStringToCTime( wstrRestrictionTime, tRestrictionTime ) == false )
 			{
-				// ½Ã°£ÀÌ ¾øÀ¸¹Ç·Î ÆÇ´Ü ÇÒ ¼ö°¡ ¾ø´Ù.
+				// ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 				return;
 			}
 
-			// Á¦ÇÑ ½Ã°£ Á¤º¸¸¦ Àü´ÞÇÑ ÀûÀÌ ÀÖ´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½.
 			if( m_kUserInfoByNexon.IsSendRestrictionUserMSG() == true )
 			{
 				return;
 			}
 
-			CTimeSpan tMsgTime = CTimeSpan( 0, 0, 10, 0 ); // ¹Ì¸® ¾Ë¸² 10ºÐ Àü
+			CTimeSpan tMsgTime = CTimeSpan( 0, 0, 10, 0 ); // ï¿½Ì¸ï¿½ ï¿½Ë¸ï¿½ 10ï¿½ï¿½ ï¿½ï¿½
 
 			if( tCurr < tRestrictionTime && tCurr + tMsgTime > tRestrictionTime )
 			{
@@ -16485,7 +16495,7 @@ void KGSUser::CheckRestrictionUser()
 
 				SendPacket( EGS_BEFORE_SHUT_DOWN_MESSAGE_NOT, kMsgNot );
 
-				START_LOG( clog, L"°ÔÀÓ ÀÌ¿ë Â÷´Ü ¹Ì¸® ¾Ë¸² °øÁö Àü¼Û È®ÀÎ." )
+				START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Ë¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½." )
 					<< BUILD_LOG( GetCharName() )
 					<< BUILD_LOG( m_kUserInfoByNexon.GetRestrictionUser() )
 					<< BUILD_LOG( m_kUserInfoByNexon.GetRestrictionUserMSG() )
@@ -16503,7 +16513,7 @@ void KGSUser::CheckRestrictionUser()
 		}
 	}
 
-	//3. °ÔÀÓ ÀÌ¿ë Â÷´Ü ´ë»óÀÚ¶ó¸é Å±µÇÁö ¾Ê¾Ò³×?!
+	//3. ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ú¶ï¿½ï¿½ Å±ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò³ï¿½?!
 	if( m_kUserInfoByNexon.GetRestrictionUser() == KUserInfoByNexon::SHUTDOWN_USER )
 	{
 		KEGS_SHUT_DOWN_MESSAGE_NOT kNot;
@@ -16533,7 +16543,7 @@ void KGSUser::CheckRestrictionUser()
 			}
 		}
 
-		START_LOG( clog, L"°ÔÀÓ ÀÌ¿ë Â÷´Ü È®ÀÎ." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½." )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( m_kUserInfoByNexon.GetRestrictionUser() )
 			<< BUILD_LOG( m_kUserInfoByNexon.GetRestrictionUserMSG() )
@@ -16541,8 +16551,8 @@ void KGSUser::CheckRestrictionUser()
 
 		SendPacket( EGS_SHUT_DOWN_MESSAGE_NOT, kNot );
 
-		// °ÔÀÓ Á¢¼Ó Â÷´Ü
-		// ·£´ý ½Ã°£ µÚ¿¡ Á¾·á µÇµµ·Ï ÇÏÀÚ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ú¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		SetRandomTimeKick( KStatistics::eSIColDR_Policy_Shutdown_Disconnect, 1, 1 );
 		m_kUserInfoByNexon.SetRestrictionUser( KUserInfoByNexon::KICK_USER );
 		
@@ -16552,22 +16562,22 @@ void KGSUser::CheckRestrictionUser()
 #endif SERV_SELECTIVE_SHUTDOWN_SYSTEM
 //}}
 
-//{{ 2012. 04. 17	ÃÖÀ°»ç	Äù½ºÆ® Á¶°Ç ¸¶À» ÀÔÀå
+//{{ 2012. 04. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ENTER_FIELD_QUEST_CLEAR
 void KGSUser::AddTempInventoryItem( IN const int iItemID
 								  , IN const u_char ucSealData
-								  //{{ 2012. 1. 16	¹Ú¼¼ÈÆ	´øÀü ¹× ÇÊµå µå¶ø ¾ÆÀÌÅÛ¿¡ °­È­ ºÎ¿©
+								  //{{ 2012. 1. 16	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½È­ ï¿½Î¿ï¿½
 #ifdef SERV_ENCHANT_ITEM_DROP_EVENT
 								  , IN const KItemInfo& kItemInfo
 #endif SERV_ENCHANT_ITEM_DROP_EVENT
 								  //}}
 								  )
 {
-	// ÀÓ½Ã ÀÎº¥Åä¸®·Î ÀúÀåÇÏ·¯ °¡±â!
+	// ï¿½Ó½ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	KEGS_GET_ITEM_TEMP_INVENTORY_NOT kNot;
 	if( m_kTempInventory.AddTempInventoryItem( iItemID
 											 , ucSealData
-											 //{{ 2012. 1. 16	¹Ú¼¼ÈÆ	´øÀü ¹× ÇÊµå µå¶ø ¾ÆÀÌÅÛ¿¡ °­È­ ºÎ¿©
+											 //{{ 2012. 1. 16	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½È­ ï¿½Î¿ï¿½
 #ifdef SERV_ENCHANT_ITEM_DROP_EVENT
 											 , kItemInfo
 #endif SERV_ENCHANT_ITEM_DROP_EVENT
@@ -16579,7 +16589,7 @@ void KGSUser::AddTempInventoryItem( IN const int iItemID
 	}
 	else
 	{
-		START_LOG( cerr, L"ÀÓ½Ã ÀÎº¥Åä¸®¿¡ ¾ÆÀÌÅÛ ÀúÀå ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½Ó½ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( iItemID )
 			<< END_LOG;
@@ -16604,7 +16614,7 @@ void KGSUser::SendQuestRewardLetter( IN const int iQuestID, IN const int iReward
 #endif SERV_ENTER_FIELD_QUEST_CLEAR
 //}}
 
-//{{ 2012. 10. 02	ÃÖÀ°»ç		ED&¾ÆÀÌÅÛ ¸ð´ÏÅÍ¸µ ½Ã½ºÅÛ
+//{{ 2012. 10. 02	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ED&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 void KGSUser::SetED( IN const int iED, IN const KUserEDManager::ED_REASON eReason )
 {
@@ -16613,7 +16623,7 @@ void KGSUser::SetED( IN const int iED, IN const KUserEDManager::ED_REASON eReaso
 	const int iAfterED = iED;
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[Å×½ºÆ®·Î±×] ED°ª ´ëÀÔ!" )
+	START_LOG( cout, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½] EDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( GetCharName() )
 		<< BUILD_LOG( eReason )
 		<< BUILD_LOG( iBeforeED )
@@ -16621,10 +16631,10 @@ void KGSUser::SetED( IN const int iED, IN const KUserEDManager::ED_REASON eReaso
 		<< BUILD_LOG( iAfterED );
 	//////////////////////////////////////////////////////////////////////////
 
-	// ED¼¼ÆÃ
+	// EDï¿½ï¿½ï¿½ï¿½
 	m_kEDManager.Init( iED, eReason );
 
-	// ED¾îºäÀú ¸ð´ÏÅÍ¸µ
+	// EDï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 	m_kUserAbuserManager.CheckEDAbuser( GetThisPtr<KGSUser>(), static_cast<int>(eReason), iBeforeED );
 }
 
@@ -16634,7 +16644,7 @@ void KGSUser::IncreaseED( IN const int iIncreaseED, IN const KUserEDManager::ED_
 		return;
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[Å×½ºÆ®·Î±×] EDÁõ°¡!" )
+	START_LOG( cout, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½] EDï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( GetCharName() )
 		<< BUILD_LOG( GetED() )
 		<< BUILD_LOG( iIncreaseED )
@@ -16643,10 +16653,10 @@ void KGSUser::IncreaseED( IN const int iIncreaseED, IN const KUserEDManager::ED_
 
 	const int iBeforeED = GetED();
 
-	// EDÁõ°¡
+	// EDï¿½ï¿½ï¿½ï¿½
 	m_kEDManager.IncreaseMyED( iIncreaseED, eReason );
 
-	// ED¾îºäÀú ¸ð´ÏÅÍ¸µ
+	// EDï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 	m_kUserAbuserManager.CheckEDAbuser( GetThisPtr<KGSUser>(), static_cast<int>(eReason), iBeforeED );
 }
 
@@ -16656,7 +16666,7 @@ void KGSUser::DecreaseED( IN const int iDecreaseED, IN const KUserEDManager::ED_
 		return;
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[Å×½ºÆ®·Î±×] ED°¨¼Ò!" )
+	START_LOG( cout, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½] EDï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( GetCharName() )
 		<< BUILD_LOG( GetED() )
 		<< BUILD_LOG( iDecreaseED )
@@ -16665,16 +16675,16 @@ void KGSUser::DecreaseED( IN const int iDecreaseED, IN const KUserEDManager::ED_
 
 	const int iBeforeED = GetED();
 
-	// ED°¨¼Ò
+	// EDï¿½ï¿½ï¿½ï¿½
 	m_kEDManager.DecreaseMyED( iDecreaseED, eReason );
 
-	// ED¾îºäÀú ¸ð´ÏÅÍ¸µ
+	// EDï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 	m_kUserAbuserManager.CheckEDAbuser( GetThisPtr<KGSUser>(), static_cast<int>(eReason), iBeforeED );
 }
 #endif SERV_ED_AND_ITEM_MORNITORING_SYSTEM
 //}}
 
-//{{ 2012. 09. 11	¹Ú¼¼ÈÆ	2012 ´ëÀü ½ÃÁð2
+//{{ 2012. 09. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2
 #ifdef SERV_2012_PVP_SEASON2
 CXSLUnit::PVP_RANK KGSUser::GetPvpRankForClient( void ) const
 {
@@ -16691,11 +16701,11 @@ void KGSUser::GetPvpRankForClient( IN const int iOfficialMatchCnt, IN OUT char& 
 #endif SERV_2012_PVP_SEASON2
 //}}
 
-//{{ 2012 ´ëÀü ½ÃÁð2 Àü¾ß ·±Äª ÀÌº¥Æ®	- ±è¹Î¼º
+//{{ 2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Äª ï¿½Ìºï¿½Æ®	- ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_2012_PVP_SEASON2_EVENT
 void KGSUser::CheckPvpEvent()
 {
-	// 1ºÐ¸¶´Ù
+	// 1ï¿½Ð¸ï¿½ï¿½ï¿½
 	if( m_kTimer[TM_PVP_EVENT_CHECK].elapsed() < 60.0 )
 		return;
 	
@@ -16703,38 +16713,38 @@ void KGSUser::CheckPvpEvent()
 
 	CTime tCurr = CTime::GetCurrentTime();
 	
-	// ÀÌº¥Æ® ´ë»ó(ÀÌº¥Æ® ½Ã°£ÀÌ¶ó¸é)
+	// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½(ï¿½Ìºï¿½Æ® ï¿½Ã°ï¿½ï¿½Ì¶ï¿½ï¿½)
 	if( m_bNowPvpEventTime == true )
 	{
 		int iIndex = 0;
 		std::wstring wstrTemp;
 		bool bTemp = false;
 
-		// ÀÌº¥Æ® ½Ã°£ÀÌ ¾ú´Âµ¥ Áö±ÝÀº ÀÌº¥Æ® ½Ã°£ÀÌ ¾Æ´Ï´Ù? ±×·³ ¹öÇÁ ¾ÆÀÌÄÜ »èÁ¦ ¾Ë·ÁÁÖÀÚ
+		// ï¿½Ìºï¿½Æ® ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Æ´Ï´ï¿½? ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½
 		if( SiKGameSysVal()->IsPvpEventTime( tCurr, iIndex, wstrTemp, bTemp ) == false )
 		{
 			m_bNowPvpEventTime = false;
 
-			// Å¬¶ó¿¡°Ô ¾ÆÀÌÄÜ Ãâ·ÂÀ» ¾Ë·ÁÁÖÀÚ
+			// Å¬ï¿½ó¿¡°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½
 			KEGS_PVP_EVENT_INFO_NOT kNot;
 			kNot.m_bEventInfo = false;
 
 			SendPacket( EGS_PVP_EVENT_INFO_NOT, kNot );
 		}
 	}
-	else	// ÀÌº¥Æ® ´ë»óÀÌ ¾Æ´Ï¶ó¸é(ÀÌº¥Æ® ½Ã°£ÀÌ ¾Æ´Ï¶ó¸é)
+	else	// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½(ï¿½Ìºï¿½Æ® ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½)
 	{
 		int iIndex = 0;
 		std::wstring wstrTemp;
 		bool bTemp = false;
 
-		// ÀÌº¥Æ® ½Ã°£ÀÌ ¾Æ´Ï¾ú´Âµ¥ Áö±ÝÀº ÀÌº¥Æ® ½Ã°£ÀÌ´Ù? ±×·³ ¹öÇÁ ¾ÆÀÌÄÜ ¾Ë·ÁÁÖÀÚ
+		// ï¿½Ìºï¿½Æ® ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Æ´Ï¾ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Ã°ï¿½ï¿½Ì´ï¿½? ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½
 		if( SiKGameSysVal()->IsPvpEventTime( tCurr, iIndex, wstrTemp, bTemp ) == true )
 		{
 			m_bNowPvpEventTime = true;
 			m_bIsPvpEventUser = true;
 
-			// Å¬¶ó¿¡°Ô ¾ÆÀÌÄÜ Ãâ·ÂÀ» ¾Ë·ÁÁÖÀÚ
+			// Å¬ï¿½ó¿¡°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½
 			KEGS_PVP_EVENT_INFO_NOT kNot;
 			kNot.m_bEventInfo = true;
 
@@ -16745,7 +16755,7 @@ void KGSUser::CheckPvpEvent()
 #endif SERV_2012_PVP_SEASON2_EVENT
 //}}
 
-//{{ 2012. 09. 25	¹Ú¼¼ÈÆ	ºù°í ÀÌº¥Æ®
+//{{ 2012. 09. 25	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_BINGO
 void KGSUser::BingoEventDBWrite( void )
 {
@@ -16765,7 +16775,7 @@ void KGSUser::CheckMaxLevel()
 
 	if( iCurrentEventTickCount != m_iMaxLevelTickCount )
 	{
-		//·¹º§ º¯°æ»çÇ×À» º¸³½´Ù.
+		//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		KEGS_UPDATE_MAX_LEVEL_NOT kPacket;
 		kPacket.m_iMaxLevel = max( SiKGameEventManager()->GetMaxLevel(), SiKGameSysVal()->GetLimitsLevel() );
 
@@ -16780,7 +16790,7 @@ void KGSUser::CheckEnableEventDungeon()
 
 	if( iCurrentEventTickCount != m_iActiveDungeonTickCount )
 	{
-		//´øÀü º¯°æ»çÇ×À» º¸³½´Ù.
+		//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		KEGS_UPDATE_DUNGEON_STATUS_NOT kPacket;
 		SiCXSLDungeonManager()->GetEventDungeons( kPacket.m_mapEnableDungeon );
 		SiKGameEventManager()->CheckEnableEventDungeon( kPacket.m_mapEnableDungeon );
@@ -16799,7 +16809,7 @@ void KGSUser::CheckEnableCodeEvent()
 
 	if( iCurrentEventTickCount != m_iCodeEventTickCount )
 	{
-		// ÄÚµå º¯°æ»çÇ×À» º¸³½´Ù.
+		// ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		KEGS_UPDATE_CODE_EVENT_NOT kPacket;
 		SiKGameEventManager()->CheckEnableCode( kPacket.m_mapEnableCodeEnum );
 
@@ -16810,7 +16820,7 @@ void KGSUser::CheckEnableCodeEvent()
 }
 #endif SERV_CODE_EVENT
 
-//{{ 2012. 12. 10  Ä³¸¯ÅÍ ¼±ÅÃ ÆÐÅ¶ ºÐÇÒ - ±è¹Î¼º
+//{{ 2012. 12. 10  Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SELECT_UNIT_PACKET_DIVISION
 void KGSUser::SendSelectUnitACK( IN const KDBE_SELECT_UNIT_ACK& kPacket )
 {
@@ -16822,20 +16832,20 @@ void KGSUser::SendSelectUnitACK( IN const KDBE_SELECT_UNIT_ACK& kPacket )
 	kNot_1.m_mapItem						= kPacket.m_mapItem;
 	kNot_1.m_iNumResurrectionStone			= kPacket.m_iNumResurrectionStone;
 
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	¸®ÇÊºÎÈ°¼®
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½Êºï¿½È°ï¿½ï¿½
 #ifdef AP_RESTONE
 	kNot_1.m_iNumAutoPaymentResStone		= kPacket.m_iNumAutoPaymentResStone;
 	kNot_1.m_wstrAutoPayResStoneLastDate	= kPacket.m_wstrAutoPayResStoneLastDate;
 #endif AP_RESTONE
 	//}}
 
-	//{{ 2011. 09. 23	ÃÖÀ°»ç	·Î±×¿ÀÇÁ »óÅÂ EDÃ¼Å©
+	//{{ 2011. 09. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±×¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ EDÃ¼Å©
 #ifdef SERV_LOGOUT_ED_CHECK
 	kNot_1.m_iRealDataED					= kPacket.m_iRealDataED;
 #endif SERV_LOGOUT_ED_CHECK
 	//}}
 
-	//{{ 2011. 01. 18	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+	//{{ 2011. 01. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 	kNot_1.m_wstrUnitCreateDate				= kPacket.m_wstrUnitCreateDate;
 #endif SERV_CHAR_LOG
@@ -16847,22 +16857,22 @@ void KGSUser::SendSelectUnitACK( IN const KDBE_SELECT_UNIT_ACK& kPacket )
 	kNot_1.m_iNewUnitTradeBlockDay			= SiKGameSysVal()->GetNewUnitTradeBlockDay();
 #endif // SERV_NEW_UNIT_TRADE_LIMIT
 
-	//{{ 2011. 03. 22	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ã¹ Á¢¼Ó ·Î±×
+	//{{ 2011. 03. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_DAILY_CHAR_FIRST_SELECT
 	kNot_1.m_wstrUnitLastLoginDate			= kPacket.m_wstrUnitLastLoginDate;
 #endif SERV_DAILY_CHAR_FIRST_SELECT
 	//}}
 
-	kNot_1.m_vecSkillAcquired				= kPacket.m_vecSkillAcquired;		// È¹µæÇÑ ½ºÅ³ ¸®½ºÆ®
-	kNot_1.m_vecSkillUnsealed				= kPacket.m_vecSkillUnsealed;		// ºÀÀÎÇØÁ¦µÈ ½ºÅ³ ¸®½ºÆ®
+	kNot_1.m_vecSkillAcquired				= kPacket.m_vecSkillAcquired;		// È¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
+	kNot_1.m_vecSkillUnsealed				= kPacket.m_vecSkillUnsealed;		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
 
-	//{{ 2010. 03. 13  ÃÖÀ°»ç	±â¼úÀÇ ³ëÆ®
+	//{{ 2010. 03. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 #ifdef SERV_SKILL_NOTE
 	kNot_1.m_cSkillNoteMaxPageNum			= kPacket.m_cSkillNoteMaxPageNum;
 	kNot_1.m_mapSkillNote					= kPacket.m_mapSkillNote;			// [key:SlotID, value:MemoID]
 #endif SERV_SKILL_NOTE
 	//}}
-	//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+	//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	kNot_1.m_kRelationshipInfo				= kPacket.m_kRelationshipInfo;
 
@@ -16891,7 +16901,7 @@ void KGSUser::SendSelectUnitACK( IN const KDBE_SELECT_UNIT_ACK& kPacket )
 	kNot_2.m_vecQuest				= kPacket.m_vecQuest;
 	kNot_2.m_vecCompletQuest		= kPacket.m_vecCompletQuest;
 
-	//{{ 2011. 08. 29	±è¹Î¼º       ÀÏÀÏ ·£´ý Äù½ºÆ®
+	//{{ 2011. 08. 29	ï¿½ï¿½Î¼ï¿½       ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_RANDOM_DAY_QUEST
 	kNot_2.m_mapRandomQuestList		= kPacket.m_mapRandomQuestList;
 #endif SERV_RANDOM_DAY_QUEST
@@ -16902,11 +16912,11 @@ void KGSUser::SendSelectUnitACK( IN const KDBE_SELECT_UNIT_ACK& kPacket )
 	//////////////////////////////////////////////////////////////////////////
 	KEGS_SELECT_UNIT_3_NOT kNot_3;
 	kNot_3.m_iOK							= kPacket.m_iOK;
-	//{{ 2008. 10. 6  ÃÖÀ°»ç	Å¸ÀÌÆ²
+	//{{ 2008. 10. 6  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å¸ï¿½ï¿½Æ²
 	kNot_3.m_vecMission						= kPacket.m_vecMission;
 	kNot_3.m_vecTitle						= kPacket.m_vecTitle;
 
-	//{{ 2010. 7. 21  ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 7. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
 	kNot_3.m_iSummonedPetUID				= kPacket.m_iSummonedPetUID;
 	kNot_3.m_vecPetList						= kPacket.m_vecPetList;
@@ -16914,9 +16924,9 @@ void KGSUser::SendSelectUnitACK( IN const KDBE_SELECT_UNIT_ACK& kPacket )
 	kNot_3.m_vecNeverSummonPetList			= kPacket.m_vecNeverSummonPetList;
 #endif SERV_PET_SYSTEM
 	//}}
-	//{{ 2010. 8. 2	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
+	//{{ 2010. 8. 2	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_PET_SYSTEM
-	kNot_3.m_mapPetItem						= kPacket.m_mapPetItem; // ¼­¹ö Àü¿ë
+	kNot_3.m_mapPetItem						= kPacket.m_mapPetItem; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif SERV_PET_SYSTEM
 	//}}
 
@@ -16928,23 +16938,23 @@ void KGSUser::SendSelectUnitACK( IN const KDBE_SELECT_UNIT_ACK& kPacket )
 	kNot_4.m_vecChatBlackList				= kPacket.m_vecChatBlackList;
 	kNot_4.m_kDenyOptions					= kPacket.m_kDenyOptions;
 
-	//{{ 2008. 3. 31  ÃÖÀ°»ç  ÃßÃµÀÎ
+	//{{ 2008. 3. 31  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½Ãµï¿½ï¿½
 	kNot_4.m_bIsRecommend					= kPacket.m_bIsRecommend;
 	kNot_4.m_iRecommendUnitUID				= kPacket.m_iRecommendUnitUID;
-	//080405. hoons. »çÁ¦¸®½ºÆ® µ¥ÀÌÅÍ
+	//080405. hoons. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	kNot_4.m_vecTutorialDBUnitInfo			= kPacket.m_vecTutorialDBUnitInfo;
-	//{{ 2008. 5. 19  ÃÖÀ°»ç  Á¢¼Ó ½Ã°£ ÀÌº¥Æ®
+	//{{ 2008. 5. 19  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ìºï¿½Æ®
 	kNot_4.m_vecConnectTimeEvent			= kPacket.m_vecConnectTimeEvent;
-	//{{ 2009. 12. 7  ÃÖÀ°»ç	´©Àû½Ã°£ÀÌº¥Æ®
+	//{{ 2009. 12. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½Ìºï¿½Æ®
 #ifdef CUMULATIVE_TIME_EVENT
 	kNot_4.m_vecCumulativeTimeEvent			= kPacket.m_vecCumulativeTimeEvent;
 #endif CUMULATIVE_TIME_EVENT
 	//}}
-	//{{ 2009. 7. 7  ÃÖÀ°»ç		·©Å·°³Æí
+	//{{ 2009. 7. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½
 	kNot_4.m_vecHenirRanking				= kPacket.m_vecHenirRanking;
 
 	kNot_4.m_kMessengerInfo					= kPacket.m_kMessengerInfo;
-	//{{ 2012. 02. 21	ÃÖÀ°»ç	¹èÆ²ÇÊµå ½Ã½ºÅÛ
+	//{{ 2012. 02. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	kNot_4.m_kGamePlayStatus				= kPacket.m_kGamePlayStatus;
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -16960,58 +16970,58 @@ void KGSUser::SendSelectUnitACK( IN const KDBE_SELECT_UNIT_ACK& kPacket )
 	//////////////////////////////////////////////////////////////////////////
 	KEGS_SELECT_UNIT_5_NOT kNot_5;
 	kNot_5.m_iOK							= kPacket.m_iOK;
-	//{{ 2008. 5. 7  ÃÖÀ°»ç  Åë°è
+	//{{ 2008. 5. 7  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½
 	kNot_5.m_bIsSpiritUpdated				= kPacket.m_bIsSpiritUpdated;
-	//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+	//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 	kNot_5.m_mapCharGameCount				= kPacket.m_mapCharGameCount;
 #endif SERV_CHAR_LOG
 	//}}
-	//{{ 2011. 04. 18	ÃÖÀ°»ç	´ë¸® »óÀÎ
+	//{{ 2011. 04. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PSHOP_AGENCY
 	kNot_5.m_kPShopAgencyInfo				= kPacket.m_kPShopAgencyInfo;
 #endif SERV_PSHOP_AGENCY
 	//}}
-	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
+	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 #ifdef SERV_NEW_HENIR_TEST
 	kNot_5.m_PacketHenirRewardCount			= kPacket.m_PacketHenirRewardCount;
 #endif SERV_NEW_HENIR_TEST
 	//}}
-	//{{ 2011. 10. 13	ÃÖÀ°»ç	ÄÁÅÙÃ÷ °ü¸®ÀÚ
+	//{{ 2011. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CONTENT_MANAGER
 	kNot_5.m_bCashShopOpen					= kPacket.m_bCashShopOpen;
 #endif SERV_CONTENT_MANAGER
 	//}}
-	//{{ 2012. 04. 12	¹Ú¼¼ÈÆ	( º¹±Í À¯Àú Ç¥½Ã )
+	//{{ 2012. 04. 12	ï¿½Ú¼ï¿½ï¿½ï¿½	( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ )
 #ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
 	kNot_5.m_vecCriterionEvent				= kPacket.m_vecCriterionEvent;
 #endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
 	//}}
-#ifdef SERV_EVENT_MONEY	// ±è¹Î¼º // Àû¿ë³¯Â¥: 2013-07-04
+#ifdef SERV_EVENT_MONEY	// ï¿½ï¿½Î¼ï¿½ // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-07-04
 	kNot_5.m_iEventMoney					= kPacket.m_iEventMoney;
 #endif // SERV_EVENT_MONEY
-	//{{ 2012 ´ëÀü ½ÃÁð2 Àü¾ß ·±Äª ÀÌº¥Æ®	- ±è¹Î¼º
+	//{{ 2012 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Äª ï¿½Ìºï¿½Æ®	- ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_2012_PVP_SEASON2_EVENT
 	kNot_5.m_iPvpEventIndex					= kPacket.m_iPvpEventIndex;
 	kNot_5.m_wstrLastPvpEventDate			= kPacket.m_wstrLastPvpEventDate;
 #endif SERV_2012_PVP_SEASON2_EVENT
 	//}}
-	//{{ 2012. 10. 10	¹Ú¼¼ÈÆ	ºù°í ÀÌº¥Æ®
+	//{{ 2012. 10. 10	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef SERV_EVENT_BINGO
 	kNot_5.m_kBingoEvent					= kPacket.m_kBingoEvent;
 #endif SERV_EVENT_BINGO
 	//}}
-	//{{ 2012. 10. 29	¹Ú¼¼ÈÆ	¿¤¸®¿À½º Á¶»ç´Ü
+	//{{ 2012. 10. 29	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ELIOS_INVESTIGATIONS
 	kNot_5.m_bEliosInvestigationsReward		= kPacket.m_bEliosInvestigationsReward;
 #endif SERV_ELIOS_INVESTIGATIONS
 	//}}
-	//{{ 2012. 12. 20	ÃÖÀ°»ç	¾Æ¶ó Ã¹ ¼±ÅÃ Æ©Åä¸®¾ó
+	//{{ 2012. 12. 20	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Æ¶ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ Æ©ï¿½ä¸®ï¿½ï¿½
 #ifdef SERV_ARA_FIRST_SELECT_TUTORIAL
 	kNot_5.m_bFirstSelect					= kPacket.m_bFirstSelect;
 #endif SERV_ARA_FIRST_SELECT_TUTORIAL
 	//}}
-#ifdef	SERV_LOCAL_RANKING_SYSTEM // Àû¿ë³¯Â¥: 2013-03-31
+#ifdef	SERV_LOCAL_RANKING_SYSTEM // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-03-31
 	kNot_5.m_bLocalRankingUser				= ( kPacket.m_wstrLocalRankingUserInfoUpdated.empty() == false );
 #endif	// SERV_LOCAL_RANKING_SYSTEM
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
@@ -17028,12 +17038,12 @@ void KGSUser::SendSelectUnitACK( IN const KDBE_SELECT_UNIT_ACK& kPacket )
 #endif SERV_SELECT_UNIT_PACKET_DIVISION
 //}}
 
-//{{ 2012. 12. 14  °èÁ¤ ¹Ì¼Ç ½Ã½ºÅÛ ( °èÁ¤´ÜÀ§ Äù½ºÆ® ) - ±è¹Î¼º
+//{{ 2012. 12. 14  ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ) - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 void KGSUser::SendUpdateAccountQuestInfo()
 {
-	// °èÁ¤ Äù½ºÆ® Á¤º¸ update 
-	// ÁøÇà ÁßÀÎ Á¤º¸¸¸ ¾÷µ¥ÀÌÆ® ÇÏ¸é µÈ´Ù
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ update 
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï¸ï¿½ ï¿½È´ï¿½
 
 	KDBE_ACCOUNT_QUEST_UPDATE_NOT kNot;
 	kNot.m_iUserUID = GetUID();
@@ -17049,20 +17059,20 @@ void KGSUser::SendUpdateAccountQuestInfo()
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 //}}
 
-//{{ 2013. 3. 11	¹Ú¼¼ÈÆ	 ·ÎÄÃ ·©Å· ½Ã½ºÅÛ
+//{{ 2013. 3. 11	ï¿½Ú¼ï¿½ï¿½ï¿½	 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 void KGSUser::IncreasedLocalRankingPoint( IN const int iSpirit, IN const int iAP, IN const bool bForce /*= false */)
 {
 	if( GetLevel() < 10 )
 	{
-		// 10·¹º§ ÀÌÇÏ À¯´ÖÀº ·ÎÄÃ ·©Å· ½Ã½ºÅÛ¿¡¼­ Á¦¿Ü
+		// 10ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½Ã½ï¿½ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		return;
 	}
 
-	// µ¥ÀÌÅÍ°¡ ÃÊ±âÈ­ µÇ¾îÀÖ´Â°¡?
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ç¾ï¿½ï¿½Ö´Â°ï¿½?
 	if( m_kUserLocalRankingInfo.InitCheck( GetUID(), GetCharUID() ) == false )
 	{
-		// DB¿¡¼­ µ¥ÀÌÅÍ¸¦ ÀÐ¾î¿Â´Ù.
+		// DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ð¾ï¿½Â´ï¿½.
 		KDBE_GAME_LOCAL_RANKING_UNIT_INFO_READ_FOR_INCREASE_REQ kPacket;
 		kPacket.m_iUserUID			= GetUID();
 		kPacket.m_iUnitUID			= GetCharUID();
@@ -17081,7 +17091,7 @@ void KGSUser::_IncreasedLocalRankingPoint( IN const int iSpirit, IN const int iA
 {
 	/*if( ( iSpirit < 0 ) || ( iAP < 0 ) )
 	{
-		START_LOG( cerr, L"ELP Áõ°¡Ä¡ ÀÌ»ó" )
+		START_LOG( cerr, L"ELP ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Ì»ï¿½" )
 			<< BUILD_LOG( GetCharName() )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( iSpirit )
@@ -17089,7 +17099,7 @@ void KGSUser::_IncreasedLocalRankingPoint( IN const int iSpirit, IN const int iA
 			<< END_LOG;
 
 		KDBE_SEND_PHONE_MSG_NOT kPacketNot;
-		kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"ELP Áõ°¡Ä¡ ÀÌ»ó À¯Àú ¹ß°ß! : %d, %d, %d" ) % GetCharUID() % iSpirit % iAP );
+		kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"ELP ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½! : %d, %d, %d" ) % GetCharUID() % iSpirit % iAP );
 		SiKSMSPhoneNumberManager()->GetPhoneNumberList( KSMSPhoneNumberManager::FS_LOCAL_RANKING_SYSTEM, kPacketNot.m_vecPhoneNum );
 		if( kPacketNot.m_vecPhoneNum.empty() == false )
 		{
@@ -17114,7 +17124,7 @@ void KGSUser::_IncreasedLocalRankingPoint( IN const int iSpirit, IN const int iA
 			SiKGSLocalRankingManager()->QueueingEvent( spEvent );
 		}
 
-		// ±æµå UID°¡ Á¸ÀçÇÑ´Ù¸é, ±æµå ¸Å´ÏÀú¿¡°Ôµµ º¸³»ÀÚ
+		// ï¿½ï¿½ï¿½ UIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½, ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		kPacket.m_iUID = GetGuildUID();
 		if( 0 < kPacket.m_iUID )
 		{
@@ -17127,7 +17137,7 @@ void KGSUser::LocalRankingInquiryProcess( IN const UINT nViewPage
 										, IN const char cMainTabIndex
 										, IN const char cSubTabIndex
 										, IN const byte byteFilter
-#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ÀÛ¾÷³¯Â¥: 2013-05-15	// ¹Ú¼¼ÈÆ
+#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-15	// ï¿½Ú¼ï¿½ï¿½ï¿½
 										, IN const bool bRankingButtonClick
 #endif // SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG
 										)
@@ -17137,7 +17147,7 @@ void KGSUser::LocalRankingInquiryProcess( IN const UINT nViewPage
 	case SEnum::LRSTC_LOCATION:
 		if( m_kUserLocalRankingInfo.IsValidCategory() == true )
 		{
-			// µ¥ÀÌÅÍ ¼¼ÆÃ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			KLocalRankingInquiryData kInquiryData;
 			kInquiryData.m_nViewPage		= nViewPage;
 			kInquiryData.m_cMainTabIndex	= cMainTabIndex;
@@ -17156,7 +17166,7 @@ void KGSUser::LocalRankingInquiryProcess( IN const UINT nViewPage
 				}
 			}
 
-			// GSLocalRankingManager¿¡ º¸³½´Ù.
+			// GSLocalRankingManagerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			KEventPtr	spEvent( new KEvent );
 			UidType		anTrace[2] = { GetUID(), -1 };
 			spEvent->SetData( PI_GS_SERVER, anTrace, EGS_LOCAL_RANKING_INQUIRY_REQ, kInquiryData );
@@ -17179,7 +17189,7 @@ void KGSUser::LocalRankingInquiryProcess( IN const UINT nViewPage
 	case SEnum::LRSTC_GUILD:
 		if( 0 < GetGuildUID() )
 		{
-			// µ¥ÀÌÅÍ ¼¼ÆÃ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			KLocalRankingInquiryData kInquiryData;
 			kInquiryData.m_nViewPage		= nViewPage;
 			kInquiryData.m_cMainTabIndex	= cMainTabIndex;
@@ -17189,7 +17199,7 @@ void KGSUser::LocalRankingInquiryProcess( IN const UINT nViewPage
 			m_kUserLocalRankingInfo.GetFilteredUserInfo( kInquiryData.m_kMyRankInfo.m_kUserInfo );
 			m_kUserLocalRankingInfo.GetUnitInfo( kInquiryData.m_kMyRankInfo.m_kUnitInfo );
 
-			// ±æµå ¸Å´ÏÀú¿¡ º¸³½´Ù.
+			// ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			kInquiryData.m_iGuildUID = GetGuildUID();
 			if( byteFilter & SEnum::LRF_FRIEND )
 			{
@@ -17216,11 +17226,11 @@ void KGSUser::LocalRankingInquiryProcess( IN const UINT nViewPage
 		break;
 
 	default:
-		// Á¤ÀÇµÇÁö ¾ÊÀº °É º¸³Â³×? ¹Ýº¹ ÇÊÅÍ¸µ¿¡³ª °É·Á¹ö·Á¶ó
+		// ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Â³ï¿½? ï¿½Ýºï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		break;
 	}
 
-#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ÀÛ¾÷³¯Â¥: 2013-05-15	// ¹Ú¼¼ÈÆ
+#ifdef SERV_LOCAL_RANKING_SYSTEM_STATISTICS_LOG// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-15	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	if( bRankingButtonClick == true )
 	{
 		IncreaseLocalRankingButtonClickCount();
@@ -17264,7 +17274,7 @@ void KGSUser::CheckTradeBlockUnit()
 		DeactivateBuff( CXSLBuffManager::BTI_BUFF_TRADE_BLOCK, vecDeleteBuff );
 		if( vecDeleteBuff.empty() == false )
 		{
-			// ·Î±×ÀÎ ¼­¹ö ¹öÇÁ ¸Å´ÏÀú¿¡ ¾÷µ¥ÀÌÆ®
+			// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 			KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
 			kReq.m_iUnitUID = GetCharUID();
 			kReq.m_vecDeActivateBuff = vecDeleteBuff;
@@ -17274,47 +17284,47 @@ void KGSUser::CheckTradeBlockUnit()
 }
 #endif SERV_NEW_UNIT_TRADE_LIMIT
 
-//{{ 2012. 09. 06	ÀÓÈ«¶ô	±Û·Î¹ú ¹Ì¼Ç ¸Å´ÏÀú
+//{{ 2012. 09. 06	ï¿½ï¿½È«ï¿½ï¿½	ï¿½Û·Î¹ï¿½ ï¿½Ì¼ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 void KGSUser::CheckUpdateGlobalMission()
 {
-	//	Æ½Ä«¿îÆ®°¡ º¯ÇÏ°Å³ª 60ÃÊ¸¶´Ù ÇÑ¹ø¾¿ ¾÷µ¥ÀÌÆ®
+	//	Æ½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°Å³ï¿½ 60ï¿½Ê¸ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	if( SiKGSGlobalMissionManager()->GetTickCount() == m_iGlobalMissionTickCount )
 		return;
 
 	m_iGlobalMissionTickCount = SiKGSGlobalMissionManager()->GetTickCount();
 
-	//	Á¤º¸¹Þ±â
+	//	ï¿½ï¿½ï¿½ï¿½ï¿½Þ±ï¿½
 	KEGS_GLOBAL_MISSION_UPDATE_NOT kNot;
 	SiKGSGlobalMissionManager()->GetGlobalMissionInfo( kNot );
 
-	//	À¯Àú¿¡°Ô ÆÐÅ¶³¯¸®±â
+	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	SendPacket( EGS_GLOBAL_MISSION_UPDATE_NOT, kNot );
 }
 #endif SERV_GLOBAL_MISSION_MANAGER
-//}} 2012. 09. 06	ÀÓÈ«¶ô	±Û·Î¹ú ¹Ì¼Ç ¸Å´ÏÀú
+//}} 2012. 09. 06	ï¿½ï¿½È«ï¿½ï¿½	ï¿½Û·Î¹ï¿½ ï¿½Ì¼ï¿½ ï¿½Å´ï¿½ï¿½ï¿½
 
 #ifdef SERV_EVENT_RIDING_WITH_SUB_QUEST
 int KGSUser::GetiRidingPetSummoned()
 {
-	// m_iRidingPetSummon °ª 
-	// 0 : ¶óÀÌµùÆê ¹Ì¼ÒÈ¯, 1 : Ä³½Ã¿ë ¶óÀÌµù Æê, 2 : ÀÌº¥Æ®¿ë ¶óÀÌµù Æê
+	// m_iRidingPetSummon ï¿½ï¿½ 
+	// 0 : ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½È¯, 1 : Ä³ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½, 2 : ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½
 
 	m_iRidingPetSummon = 0;
 
-	// ¶óÀÌµù Æê ¸Å´ÏÀú°¡ Á¸ÀçÇÏ¸é
+	// ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½
 	KUserRidingPetPtr spRidingPet = m_kUserRidingPetManager.GetRidingPetSummoned();
 	if( spRidingPet == NULL )
 	{
 		return m_iRidingPetSummon;
 	}
 
-	// ¶óÀÌµù Æê ÆÄ±«³¯Â¥·Î ÆÇ´ÜÇÏÀÚ
+	// ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½Ä±ï¿½ï¿½ï¿½Â¥ï¿½ï¿½ ï¿½Ç´ï¿½ï¿½ï¿½ï¿½ï¿½
 	KRidingPetInfo kInfoRP;
 	spRidingPet->GetData(kInfoRP);
 
 
-	// Ä³½Ã¿ë ÆêÀÌ¶ó¸é.
+	// Ä³ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½.
 	if(kInfoRP.m_wstrDestroyDate.compare(L"") == 0 )
 	{
 		m_iRidingPetSummon = 1;
@@ -17325,7 +17335,7 @@ int KGSUser::GetiRidingPetSummoned()
 	}
 	
 	
-	//START_LOG( clog2, L"±è¼®±Ù_¶óÀÌµùÆê ³ª Å¸°íÀÖÀ½!" )
+	//START_LOG( clog2, L"ï¿½è¼®ï¿½ï¿½_ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!" )
 	//	<<BUILD_LOG( m_iRidingPetSummon )
 	//	<<BUILD_LOG( kInfoRP.m_wstrDestroyDate.c_str() )
 	//	<<END_LOG;
@@ -17337,7 +17347,7 @@ bool KGSUser::GetbIsEventRidingPetQuest()
 {
 	m_bIsEventRidingPetQuest = false;
 
-	// Äù½ºÆ®¸¦ º¸À¯ÇÏ°í ÀÖÀ¸¸é (74590)
+	// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (74590)
 	if(m_kUserQuestManager.IsQuest(_CONST_AEVENT_RIDING_WITH_SUB_QUEST::iHasEventQuestID) )
 	{
 		m_bIsEventRidingPetQuest = true;
@@ -17359,7 +17369,7 @@ void KGSUser::CheckCSAuth3()
 
 	if( GetStateID() > KGSFSM::S_SERVER_SELECT  &&  GetStateID() < KGSFSM::STATE_SENTINEL )
 	{
-		if( m_kTimer[TM_NPROTECT_CS_AUTH_30].elapsed() < 300.0 )	// 5ºÐ
+		if( m_kTimer[TM_NPROTECT_CS_AUTH_30].elapsed() < 300.0 )	// 5ï¿½ï¿½
 			return;
 
 		m_kTimer[TM_NPROTECT_CS_AUTH_30].restart();
@@ -17369,9 +17379,9 @@ void KGSUser::CheckCSAuth3()
 
 		if( uReturn >= 3000 )
 		{
-			// À¯Àú Á¢¼Ó ÇØÁ¦
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-			START_LOG( cerr, L"nProtect CS ÀÎÁõ3 Ã¼Å© ½ÇÆÐ" )
+			START_LOG( cerr, L"nProtect CS ï¿½ï¿½ï¿½ï¿½3 Ã¼Å© ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( GetName() )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOG( uReturn )
@@ -17397,7 +17407,7 @@ void KGSUser::CheckCSAuth3()
 }
 #endif SERV_NPROTECT_CS_AUTH_30
 
-//{{ 2012.02.20 Á¶È¿Áø	Ä³¸¯ÅÍ »èÁ¦ ÇÁ·Î¼¼½º º¯°æ (»èÁ¦ ´ë±â ±â°£ µµÀÔ)
+//{{ 2012.02.20 ï¿½ï¿½È¿ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½)
 #ifdef SERV_UNIT_WAIT_DELETE
 bool KGSUser::LastDateSort(const KUnitInfo& refLUnitInfo, const KUnitInfo& refRUnitInfo)
 {
@@ -17405,19 +17415,19 @@ bool KGSUser::LastDateSort(const KUnitInfo& refLUnitInfo, const KUnitInfo& refRU
 	CTime tRTime;
 
 
-	// ÄÁ¹öÆÃ ¾ÈµÇ´Â °ÍÀ» ÃÖ½ÅÀ¸·Î º½
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 	if( KncUtil::ConvertStringToCTime(refLUnitInfo.m_wstrLastDate, tLTime) == false )
 	{
 		return true;
 	}
 	else if( KncUtil::ConvertStringToCTime(refRUnitInfo.m_wstrLastDate, tRTime) == false )
 	{
-		// ¿À¸¥ÂÊÀÌ ÃÖ½ÅÀÌ¸é return false
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ì¸ï¿½ return false
 		return false;
 	}
 
 
-	// Left°¡ ÃÖ½ÅÀÌ¸é True
+	// Leftï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ì¸ï¿½ True
 	if( tLTime > tRTime )
 	{
 		return true;
@@ -17432,72 +17442,72 @@ bool KGSUser::LastDateSort(const KUnitInfo& refLUnitInfo, const KUnitInfo& refRU
 //---------------------------------------------------------------------------------------------------//
 //---------------------------------------------------------------------------------------------------//
 
-//{{ 2013. 03. 18	 ¸¸¿ìÀý ÀÌº¥Æ®_·¹ÀÎº¸¿ì ¹öÇÁ - ±è¹Î¼º
+//{{ 2013. 03. 18	 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®_ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_APRIL_FOOLS_DAY
 void KGSUser::CheckRainbowBuff()
 {
-	// ÀÏÁ¤ ÁÖ±â¸¶´Ù Ã³¸® µÇ¾î¾ß ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±â¸¶ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	if( m_kTimer[TM_APRIL_FOOLS_DAY_RAINBOW_BUFF].elapsed() < 60.f )
 		return;
 
-	// Å¸ÀÌ¸Ó ÃÊ±âÈ­
+	// Å¸ï¿½Ì¸ï¿½ ï¿½Ê±ï¿½È­
 	m_kTimer[TM_APRIL_FOOLS_DAY_RAINBOW_BUFF].restart();
 
-	// ÇöÀç ½Ã°£À» ±¸ÇØ µÐ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ð´ï¿½.
 	CTime tCurr = CTime::GetCurrentTime();
 
-	// ÇöÀç ¿äÀÏÀ» ±¸ÇØ µÐ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ð´ï¿½.
 	int iDayOfWeek = tCurr.GetDayOfWeek();
 
-	// Àß¸øµÈ ¿äÀÏÀÌ¸é ½ÇÆÐÃ³¸®
+	// ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 	if( iDayOfWeek < 1 || iDayOfWeek > 7 )
 	{
-		START_LOG( cerr, L"Àß¸øµÈ ¿äÀÏ Á¤º¸ ÀÔ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iDayOfWeek )
 			<< END_LOG;
 		return;
 	}
 
-	// È°¼ºÈ­, ºñÈ°¼ºÈ­ ¹öÇÁ ¸ñ·Ï
+	// È°ï¿½ï¿½È­, ï¿½ï¿½È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	int iBuffID = CXSLBuffManager::BTI_BUFF_APRIL_FOOLSDAY;
 	std::vector< KBuffInfo > vecActiveBuff;
 	std::vector< int > vecDeleteBuff;
 
-	// ÆòÀÏ ÀÌ¶ó¸é(¿ù, È­, ¼ö, ¸ñ, ±Ý)
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¶ï¿½ï¿½(ï¿½ï¿½, È­, ï¿½ï¿½, ï¿½ï¿½, ï¿½ï¿½)
 	if( iDayOfWeek > 1 && iDayOfWeek < 7 )
 	{
-		// ·¹ÀÎº¸¿ì ¹öÇÁ°¡ ÀÖ´Ù
+		// ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½
 		if( m_kUserBuffManager.IsBuffActivated( iBuffID ) == true )
 		{
-			// ½Ã°£ÀÌ µÇ¾úÀ¸¸é ²¨¾ßÇÑ´Ù.
+			// ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 			if( tCurr.GetHour() >= 22 )
 			{
 				DeactivateBuff( iBuffID, vecDeleteBuff );
 			}
 		}
-		else	// ·¹ÀÎº¸¿ì ¹öÇÁ°¡ ¾ø´Ù
+		else	// ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		{
-			// ½Ã°£ÀÌ µÇ¾úÀ¸¸é ÄÑ¾ßÇÑ´Ù.
+			// ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½Ñ´ï¿½.
 			if( tCurr.GetHour() >= 16 )
 			{
 				ActivateBuff( iBuffID, vecActiveBuff );
 			}
 		}
 	}
-	else	// ÁÖ¸» ÀÌ¶ó¸é(Åä, ÀÏ)
+	else	// ï¿½Ö¸ï¿½ ï¿½Ì¶ï¿½ï¿½(ï¿½ï¿½, ï¿½ï¿½)
 	{
-		// ·¹ÀÎº¸¿ì ¹öÇÁ°¡ ÀÖ´Ù
+		// ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½
 		if( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_APRIL_FOOLSDAY ) == true )
 		{
-			// ½Ã°£ÀÌ µÇ¾úÀ¸¸é ²¨¾ßÇÑ´Ù.
+			// ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 			if( tCurr.GetHour() >= 18 )
 			{
 				DeactivateBuff( iBuffID, vecDeleteBuff );
 			}
 		}
-		else	// ·¹ÀÎº¸¿ì ¹öÇÁ°¡ ¾ø´Ù
+		else	// ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		{
-			// ½Ã°£ÀÌ µÇ¾úÀ¸¸é ÄÑ¾ßÇÑ´Ù.
+			// ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½Ñ´ï¿½.
 			if( tCurr.GetHour() >= 12 )
 			{
 				ActivateBuff( iBuffID, vecActiveBuff );
@@ -17505,10 +17515,10 @@ void KGSUser::CheckRainbowBuff()
 		}
 	}
 
-	// Áö¿ì°Å³ª Ãß°¡µÇ´Â ¹öÇÁ°¡ ÀÖ´Ù¸é
+	// ï¿½ï¿½ï¿½ï¿½Å³ï¿½ ï¿½ß°ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½
 	if( vecActiveBuff.empty() == false || vecDeleteBuff.empty() == false )
 	{
-		// ·Î±×ÀÎ ¼­¹ö ¹öÇÁ ¸Å´ÏÀú¿¡ ¾÷µ¥ÀÌÆ®
+		// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 		KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
 		kReq.m_iUnitUID = GetCharUID();
 		kReq.m_vecActivateBuff = vecActiveBuff;
@@ -17522,12 +17532,12 @@ void KGSUser::CheckRainbowBuff()
 #ifdef SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 void KGSUser::_CheckSystemInfoStatistics()
 {
-	//¼­¹ö ¼±ÅÃÃ¢ÀÏ °æ¿ì¿¡¸¸ À¯ÀúPC»ç¾çÀ» ÇÑ¹ø¸¸ DB ±â·Ï ¿äÃ»ÇÑ´Ù.
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½PCï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ñ´ï¿½.
 	if( GetStateID() == KGSFSM::S_SERVER_SELECT )
 	{
 		if( !m_bSendDBSystemInfoStatistics )
 		{
-			// StatisticsDB¿¡ ±â·Ï
+			// StatisticsDBï¿½ï¿½ ï¿½ï¿½ï¿½
 			SendToLogDB( ELOG_STAT_SYSTEM_INFO, m_kUserStatistics.GetSystemInfoStatistics() );
 
 			m_bSendDBSystemInfoStatistics = true;
@@ -17537,53 +17547,53 @@ void KGSUser::_CheckSystemInfoStatistics()
 
 void KGSUser::_CheckKOGGamePerformanceStatistics()
 {
-	//¼­¹ö ¼±ÅÃÃ¢ ÀÌ»óÀÏ °æ¿ì¿¡¸¸...
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¢ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½...
 	if( GetStateID() > KGSFSM::S_SERVER_SELECT )
 	{
-		//¸¶À»¿¡¼­ ÃøÁ¤ÇÑ °ÔÀÓ ¼º´É Á¤º¸°¡ Á¸ÀçÇÑ´Ù¸é DB ±â·Ï ¿äÃ»ÇÑ´Ù.
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ DB ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ñ´ï¿½.
 		if( m_kUserStatistics.GetKOGGamePerformanceStatistics_Village().m_iCharUID != -1 )
 		{
-			// StatisticsDB¿¡ ±â·Ï
+			// StatisticsDBï¿½ï¿½ ï¿½ï¿½ï¿½
 			SendToLogDB( ELOG_STAT_KOG_GAME_PERFORMANCE_VILLAGE, m_kUserStatistics.GetKOGGamePerformanceStatistics_Village() );
 
-			//¿äÃ»ÇÑÈÄ ¸®¼Â
+			//ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			m_kUserStatistics.SetKOGGamePerformanceStatistics_Village( KEGS_KOG_GAME_PERFORMANCE_VILLAGE_LOG() );
 		}
 
-		//ÇÊµå¿¡¼­ ÃøÁ¤ÇÑ °ÔÀÓ ¼º´É Á¤º¸°¡ Á¸ÀçÇÑ´Ù¸é DB ±â·Ï ¿äÃ»ÇÑ´Ù.
+		//ï¿½Êµå¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ DB ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ñ´ï¿½.
 		if( m_kUserStatistics.GetKOGGamePerformanceStatistics_Field().m_iCharUID != -1 )
 		{
-			// StatisticsDB¿¡ ±â·Ï
+			// StatisticsDBï¿½ï¿½ ï¿½ï¿½ï¿½
 			SendToLogDB( ELOG_STAT_KOG_GAME_PERFORMANCE_FIELD, m_kUserStatistics.GetKOGGamePerformanceStatistics_Field() );
 
-			//¿äÃ»ÇÑÈÄ ¸®¼Â
+			//ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			m_kUserStatistics.SetKOGGamePerformanceStatistics_Field( KEGS_KOG_GAME_PERFORMANCE_FIELD_LOG() );
 		}
 
-		//´øÀü¿¡¼­ ÃøÁ¤ÇÑ °ÔÀÓ ¼º´É Á¤º¸°¡ Á¸ÀçÇÑ´Ù¸é DB ±â·Ï ¿äÃ»ÇÑ´Ù.
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ DB ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ñ´ï¿½.
 		if( m_kUserStatistics.GetKOGGamePerformanceStatistics_Dungeon().m_iCharUID != -1 )
 		{
-			// StatisticsDB¿¡ ±â·Ï
+			// StatisticsDBï¿½ï¿½ ï¿½ï¿½ï¿½
 			SendToLogDB( ELOG_STAT_KOG_GAME_PERFORMANCE_DUNGEON, m_kUserStatistics.GetKOGGamePerformanceStatistics_Dungeon() );
 
-			//¿äÃ»ÇÑÈÄ ¸®¼Â
+			//ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			m_kUserStatistics.SetKOGGamePerformanceStatistics_Dungeon( KEGS_KOG_GAME_PERFORMANCE_DUNGEON_LOG() );
 		}
 
-		//´ëÀü¿¡¼­ ÃøÁ¤ÇÑ °ÔÀÓ ¼º´É Á¤º¸°¡ Á¸ÀçÇÑ´Ù¸é DB ±â·Ï ¿äÃ»ÇÑ´Ù.
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ DB ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ñ´ï¿½.
 		if( m_kUserStatistics.GetKOGGamePerformanceStatistics_PvP().m_iCharUID != -1 )
 		{
-			// StatisticsDB¿¡ ±â·Ï
+			// StatisticsDBï¿½ï¿½ ï¿½ï¿½ï¿½
 			SendToLogDB( ELOG_STAT_KOG_GAME_PERFORMANCE_PVP, m_kUserStatistics.GetKOGGamePerformanceStatistics_PvP() );
 
-			//¿äÃ»ÇÑÈÄ ¸®¼Â
+			//ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			m_kUserStatistics.SetKOGGamePerformanceStatistics_PvP( KEGS_KOG_GAME_PERFORMANCE_PVP_LOG() );
 		}
 	}
 }
 #endif//SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
-#ifdef	SERV_HERO_PVP_MANAGE_LIST // Àû¿ë³¯Â¥: 2013-04-04
+#ifdef	SERV_HERO_PVP_MANAGE_LIST // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-04
 void KGSUser::SetRoomListID( IN const UINT uiRoomListID )
 {
 	if( m_bHeroPvpUser == true )
@@ -17593,7 +17603,7 @@ void KGSUser::SetRoomListID( IN const UINT uiRoomListID )
 		{
 			if( uiRoomListID != uiTournamentPVPID )
 			{
-				// ´ëÈ¸ Ã¤³Î Á¢¼Ó Á¾·á
+				// ï¿½ï¿½È¸ Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				KEGB_ADMIN_HERO_PVP_USER_TOURNAMENT_CONNECTION_NOT kPacket;
 				kPacket.m_iServerGroupID	= KBaseServer::GetKObj()->GetServerGroupID();
 				kPacket.m_wstrNickName		= GetCharName();
@@ -17605,7 +17615,7 @@ void KGSUser::SetRoomListID( IN const UINT uiRoomListID )
 		{
 			if( uiRoomListID == uiTournamentPVPID )
 			{
-				// ´ëÈ¸ Ã¤³Î Á¢¼Ó
+				// ï¿½ï¿½È¸ Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				KEGB_ADMIN_HERO_PVP_USER_TOURNAMENT_CONNECTION_NOT kPacket;
 				kPacket.m_iServerGroupID	= KBaseServer::GetKObj()->GetServerGroupID();
 				kPacket.m_wstrNickName		= GetCharName();
@@ -17636,7 +17646,7 @@ bool KGSUser::CheckSkillPointCorrection( OUT int& iCorrectionSP )
 
 	if( m_kSkillTree.IsCashSkillPointExpired() == false )
 	{
-		// ±×³ë½Ã½º »ç¿ëÇÏ°í ÀÖ´Â À¯Àú
+		// ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013
 		int iRetrievedSPoint = 0;
 		SiCXSLSkillTree()->GetCalcInitSkillPoint( GetLevel(), iRetrievedSPoint );
@@ -17648,8 +17658,8 @@ bool KGSUser::CheckSkillPointCorrection( OUT int& iCorrectionSP )
 
 		if( iCheckSP != iCurSP )
 		{
-			// CSP¸¦ °¡Áö°í ÀÖ´Â Ä³¸¯ÅÍÀÇ ÀûÁ¤ ·¹º§ SP¿Í ÇØ´ç Ä³¸¯ÅÍÀÇ ÃÑ SPÀÇ ÃÑ·® ºñ±³´Â °¡´ÉÇÏÁö¸¸ SP¿Í CSP¸¦ °¢°¢ ºñ±³ÇØ¼­´Â ¾ÈµÊ!
-			// ÀÌÀ¯´Â ±×³ë½Ã½º »ç¿ëÇÏ°í ÀÖ´Â »óÅÂ¿¡¼­ »ç¿ëÇÑ SP´Â ¸ðµÎ iUsedCSPoint·Î ÇÕ»êµÇ±â ¶§¹®ÀÓ.
+			// CSPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ SPï¿½ï¿½ ï¿½Ñ·ï¿½ ï¿½ñ±³´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ CSPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ ï¿½Èµï¿½!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ SPï¿½ï¿½ ï¿½ï¿½ï¿½ iUsedCSPointï¿½ï¿½ ï¿½Õ»ï¿½Ç±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 			/*
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013
 			int iRetrievedSPoint = 0;
@@ -17668,13 +17678,13 @@ bool KGSUser::CheckSkillPointCorrection( OUT int& iCorrectionSP )
 				iCorrectionSP = iCheckCorrectSPoint - iCheckCurrentSPoint;
 			}
 
-			if ( iCheckCorrectCSPoint != iCheckCurrentCSPoint ) // 2013.06.14 lygan_Á¶¼º¿í // Ä³½¬ ½ºÅ³ Æ÷ÀÎÆ®µµ ÀÌ»óÇÏ¸é º¸»ó ÇØ¾ß ÇÏ´ÂÁö ¸ð¸£°ÚÁö¸¸ ¿ì¼± ÇÑ´Ù.
+			if ( iCheckCorrectCSPoint != iCheckCurrentCSPoint ) // 2013.06.14 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½ð¸£°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ì¼± ï¿½Ñ´ï¿½.
 			{
 				iCorrectionCSP = iCheckCorrectCSPoint - iCheckCurrentCSPoint;
 			}
 			*/
 
-			// ³»°¡ »ý°¢ÇÑ ºñ±³ ¼ö½Ä( ¹Ì¿Ï¼º )
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½( ï¿½Ì¿Ï¼ï¿½ )
 			/*
 			if( iUsedCSPoint >= m_kSkillTree.GetMaxCSPoint() )
 			{
@@ -17688,7 +17698,7 @@ bool KGSUser::CheckSkillPointCorrection( OUT int& iCorrectionSP )
 
 			iCorrectionSP = iCheckSP - iCurSP;
 
-			START_LOG( cerr, L"±×³ë½Ã½º »ç¿ëÇÏ°í ÀÖ´Â À¯Àú" )
+			START_LOG( cerr, L"ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOGc( GetLevel() )
@@ -17708,10 +17718,10 @@ bool KGSUser::CheckSkillPointCorrection( OUT int& iCorrectionSP )
 	}
 	else
 	{
-		// ±×³ë½Ã½º »ç¿ëÇÏ°í ÀÖÁö ¾ÊÀº À¯Àú
+		// ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( iUsedCSPoint != 0  ||  m_kSkillTree.GetCSPoint() != 0 )
 		{
-			START_LOG( cerr, L"CSP »ç¿ë±â°£ÀÌ ¸¸·áµÇ¾ú´Âµ¥ CSP°¡ ³²¾ÆÀÖ´Ù" )
+			START_LOG( cerr, L"CSP ï¿½ï¿½ï¿½â°£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Âµï¿½ CSPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½" )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetCharName() )
 				<< BUILD_LOGc( GetLevel() )
@@ -17737,7 +17747,7 @@ bool KGSUser::CheckSkillPointCorrection( OUT int& iCorrectionSP )
 			{
 				iCorrectionSP = iCheckSP - iCurSP;
 
-				START_LOG( cerr, L"±×³ë½Ã½º »ç¿ëÇÏ°í ÀÖÁö ¾ÊÀº À¯Àú" )
+				START_LOG( cerr, L"ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 					<< BUILD_LOG( GetCharUID() )
 					<< BUILD_LOG( GetCharName() )
 					<< BUILD_LOGc( GetLevel() )
@@ -17758,23 +17768,23 @@ bool KGSUser::CheckSkillPointCorrection( OUT int& iCorrectionSP )
 }
 #endif //SERV_SKILL_POINT_CORRECTION
 
-#ifdef	SERV_LOCAL_RANKING_SYSTEM // Àû¿ë³¯Â¥: 2013-04-05
+#ifdef	SERV_LOCAL_RANKING_SYSTEM // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-05
 void KGSUser::GetLocalRankingWatchUnitInfo( OUT KLocalRankingUserInfo& kUserInfo, OUT KLocalRankingUnitInfo& kUnitInfo ) const
 {
-	// À¯Àú Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_kUserLocalRankingInfo.GetFilteredUserInfo( kUserInfo );
 	
-	// À¯´Ö Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	kUnitInfo.m_wstrNickName	= GetCharName();
 	kUnitInfo.m_ucLevel			= GetLevel();
 	kUnitInfo.m_cUnitClass		= GetUnitClass();
 }
 #endif	// SERV_LOCAL_RANKING_SYSTEM
 
-#ifdef	SERV_RIDING_PET_SYSTM// Àû¿ë³¯Â¥: 2013-04-21
+#ifdef	SERV_RIDING_PET_SYSTM// ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-21
 void KGSUser::CheckRidingPetProcess( void )
 {
-	// ¸¸·áµÈ Æê ¸®½ºÆ® ¾ò±â
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½
 	std::vector<UidType> vecRidingPetUID;
 	if( m_kUserRidingPetManager.GetExpirationPetUID( vecRidingPetUID ) != KUserRidingPetManager::RIDING_PET_SUCCEED )
 	{
@@ -17791,21 +17801,21 @@ void KGSUser::CheckRidingPetProcess( void )
 
 	BOOST_TEST_FOREACH( const UidType, iRidingPetUID, vecRidingPetUID )
 	{
-		// ¸¸·áµÈ Æê Á¦°ÅÇÏ·¯ DB·Î °¡ÀÚ!!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!
 		kPacketToDB.m_iRidingPetUID = iRidingPetUID;
 		SendToGameDB( DBE_RELEASE_RIDING_PET_REQ, kPacketToDB );
 	}
 }
 #endif	// SERV_RIDING_PET_SYSTM
 
-#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ÀÛ¾÷³¯Â¥: 2013-05-06	// ¹Ú¼¼ÈÆ
+#ifdef SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-05-06	// ï¿½Ú¼ï¿½ï¿½ï¿½
 void KGSUser::SetLanBugOutDisconnectCheck( IN const bool bSet )
 {
 	if( bSet == true )
 	{
 		if( m_bCheckUdpKickStateChangeFieldNot == true )
 		{
-			// ÀÌ¹Ì ÁøÇà ÁßÀÌ´Ù.
+			// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½.
 			return;
 		}
 
@@ -17816,7 +17826,7 @@ void KGSUser::SetLanBugOutDisconnectCheck( IN const bool bSet )
 	{
 		if( m_bCheckUdpKickStateChangeFieldNot == true )
 		{
-			// Ã¼Å© Á¾·á
+			// Ã¼Å© ï¿½ï¿½ï¿½ï¿½
 			m_bCheckUdpKickStateChangeFieldNot = false;
 		}
 	}
@@ -17831,7 +17841,7 @@ void KGSUser::CheckLanBugOutDisconnect( void )
 
 	const float fLanBugOutDisconnectCheckTerm = SiKGameSysVal()->GetLanBugOutDisconnectCheckTerm();
 
-	// ±â´É »ç¿ë ÁßÁö¸¦ À§ÇÑ ¿ëµµ
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ëµµ
 	if( fLanBugOutDisconnectCheckTerm < 0.0f )
 	{
 		SetLanBugOutDisconnectCheck( false );
@@ -17843,19 +17853,19 @@ void KGSUser::CheckLanBugOutDisconnect( void )
 		return;
 	}
 
-#ifdef SERV_HACKING_USER_CHECK_COUNT// ÀÛ¾÷³¯Â¥: 2013-06-02	// ¹Ú¼¼ÈÆ
+#ifdef SERV_HACKING_USER_CHECK_COUNT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-02	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	IncreaseCheckCount( SEnum::HUCT_FIELD_WORKING_CHECK, L"" );
 #else // SERV_HACKING_USER_CHECK_COUNT
 	IncreaseBlockCount();
 #endif // SERV_HACKING_USER_CHECK_COUNT
 
-	// Á¢¼Ó Á¾·á Àü±îÁö °Å·¡µµ ºí·°
-	// HackUserRegTradeBlock DB¿¡ ÀúÀåÇÒ ÇÊ¿ä´Â ¾øÀ» °Í °°¾Æ¼­..... °èÁ¤ ºí·°ÀÌ´Ï±î
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// HackUserRegTradeBlock DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¼ï¿½..... ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì´Ï±ï¿½
 	m_kUserAbuserManager.SetTradeBlockUser( true );
 
-#ifdef SERV_HACKING_USER_CHECK_COUNT// ÀÛ¾÷³¯Â¥: 2013-06-02	// ¹Ú¼¼ÈÆ
+#ifdef SERV_HACKING_USER_CHECK_COUNT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-02	// ï¿½Ú¼ï¿½ï¿½ï¿½
 #else // SERV_HACKING_USER_CHECK_COUNT
-	// ·£´ý Å±
+	// ï¿½ï¿½ï¿½ï¿½ Å±
 	int iLanBugOutMinDisconnectTerm	= 0;
 	int iLanBugOutDisconnectTerm	= 0;
 	SiKGameSysVal()->GetLanBugOutDisconnectTerm( iLanBugOutMinDisconnectTerm, iLanBugOutDisconnectTerm );
@@ -17888,23 +17898,23 @@ void KGSUser::IncreaseBlockCount( void )
 {
 	if( m_wstrBlockCheckResetDate.empty() == true )
 	{
-		// ÃÊ±âÈ­µÇÁö ¾Ê¾Ò´Ù. DB¿¡ ´Ù³à¿ÀÀÚ
+		// ï¿½Ê±ï¿½È­ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´ï¿½. DBï¿½ï¿½ ï¿½Ù³ï¿½ï¿½ï¿½ï¿½
 		SendToAccountDB( DBE_BLOCK_COUNT_CHECK_INFO_READ_REQ );
 		return;
 	}
 
-	// Ä«¿îÆ® ÃÊ±âÈ­ Ã¼Å©
+	// Ä«ï¿½ï¿½Æ® ï¿½Ê±ï¿½È­ Ã¼Å©
 	CTime tBlockCheckResetDate;
 	if( KncUtil::ConvertStringToCTime( m_wstrBlockCheckResetDate, tBlockCheckResetDate ) == false )
 	{
-		START_LOG( cerr, L"ÇÊµå ÀÛ¾÷Àå ºí·° Ä«¿îÆ® ¸®¼Â ½Ã°¢ º¯È¯ ½ÇÆÐ" )
+		START_LOG( cerr, L"ï¿½Êµï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( m_wstrBlockCheckResetDate )
 			<< END_LOG;
 	}
 	else
 	{
-		// ¸¶Áö¸· ÃÊ±âÈ­ ½Ã°£À¸·ÎºÎÅÍ 1ÁÖÀÏ ÈÄ ¸ñ¿äÀÏ ¿ÀÀü 6½Ã¸¦ ¼³Á¤
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 6ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 		int iDayOfWeek			= tBlockCheckResetDate.GetDayOfWeek();
 		int iNextResetDayTerm	= 5 - iDayOfWeek;
 		if( iNextResetDayTerm <= 0 )
@@ -17918,13 +17928,13 @@ void KGSUser::IncreaseBlockCount( void )
 
 		if( tResetTime < tCurrentTime )
 		{
-			// Ä«¿îÆ® ÃÊ±âÈ­ ½ÇÇà
+			// Ä«ï¿½ï¿½Æ® ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½
 			m_byteBlockCheckCount		= 0;
 			m_wstrBlockCheckResetDate	= tCurrentTime.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 		}
 	}
 
-	// Áõ°¡ Ã³¸®
+	// ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 	m_bBlockCheckCountChanged = true;
 	if( ++m_byteBlockCheckCount < 3 )
 	{
@@ -17935,7 +17945,7 @@ void KGSUser::IncreaseBlockCount( void )
 
 	SendID( EGS_FIELD_WORKINGS_BLOCK_LOG_REQ );
 
-	// ÀÚµ¿ ºí·°
+	// ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 	HackUserRegRejectedUser( KEGS_SERVER_CHECK_HACK_USER_REQ::HCT_LANBUGOUT_DISCONNECT );
 }
 
@@ -17953,11 +17963,11 @@ bool KGSUser::GetBlockCountChanged( OUT byte& byteBlockCheckCount, OUT std::wstr
 }
 #endif // SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK
 
-//{{ 2013. 04. 01	 ÀÎ¿¬ ½Ã½ºÅÛ - ±è¹Î¼º
+//{{ 2013. 04. 01	 ï¿½Î¿ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_RELATIONSHIP_SYSTEM
 void KGSUser::CheckRelationshipReward()
 {
-	// 1ºÐ¸¶´Ù Ã¼Å©
+	// 1ï¿½Ð¸ï¿½ï¿½ï¿½ Ã¼Å©
 	if( m_kTimer[TM_RELATIONSHIP_REWARD].elapsed() < 60.0 )
 		return;
 
@@ -17967,67 +17977,67 @@ void KGSUser::CheckRelationshipReward()
 	kPacket.m_iUnitUID = GetCharUID();
 	kPacket.m_iLoverUnitUID = m_kUserRelationshipManager.GetLoverUnitUID();
 
-	// ±â³äÀÏ º¸»ó
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( m_kUserRelationshipManager.IsRewardDay() == true )
 	{
 		kPacket.m_bTitleReward = false;
 
-		// º¸»ó Áö±Þ ÇÏ·¯ °¡ÀÚ
-		// Ä¿ÇÃÀÌ¶ó¸é
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// Ä¿ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½
 		if( m_kUserRelationshipManager.GetRelationshipType() == SEnum::RT_COUPLE )
 		{
-			// Ä¿ÇÃ ±â³äÀÏ Å¥ºê
+			// Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½
 			kPacket.kPostReq.m_iFromUnitUID		= GetCharUID();
 			kPacket.kPostReq.m_iToUnitUID		= GetCharUID();
 			kPacket.kPostReq.m_iRewardType		= KPostItemInfo::LT_WEDDING_REWARD;
 			kPacket.kPostReq.m_iRewardID		= CXSLItem::SI_COUPLE_ANNIVERSARY_DAY_REWARD_ITEM;
 			SendToGameDB( DBE_INSERT_WEDDING_REWARD_REQ, kPacket );
 
-			// º¸»ó Áö±Þ ÇÑ Á¤º¸ ±â·Ï ÇÏÀÚ
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //			SendToLogDB();
 		}
 		else if( m_kUserRelationshipManager.GetRelationshipType() == SEnum::RT_MARRIED )
 		{
-			// °áÈ¥ ±â³äÀÏ Å¥ºê
+			// ï¿½ï¿½È¥ ï¿½ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½
 			kPacket.kPostReq.m_iFromUnitUID		= GetCharUID();
 			kPacket.kPostReq.m_iToUnitUID		= GetCharUID();
 			kPacket.kPostReq.m_iRewardType		= KPostItemInfo::LT_WEDDING_REWARD;
 			kPacket.kPostReq.m_iRewardID		= CXSLItem::SI_WEDDING_ANNIVERSARY_DAY_REWARD_ITEM;
 			SendToGameDB( DBE_INSERT_WEDDING_REWARD_REQ, kPacket );
 
-			// º¸»ó Áö±Þ ÇÑ Á¤º¸ ±â·Ï ÇÏÀÚ
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //			SendToLogDB();
 		}
 	}
 
-	// ÄªÈ£ º¸»ó
+	// ÄªÈ£ ï¿½ï¿½ï¿½ï¿½
 	int iTitleItemID = m_kUserRelationshipManager.IsRewardTitleItem( kPacket.m_iTitleRewardStep );
 	if( iTitleItemID > 0 )
 	{
 		kPacket.m_bTitleReward = true;
 
-		// Å¸ÀÌÆ² Áö±Þ ÇÏÀÚ
+		// Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		kPacket.kPostReq.m_iFromUnitUID		= GetCharUID();
 		kPacket.kPostReq.m_iToUnitUID		= GetCharUID();
 		kPacket.kPostReq.m_iRewardType		= KPostItemInfo::LT_WEDDING_REWARD;
 		kPacket.kPostReq.m_iRewardID		= iTitleItemID;
 		SendToGameDB( DBE_INSERT_WEDDING_REWARD_REQ, kPacket );
 
-		// Å¸ÀÌÆ² º¸»ó Áö±Þ ÇÑ Á¤º¸ ±â·Ï ÇÏÀÚ
+		// Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //		SendToLogDB();
 	}
 }
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
 
-#ifdef SERV_HACKING_USER_CHECK_COUNT// ÀÛ¾÷³¯Â¥: 2013-06-01	// ¹Ú¼¼ÈÆ
+#ifdef SERV_HACKING_USER_CHECK_COUNT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-01	// ï¿½Ú¼ï¿½ï¿½ï¿½
 void KGSUser::HackUserAccountBlock( IN const byte byteType, IN const std::wstring& wstrReason, IN const std::wstring& wstrEndDate ) const
 {
-	// ÇÙ À¯Àú Á¢¼Ó Â÷´Ü ÀÚµ¿µî·Ï
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½
 	if( SiKGameSysVal()->IsHackUserRegRejected() == false )
 		return;
 
-	// Account Block À¯Àú µî·ÏÇÏ±â!
+	// Account Block ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï±ï¿½!
 	KDBE_ACCOUNT_BLOCK_NOT kPacketNot;
 	kPacketNot.m_iUserUID		= GetUID();
 	kPacketNot.m_byteType		= byteType;
@@ -18054,7 +18064,7 @@ void KGSUser::IncreaseCheckCount( IN const byte byteType, IN const std::wstring&
 	case KUserAbuserManager::HUCR_SUCCEED:
 		if( SEnum::CheckFlag( byteResult, KAbuserLogManager::HUCRT_PACKETMORNITORING ) == true )
 		{
-			// ÆÐÅ¶ ¸ð´ÏÅÍ¸µ µî·Ï
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½
 			HackUserRegPacketMornitor();
 		}
 
@@ -18088,7 +18098,7 @@ void KGSUser::IncreaseCheckCount( IN const byte byteType, IN const std::wstring&
 		break;
 
 	case KUserAbuserManager::HUCR_FAILED:
-		// IncreaseCheckCount -> SiKAbuserLogManager()->GetHackingUserCheckInfo ¿¡¼­ ¿¡·¯ ·Î±× Á¦¸ñ Âï°í ÀÖÀ½.
+		// IncreaseCheckCount -> SiKAbuserLogManager()->GetHackingUserCheckInfo ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		START_LOG( cerr, L"" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( GetCharName() )
@@ -18098,7 +18108,7 @@ void KGSUser::IncreaseCheckCount( IN const byte byteType, IN const std::wstring&
 	case KUserAbuserManager::HUCR_NOT_INITED:
 		if( bAfterInited == true )
 		{
-			START_LOG( cerr, L"ÇØÅ· À¯Àú Ã¼Å© Ä«¿îÆ®¸¦ ÃÊ±âÈ­ ÇÒ ¼ö ¾ø½À´Ï´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ã¼Å© Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( GetCharName() )
 				<< END_LOG;
@@ -18137,7 +18147,7 @@ byte KGSUser::GetAccountBlockType( void ) const
 }
 #endif // SERV_HACKING_USER_CHECK_COUNT
 
-#ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 bool KGSUser::isCanUseUnsealCashSkillItem( IN int iItemID )
 {
 	int iUnitClassType = CXSLUnit::UCT_NONE;
@@ -18148,7 +18158,7 @@ bool KGSUser::isCanUseUnsealCashSkillItem( IN int iItemID )
 
 	switch( iUnitClassType )
 	{
-	case CXSLUnit::UCT_BASIC_CLASS:		// ±âº», 1Â÷, 2Â÷ ÀüÁ÷ÀÌ¸é ¹è¿ï ¼ö ÀÖ´Ù
+	case CXSLUnit::UCT_BASIC_CLASS:		// ï¿½âº», 1ï¿½ï¿½, 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½
 		{
 			if( CXSLUnit::IsInitNormalJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) 
 				|| CXSLUnit::IsFirstChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) 
@@ -18157,7 +18167,7 @@ bool KGSUser::isCanUseUnsealCashSkillItem( IN int iItemID )
 				return true;
 			}
 		}break;
-	case CXSLUnit::UCT_FIRST_CLASS:		// 1Â÷, 2Â÷ ÀüÁ÷ÀÌ¸é ¹è¿ï ¼ö ÀÖ´Ù
+	case CXSLUnit::UCT_FIRST_CLASS:		// 1ï¿½ï¿½, 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½
 		{
 			if( CXSLUnit::IsFirstChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) 
 				|| CXSLUnit::IsSecondChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) )
@@ -18165,7 +18175,7 @@ bool KGSUser::isCanUseUnsealCashSkillItem( IN int iItemID )
 				return true;
 			}
 		}break;
-	case CXSLUnit::UCT_SECOND_CLASS:	// 2Â÷ ÀüÁ÷ÀÌ¸é ¹è¿ï ¼ö ÀÖ´Ù
+	case CXSLUnit::UCT_SECOND_CLASS:	// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½
 		{
 			if( CXSLUnit::IsSecondChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) )
 			{
@@ -18174,7 +18184,7 @@ bool KGSUser::isCanUseUnsealCashSkillItem( IN int iItemID )
 		}break;
 	default:
 		{
-			START_LOG( cerr, L"unit class type ÀÇ °ªÀÌ ºñÁ¤»óÀûÀÔ´Ï´Ù." )
+			START_LOG( cerr, L"unit class type ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½." )
 				<< BUILD_LOG( iItemID )
 				<< BUILD_LOG( iUnitClassType )
 				<< END_LOG;
@@ -18186,13 +18196,13 @@ bool KGSUser::isCanUseUnsealCashSkillItem( IN int iItemID )
 
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
-#ifdef SERV_CRITERION_DATE_EVENT// ÀÛ¾÷³¯Â¥: 2013-06-26	// ¹Ú¼¼ÈÆ
+#ifdef SERV_CRITERION_DATE_EVENT// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-26	// ï¿½Ú¼ï¿½ï¿½ï¿½
 byte KGSUser::GetCriterionDateEventInfo( void ) const
 {
 	byte byteResult = ( m_kComeBackUserInfo.GetIsComeBackUser() == true ) ? SEnum::CUT_COMEBACK : SEnum::CUT_NONE;
 
-#ifdef SERV_CRITERION_DATE_EVENT_JUMPING_CHARACTER// ÀÛ¾÷³¯Â¥: 2013-06-26	// ¹Ú¼¼ÈÆ
-#ifdef SERV_JUMPING_CHARACTER// ÀÛ¾÷³¯Â¥: 2013-07-12	// ¹Ú¼¼ÈÆ
+#ifdef SERV_CRITERION_DATE_EVENT_JUMPING_CHARACTER// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-26	// ï¿½Ú¼ï¿½ï¿½ï¿½
+#ifdef SERV_JUMPING_CHARACTER// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-12	// ï¿½Ú¼ï¿½ï¿½ï¿½
 	if( m_kUserJumpingCharacterManager.IsJumpingCharacter( GetCharUID() ) == JumpingCharacter::JCR_SUCCEED )
 	{
 		byteResult |= SEnum::CUT_JUMPING;
@@ -18204,7 +18214,7 @@ byte KGSUser::GetCriterionDateEventInfo( void ) const
 }
 #endif // SERV_CRITERION_DATE_EVENT
 
-#ifdef SERV_JUMPING_CHARACTER// ÀÛ¾÷³¯Â¥: 2013-07-11	// ¹Ú¼¼ÈÆ
+#ifdef SERV_JUMPING_CHARACTER// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-07-11	// ï¿½Ú¼ï¿½ï¿½ï¿½
 int KGSUser::JumpingCharacterCheck( void ) const
 {
 	int		iTargetLevel = 0;
@@ -18216,17 +18226,17 @@ int KGSUser::JumpingCharacterCheck( OUT int& iTargetLevel, OUT CTime& tCurrentDa
 {
 	if( IsGuestUser() )
 	{
-		return NetError::ERR_JUMPING_01;	// Á¡ÇÎ ÀÌº¥Æ® ´ë»óÀÚ°¡ ¾Æ´Õ´Ï´Ù.
+		return NetError::ERR_JUMPING_01;	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 	}
 
 	if( GetUnitClass() != CXSLUnit::GetUnitClassBaseGrade( static_cast<CXSLUnit::UNIT_CLASS>( GetUnitClass() ) ) )
 	{
-		return NetError::ERR_JUMPING_02;	// ±âº» Á÷¾÷ ´ë»óÀÚ¸¸ Á¡ÇÎÇÒ ¼ö ÀÖ½À´Ï´Ù.
+		return NetError::ERR_JUMPING_02;	// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
 	}
 
 	if( m_kUserJumpingCharacterManager.IsInit() == false )
 	{
-		return NetError::ERR_JUMPING_03;	// Á¡ÇÎ ÀÌº¥Æ® Á¤º¸°¡ ÃÊ±âÈ­ µÇÁö ¾Ê¾Ò½À´Ï´Ù.
+		return NetError::ERR_JUMPING_03;	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò½ï¿½ï¿½Ï´ï¿½.
 	}
 
 	CTime	tBeginDate = 0;
@@ -18242,12 +18252,12 @@ int KGSUser::JumpingCharacterCheck( OUT int& iTargetLevel, OUT CTime& tCurrentDa
 		, tCurrentDate
 		) == false )
 	{
-		return NetError::ERR_JUMPING_04;	// ÇØ´çµÇ´Â Á¡ÇÎ ÀÌº¥Æ®°¡ ¾ø½À´Ï´Ù.
+		return NetError::ERR_JUMPING_04;	// ï¿½Ø´ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 	}
 
 	if( m_kUserJumpingCharacterManager.Check( GetCharUID(), tBeginDate, tEndDate, bAccountEvent ) != JumpingCharacter::JCR_SUCCEED )
 	{
-		return NetError::ERR_JUMPING_05;	// Á¡ÇÎ ÀÌº¥Æ® ´ë»óÀÚ°¡ ¾Æ´Õ´Ï´Ù.
+		return NetError::ERR_JUMPING_05;	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Æ´Õ´Ï´ï¿½.
 	}
 
 	return NetError::NET_OK;
@@ -18261,23 +18271,23 @@ bool KGSUser::CheckJumpingCharLevelUp( IN const unsigned char ucLevel )
 
 	if( ucNowLevel < m_ucLevel )
 	{
-		//·¹º§¾÷ÇÑ °æ¿ì ÆÄÆ¼Á¤º¸ ¾÷µ¥ÀÌÆ®.
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®.
 		SendUpdatePartyUnitInfo();
 		
-		// Ã¼ÇèID ±â´É Á¦ÇÑ
+		// Ã¼ï¿½ï¿½ID ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( !IsGuestUser() )
 		{
-			// ÃßÃµÀÎ º¸»ó ºÎºÐ
+			// ï¿½ï¿½Ãµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½
 			if( m_kUserRecommendManager.GetRecommendedUnitUID() > 0 )
 			{
-				//{{ 2010. 01. 11  ÃÖÀ°»ç	ÃßÃµÀÎ¸®½ºÆ®
+				//{{ 2010. 01. 11  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Ãµï¿½Î¸ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_RECOMMEND_LIST
 				SendUpdateRecommendUserInfo( KRecommendUserInfo::RUIT_LEVEL_UP );
 #endif SERV_RECOMMEND_LIST
 				//}}
 			}
 
-			//Á¦ÀÚ¸®½ºÆ®¿¡ ÀÖ´Ù¸é Á¤º¸¾÷µ¥ÀÌÆ®.
+			//ï¿½ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®.
 			if( m_kUserTutorialInfo.GetTutorUnitType() == KUserTutorialInfo::TUT_STUDENT &&
 				m_kUserTutorialInfo.IsExistbyTutorData() == false )
 			{
@@ -18285,7 +18295,7 @@ bool KGSUser::CheckJumpingCharLevelUp( IN const unsigned char ucLevel )
 				{
 					SiKTutorialManager()->SetLevelData( GetCharUID(), GetLevel() );
 
-					//Á¦ÀÛÀÇ ¸¶Áö¸· ·¹º§ÀÌ µÇ¾úÀ¸¸é ¸®½ºÆ®¿¡¼­ »èÁ¦ÇØÁØ´Ù. 
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½. 
 					if( GetLevel() >= KTutorialManager::UNIT_LEVEL_STUDENT_MAX  &&
 						ucNowLevel < KTutorialManager::UNIT_LEVEL_STUDENT_MAX )
 					{
@@ -18294,17 +18304,17 @@ bool KGSUser::CheckJumpingCharLevelUp( IN const unsigned char ucLevel )
 				}
 			}
 
-			//080408.hoons. »çÁ¦ º¸»ó ºÎºÐ.
+			//080408.hoons. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½.
 			m_kUserTutorialInfo.ProcJumpingCharLevelUP( ucNowLevel, GetThisPtr<KGSUser>() );
 		}
 
-#ifdef	SERV_LOCAL_RANKING_SYSTEM // Àû¿ë³¯Â¥: 2013-03-28
+#ifdef	SERV_LOCAL_RANKING_SYSTEM // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-03-28
 		m_kUserLocalRankingInfo.SetCharacterLevel( GetLevel() );
-		// Login Server·Î À¯Àú Á¤º¸ °»½Å ¾Ë¸²À» º¸³½´Ù.
+		// Login Serverï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		IncreasedLocalRankingPoint( 0, 0, true );
 #endif	// SERV_LOCAL_RANKING_SYSTEM
 
-		//{{ 2009. 6. 29  ÃÖÀ°»ç	¸¸·¾ ´Þ¼º °øÁö
+		//{{ 2009. 6. 29  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( GetLevel() == SiKGameSysVal()->GetLimitsLevel()  &&
 			GetAuthLevel() < SEnum::UAL_GM )
 		{
@@ -18318,7 +18328,7 @@ bool KGSUser::CheckJumpingCharLevelUp( IN const unsigned char ucLevel )
 
 			SendToCnServer( ECN_NOTIFY_MSG_NOT, kPacket );
 
-			//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+			//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 			WriteCharacterLogToDB( KELOG_USER_CHARACTER_LOG_NOT::LT_FULL_LEVEL );
 #endif SERV_CHAR_LOG
@@ -18335,11 +18345,11 @@ bool KGSUser::CheckJumpingCharLevelUp( IN const unsigned char ucLevel )
 			m_kStat.m_iDefPhysic	= sUnitStat.m_usDefPhysic;
 			m_kStat.m_iDefMagic		= sUnitStat.m_usDefMagic;
 
-			// ·¹º§¾÷ ÇÏ¸é spµµ °°ÀÌ È¹µæÇÑ´Ù
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ spï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ï¿½Ñ´ï¿½
 			for( u_char ucLevel = ucNowLevel + 1; ucLevel <= GetLevel(); ++ucLevel )
 			{
 				int iSPInc = 0;
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // Àû¿ë³¯Â¥: 2013-06-27
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-06-27
 				if( SiCXSLSkillTree()->GetCalcLevelUpIncreaseSkillPoint( ucLevel, iSPInc ) == true )
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
 /*				
@@ -18356,39 +18366,39 @@ bool KGSUser::CheckJumpingCharLevelUp( IN const unsigned char ucLevel )
 				}
 			}
 
-            // ·¹º§¾÷¿¡ ´ëÇÑ ·Î±×¸¦ DB¿¡ ³²±ä´Ù.
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×¸ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
             KDBE_CHARACTER_LEVELUP_NOT kNot;
             kNot.m_nCharUID = GetCharUID();
             kNot.m_ucLevelBefore = ucNowLevel;
             kNot.m_ucLevelAfter = GetLevel();
             SendToLogDB( DBE_CHARACTER_LEVELUP_NOT, kNot );
 
-			//{{ 2011. 01. 17	ÃÖÀ°»ç	Ä³¸¯ÅÍ Ä«¿îÆ® Á¤º¸
+			//{{ 2011. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_CHAR_LOG
 			WriteCharacterLogToDB( KELOG_USER_CHARACTER_LOG_NOT::LT_LEVEL_UP );
 #endif SERV_CHAR_LOG
 			//}}
 
-			// Ã¼ÇèID ±â´É Á¦ÇÑ
+			// Ã¼ï¿½ï¿½ID ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			if( IsGuestUser() )
 			{
-				// Ã¼ÇèID ·¹º§ Á¦ÇÑ
+				// Ã¼ï¿½ï¿½ID ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				if( GetLevel() > SiKGameSysVal()->GetGuestUserLimitLevel() )
 				{
 					SendID( EGS_GUEST_USER_LIMIT_LEVEL_NOT );
 				}
 			}
 
-			// »õ·Î¿î ¹Ì¼Ç °Ë»ç
+			// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½Ì¼ï¿½ ï¿½Ë»ï¿½
 			m_kUserTitleManager.CheckNewMission( GetThisPtr<KGSUser>() );
 
-			//{{ 2009. 10. 8  ÃÖÀ°»ç	±æµå
+			//{{ 2009. 10. 8  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½
 #ifdef GUILD_TEST
 			SendUpdateGuildMemberInfo();
 #endif GUILD_TEST
 			//}}
 
-			//{{ QUEST °³Æí - ±è¹Î¼º
+			//{{ QUEST ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_REFORM_QUEST
 			m_kUserQuestManager.CheckLimitLevelQuest( GetThisPtr<KGSUser>() );
 			m_kUserQuestManager.CheckEventQuest( GetThisPtr<KGSUser>() );
@@ -18400,7 +18410,7 @@ bool KGSUser::CheckJumpingCharLevelUp( IN const unsigned char ucLevel )
         else
 		{
 			START_LOG_WITH_NAME( cerr )
-				<< L"UNIT STAT DATA ÆÄ½Ì ½ÇÆÐ.!(ÀÌ·¯¸é ¾ÈµÇ´Âµ¥)" << dbg::endl
+				<< L"UNIT STAT DATA ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½.!(ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½ÈµÇ´Âµï¿½)" << dbg::endl
 				<< BUILD_LOGc( GetUnitClass() )
 				<< BUILD_LOG( GetLevel() )
 				<< END_LOG;
@@ -18416,7 +18426,7 @@ bool KGSUser::CheckJumpingCharLevelUp( IN const unsigned char ucLevel )
 #ifdef SERV_PERIOD_PET
 void KGSUser::CheckExpirePet()
 {
-	// ¸¸·áµÈ Æê ¸®½ºÆ® ¾ò±â
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½
 	std::vector<UidType> vecPetUID;
 	if( m_kUserPetManager.GetExpirePetUID( vecPetUID ) == false )
 	{
@@ -18433,7 +18443,7 @@ void KGSUser::CheckExpirePet()
 
 	BOOST_TEST_FOREACH( const UidType, iPetUID, vecPetUID )
 	{
-		// ¸¸·áµÈ Æê Á¦°ÅÇÏ·¯ DB·Î °¡ÀÚ!!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!
 		kPacketToDB.m_iPetUID = iPetUID;
 		SendToGameDB( DBE_RELEASE_PET_REQ, kPacketToDB );
 	}
@@ -18459,21 +18469,21 @@ bool KGSUser::CheckLimitedPlayTimes( IN const int iDungeonID )
 	int iLimitedPlayTimes = 0;
 	int iLimitedClearTimes = 0;
 
-	// ÇÃ·¹ÀÌ È½¼ö Á¦ÇÑ ´øÀüÀÌ¸ç À¯ÀúÀÇ ÇÃ·¹ÀÌ È½¼ö°¡ Á¦ÇÑ¿¡ µµ´ÞÇßÀ¸¸é Ã¼Å© ½ÇÆÐ
+	// ï¿½Ã·ï¿½ï¿½ï¿½ È½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ È½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½
 	if( SiCXSLDungeonManager()->GetLimitedPlayTimes( iDungeonID, iLimitedPlayTimes ) == true &&
 		iLimitedPlayTimes <= iUnitPlayTimes )
 	{
 		return false;
 	}
 
-	// Å¬¸®¾î È½¼ö Á¦ÇÑ ´øÀüÀÌ¸ç À¯ÀúÀÇ Å¬¸®¾î È½¼ö°¡ Á¦ÇÑ¿¡ µµ´ÞÇßÀ¸¸é Ã¼Å© ½ÇÆÐ
+	// Å¬ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½
 	if( SiCXSLDungeonManager()->GetLimitedClearTimes( iDungeonID, iLimitedClearTimes ) == true &&
 		iLimitedClearTimes <= iUnitClearTimes )
 	{
 		return false;
 	}
 
-	// µÑ´Ù ¹«»çÈ÷ ³Ñ¾î¿ÔÀ¸¸é Ã¼Å© ¼º°ø
+	// ï¿½Ñ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½
 	return true;
 }
 #endif SERV_LIMITED_DUNGEON_PLAY_TIMES

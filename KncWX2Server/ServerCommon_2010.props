@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-27
+// Description: Shared Release_US|Win32 settings for the VS2010 (v100) port
+// of the five KncWX2Server executables. Values come from the VS2003
+// Release_US command line recorded in each server's Release_US\BuildLog.htm
+// (/O2 /EHsc /MD /Zc:wchar_t /W3 /Zi, WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_US),
+// plus the settings MSBuild does not default the same way VC7.1 did:
+// Optimization and ExceptionHandling were absent from the 2003 .vcproj
+// because VC7.1 defaulted to /O2 /EHsc; MSBuild defaults to Disabled/none,
+// so both must be set explicitly here. _USE_32BIT_TIME_T matches the
+// client's X2Lib_2010.vcxproj US_SERVICE config: VC7.1's time_t was
+// 32-bit, VC10's is 64-bit by default, and this codebase serializes
+// time_t across the wire and into the database.
+//////////////////////////////////////////////////////////////////////////
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>_USE_32BIT_TIME_T;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4067;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+</Project>

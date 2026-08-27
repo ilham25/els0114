@@ -68,12 +68,15 @@ void KNexonBillingAuthManager::Init( int nThreadNum )
     m_iRecvCP = 0;
 
     //////////////////////////////////////////////////////////////////////////
-    // thread setting : recv´Â recvfrom() ÇÔ¼ö¿¡¼­ ¾Ë¾Æ¼­ blockµÈ´Ù.
+    // thread setting : recvï¿½ï¿½ recvfrom() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¼ï¿½ blockï¿½È´ï¿½.
+    //{{ Iruha : 2026-08-27 // VS2010 port: bare Class::Method as a member-function pointer
+    // was a VC7.1 extension; VC10 requires the explicit &.
     m_spThreadRecv = boost::shared_ptr< KTThread< KNexonBillingAuthManager > >
-        ( new KTThread< KNexonBillingAuthManager >( *this, KNexonBillingAuthManager::Recv, 50 ) );
+        ( new KTThread< KNexonBillingAuthManager >( *this, &KNexonBillingAuthManager::Recv, 50 ) );
 
     m_spThreadSend = boost::shared_ptr< KTThread< KNexonBillingAuthManager > >
-        ( new KTThread< KNexonBillingAuthManager >( *this, KNexonBillingAuthManager::Send, 100 ) );
+        ( new KTThread< KNexonBillingAuthManager >( *this, &KNexonBillingAuthManager::Send, 100 ) );
+    //}}
 
 	KThreadManager::Init( nThreadNum );
 }
@@ -99,7 +102,7 @@ void KNexonBillingAuthManager::BeginThread()
 
     if( !Connect() )
     {
-        START_LOG( cerr, L"ºô¸µ ÀÎÁõ ¼­¹ö Á¢¼Ó ½ÇÆÐ." )
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << END_LOG;
     }
 }
@@ -148,7 +151,7 @@ void KNexonBillingAuthManager::Recv()
         MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH - m_iRecvCP,
         0 );
 
-    START_LOG( clog, L"ÆÐÅ¶ ¹ÞÀ½." )
+    START_LOG( clog, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½." )
         << BUILD_LOG( ret );
 
     if( ret == SOCKET_ERROR )
@@ -160,7 +163,7 @@ void KNexonBillingAuthManager::Recv()
 
     if( ret == 0 )
     {
-        START_LOG( cerr, L"¼ÒÄÏ ¿¬°áÀÌ ²÷¾îÁü." )
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
             << END_LOG;
 
         CLOSE_SOCKET( m_sock );
@@ -171,18 +174,18 @@ void KNexonBillingAuthManager::Recv()
 
     while( m_iRecvCP >= 4 )
     {
-        // Çì´õ(1) + »çÀÌÁî(2) + Å¸ÀÔ(1) = 4
-        // ¸ðµç ÆÐÅ¶ÀÌ 4¹ÙÀÌÆ® ÀÌ»óÀÓ
+        // ï¿½ï¿½ï¿½(1) + ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(2) + Å¸ï¿½ï¿½(1) = 4
+        // ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ 4ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ì»ï¿½ï¿½ï¿½
 
         unsigned short usLength;
         ::memcpy( &usLength, m_cRecvBuffer + 1, sizeof( usLength ) );
 
         usLength = ::ntohs( usLength );
         int iTotalPacketSize = usLength + 3;
-        //if( iTotalPacketSize > MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH ) ±è¹Î¼º
+        //if( iTotalPacketSize > MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH ) ï¿½ï¿½Î¼ï¿½
 		if( iTotalPacketSize >= MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH )
         {
-            START_LOG( cerr, L"ÃßÃâÇÑ ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
+            START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
                 << BUILD_LOG( iTotalPacketSize )
                 << BUILD_LOG( MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH )
                 << END_LOG;
@@ -220,7 +223,7 @@ void KNexonBillingAuthManager::Send()
 	{
 		if( !spPacket )
 		{
-			START_LOG( cerr, L"Æ÷ÀÎÅÍ ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( m_kSendQueue.size() )
 				<< END_LOG;
 
@@ -255,7 +258,7 @@ void KNexonBillingAuthManager::Send()
 bool KNexonBillingAuthManager::Connect()
 {
     m_iRecvCP = 0;
-	m_sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
+	m_sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	if( INVALID_SOCKET == m_sock )
 	{
@@ -295,7 +298,7 @@ bool KNexonBillingAuthManager::Connect()
     spPacket->Write( kPacketInit );
     QueueingSendPacket( spPacket );
 
-    START_LOG( cout, L"³Ø½¼ PC¹æ ÀÎÁõ ¼­¹ö Á¢¼Ó." );
+    START_LOG( cout, L"ï¿½Ø½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." );
 	return true;
 }
 
@@ -313,7 +316,7 @@ void KNexonBillingAuthManager::KeepConnection()
 
     m_dwLastHeartBeatTick = ::GetTickCount();
 
-	// ÇãÆ®ºø º¸³»±â
+	// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     KENX_ALIVE_NOT kPacketNot;
     kPacketNot.m_bytePacketType = 100;
     boost::shared_ptr< KNexonBillingAuthPacket > spPacket( new KNexonBillingAuthPacket );
@@ -357,7 +360,7 @@ void KNexonBillingAuthManager::MakeEventFromReceivedPacket()
 	KNexonBillingAuthPacket kPacket;
 	if( !kPacket.ReadFromBuffer( ( BYTE* )m_cRecvBuffer ) )
     {
-        START_LOG( cerr, L"¹öÆÛ¿¡¼­ ÀÐ±â ½ÇÆÐ." )
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << END_LOG;
 
         DumpBuffer( ( BYTE* )m_cRecvBuffer, true );
@@ -366,7 +369,7 @@ void KNexonBillingAuthManager::MakeEventFromReceivedPacket()
 
     if( kPacket.GetPacketType() != KNexonBillingAuthPacket::NBA_PT_COMMON )
     {
-        START_LOG( cerr, L"ÆÐÅ¶ Å¸ÀÔ ÀÌ»ó." )
+        START_LOG( cerr, L"ï¿½ï¿½Å¶ Å¸ï¿½ï¿½ ï¿½Ì»ï¿½." )
             << BUILD_LOG( kPacket.GetPacketType() )
             << END_LOG;
 

@@ -74,24 +74,27 @@ void KGASHAuthManager::Init( int nThreadNum )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// thread setting : recv´Â recvfrom() ÇÔ¼ö¿¡¼­ ¾Ë¾Æ¼­ blockµÈ´Ù.
+	// thread setting : recvï¿½ï¿½ recvfrom() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¼ï¿½ blockï¿½È´ï¿½.
+	//{{ Iruha : 2026-08-27 // VS2010 port: bare Class::Method as a member-function pointer
+	// was a VC7.1 extension; VC10 requires the explicit &.
 	m_spThreadRecv[GP_AUTHENTICATION] = boost::shared_ptr< KTThread< KGASHAuthManager > >
-		( new KTThread< KGASHAuthManager >( *this, KGASHAuthManager::RecvFromAuthentication, 50 ) );
+		( new KTThread< KGASHAuthManager >( *this, &KGASHAuthManager::RecvFromAuthentication, 50 ) );
 
 	m_spThreadSend[GP_AUTHENTICATION] = boost::shared_ptr< KTThread< KGASHAuthManager > >
-		( new KTThread< KGASHAuthManager >( *this, KGASHAuthManager::SendToAuthentication, 100 ) );
+		( new KTThread< KGASHAuthManager >( *this, &KGASHAuthManager::SendToAuthentication, 100 ) );
 
 	m_spThreadRecv[GP_AUTHORIZATION] = boost::shared_ptr< KTThread< KGASHAuthManager > >
-		( new KTThread< KGASHAuthManager >( *this, KGASHAuthManager::RecvFromAuthorization, 50 ) );
+		( new KTThread< KGASHAuthManager >( *this, &KGASHAuthManager::RecvFromAuthorization, 50 ) );
 
 	m_spThreadSend[GP_AUTHORIZATION] = boost::shared_ptr< KTThread< KGASHAuthManager > >
-		( new KTThread< KGASHAuthManager >( *this, KGASHAuthManager::SendToAuthorization, 100 ) );
+		( new KTThread< KGASHAuthManager >( *this, &KGASHAuthManager::SendToAuthorization, 100 ) );
 
 	m_spThreadRecv[GP_ACCOUNTING] = boost::shared_ptr< KTThread< KGASHAuthManager > >
-		( new KTThread< KGASHAuthManager >( *this, KGASHAuthManager::RecvFromAccounting, 50 ) );
+		( new KTThread< KGASHAuthManager >( *this, &KGASHAuthManager::RecvFromAccounting, 50 ) );
 
 	m_spThreadSend[GP_ACCOUNTING] = boost::shared_ptr< KTThread< KGASHAuthManager > >
-		( new KTThread< KGASHAuthManager >( *this, KGASHAuthManager::SendToAccounting, 100 ) );
+		( new KTThread< KGASHAuthManager >( *this, &KGASHAuthManager::SendToAccounting, 100 ) );
+	//}}
 
 
 	KThreadManager::Init( nThreadNum );
@@ -123,7 +126,7 @@ void KGASHAuthManager::BeginThread()
 	{	
 		if( !Connect( iPortNum ) )
 		{
-			START_LOG( cerr, L"GASH ÀÎÁõ ¼­¹ö Á¢¼Ó ½ÇÆÐ." )
+			START_LOG( cerr, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< END_LOG;
 		}
 	}
@@ -285,20 +288,20 @@ void KGASHAuthManager::SendTo( int iPortEnum )
 	{
 		if( !spPacket )
 		{
-			START_LOG( cerr, L"Æ÷ÀÎÅÍ ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( m_kSendQueue[iPortEnum].size() )
 				<< END_LOG;
 
 			continue;
 		}
 
-		START_LOG( clog, L"º¸³»´Â ÆÐÅ¶" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶" )
 			<< BUILD_LOG( spPacket->c_str() )
 			<< END_LOG;
 
         if( spPacket->size() > MAX_PACKET_SIZE_OF_GASH_AUTH )
         {
-            START_LOG( cerr, L"ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
+            START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
                 << BUILD_LOG( spPacket->size() )
                 << END_LOG;
 
@@ -345,7 +348,7 @@ void KGASHAuthManager::RecvFrom(int iPortEnum)
 		MAX_PACKET_SIZE_OF_GASH_AUTH - m_iRecvCP[iPortEnum],
 		0 );
 
-	START_LOG( clog, L"ÆÐÅ¶ ¹ÞÀ½." )
+	START_LOG( clog, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½." )
 		<< BUILD_LOG( ret );
 
 	if( ret == SOCKET_ERROR )
@@ -357,7 +360,7 @@ void KGASHAuthManager::RecvFrom(int iPortEnum)
 
 	if( ret == 0 )
 	{
-		START_LOG( cerr, L"¼ÒÄÏ ¿¬°áÀÌ ²÷¾îÁü." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
 			<< END_LOG;
 
 		CLOSE_SOCKET( m_sock[iPortEnum] );
@@ -366,7 +369,7 @@ void KGASHAuthManager::RecvFrom(int iPortEnum)
 
 	if( ret > MAX_PACKET_SIZE_OF_GASH_AUTH - m_iRecvCP[iPortEnum] )
 	{
-		START_LOG( cerr, L"Àü¼ÛµÈ Å©±â°¡ ³Ê¹« Å©´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ûµï¿½ Å©ï¿½â°¡ ï¿½Ê¹ï¿½ Å©ï¿½ï¿½." )
 			<< BUILD_LOG( ret )
 			<< BUILD_LOG( MAX_PACKET_SIZE_OF_GASH_AUTH )
 			<< BUILD_LOG( m_iRecvCP[iPortEnum] )
@@ -384,7 +387,7 @@ void KGASHAuthManager::RecvFrom(int iPortEnum)
         strRecv.push_back( m_cRecvBuffer[iPortEnum][i] );
     }
     strRecv.push_back( '\0' );
-    START_LOG( clog2, L"¹ÞÀº GASH ÆÐÅ¶ ±×³É" )
+    START_LOG( clog2, L"ï¿½ï¿½ï¿½ï¿½ GASH ï¿½ï¿½Å¶ ï¿½×³ï¿½" )
         << BUILD_LOG( strRecv )
         << END_LOG;
     //////
@@ -399,7 +402,7 @@ void KGASHAuthManager::RecvFrom(int iPortEnum)
 			::memcpy( szPacket, m_cRecvBuffer[iPortEnum], iIndex + 2 );
 			std::string strPacket = szPacket;
 
-            START_LOG( clog2, L"¹ÞÀº GASH ÆÐÅ¶" )
+            START_LOG( clog2, L"ï¿½ï¿½ï¿½ï¿½ GASH ï¿½ï¿½Å¶" )
                 << BUILD_LOG( strPacket )
                 << END_LOG;
 
@@ -454,8 +457,8 @@ bool KGASHAuthManager::Connect( int iPortSelect )
     _JIF( iPortSelect >= 0 && iPortSelect < GP_NUM, return false );
 
 	m_iRecvCP[iPortSelect] = 0;
-	//m_sock[iPortSelect] = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
-	SOCKET sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
+	//m_sock[iPortSelect] = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	SOCKET sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	if( INVALID_SOCKET == sock )
 	{
@@ -553,7 +556,7 @@ void KGASHAuthManager::MakeEventFromReceived(int iPortEnum, std::string& strPack
 		spEvent->SetData(PI_NULL, NULL, EGASH_ACCOUNTING_ACK, kPacketAck );
 		break;
     default:
-        START_LOG( cerr, L"Æ÷Æ® Á¾·ù ÀÌ»ó." )
+        START_LOG( cerr, L"ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
             << BUILD_LOG( iPortEnum )
             << END_LOG;
         break;

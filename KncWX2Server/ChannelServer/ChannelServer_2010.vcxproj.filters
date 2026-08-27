@@ -2,94 +2,163 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Resource">
-      <UniqueIdentifier>{022a8730-c61b-4a20-a4da-0e56ab0e5f0a}</UniqueIdentifier>
+      <UniqueIdentifier>{c016cbbf-c099-4af8-8ef3-21f8dfbad3af}</UniqueIdentifier>
     </Filter>
     <Filter Include="Actor">
-      <UniqueIdentifier>{e6e0a1b5-8508-4f9d-ad50-41782345b56f}</UniqueIdentifier>
+      <UniqueIdentifier>{d367867a-4592-428e-9554-aaac0b13f397}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Actor\LoginProxy">
+      <UniqueIdentifier>{33d7892b-5f57-4760-8792-75f86562ccac}</UniqueIdentifier>
     </Filter>
     <Filter Include="DBThread">
-      <UniqueIdentifier>{e1af37a0-5891-4872-8717-b25776793aca}</UniqueIdentifier>
+      <UniqueIdentifier>{2e7cda66-1608-4aee-9647-609f2615400e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Layer">
-      <UniqueIdentifier>{0546f907-a6a2-4e55-b8c3-9584cba9c944}</UniqueIdentifier>
+      <UniqueIdentifier>{0f13ef23-2aa7-4095-80ae-1c1115231869}</UniqueIdentifier>
     </Filter>
     <Filter Include="script">
-      <UniqueIdentifier>{d0331597-50f6-4d07-95b7-322eb09b9a6d}</UniqueIdentifier>
+      <UniqueIdentifier>{0518d557-6db8-457b-b56a-857482fc8b7b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common">
-      <UniqueIdentifier>{377d030e-156a-4206-9e99-6478d009f6fa}</UniqueIdentifier>
+      <UniqueIdentifier>{6d3866bc-0dd2-45cc-b5fb-458fc577f4db}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\CrashRpt">
-      <UniqueIdentifier>{8ce61061-c547-4a16-afe3-448f6d7f00f9}</UniqueIdentifier>
+      <UniqueIdentifier>{eab47cd8-4c0a-41ac-884e-2a5f8f81a501}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\FSM">
-      <UniqueIdentifier>{8bcadfb5-5539-4e18-a075-21bf3abd9ebd}</UniqueIdentifier>
+      <UniqueIdentifier>{3c3d4d50-8a91-46f4-abe3-f57333b8644f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\FSM\DefaultFSM">
-      <UniqueIdentifier>{84e37e39-286b-4581-915c-ee8c499fe5b1}</UniqueIdentifier>
+      <UniqueIdentifier>{4c277355-2d1a-4b16-850b-8e745d113bb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\FSM\CHFSM">
+      <UniqueIdentifier>{934faece-f80e-44ae-bca0-86cc0a832760}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Performer">
-      <UniqueIdentifier>{b198728f-3d5f-4fc1-a625-84b2528cf934}</UniqueIdentifier>
+      <UniqueIdentifier>{73cb7873-e0ef-4982-92a1-a166e0724975}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Event">
-      <UniqueIdentifier>{b3d74f6e-7fe0-45df-aa34-b0be040af311}</UniqueIdentifier>
+      <UniqueIdentifier>{6a22bc71-1ba8-4036-b4db-982d8310f72d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\NetError">
-      <UniqueIdentifier>{9a5b54ff-2a92-43b9-85fe-23a957616f65}</UniqueIdentifier>
+      <UniqueIdentifier>{c0915ad1-7abf-40a0-9ce6-40993aaa4973}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Layer">
-      <UniqueIdentifier>{9d216c13-9635-4620-b968-bd41784cfd93}</UniqueIdentifier>
+      <UniqueIdentifier>{e7093893-634f-4f2d-9c6f-1c2fc8f64677}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\DB">
-      <UniqueIdentifier>{9ff65bbf-7254-49c2-92e6-a45aa8f0c9b2}</UniqueIdentifier>
+      <UniqueIdentifier>{80fc6894-b464-4036-a6fd-c9524561067a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Packet">
-      <UniqueIdentifier>{70190063-674f-48c3-8ece-e561d4d473b6}</UniqueIdentifier>
+      <UniqueIdentifier>{8e9a39e0-0bb2-4f8d-ae09-60646a8421a5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Socket">
-      <UniqueIdentifier>{9988436a-6e72-4897-82b2-99f1502cf85a}</UniqueIdentifier>
+      <UniqueIdentifier>{3277fd99-7cd8-44b9-b118-4175afc60426}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\SubThread">
-      <UniqueIdentifier>{6eb0f080-aa03-4d93-a764-a8a011e0b29c}</UniqueIdentifier>
+      <UniqueIdentifier>{c16d5448-bf6b-42d4-a2b8-77f7468ae656}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\UI">
-      <UniqueIdentifier>{7aaac744-1851-48a3-b96b-4a048d03aef6}</UniqueIdentifier>
+      <UniqueIdentifier>{11e83292-6c72-4cb4-bc71-85d1841306af}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\X2Data">
-      <UniqueIdentifier>{6ce5d5e5-12a0-48a1-836d-84e2d107e2e0}</UniqueIdentifier>
+      <UniqueIdentifier>{1de50f12-4cfc-431a-b9c9-740c403450a2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Lua">
-      <UniqueIdentifier>{d4bd8576-258b-4eaa-b886-ace81d3da146}</UniqueIdentifier>
+      <UniqueIdentifier>{50271b0b-5dc7-42ea-9f90-56b6ca577956}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\XML">
-      <UniqueIdentifier>{daf3d4d6-a871-4149-a7f7-0955b6886bc9}</UniqueIdentifier>
+      <UniqueIdentifier>{ad5f8b32-b35d-4e4e-be68-7c84bcf9279b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Enum">
-      <UniqueIdentifier>{d14a2340-eaad-4236-8542-82fe27d462d4}</UniqueIdentifier>
+      <UniqueIdentifier>{eeeb4b9a-2c59-40af-9490-42ea6e057dbd}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Room">
-      <UniqueIdentifier>{e4d9a557-56ec-4d82-8b75-ef26f8f6f248}</UniqueIdentifier>
+      <UniqueIdentifier>{d93b3709-a710-4aed-abb9-b8f3360a5abf}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Profiler">
-      <UniqueIdentifier>{b454b05e-de13-4d0c-a7f3-d9970cf40d5f}</UniqueIdentifier>
+      <UniqueIdentifier>{10ea153a-f88b-45f4-bedb-1a493922a707}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\RepeatEventFilter">
-      <UniqueIdentifier>{2b6e7762-dd10-4cb6-9416-c1c38fabfc0a}</UniqueIdentifier>
+      <UniqueIdentifier>{46034241-7853-472b-9b01-0e0a06777699}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Mornitoring">
-      <UniqueIdentifier>{d1404fc5-75c9-41fc-9c2d-a7effc86edf1}</UniqueIdentifier>
+      <UniqueIdentifier>{a30c1388-4c11-4b12-bb8e-b621764f985b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\Mail">
-      <UniqueIdentifier>{7bc0c04c-239e-477b-9d06-69cc07c7bb02}</UniqueIdentifier>
+      <UniqueIdentifier>{ec209bbd-0257-4bef-b9cf-3bbf1956b64f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Base64">
+      <UniqueIdentifier>{61f6c3a7-f2e9-42fb-888a-86746ac37387}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\GameSysVal">
+      <UniqueIdentifier>{69e08a47-9ece-4fd7-9335-e131e5c41ea2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\UdpRelayChecker">
+      <UniqueIdentifier>{7032ba21-cce8-4b77-9ebe-6a90031eb308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\GameEvent">
+      <UniqueIdentifier>{18e27002-fcbc-49b7-9628-12f21d509b3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\GameEvent\Event">
+      <UniqueIdentifier>{2f611eb2-ee03-4d6a-871c-d2d44a67517d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\OnlyGlobal">
-      <UniqueIdentifier>{415fd885-6eb1-4ca4-b3fa-199d9268f761}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Common\OnlyGlobal\Packet">
-      <UniqueIdentifier>{91e6dd83-bb02-4560-8edc-298b97035ed4}</UniqueIdentifier>
+      <UniqueIdentifier>{2fcfa973-3a8a-41a3-b975-b8fe128f8dbf}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\OnlyGlobal\Define">
-      <UniqueIdentifier>{10b9f8e0-3a21-4992-a34a-a418dad57a42}</UniqueIdentifier>
+      <UniqueIdentifier>{d12f4d87-a4e7-4524-8d55-beb92efde56f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\OnlyGlobal\Packet">
+      <UniqueIdentifier>{bef9626c-f6c1-4463-98b2-779b44a860cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\ProcessCommuniationModule">
+      <UniqueIdentifier>{0c78203e-cc4f-46cb-84fe-10962578e3c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth">
+      <UniqueIdentifier>{8fecd396-6443-4924-8857-41d9b727bfe5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\US">
+      <UniqueIdentifier>{6dd2ad6d-65a4-40ee-856b-956ad2c5f474}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\US\SOAP">
+      <UniqueIdentifier>{172313ed-804f-4619-884c-dd3afaee5c55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\EU">
+      <UniqueIdentifier>{168b8b64-02e8-4af3-84cf-6988d5f81995}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\EU\SOAP">
+      <UniqueIdentifier>{491ef2f8-778c-47c2-accc-afb2a56a8068}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\TW">
+      <UniqueIdentifier>{dfe3ab24-b496-48e7-8389-93a6278d842f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\JP">
+      <UniqueIdentifier>{c336cce4-d33c-4bbd-951d-7984583f2a7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\CN">
+      <UniqueIdentifier>{c2a6fb96-4461-46b5-9021-759bc6e90a23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\TH">
+      <UniqueIdentifier>{ba168e04-0345-49e8-95d2-aa6057d2bceb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\ID">
+      <UniqueIdentifier>{e87dfb7e-0b95-47f1-aeb1-ffc4f446cbae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\BR">
+      <UniqueIdentifier>{9aaa14e1-ba62-4cc2-924b-1341f687c231}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\BR\SOAP">
+      <UniqueIdentifier>{e41dfade-ad5f-4b08-b733-acd34dc3d4e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\PH">
+      <UniqueIdentifier>{ff367556-8a07-4960-b281-a2e20fcecdb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\PH\Openssl">
+      <UniqueIdentifier>{64151a93-074d-41e7-b7f8-815303fe3075}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GlobalAuth\PH\Security">
+      <UniqueIdentifier>{bbceed44-246f-4c60-98af-4cce022cffd9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -100,6 +169,9 @@
   <ItemGroup>
     <None Include="icon.ico">
       <Filter>Resource</Filter>
+    </None>
+    <None Include="Account.dsn">
+      <Filter>script</Filter>
     </None>
     <None Include="config_ch.ini">
       <Filter>script</Filter>
@@ -119,6 +191,24 @@
     <None Include="log_SOLES.dsn">
       <Filter>script</Filter>
     </None>
+    <None Include="..\ServerResource\LogConfig.lua">
+      <Filter>script</Filter>
+    </None>
+    <None Include="..\ServerResource\SMSPhoneNumberList.lua">
+      <Filter>script</Filter>
+    </None>
+    <None Include="..\ServerResource\UdpRelayCheckerConfig.lua">
+      <Filter>script</Filter>
+    </None>
+    <None Include="..\ServerResource\WaitQueueData.lua">
+      <Filter>script</Filter>
+    </None>
+    <None Include="..\ServerResource\GameSysValTable.lua">
+      <Filter>Common\GameSysVal</Filter>
+    </None>
+    <None Include="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanAuthForSvr.dll">
+      <Filter>GlobalAuth\JP</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -130,10 +220,19 @@
     <ClInclude Include="UserHackingManager.h">
       <Filter>Actor</Filter>
     </ClInclude>
+    <ClInclude Include="UserSecurityManager.h">
+      <Filter>Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelLoginProxy.h">
+      <Filter>Actor\LoginProxy</Filter>
+    </ClInclude>
     <ClInclude Include="ChannelAccountDBThread.h">
       <Filter>DBThread</Filter>
     </ClInclude>
     <ClInclude Include="ChannelLogDBThread.h">
+      <Filter>DBThread</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelSMSDBThread.h">
       <Filter>DBThread</Filter>
     </ClInclude>
     <ClInclude Include="ChannelNetLayer.h">
@@ -149,6 +248,9 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\BaseServer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\DBConnectionManager.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\HackingProtectionManager.h">
@@ -175,28 +277,40 @@
     <ClInclude Include="..\Common\KStatisticsLocalLog.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common\LogManager.h">
+      <Filter>Common</Filter>
+    </ClInclude>
     <ClInclude Include="..\Common\Lottery.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\ProxyManager.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common\PunishmentManager.h">
+      <Filter>Common</Filter>
+    </ClInclude>
     <ClInclude Include="..\Common\SecurityString.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\ServerDefine.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\ServerLogManager.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common\SimLayerTickChecker.h">
+      <Filter>Common</Filter>
+    </ClInclude>
     <ClInclude Include="..\Common\SimObject.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\SMSPhoneNumberManager.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\Statistics.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\StatisticsID_def.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Common\StatisticsManager.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\StringTable.h">
@@ -228,6 +342,15 @@
     </ClInclude>
     <ClInclude Include="..\Common\DefaultFSMState_def.h">
       <Filter>Common\FSM\DefaultFSM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\CHFSM.h">
+      <Filter>Common\FSM\CHFSM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\CHFSMInput_def.h">
+      <Filter>Common\FSM\CHFSM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\CHFSMState_def.h">
+      <Filter>Common\FSM\CHFSM</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\Actor.h">
       <Filter>Common\Performer</Filter>
@@ -361,6 +484,9 @@
     <ClInclude Include="..\Common\ui\SubclassWnd.h">
       <Filter>Common\UI</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common\X2Data\XSLCharacterStatTable.h">
+      <Filter>Common\X2Data</Filter>
+    </ClInclude>
     <ClInclude Include="..\Common\X2Data\XSLCheckSumManager.h">
       <Filter>Common\X2Data</Filter>
     </ClInclude>
@@ -374,6 +500,9 @@
       <Filter>Common\X2Data</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\X2Data\XSLDungeonSubStage.h">
+      <Filter>Common\X2Data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\X2Data\XSLEnchantItemManager.h">
       <Filter>Common\X2Data</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\X2Data\XSLGUNPCAI.h">
@@ -394,7 +523,13 @@
     <ClInclude Include="..\Common\X2Data\XSLMapData.h">
       <Filter>Common\X2Data</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common\X2Data\XSLQuestManager.h">
+      <Filter>Common\X2Data</Filter>
+    </ClInclude>
     <ClInclude Include="..\Common\X2Data\XSLRoom.h">
+      <Filter>Common\X2Data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\X2Data\XSLSocketItem.h">
       <Filter>Common\X2Data</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\X2Data\XSLSquareGame.h">
@@ -433,9 +568,6 @@
     <ClInclude Include="..\Common\Mornitoring\MornitoringManager.h">
       <Filter>Common\Mornitoring</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\Mail\base64.h">
-      <Filter>Common\Mail</Filter>
-    </ClInclude>
     <ClInclude Include="..\Common\Mail\MailManager.h">
       <Filter>Common\Mail</Filter>
     </ClInclude>
@@ -448,9 +580,93 @@
     <ClInclude Include="..\Common\Mail\X2SMTPMail.h">
       <Filter>Common\Mail</Filter>
     </ClInclude>
-    <ClInclude Include="CCUToolManager.h" />
-    <ClInclude Include="ChannelServer.h" />
-    <ClInclude Include="..\Common\ServerDefine.h" />
+    <ClInclude Include="..\Common\Base64\base64.h">
+      <Filter>Common\Base64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameSysVal\GameSysVal.h">
+      <Filter>Common\GameSysVal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\UDPRelayChecker\UdpCheckerSession.h">
+      <Filter>Common\UdpRelayChecker</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\UDPRelayChecker\UdpRelayChecker.h">
+      <Filter>Common\UdpRelayChecker</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventManager.h">
+      <Filter>Common\GameEvent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventScriptManager.h">
+      <Filter>Common\GameEvent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\DailyGiftBoxManager.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEvent.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventAdvertisement.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventConnectTime.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventCumulativeTime.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventDefenseDungeon.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventHenirReward.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventItemDrop.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventMonster.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventNotifyMSG.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventQuest.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventQuestItemDrop.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventReward.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventSecretDungeon.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventSpirit.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\GameEvent\GameEventTournament.h">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\EventID_Client_Global.h">
+      <Filter>Common\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\EventID_Server_Global.h">
+      <Filter>Common\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\EventID_System_Global.h">
+      <Filter>Common\OnlyGlobal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_BR.h">
+      <Filter>Common\OnlyGlobal\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_CN.h">
+      <Filter>Common\OnlyGlobal\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_EU.h">
+      <Filter>Common\OnlyGlobal\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_Global.h">
+      <Filter>Common\OnlyGlobal\Define</Filter>
+    </ClInclude>
     <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_ID.h">
       <Filter>Common\OnlyGlobal\Define</Filter>
     </ClInclude>
@@ -466,14 +682,8 @@
     <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_US.h">
       <Filter>Common\OnlyGlobal\Define</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_BR.h">
-      <Filter>Common\OnlyGlobal\Define</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_CN.h">
-      <Filter>Common\OnlyGlobal\Define</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_Global.h">
-      <Filter>Common\OnlyGlobal\Define</Filter>
+    <ClInclude Include="..\Common\OnlyGlobal\Packet\ClientPacket_Global.h">
+      <Filter>Common\OnlyGlobal\Packet</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\OnlyGlobal\Packet\CommonPacket_Global.h">
       <Filter>Common\OnlyGlobal\Packet</Filter>
@@ -484,21 +694,38 @@
     <ClInclude Include="..\Common\OnlyGlobal\Packet\SystemPacket_Global.h">
       <Filter>Common\OnlyGlobal\Packet</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\OnlyGlobal\Packet\ClientPacket_Global.h">
-      <Filter>Common\OnlyGlobal\Packet</Filter>
+    <ClInclude Include="..\Common\OnlyGlobal\ProcessCommuniationModule\ProcessCommunicationManager.h">
+      <Filter>Common\ProcessCommuniationModule</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\OnlyGlobal\EventID_Client_Global.h">
-      <Filter>Common\OnlyGlobal</Filter>
+    <ClInclude Include="..\Common\OnlyGlobal\AuthAndBilling\Tw\GASHAuth.h">
+      <Filter>GlobalAuth\TW</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\OnlyGlobal\EventID_Server_Global.h">
-      <Filter>Common\OnlyGlobal</Filter>
+    <ClInclude Include="..\Common\OnlyGlobal\AuthAndBilling\Tw\GASHAuthManager.h">
+      <Filter>GlobalAuth\TW</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\OnlyGlobal\EventID_System_Global.h">
-      <Filter>Common\OnlyGlobal</Filter>
+    <ClInclude Include="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanAuthForSvr.h">
+      <Filter>GlobalAuth\JP</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\OnlyGlobal\ServerDefine\ServerDefine_EU.h">
-      <Filter>Common\OnlyGlobal\Define</Filter>
+    <ClInclude Include="..\Common\OnlyGlobal\AuthAndBilling\Jp\PURPLEAuth.h">
+      <Filter>GlobalAuth\JP</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\AuthAndBilling\Jp\PURPLEAuthManager.h">
+      <Filter>GlobalAuth\JP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\AuthAndBilling\Id\GLBNMCashDll.h">
+      <Filter>GlobalAuth\ID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\OnlyGlobal\AuthAndBilling\Id\NetmarbleSignChecker.h">
+      <Filter>GlobalAuth\ID</Filter>
+    </ClInclude>
+    <ClInclude Include="CCUToolManager.h" />
+    <ClInclude Include="ChannelScriptRefreshManager.h" />
+    <ClInclude Include="ChannelScriptRefreshThread.h" />
+    <ClInclude Include="ChannelServer.h" />
+    <ClInclude Include="DDOSGuardSimulator.h" />
+    <ClInclude Include="MachineBlockManager.h" />
+    <ClInclude Include="ServerSNMaker.h" />
+    <ClInclude Include="WaitQueueManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChannelUser.cpp">
@@ -507,10 +734,19 @@
     <ClCompile Include="UserHackingManager.cpp">
       <Filter>Actor</Filter>
     </ClCompile>
+    <ClCompile Include="UserSecurityManager.cpp">
+      <Filter>Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelLoginProxy.cpp">
+      <Filter>Actor\LoginProxy</Filter>
+    </ClCompile>
     <ClCompile Include="ChannelAccountDBThread.cpp">
       <Filter>DBThread</Filter>
     </ClCompile>
     <ClCompile Include="ChannelLogDBThread.cpp">
+      <Filter>DBThread</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelSMSDBThread.cpp">
       <Filter>DBThread</Filter>
     </ClCompile>
     <ClCompile Include="ChannelNetLayer.cpp">
@@ -523,6 +759,9 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\BaseServer.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\DBConnectionManager.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\HackingProtectionManager.cpp">
@@ -546,25 +785,31 @@
     <ClCompile Include="..\Common\KStatisticsLocalLog.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\Common\LogManager.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
     <ClCompile Include="..\Common\Lottery.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\ProxyManager.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\SecurityString.cpp">
+    <ClCompile Include="..\Common\PunishmentManager.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\ServerLogManager.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\Common\SimLayerTickChecker.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
     <ClCompile Include="..\Common\SimObject.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\Statistics.cpp">
+    <ClCompile Include="..\Common\SMSPhoneNumberManager.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\StatisticsManager.cpp">
+    <ClCompile Include="..\Common\Statistics.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\StringTable.cpp">
@@ -584,6 +829,9 @@
     </ClCompile>
     <ClCompile Include="..\Common\DefaultFSM.cpp">
       <Filter>Common\FSM\DefaultFSM</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\CHFSM.cpp">
+      <Filter>Common\FSM\CHFSM</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\Actor.cpp">
       <Filter>Common\Performer</Filter>
@@ -690,6 +938,9 @@
     <ClCompile Include="..\Common\ui\SubclassWnd.cpp">
       <Filter>Common\UI</Filter>
     </ClCompile>
+    <ClCompile Include="..\Common\X2Data\XSLCharacterStatTable.cpp">
+      <Filter>Common\X2Data</Filter>
+    </ClCompile>
     <ClCompile Include="..\Common\X2Data\XSLCheckSumManager.cpp">
       <Filter>Common\X2Data</Filter>
     </ClCompile>
@@ -703,6 +954,9 @@
       <Filter>Common\X2Data</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\X2Data\XSLDungeonSubStage.cpp">
+      <Filter>Common\X2Data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\X2Data\XSLEnchantItemManager.cpp">
       <Filter>Common\X2Data</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\X2Data\XSLGUNPCAI.cpp">
@@ -723,7 +977,13 @@
     <ClCompile Include="..\Common\X2Data\XSLMapData.cpp">
       <Filter>Common\X2Data</Filter>
     </ClCompile>
+    <ClCompile Include="..\Common\X2Data\XSLQuestManager.cpp">
+      <Filter>Common\X2Data</Filter>
+    </ClCompile>
     <ClCompile Include="..\Common\X2Data\XSLRoom.cpp">
+      <Filter>Common\X2Data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\X2Data\XSLSocketItem.cpp">
       <Filter>Common\X2Data</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\X2Data\XSLSquareGame.cpp">
@@ -759,22 +1019,77 @@
     <ClCompile Include="..\Common\Mornitoring\MornitoringManager.cpp">
       <Filter>Common\Mornitoring</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\Mail\base64.cpp">
-      <Filter>Common\Mail</Filter>
-    </ClCompile>
     <ClCompile Include="..\Common\Mail\MailManager.cpp">
       <Filter>Common\Mail</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\Mail\X2SMTPMail.cpp">
       <Filter>Common\Mail</Filter>
     </ClCompile>
-    <ClCompile Include="CCUToolManager.cpp" />
-    <ClCompile Include="ChannelServer.cpp" />
-    <ClCompile Include="..\Common\OnlyGlobal\Packet\ServerPacket_Global.cpp">
-      <Filter>Common\OnlyGlobal\Packet</Filter>
+    <ClCompile Include="..\Common\Base64\base64.cpp">
+      <Filter>Common\Base64</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\OnlyGlobal\Packet\SystemPacket_Global.cpp">
-      <Filter>Common\OnlyGlobal\Packet</Filter>
+    <ClCompile Include="..\Common\GameSysVal\GameSysVal.cpp">
+      <Filter>Common\GameSysVal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\UDPRelayChecker\UdpCheckerSession.cpp">
+      <Filter>Common\UdpRelayChecker</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\UDPRelayChecker\UdpRelayChecker.cpp">
+      <Filter>Common\UdpRelayChecker</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventManager.cpp">
+      <Filter>Common\GameEvent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventScriptManager.cpp">
+      <Filter>Common\GameEvent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\DailyGiftBoxManager.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEvent.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventAdvertisement.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventConnectTime.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventCumulativeTime.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventDefenseDungeon.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventHenirReward.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventItemDrop.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventMonster.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventNotifyMSG.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventQuest.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventQuestItemDrop.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventReward.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventSecretDungeon.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventSpirit.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\GameEvent\GameEventTournament.cpp">
+      <Filter>Common\GameEvent\Event</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\OnlyGlobal\Packet\ClientPacket_Global.cpp">
       <Filter>Common\OnlyGlobal\Packet</Filter>
@@ -782,5 +1097,425 @@
     <ClCompile Include="..\Common\OnlyGlobal\Packet\CommonPacket_Global.cpp">
       <Filter>Common\OnlyGlobal\Packet</Filter>
     </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\Packet\ServerPacket_Global.cpp">
+      <Filter>Common\OnlyGlobal\Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\Packet\SystemPacket_Global.cpp">
+      <Filter>Common\OnlyGlobal\Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\ProcessCommuniationModule\ProcessCommunicationManager.cpp">
+      <Filter>Common\ProcessCommuniationModule</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ChannelUserAuth_US.cpp">
+      <Filter>GlobalAuth\US</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Us\K3RComboAuth.cpp">
+      <Filter>GlobalAuth\US</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Us\K3RComboAuthManager.cpp">
+      <Filter>GlobalAuth\US</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Us\SoapK3R\soapC.c">
+      <Filter>GlobalAuth\US\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Us\SoapK3R\soapClient.c">
+      <Filter>GlobalAuth\US\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Us\SoapK3R\stdsoap2.c">
+      <Filter>GlobalAuth\US\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ChannelUserAuth_EU.cpp">
+      <Filter>GlobalAuth\EU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\GameForgeAuth.cpp">
+      <Filter>GlobalAuth\EU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\GameForgeAuthManager.cpp">
+      <Filter>GlobalAuth\EU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\SoapGameForge\soapC.c">
+      <Filter>GlobalAuth\EU\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\SoapGameForge\soapClient.c">
+      <Filter>GlobalAuth\EU\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\SoapGameForge\stdsoap2.c">
+      <Filter>GlobalAuth\EU\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ChannelUserAuth_TW.cpp">
+      <Filter>GlobalAuth\TW</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Tw\GASHAuth.cpp">
+      <Filter>GlobalAuth\TW</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Tw\GASHAuthManager.cpp">
+      <Filter>GlobalAuth\TW</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ChannelUserAuth_JP.cpp">
+      <Filter>GlobalAuth\JP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Jp\PURPLEAuth.cpp">
+      <Filter>GlobalAuth\JP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Jp\PURPLEAuthManager.cpp">
+      <Filter>GlobalAuth\JP</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ChannelUserAuth_CN.cpp">
+      <Filter>GlobalAuth\CN</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ChannelUserAuth_TH.cpp">
+      <Filter>GlobalAuth\TH</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ChannelUserAuth_ID.cpp">
+      <Filter>GlobalAuth\ID</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ChannelUserAuth_BR.cpp">
+      <Filter>GlobalAuth\BR</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Br\LevelUpAuth.cpp">
+      <Filter>GlobalAuth\BR</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Br\LevelUpAuthManager.cpp">
+      <Filter>GlobalAuth\BR</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Br\SoapLevelUp\soapC.c">
+      <Filter>GlobalAuth\BR\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Br\SoapLevelUp\soapClient.c">
+      <Filter>GlobalAuth\BR\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\Br\SoapLevelUp\stdsoap2.c">
+      <Filter>GlobalAuth\BR\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ChannelUserAuth_PH.cpp">
+      <Filter>GlobalAuth\PH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\applink.c">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\PH\Security\base64.cpp">
+      <Filter>GlobalAuth\PH\Security</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\OnlyGlobal\AuthAndBilling\PH\Security\OpensslRSA.cpp">
+      <Filter>GlobalAuth\PH\Security</Filter>
+    </ClCompile>
+    <ClCompile Include="CCUToolManager.cpp" />
+    <ClCompile Include="ChannelScriptRefreshManager.cpp" />
+    <ClCompile Include="ChannelScriptRefreshThread.cpp" />
+    <ClCompile Include="ChannelServer.cpp" />
+    <ClCompile Include="DDOSGuardSimulator.cpp" />
+    <ClCompile Include="MachineBlockManager.cpp" />
+    <ClCompile Include="ServerSNMaker.cpp" />
+    <ClCompile Include="WaitQueueManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanAuthForSvr.lib">
+      <Filter>GlobalAuth\JP</Filter>
+    </Library>
+    <Library Include="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanAuthForSvrD.lib">
+      <Filter>GlobalAuth\JP</Filter>
+    </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Us\K3RComboAuth.h">
+      <Filter>GlobalAuth\US</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Us\K3RComboAuth_def.h">
+      <Filter>GlobalAuth\US</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Us\K3RComboAuthManager.h">
+      <Filter>GlobalAuth\US</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Us\SoapK3R\gameEndPoint.nsmap">
+      <Filter>GlobalAuth\US\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Us\SoapK3R\k3r_soap.h">
+      <Filter>GlobalAuth\US\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Us\SoapK3R\soapH.h">
+      <Filter>GlobalAuth\US\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Us\SoapK3R\soapStub.h">
+      <Filter>GlobalAuth\US\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Us\SoapK3R\stdsoap2.h">
+      <Filter>GlobalAuth\US\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\GameForgeAuth.h">
+      <Filter>GlobalAuth\EU</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\GameForgeAuth_def.h">
+      <Filter>GlobalAuth\EU</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\GameForgeAuthManager.h">
+      <Filter>GlobalAuth\EU</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\SoapGameForge\ElswordBinding.nsmap">
+      <Filter>GlobalAuth\EU\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\SoapGameForge\gf_soap.h">
+      <Filter>GlobalAuth\EU\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\SoapGameForge\soapH.h">
+      <Filter>GlobalAuth\EU\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\SoapGameForge\soapStub.h">
+      <Filter>GlobalAuth\EU\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Eu\SoapGameForge\stdsoap2.h">
+      <Filter>GlobalAuth\EU\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Br\LevelUpAuth.h">
+      <Filter>GlobalAuth\BR</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Br\LevelUpAuth_def.h">
+      <Filter>GlobalAuth\BR</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Br\LevelUpAuthManager.h">
+      <Filter>GlobalAuth\BR</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Br\SoapLevelUp\ElswordBinding.nsmap">
+      <Filter>GlobalAuth\BR\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Br\SoapLevelUp\gf_soap.h">
+      <Filter>GlobalAuth\BR\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Br\SoapLevelUp\soapH.h">
+      <Filter>GlobalAuth\BR\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Br\SoapLevelUp\soapStub.h">
+      <Filter>GlobalAuth\BR\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\Br\SoapLevelUp\stdsoap2.h">
+      <Filter>GlobalAuth\BR\SOAP</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\aes.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\asn1.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\asn1_mac.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\asn1t.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\bio.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\blowfish.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\bn.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\buffer.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\camellia.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\cast.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\cms.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\comp.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\conf.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\conf_api.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\crypto.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\des.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\des_old.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\dh.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\dsa.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\dso.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\dtls1.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\e_os2.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ebcdic.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ec.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ecdh.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ecdsa.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\engine.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\err.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\evp.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\hmac.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\idea.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\krb5_asn.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\kssl.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\lhash.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\md4.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\md5.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\mdc2.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\modes.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\obj_mac.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\objects.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ocsp.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\opensslconf.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\opensslv.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ossl_typ.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\pem.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\pem2.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\pkcs12.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\pkcs7.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\pqueue.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\rand.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\rc2.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\rc4.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ripemd.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\rsa.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\safestack.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\seed.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\sha.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ssl.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ssl2.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ssl23.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ssl3.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\stack.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\symhacks.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\tls1.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ts.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\txt_db.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ui.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\ui_compat.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\whrlpool.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\x509.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\x509_vfy.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\openssl\x509v3.h">
+      <Filter>GlobalAuth\PH\Openssl</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\Security\base64.h">
+      <Filter>GlobalAuth\PH\Security</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\Security\GetAppFolder.h">
+      <Filter>GlobalAuth\PH\Security</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\Security\OpensslRSA.h">
+      <Filter>GlobalAuth\PH\Security</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\Common\OnlyGlobal\AuthAndBilling\PH\Security\targetver.h">
+      <Filter>GlobalAuth\PH\Security</Filter>
+    </CustomBuildStep>
   </ItemGroup>
 </Project>

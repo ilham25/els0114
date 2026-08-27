@@ -10,9 +10,14 @@
 
 #ifdef SERV_RECORD_CHAT
 
-// [Âü°í!] DO_QUERY() ¿¡¼­ Àü´ÞÀÎÀÚ¼ö Á¤È®ÇÏ°Ô ³ÖÁö ¾ÊÀ¸¸é ¼­¹ö Å©·¡½¬ ³³´Ï´Ù!
+// [ï¿½ï¿½ï¿½ï¿½!] DO_QUERY() ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½È®ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½!
 
-ImplementDBThread( KGSChatLogDBThread );
+//{{ Iruha : 2026-08-27 // VS2010 port: ImplementDBThread is undefined everywhere in this tree.
+// VC7.1 silently parsed it as an implicit-int prototype (harmless, unused); VC10 makes that
+// a hard error (C4430). DeclareDBThread already implements the constructor inline, so this
+// pairing macro never did anything. Most sibling *DBThread.cpp files already comment it out.
+//ImplementDBThread( KGSChatLogDBThread );
+//}}
 ImplPfID( KGSChatLogDBThread, PI_GS_CHAT_LOG_DB );
 
 #define CLASS_TYPE KGSChatLogDBThread
@@ -64,7 +69,7 @@ void KGSChatLogDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 
 
 	default:
-		START_LOG( cerr, L"ÀÌº¥Æ® ÇÚµé·¯°¡ Á¤ÀÇµÇÁö ¾Ê¾ÒÀ½. " << spEvent_->GetIDStr() );
+		START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½. " << spEvent_->GetIDStr() );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -74,18 +79,18 @@ void KGSChatLogDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 	//////////////////////////////////////////////////////////////////////////
 }
 
-//{{ 2010.11.26	Á¶È¿Áø	SQL_Injection ¹®Á¦ ÇØ°á 
+//{{ 2010.11.26	ï¿½ï¿½È¿ï¿½ï¿½	SQL_Injection ï¿½ï¿½ï¿½ï¿½ ï¿½Ø°ï¿½ 
 #include <boost/algorithm/string/replace.hpp>
 //}}
 
 IMPL_ON_FUNC( DCHATLOG_RECORD_CHAT_NOT )
 {
-	// ÀúÀå ¿©ºÎ °ÔÀÓ¼­ºÎ¿¡ ¾È ¾Ë¸² //
-	// ½ÇÆÐ ½Ã ¼­¹ö¿¡ ·Î±×·Î ³²±ä´Ù. 
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó¼ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ ï¿½Ë¸ï¿½ //
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½. 
 
 	int iOK = NetError::ERR_ODBC_01;
 
-	//{{ 2010.11.26	Á¶È¿Áø	SQL_Injection ¹®Á¦ ÇØ°á 
+	//{{ 2010.11.26	ï¿½ï¿½È¿ï¿½ï¿½	SQL_Injection ï¿½ï¿½ï¿½ï¿½ ï¿½Ø°ï¿½ 
 	std::wstring wstr_tmp = kPacket_.m_wstrChatText;
     boost::replace_all( wstr_tmp, L"'",L"''");
 	
@@ -93,7 +98,7 @@ IMPL_ON_FUNC( DCHATLOG_RECORD_CHAT_NOT )
 		% kPacket_.m_iAccountUID 
 		% kPacket_.m_iUnitUID 
 		% kPacket_.m_iServerGroupID
-		% wstr_tmp	// Á¶½É //
+		% wstr_tmp	// ï¿½ï¿½ï¿½ï¿½ //
 		% kPacket_.m_iChatType
 		);
 	//}}
@@ -108,7 +113,7 @@ IMPL_ON_FUNC( DCHATLOG_RECORD_CHAT_NOT )
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Ã¤ÆÃ ·Î±× µî·Ï ½ÇÆÐ.!" )
+		START_LOG( cerr, L"Ã¤ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!" )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( kPacket_.m_iAccountUID )
 			<< BUILD_LOG( kPacket_.m_iUnitUID )

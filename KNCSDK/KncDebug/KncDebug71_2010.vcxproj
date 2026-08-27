@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-27
+// Description: VS2010 rebuild of KncDebug71, retargeted at Include_2010
+// and lib_2010. KNCSDK/Include_2010/lib_2010 existed with no VC10 project
+// file behind them (built off-tree at some point by KOG); this project
+// recreates one so the .lib can be rebuilt after Include_2010 edits, e.g.
+// the dbg::logfile LogStat backport for the servers' VS2010 port. Only
+// MD and MDd are kept: every consumer of KNCSDK links /MD (Release_US
+// servers use MultiThreadedDLL), and VC10 collapses /ML and /MT onto the
+// same RuntimeLibrary enum value anyway, so ML/MLd would just be a
+// redundant, confusing duplicate of MT/MTd.
+//////////////////////////////////////////////////////////////////////////
+-->
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="MDd|Win32">
+      <Configuration>MDd</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MD|Win32">
+      <Configuration>MD</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>KncDebug71</ProjectName>
+    <ProjectGuid>{8B828DA3-9971-420A-80F6-07555897C18B}</ProjectGuid>
+    <RootNamespace>KncDebug71</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MDd|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MD|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='MDd|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='MD|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MD|Win32'">..\lib_2010\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MD|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MDd|Win32'">..\lib_2010\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MDd|Win32'">$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MD|Win32'">
+    <ClCompile>
+      <AdditionalOptions> /D "CONVERT_JIF_LIF_TO_ASSERTION" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>..\Include_2010;..\..\Libs\ExternalLib\Boost\boost_1_44_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName)$(Configuration).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MDd|Win32'">
+    <ClCompile>
+      <AdditionalOptions> /D "CONVERT_JIF_LIF_TO_ASSERTION" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>..\Include_2010;..\..\Libs\ExternalLib\Boost\boost_1_44_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName)$(Configuration).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Include_2010\dbg\assert.cpp" />
+    <ClCompile Include="..\Include_2010\dbg\logfile.cpp" />
+    <ClCompile Include="..\Include_2010\dbg\profiler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include_2010\dbg\assert.hpp" />
+    <ClInclude Include="..\Include_2010\dbg\dbg.hpp" />
+    <ClInclude Include="..\Include_2010\dbg\logfile.hpp" />
+    <ClInclude Include="..\Include_2010\dbg\profiler.hpp" />
+    <ClInclude Include="..\Include_2010\ImportKncDebug.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

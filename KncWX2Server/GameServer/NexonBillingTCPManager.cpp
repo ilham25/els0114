@@ -10,13 +10,13 @@
 #include "X2Data/XSLItem.h"
 #include "X2data/XSLCashItemManager.h"
 
-//{{ 2010. 10. 12	ÃÖÀ°»ç	¼­¹ö ¸ð´ÏÅÍ¸µ
+//{{ 2010. 10. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 #ifdef SERV_MORNITORING
 	#include "Mornitoring/MornitoringManager.h"
 #endif SERV_MORNITORING
 //}}
 
-//{{ 2013. 01. 10	ÃÖÀ°»ç	ºô¸µ TCP ÆÐÅ¶ Å©±â ¿¹¿ÜÃ³¸®
+//{{ 2013. 01. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ TCP ï¿½ï¿½Å¶ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 #ifdef SERV_BILLING_TCP_RECV_VARIABLE_SIZE_BUFFER
 static const unsigned long VARIABLE_BUFFER_MAX_SIZE = 32768;		// 32kb
 #endif SERV_BILLING_TCP_RECV_VARIABLE_SIZE_BUFFER
@@ -34,7 +34,7 @@ KNexonBillingTCPManager::KNexonBillingTCPManager()
 	m_kNexonBillingTCPInfo.m_strIP.clear();
 	m_kNexonBillingTCPInfo.m_usPort = 0;
     m_kNexonBillingTCPInfo.m_iDomain = 0;
-	//{{ 2009. 11. 21  ÃÖÀ°»ç	¼­¹ö°£Á¢¼Ó±¸Á¶°³¼±
+	//{{ 2009. 11. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_sock = INVALID_SOCKET;
 	m_bFirstConnectSucc = false;
 	//}}
@@ -47,7 +47,7 @@ KNexonBillingTCPManager::KNexonBillingTCPManager()
 	KCSLOCK_SET_VALUE( m_ulCurrentProductPage, 0 );
     m_spEvent.reset( CreateEvent( NULL, false, false, NULL ), CloseHandle );
 	m_iBillingServerNo = 0;
-	//{{ 2010. 11. 22	ÃÖÀ°»ç	Ã»¾à Ã¶È¸
+	//{{ 2010. 11. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã»ï¿½ï¿½ Ã¶È¸
 #ifdef SERV_NX_BILLING_REFUND
 	KCSLOCK_SET_VALUE( m_iCashItemRefundRequestID, 0 );
 #endif SERV_NX_BILLING_REFUND
@@ -69,7 +69,7 @@ ImplToStringW( KNexonBillingTCPManager )
 		<< L"Product Info : " << m_mapProductInfo.size() << std::endl
 		;
 
-	//{{ 2013. 01. 23	ÃÖÀ°»ç	ºô¸µ ÆÐÅ¶ ¼ö½Å Ã³¸® ¼º´É ÃøÁ¤
+	//{{ 2013. 01. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
 	stm_	<< L"----------[ Nexon Billing Recv Performance Dump ]----------" << std::endl
 		<< TOSTRINGW( m_kRecvPerformanceDump.m_dwMinLatency )
@@ -106,23 +106,26 @@ void KNexonBillingTCPManager::InitNexonBillingTCPInfo( const char* szNexonAuthIP
 void KNexonBillingTCPManager::Init( int nThreadNum )
 {
     m_ulRecvCP = 0;
-	//{{ 2013. 01. 10	ÃÖÀ°»ç	ºô¸µ TCP ÆÐÅ¶ Å©±â ¿¹¿ÜÃ³¸®
+	//{{ 2013. 01. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ TCP ï¿½ï¿½Å¶ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 #ifdef SERV_BILLING_TCP_RECV_VARIABLE_SIZE_BUFFER
 	m_kRecvVariableBuffer.Reserve( VARIABLE_BUFFER_MAX_SIZE );
 #endif SERV_BILLING_TCP_RECV_VARIABLE_SIZE_BUFFER
 	//}}
 
     //////////////////////////////////////////////////////////////////////////
-    // thread setting : recv´Â recvfrom() ÇÔ¼ö¿¡¼­ ¾Ë¾Æ¼­ blockµÈ´Ù.
+    // thread setting : recvï¿½ï¿½ recvfrom() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¼ï¿½ blockï¿½È´ï¿½.
+    //{{ Iruha : 2026-08-27 // VS2010 port: bare Class::Method as a member-function pointer
+    // was a VC7.1 extension; VC10 requires the explicit &.
     m_spThreadRecv = boost::shared_ptr< KTThread< KNexonBillingTCPManager > >
-        ( new KTThread< KNexonBillingTCPManager >( *this, KNexonBillingTCPManager::Recv, 50 ) );
+        ( new KTThread< KNexonBillingTCPManager >( *this, &KNexonBillingTCPManager::Recv, 50 ) );
 
     m_spThreadSend = boost::shared_ptr< KTThread< KNexonBillingTCPManager > >
-        ( new KTThread< KNexonBillingTCPManager >( *this, KNexonBillingTCPManager::Send, 100 ) );
+        ( new KTThread< KNexonBillingTCPManager >( *this, &KNexonBillingTCPManager::Send, 100 ) );
+    //}}
 
-	//{{ 2009. 11. 21  ÃÖÀ°»ç	¼­¹ö°£Á¢¼Ó±¸Á¶°³¼±
+	//{{ 2009. 11. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_spThreadKeepConnect = boost::shared_ptr< KTThread< KNexonBillingTCPManager > >
-		( new KTThread< KNexonBillingTCPManager >( *this, KNexonBillingTCPManager::KeepConnectionThread, 1000 ) );
+		( new KTThread< KNexonBillingTCPManager >( *this, &KNexonBillingTCPManager::KeepConnectionThread, 1000 ) );
 	//}}
 
 	KThreadManager::Init( nThreadNum );
@@ -135,47 +138,47 @@ KThread* KNexonBillingTCPManager::CreateThread()
 
 void KNexonBillingTCPManager::BeginThread()
 {
-	//{{ 2011. 12. 07	ÃÖÀ°»ç	ºô¸µ ½ºÅ©¸³Æ® ¸Å´ÏÀú
+	//{{ 2011. 12. 07	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_BILLING_SCRIPT_MANAGER
-	// ºô¸µ ½º·¹µå ½ÃÀÛÇÏ±â Àü¿¡ configÆÄÀÏ ÆÄ½ÌÀ» ÇÏÀÚ!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ configï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	m_kBillingScriptManager.OpenScriptFile( "BillingConfig.lua" );
 #endif SERV_BILLING_SCRIPT_MANAGER
 	//}}
 
-	// ºô¸µÆÐÅ¶ ¼ö½Å½º·¹µå
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½Å½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if( m_spThreadRecv )
 	{
 		m_spThreadRecv->Begin();
 	}
 
-	// ºô¸µÆÐÅ¶ Àü¼Û½º·¹µå
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½Û½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if( m_spThreadSend )
 	{
 		m_spThreadSend->Begin();
 	}
 
-	// ºô¸µÀÌº¥Æ® ÇÚµé¸µ½º·¹µå
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½Æ® ï¿½Úµé¸µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	KThreadManager::BeginThread();
 
-	//{{ 2009. 11. 21  ÃÖÀ°»ç	¼­¹ö°£Á¢¼Ó±¸Á¶°³¼±
-	// ºô¸µ¼­¹ö¿ÍÀÇ ÇÏÆ®ºñÆ® Ã¼Å© ¹× Á¢¼Ó À¯Áö¸¦ À§ÇÑ Á¢¼ÓÀ¯Áö½º·¹µå
+	//{{ 2009. 11. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½Æ® Ã¼Å© ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if( m_spThreadKeepConnect )
 	{
-		// Thread¸¦ ½ÃÀÛÇÏ¸é¼­ ºô¸µ¼­¹ö¿¡ Á¢¼Ó½ÃµµÇÑ´Ù.
+		// Threadï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸é¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ãµï¿½ï¿½Ñ´ï¿½.
 		m_spThreadKeepConnect->Begin();
 	}
 	//}}
 }
 
-//{{ 2010. 8. 30	ÃÖÀ°»ç	¼­¹ö Á¤»ó Á¾·á Ã³¸®
+//{{ 2010. 8. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 void KNexonBillingTCPManager::EndThread( DWORD dwTimeOut /*= 10000*/ )
 {
-	//{{ 2009. 11. 21  ÃÖÀ°»ç	¼­¹ö°£Á¢¼Ó±¸Á¶°³¼±
+	//{{ 2009. 11. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if( m_spThreadKeepConnect )
 	{
 		m_spThreadKeepConnect->End( 3000 );
 
-		START_LOG( cout, L"³Ø½¼ ºô¸µ ¼­¹ö Á¢¼Ó Ã¼Å© ½º·¹µå Á¾·á!" );
+		START_LOG( cout, L"ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" );
 	}
 	//}}
 
@@ -185,17 +188,17 @@ void KNexonBillingTCPManager::EndThread( DWORD dwTimeOut /*= 10000*/ )
     {
 	    m_spThreadSend->End( 10000 );
 
-		START_LOG( cout, L"³Ø½¼ ºô¸µ ¼­¹ö Send ½º·¹µå Á¾·á!" );
+		START_LOG( cout, L"ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Send ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" );
     }
 
-	// recv ½º·¹µå Á×ÀÌ±â Àü¿¡ ¼ÒÄÏÀ» ´ÝÀÚ!
+	// recv ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	CLOSE_SOCKET( m_sock );
     
     if( m_spThreadRecv )
     {
 	    m_spThreadRecv->End( 3000 );
 
-		START_LOG( cout, L"³Ø½¼ ºô¸µ ¼­¹ö Recv ½º·¹µå Á¾·á!" );
+		START_LOG( cout, L"ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Recv ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" );
     }
 }
 //}}
@@ -268,7 +271,7 @@ void KNexonBillingTCPManager::InsertPacketNoUserUID( unsigned long ulPacketNo, U
 {
     if( iUserUID <= 0 )
     {
-        START_LOG( cerr, L"À¯Àú UID ÀÌ»ó." )
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ UID ï¿½Ì»ï¿½." )
             << BUILD_LOG( ulPacketNo )
             << BUILD_LOG( iUserUID )
             << END_LOG;
@@ -281,7 +284,7 @@ void KNexonBillingTCPManager::InsertPacketNoUserUID( unsigned long ulPacketNo, U
 		mit = m_mapPacketNoUserUID.find( ulPacketNo );
 		if( mit != m_mapPacketNoUserUID.end() )
 		{
-			START_LOG( cerr, L"ÆÐÅ¶ ¹øÈ£¿¡ ÇØ´çÇÏ´Â UserUID °¡ ÀÌ¹Ì µî·ÏµÇ¾î ÀÖ´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½È£ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ UserUID ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ÏµÇ¾ï¿½ ï¿½Ö´ï¿½." )
 				<< BUILD_LOG( mit->first )
 				<< BUILD_LOG( mit->second )
 				<< BUILD_LOG( ulPacketNo )
@@ -289,7 +292,7 @@ void KNexonBillingTCPManager::InsertPacketNoUserUID( unsigned long ulPacketNo, U
 				<< END_LOG;
 		}
 
-		// ¾øÀ¸¸é »ðÀÔÇÏ°í ÀÖÀ¸¸é µ¤¾î ¾´´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		m_mapPacketNoUserUID[ulPacketNo] = iUserUID;
 	KCSLOCK_END()
 }
@@ -301,7 +304,7 @@ void KNexonBillingTCPManager::DeletePacketNoUserUID( unsigned long ulPacketNo )
 		mit = m_mapPacketNoUserUID.find( ulPacketNo );
 		if( mit == m_mapPacketNoUserUID.end() )
 		{
-			START_LOG( cerr, L"ÆÐÅ¶ ¹øÈ£¿¡ ÇØ´çÇÏ´Â UserUID °¡ µî·ÏµÇ¾î ÀÖÁö ¾Ê´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½È£ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ UserUID ï¿½ï¿½ ï¿½ï¿½ÏµÇ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½." )
 				<< BUILD_LOG( ulPacketNo )
 				<< END_LOG;
 
@@ -321,7 +324,7 @@ UidType KNexonBillingTCPManager::GetCorrespondingUserUID( unsigned long ulPacket
 		mit = m_mapPacketNoUserUID.find( ulPacketNo );
 		if( mit == m_mapPacketNoUserUID.end() )
 		{
-			START_LOG( cerr, L"ÆÐÅ¶ ¹øÈ£¿¡ ÇØ´çÇÏ´Â UserUID °¡ µî·ÏµÇ¾î ÀÖÁö ¾Ê´Ù." )
+			START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½È£ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ UserUID ï¿½ï¿½ ï¿½ï¿½ÏµÇ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½." )
 				<< BUILD_LOG( ulPacketNo )
 				<< END_LOG;
 
@@ -341,7 +344,7 @@ void KNexonBillingTCPManager::AddProductInfo( KNXBTProductInfo kInfo )
     mit = m_mapProductInfo.find( kInfo.m_ulProductNo );
     if( mit != m_mapProductInfo.end() )
     {
-        START_LOG( cwarn, L"ÇÁ·Î´öÆ® Á¤º¸°¡ ÀÌ¹Ì Á¸ÀçÇÔ." )
+        START_LOG( cwarn, L"ï¿½ï¿½ï¿½Î´ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( GetReleaseTick() )
             << BUILD_LOG( kInfo.m_ulProductNo )
             << BUILD_LOG( mit->second.m_wstrProductID )
@@ -350,19 +353,19 @@ void KNexonBillingTCPManager::AddProductInfo( KNXBTProductInfo kInfo )
     }
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¼Òºñ Ä«Å×°í¸®¿¡ °­Á¦·Î ³Ö±â
+	// ï¿½Òºï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½
 	const int iItemID = _wtoi( kInfo.m_wstrProductID.c_str() );
 
-	//{{ 2009. 12. 19  ÃÖÀ°»ç	¼­¹ö±º È®Àå
+	//{{ 2009. 12. 19  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	if( SiCXSLCashItemManager()->IsSellItemInThisServer( iItemID ) == false )
 	{
-		START_LOG( cout, L"ÇöÀç ¼­¹ö±º¿¡¼­´Â ÆÇ¸ÅµÇ¼­´Â ¾ÈµÇ´Â »óÇ°ÀÔ´Ï´Ù. ¸®½ºÆ®¿¡ Æ÷ÇÔ½ÃÅ°Áö ¾Ê½À´Ï´Ù." )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ÅµÇ¼ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½Ç°ï¿½Ô´Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ô½ï¿½Å°ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOG( iItemID )
 			<< END_LOG;
 
-		//{{ 2012. 03. 21	±è¹Î¼º		Ä³½¬ »óÇ° ¸®½ºÆ® ¼­¹ö±º ±¸º°¾øÀÌ DB¿¡ ±â·Ï
+		//{{ 2012. 03. 21	ï¿½ï¿½Î¼ï¿½		Ä³ï¿½ï¿½ ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_CASH_ITEM_LIST_ADD
-		// Á¦¿ÜµÈ Ä³½¬ »óÇ°À» µû·Î ÀúÀåÇØ µÐ´Ù
+		// ï¿½ï¿½ï¿½Üµï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Ç°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð´ï¿½
 		m_mapProductInfo_Excepted[kInfo.m_ulProductNo] = kInfo;
 #endif SERV_CASH_ITEM_LIST_ADD
 		//}}
@@ -372,17 +375,17 @@ void KNexonBillingTCPManager::AddProductInfo( KNXBTProductInfo kInfo )
 	//}}
 
 
-	//{{ 2011. 01. 04  ±è¹Î¼º	product no º° ¼­¹ö±º È®Àå
+	//{{ 2011. 01. 04  ï¿½ï¿½Î¼ï¿½	product no ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 #ifdef SERV_SERVER_DIVISION_CASHITEM_BY_PRODUCTNO
 	if( SiCXSLCashItemManager()->IsSellItemInThisProductNo( kInfo.m_ulProductNo ) == false )
 	{
-		START_LOG( cout, L"ÇöÀç ¼­¹ö±º¿¡¼­´Â ÆÇ¸ÅµÇ¼­´Â ¾ÈµÇ´Â »óÇ°ÀÔ´Ï´Ù. ¸®½ºÆ®¿¡ Æ÷ÇÔ½ÃÅ°Áö ¾Ê½À´Ï´Ù." )
+		START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ÅµÇ¼ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½Ç°ï¿½Ô´Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ô½ï¿½Å°ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOG( kInfo.m_ulProductNo )
 			<< END_LOG;
 
-		//{{ 2012. 03. 21	±è¹Î¼º		Ä³½¬ »óÇ° ¸®½ºÆ® ¼­¹ö±º ±¸º°¾øÀÌ DB¿¡ ±â·Ï
+		//{{ 2012. 03. 21	ï¿½ï¿½Î¼ï¿½		Ä³ï¿½ï¿½ ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_CASH_ITEM_LIST_ADD
-		// Á¦¿ÜµÈ Ä³½¬ »óÇ°À» µû·Î ÀúÀåÇØ µÐ´Ù
+		// ï¿½ï¿½ï¿½Üµï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Ç°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð´ï¿½
 		m_mapProductInfo_Excepted[kInfo.m_ulProductNo] = kInfo;
 #endif SERV_CASH_ITEM_LIST_ADD
 		//}}
@@ -392,27 +395,27 @@ void KNexonBillingTCPManager::AddProductInfo( KNXBTProductInfo kInfo )
 #endif SERV_SERVER_DIVISION_CASHITEM_BY_PRODUCTNO
 	//}}
 
-	//{{ 2011. 12. 07	ÃÖÀ°»ç	ºô¸µ ½ºÅ©¸³Æ® ¸Å´ÏÀú
+	//{{ 2011. 12. 07	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Å´ï¿½ï¿½ï¿½
 #ifdef SERV_BILLING_SCRIPT_MANAGER
-	// ¼­ºñ½º ¿©ºÎ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	const bool bIsService = ( KSimLayer::GetKObj()->GetBillingFlag() == KSimLayer::BF_NEXON_KOREA );
 
 	if( m_kBillingScriptManager.IsExistProductCategoryModifyInfoForItemID( iItemID ) == true )
 	{
 		if( m_kBillingScriptManager.GetModifiedProductCategoryForItemID( iItemID, bIsService, kInfo.m_ulCategoryNo ) == false )
 		{
-			START_LOG( cerr, L"»óÇ° Ä«Å×°í¸® Á¤º¸ °­Á¦ º¯°æ ½ÇÆÐ!" )
+			START_LOG( cerr, L"ï¿½ï¿½Ç° Ä«ï¿½×°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iItemID )
 				<< BUILD_LOG( bIsService )
 				<< END_LOG;
 		}
 	}
 #else
-	// ÀüÁ÷ Ä³½¬ÅÛ and °­È­ º¸Á¶ ¾ÆÀÌÅÛÀÇ Ä³½¬¼¥ Ä«Å×°í¸® º¯°æ
+	// ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ and ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//if( CXSLItem::IsJobChangeCashItem( iItemID ) == true  ||
 	//	CXSLItem::IsEnchantSupportItem( iItemID ) == true )
 	//{
-	//	// ¿ÀÇÂ ÇÁ¸®¹Ì¾ö Ä«Å×°í¸®
+	//	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½
 	//	if( KSimLayer::GetKObj()->GetBillingFlag() == KSimLayer::BF_NEXON_KOREA )
 	//	{
 	//		kInfo.m_ulCategoryNo = 790;
@@ -425,41 +428,41 @@ void KNexonBillingTCPManager::AddProductInfo( KNXBTProductInfo kInfo )
 
 	//switch( iItemID )
 	//{
-	//case 500010: // »ý¸íÀÇ °áÁ¤ (»Ú¶ì ¿¡ÀÎ¼ÇÆ® »Ç·ç)
-	//case 500020: // »ý¸íÀÇ °áÁ¤ (Æ®¸® ³ªÀÌÆ®)
-	//case 500060: // »Ú¶ì ¿¡ÀÎ¼ÇÆ® »Ç·ç
-	//case 500070: // Æ®¸® ³ªÀÌÆ®
-	//case 500080: // »ý¸íÀÇ °áÁ¤ (»Ú¶ì ¿¡ÀÎ¼ÇÆ® »Ç·ç) Æ¯º° ÆÐÅ°Áö
-	//case 500090: // »ý¸íÀÇ °áÁ¤ (Æ®¸® ³ªÀÌÆ®) Æ¯º° ÆÐÅ°Áö
-	//case 226860: // '»ý¸íÀÇ °áÁ¤' ÄÚº¸ Æ¯°¡ »óÇ°±Ç
-	//case 500040: // ¿¤ÀÇ ³ª¹« ¿­¸Å
-	//case 500130: // ÇÒ·ÎÀ§Ä¡ Æ¯º° ÆÐÅ°Áö
-	//case 500120: // »ý¸íÀÇ °áÁ¤ (ÇÒ·Î À§Ä¡) Æ¯º° ÆÐÅ°Áö
-	//case 500100: // »ý¸íÀÇ °áÁ¤ (ÇÒ·Î À§Ä¡)
-	//case 500140: // »ý¸íÀÇ °áÁ¤ (·çµ¹»Ç)
-	//case 500150: // »ý¸íÀÇ °áÁ¤ (¹Ì½ºÆ½)
-	//case 500190: // »ý¸íÀÇ °áÁ¤ (¹Ì½ºÆ½) Æ¯º° ÆÐÅ°Áö
-	//case 500200: // »ý¸íÀÇ °áÁ¤ (¹Ì½ºÆ½ ½ºÆä¼È ¿¡µð¼Ç-ºí·¢) Æ¯º° ÆÐÅ°Áö
-	//case 500210: // »ý¸íÀÇ °áÁ¤ (¹Ì½ºÆ½ ½ºÆä¼È ¿¡µð¼Ç-È­ÀÌÆ®) Æ¯º° ÆÐÅ°Áö
-	//case 500220: // »ý¸íÀÇ °áÁ¤ (¹Ì½ºÆ½ ½ºÆä¼È ¿¡µð¼Ç-·¹µå) Æ¯º° ÆÐÅ°Áö 
-	//case 500230: // »ý¸íÀÇ °áÁ¤ (ÇØÃú¸µ)
-	//case 500240: // »ý¸íÀÇ °áÁ¤ (ÇØÃú¸µ-´ÙÅ©)
-	//case 500250: // »ý¸íÀÇ °áÁ¤ (ÇØÃú¸µ-ÆÄÀÌ¾î)
-	//case 500260: // »ý¸íÀÇ °áÁ¤ (ÇØÃú¸µ-¶óÀÌÆ®)
-	//case 500270: // »ý¸íÀÇ °áÁ¤ (ÇØÃú¸µ) ÆÐÅ°Áö
-	//case 500280: // »ý¸íÀÇ °áÁ¤ (ÇØÃú¸µ-´ÙÅ©) ÆÐÅ°Áö
-	//case 500290: // »ý¸íÀÇ °áÁ¤ (ÇØÃú¸µ-ÆÄÀÌ¾î) ÆÐÅ°Áö
-	//case 500300: // »ý¸íÀÇ °áÁ¤ (ÇØÃú¸µ-¶óÀÌÆ®) ÆÐÅ°Áö
-	//case 500310: // °í½ºÆ® ¿¡ÀÎ¼ÇÆ® »Ç·ç-ÀÌºí
-	//case 500320: // °í½ºÆ® ¿¡ÀÎ¼ÇÆ® »Ç·ç-ÇïÆÄÀÌ¾î
-	//case 500330: // °í½ºÆ® ¿¡ÀÎ¼ÇÆ® »Ç·ç-ÇÒ·Î¿ì
-	//case 500340: // °í½ºÆ® ¿¡ÀÎ¼ÇÆ® »Ç·ç-¼¼¶óÇÁ
-	//case 500350: // ÇÒ·ÎÀ© °í½ºÆ® »Ç·ç ÆÐÅ°Áö(ÀÌºí)
-	//case 500360: // ÇÒ·ÎÀ© °í½ºÆ® »Ç·ç ÆÐÅ°Áö(ÇïÆÄÀÌ¾î)
-	//case 500370: // ÇÒ·ÎÀ© °í½ºÆ® »Ç·ç ÆÐÅ°Áö(ÇÒ·Î¿ì)
-	//case 500380: // ÇÒ·ÎÀ© °í½ºÆ® »Ç·ç ÆÐÅ°Áö(¼¼¶óÇÁ) 
+	//case 500010: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ú¶ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½Æ® ï¿½Ç·ï¿½)
+	//case 500020: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®)
+	//case 500060: // ï¿½Ú¶ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½Æ® ï¿½Ç·ï¿½
+	//case 500070: // Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	//case 500080: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ú¶ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½Æ® ï¿½Ç·ï¿½) Æ¯ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500090: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®) Æ¯ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½
+	//case 226860: // 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½' ï¿½Úºï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½Ç°ï¿½ï¿½
+	//case 500040: // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//case 500130: // ï¿½Ò·ï¿½ï¿½ï¿½Ä¡ Æ¯ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500120: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ò·ï¿½ ï¿½ï¿½Ä¡) Æ¯ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500100: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ò·ï¿½ ï¿½ï¿½Ä¡)
+	//case 500140: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½çµ¹ï¿½ï¿½)
+	//case 500150: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ì½ï¿½Æ½)
+	//case 500190: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ì½ï¿½Æ½) Æ¯ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500200: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ì½ï¿½Æ½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½) Æ¯ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500210: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ì½ï¿½Æ½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½-È­ï¿½ï¿½Æ®) Æ¯ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500220: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ì½ï¿½Æ½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½) Æ¯ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ 
+	//case 500230: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
+	//case 500240: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½Å©)
+	//case 500250: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½ï¿½Ì¾ï¿½)
+	//case 500260: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½Æ®)
+	//case 500270: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500280: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½Å©) ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500290: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½ï¿½Ì¾ï¿½) ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500300: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½Æ®) ï¿½ï¿½Å°ï¿½ï¿½
+	//case 500310: // ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Î¼ï¿½Æ® ï¿½Ç·ï¿½-ï¿½Ìºï¿½
+	//case 500320: // ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Î¼ï¿½Æ® ï¿½Ç·ï¿½-ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½
+	//case 500330: // ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Î¼ï¿½Æ® ï¿½Ç·ï¿½-ï¿½Ò·Î¿ï¿½
+	//case 500340: // ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Î¼ï¿½Æ® ï¿½Ç·ï¿½-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//case 500350: // ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ç·ï¿½ ï¿½ï¿½Å°ï¿½ï¿½(ï¿½Ìºï¿½)
+	//case 500360: // ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ç·ï¿½ ï¿½ï¿½Å°ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½)
+	//case 500370: // ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ç·ï¿½ ï¿½ï¿½Å°ï¿½ï¿½(ï¿½Ò·Î¿ï¿½)
+	//case 500380: // ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ç·ï¿½ ï¿½ï¿½Å°ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½) 
 	//	{
-	//		// ¿ÀÇÂ ÇÁ¸®¹Ì¾ö Ä«Å×°í¸®
+	//		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½
 	//		if( KSimLayer::GetKObj()->GetBillingFlag() == KSimLayer::BF_NEXON_KOREA )
 	//		{
 	//			kInfo.m_ulCategoryNo = 790;
@@ -476,7 +479,7 @@ void KNexonBillingTCPManager::AddProductInfo( KNXBTProductInfo kInfo )
 
 	//////////////////////////////////////////////////////////////////////////
 
-	//{{ 2009. 10. 14  ÃÖÀ°»ç	ÀÚµ¿°áÁ¦»óÇ°¸®½ºÆ®
+	//{{ 2009. 10. 14  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½Æ®
 	if( kInfo.m_ulPaymentType == NEXON_BILLING_ENUM::AUTO_PAYMENT_TYPE )
 	{
 		KCSLOCK_BEGIN( m_vecAutoPaymentProductList )
@@ -485,7 +488,7 @@ void KNexonBillingTCPManager::AddProductInfo( KNXBTProductInfo kInfo )
 	}
 	//}}
 
-    // ¹«Á¶°Ç »õ Á¤º¸·Î µ¤¾î ¾´´Ù.
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
     m_mapProductInfo[kInfo.m_ulProductNo] = kInfo;
 }
 
@@ -497,7 +500,7 @@ int KNexonBillingTCPManager::GetItemID( unsigned long ulProductNo )
     mit = m_mapProductInfo.find( ulProductNo );
     if( mit == m_mapProductInfo.end() )
     {
-        START_LOG( cerr, L"»óÇ° ¹øÈ£ °Ë»ö ½ÇÆÐ." )
+        START_LOG( cerr, L"ï¿½ï¿½Ç° ï¿½ï¿½È£ ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( ulProductNo )
             << END_LOG;
 
@@ -508,7 +511,7 @@ int KNexonBillingTCPManager::GetItemID( unsigned long ulProductNo )
     iItemID = ::atoi( KncUtil::toNarrowString( mit->second.m_wstrProductID ).c_str() );
     if( iItemID == 0 )
     {
-        START_LOG( cerr, L"¾ÆÀÌÅÛ ID º¯È¯ ½ÇÆÐ." )
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ID ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( mit->second.m_wstrProductID )
             << END_LOG;
     }
@@ -516,7 +519,7 @@ int KNexonBillingTCPManager::GetItemID( unsigned long ulProductNo )
     return iItemID;
 }
 
-//{{ 2010. 01. 28  ÃÖÀ°»ç	ºô¸µ¿¹¿ÜÃ³¸®
+//{{ 2010. 01. 28  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 int KNexonBillingTCPManager::GetProductPageNumber()
 {
 	unsigned long ulCurrentProductPage;
@@ -543,12 +546,12 @@ void KNexonBillingTCPManager::BuildProductPage()
 {
     KLocker lock( m_csProductInfo );
 
-	//{{ 2010. 04. 26  ÃÖÀ°»ç	PC¹æ Àü¿ë Ä³½¬ÅÛ
+	//{{ 2010. 04. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½
 	m_vecProductPage[CILT_NORMAL].clear();
 	m_vecProductPage[CILT_PC_BANG].clear();
 	//}}
 
-	//{{ 2012. 02. 21	±è¹Î¼º	Ä³½Ã¼¥ ÆÐÅ¶ »çÀÌÁî ¼öÁ¤
+	//{{ 2012. 02. 21	ï¿½ï¿½Î¼ï¿½	Ä³ï¿½Ã¼ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_QUICK_CASH_SHOP
 	const int ciNumProductPerPage = KNexonBillingTCPManager::NBC_CASH_ITEM_MAX;
 #else
@@ -556,7 +559,7 @@ void KNexonBillingTCPManager::BuildProductPage()
 #endif SERV_QUICK_CASH_SHOP
 	//}}
 
-	//{{ 2008. 5. 15  ÃÖÀ°»ç  »óÇ° Á¤º¸ ItemID
+	//{{ 2008. 5. 15  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½ ItemID
 	KENX_UPDATE_PRODUCT_LIST_NOT kEvent;
 	kEvent.m_ulProductNoResStone = 0;
 	//}}
@@ -566,7 +569,7 @@ void KNexonBillingTCPManager::BuildProductPage()
     {
 		const int iCashItemID = _wtoi( mit->second.m_wstrProductID.c_str() );
 
-		//{{ 2011. 02. 23	ÃÖÀ°»ç	Ä³½¬ »óÇ° ¸®½ºÆ®
+		//{{ 2011. 02. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_CASH_ITEM_LIST
 		KCashPruductInfo kCashProductInfo;
 		kCashProductInfo.m_ulProductNo		= mit->second.m_ulProductNo;
@@ -578,7 +581,7 @@ void KNexonBillingTCPManager::BuildProductPage()
 #endif SERV_CASH_ITEM_LIST
 		//}}
 
-		//{{ 2008. 9. 23  ÃÖÀ°»ç	Ä³½¬ÅÛ ºÐÇØ
+		//{{ 2008. 9. 23  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if( mit->second.IsInfinityProduct()  &&  iCashItemID != CXSLItem::CI_RESURRECTION_STONE )
 		{
 			KCashItemResolveInfo kPriceInfo;
@@ -589,20 +592,20 @@ void KNexonBillingTCPManager::BuildProductPage()
 		}
 		//}}
 
-		// Âò¸®½ºÆ®¿¡ ÂüÁ¶µÉ »óÇ°ItemID ¾ò±â
+		// ï¿½ò¸®½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç°ItemID ï¿½ï¿½ï¿½
 		kEvent.m_vecProductItemID.push_back( iCashItemID );
 
-		//{{ 2008. 6. 10  ÃÖÀ°»ç  ½Ç½Ã°£ ºÎÈ°¼®
+		//{{ 2008. 6. 10  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ç½Ã°ï¿½ ï¿½ï¿½È°ï¿½ï¿½
 		if( iCashItemID == CXSLItem::CI_RESURRECTION_STONE  &&  mit->second.m_usProductPieces == 1 )
 		{
 			kEvent.m_ulProductNoResStone = mit->second.m_ulProductNo;
 
-			// Å¬¶óÀÌ¾ðÆ®´Â ¸øº¸µµ·Ï »óÇ° ÆäÀÌÁö ¸®½ºÆ®¿¡¼­ »«´Ù.
+			// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 			continue;
 		}
 		//}}
 
-		//{{ 2010. 04. 26  ÃÖÀ°»ç	PC¹æ Àü¿ë Ä³½¬ÅÛ		
+		//{{ 2010. 04. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½		
 		if( CXSLItem::IsPcBangOnlyCashItem( iCashItemID ) == false )
 		{
 			vecProductInfo[CILT_NORMAL].push_back( mit->second );
@@ -634,7 +637,7 @@ void KNexonBillingTCPManager::BuildProductPage()
 		m_vecProductPage[CILT_PC_BANG].push_back( vecProductInfo[CILT_PC_BANG] );
 	}
 
-	//{{ 2008. 5. 15  ÃÖÀ°»ç  »óÇ° Á¤º¸ ItemID
+	//{{ 2008. 5. 15  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½ ItemID
 	KEventPtr spEvent( new KEvent );
 	spEvent->SetData( 0, NULL, ENX_UPDATE_PRODUCT_LIST_NOT, kEvent );
 	KBaseServer::GetKObj()->QueueingEvent( spEvent );
@@ -645,7 +648,7 @@ bool KNexonBillingTCPManager::GetProductPage( IN int iPage, IN bool bIsPcBang, O
 {
     vecProductInfo.clear();
 
-	//{{ 2010. 04. 26  ÃÖÀ°»ç	PC¹æ Àü¿ë Ä³½¬ÅÛ
+	//{{ 2010. 04. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½
 	CASH_ITEM_LIST_TYPE eType = ( bIsPcBang ? CILT_PC_BANG : CILT_NORMAL );
 	//}}
 
@@ -713,7 +716,7 @@ void KNexonBillingTCPManager::HandleInitializeAck( bool bSucceed )
     SetEvent( m_spEvent.get() );
 }
 
-//{{ 2013. 01. 10	ÃÖÀ°»ç	ºô¸µ TCP ÆÐÅ¶ Å©±â ¿¹¿ÜÃ³¸®
+//{{ 2013. 01. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ TCP ï¿½ï¿½Å¶ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_BILLING_TCP_RECV_VARIABLE_SIZE_BUFFER
 //////////////////////////////////////////////////////////////////////////
@@ -731,12 +734,12 @@ void KNexonBillingTCPManager::Recv()
 		( int )( MAX_PACKET_SIZE_NBT - m_ulRecvCP ),
 		0 );
 
-	START_LOG( clog, L"ÆÐÅ¶ ¹ÞÀ½." )
+	START_LOG( clog, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½." )
 		<< BUILD_LOG( ret );
 
 	if( ret == SOCKET_ERROR )
 	{
-		//{{ 2009. 11. 21  ÃÖÀ°»ç	¼­¹ö°£Á¢¼Ó±¸Á¶°³¼±
+		//{{ 2009. 11. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		if( IsFirstConnectSucc() )
 		{
 			//			START_LOG( cerr, GET_WSA_MSG );
@@ -745,49 +748,49 @@ void KNexonBillingTCPManager::Recv()
 
 		CLOSE_SOCKET( m_sock );
 
-		//{{ 2010. 10. 13	ÃÖÀ°»ç	³Ø½¼ ºô¸µ Á¢¼Ó Á¾·á
-		OnDisconnectBillingServer( std::wstring( L"À¯È¿ ÇÏÁö ¾ÊÀº ¼ÒÄÏ" ) );
+		//{{ 2010. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		OnDisconnectBillingServer( std::wstring( L"ï¿½ï¿½È¿ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" ) );
 		//}}
 		return;
 	}
 
 	if( ret == 0 )
 	{
-		START_LOG( cerr, L"¼ÒÄÏ ¿¬°áÀÌ ²÷¾îÁü." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
 			<< END_LOG;
 
 		CLOSE_SOCKET( m_sock );
 
-		//{{ 2010. 10. 13	ÃÖÀ°»ç	³Ø½¼ ºô¸µ Á¢¼Ó Á¾·á
-		OnDisconnectBillingServer( std::wstring( L"¿ø°ÝÁö¿¡¼­ Á¢¼Ó Á¾·á" ) );
+		//{{ 2010. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		OnDisconnectBillingServer( std::wstring( L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" ) );
 		//}}
 		return;
 	}
 
 	m_ulRecvCP += ret;
 
-	// ¸ðµç ¹öÆÛ°¡ ´Ù ºñ¿öÁú¶§±îÁö ÆÐÅ¶À» Á¤¸®ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û°ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	while( m_ulRecvCP >= 10 )
 	{
-		// Çì´õ(9) + Å¸ÀÔ(1) = 10
-		// ¸ðµç ÆÐÅ¶ÀÌ 10¹ÙÀÌÆ® ÀÌ»óÀÓ
+		// ï¿½ï¿½ï¿½(9) + Å¸ï¿½ï¿½(1) = 10
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ 10ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ì»ï¿½ï¿½ï¿½
 
-		// °¡º¯ ¹öÆÛ°¡ ºñ¿öÁ® ÀÖ´Ù!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½!
 		if( m_kRecvVariableBuffer.IsAlreadyRecv() == false )
 		{
-			// ÆÐÅ¶ Å©±â ºÐ¼®!
+			// ï¿½ï¿½Å¶ Å©ï¿½ï¿½ ï¿½Ð¼ï¿½!
 			unsigned long ulLength;
 			::memcpy( &ulLength, m_cRecvBuffer + 1, sizeof( ulLength ) );
 
 			ulLength = ::ntohl( ulLength );
 			unsigned long ulTotalPacketSize = ulLength + 5;
 
-			// ¸»µµ ¾ÈµÇ´Â Å©±âÀÇ ÆÐÅ¶ÀÌ¶ó¸é ¿©±â¼­ Åë½Å Á¾·á!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			if( ulTotalPacketSize > VARIABLE_BUFFER_MAX_SIZE )
 			{
-				//{{ 2013. 01. 08	ÃÖÀ°»ç	ºô¸µ ÆÐÅ¶ ³ÑÄ¡´Â À¯Àú Ã£±â
+				//{{ 2013. 01. 08	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 #ifdef SERV_BILLING_TCP_PACKET_MAX_OVER_USER_CHECK
-				// ´©°¡ ³ÑÃÆ´ÂÁöµµ ¹àÇô³»ÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				UidType iUserUID = 0;
 				BYTE bytePacketType = 0;
 				std::wstring wstrPacketTypeName;
@@ -795,12 +798,12 @@ void KNexonBillingTCPManager::Recv()
 #endif SERV_BILLING_TCP_PACKET_MAX_OVER_USER_CHECK
 				//}}
 
-				//{{ 2010. 10. 13	ÃÖÀ°»ç	³Ø½¼ ºô¸µ Á¢¼Ó Á¾·á
-				std::wstring wstrReason = boost::str( boost::wformat( L"ÃÖ´ë ÆÐÅ¶ »çÀÌÁî ÃÊ°ú! UserUID : %d, MaxPacketSize : %d, PacketType : %s" ) % iUserUID % ulTotalPacketSize % wstrPacketTypeName );
+				//{{ 2010. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				std::wstring wstrReason = boost::str( boost::wformat( L"ï¿½Ö´ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½! UserUID : %d, MaxPacketSize : %d, PacketType : %s" ) % iUserUID % ulTotalPacketSize % wstrPacketTypeName );
 				OnDisconnectBillingServer( wstrReason );
 				//}}
 
-				START_LOG( cerr, L"ÃßÃâÇÑ ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
+				START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 					<< BUILD_LOG( iUserUID )
 					<< BUILD_LOG( ulTotalPacketSize )
 					<< BUILD_LOG( MAX_PACKET_SIZE_NBT )
@@ -811,81 +814,81 @@ void KNexonBillingTCPManager::Recv()
 				return;
 			}
 
-			//{{ 2013. 01. 23	ÃÖÀ°»ç	ºô¸µ ÆÐÅ¶ ¼ö½Å Ã³¸® ¼º´É ÃøÁ¤
+			//{{ 2013. 01. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
-			// ¿©±âºÎÅÍ!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 			BeginCheckPerformance();
 #endif SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
 			//}}
 
-			// ÀÏ´Ü ÆÐÅ¶ Å©±â¸¸Å­ °¡º¯ ¹öÆÛ¸¦ ¸¸µéÀÚ!
+			// ï¿½Ï´ï¿½ ï¿½ï¿½Å¶ Å©ï¿½â¸¸Å­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 			m_kRecvVariableBuffer.Init( ulTotalPacketSize );
 
-			// ¿ÂÀüÇÑ ÆÐÅ¶ Å©±â ÇÏ³ª ¸¸Å­ µ¥ÀÌÅÍ¸¦ ¸ðµÎ ¹Þ¾Ò´ÂÁö È®ÀÎ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ Å©ï¿½ï¿½ ï¿½Ï³ï¿½ ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ ï¿½Þ¾Ò´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 			if( ulTotalPacketSize <= m_ulRecvCP )
 			{
 				m_kRecvVariableBuffer.CopyBuffer( m_cRecvBuffer, ulTotalPacketSize );
 
-				// Ä«ÇÇ ÇÑ ¸¸Å­ ¹öÆÛ¸¦ ÀÌµ¿ ½ÃÅ°ÀÚ!				
+				// Ä«ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å­ ï¿½ï¿½ï¿½Û¸ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½Å°ï¿½ï¿½!				
 				::memmove( m_cRecvBuffer, m_cRecvBuffer + ulTotalPacketSize, m_ulRecvCP - ulTotalPacketSize );
 				m_ulRecvCP -= ulTotalPacketSize;
 
 				//////////////////////////////////////////////////////////////////////////
-				START_LOG( cout, L"[Å×½ºÆ®·Î±×] ¿ÂÀüÇÑ ÆÐÅ¶ Å©±â ÇÏ³ª¸¸Å­ µ¥ÀÌÅÍ¸¦ ¹Þ¾Ò´Ù! °¡º¯¹öÆÛ¿¡ ¼ö½ÅµÈ ÆÐÅ¶µéÀ» ½×ÀÚ!" )
+				START_LOG( cout, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ Å©ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Þ¾Ò´ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½Åµï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( ret )
 					<< BUILD_LOG( m_ulRecvCP )
 					<< BUILD_LOG( ulTotalPacketSize );
 				//////////////////////////////////////////////////////////////////////////
 			}
-			// ´ú ¹Þ¾Ò´Ù¸é ´ú ¹ÞÀº ´ë·Î ÀÏ´Ü ³Ö¾îº¸ÀÚ!
+			// ï¿½ï¿½ ï¿½Þ¾Ò´Ù¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ö¾îº¸ï¿½ï¿½!
 			else
 			{
 				m_kRecvVariableBuffer.CopyBuffer( m_cRecvBuffer, m_ulRecvCP );
 
-				// ¹öÆÛÀÇ µ¥ÀÌÅÍ¸¦ ¸ðÁ¶¸® Ä«ÇÇÇßÀ¸´Ï ¹öÆÛ´Â ÃÊ±âÈ­ ÇÏÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û´ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½!
 				m_ulRecvCP = 0;
-				//memset( m_cRecvBuffer, 0, MAX_PACKET_SIZE_NBT ); -- ±»ÀÌ ÃÊ±âÈ­ÇÒ ÇÊ¿ä°¡ ÀÖÀ»±î?
+				//memset( m_cRecvBuffer, 0, MAX_PACKET_SIZE_NBT ); -- ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?
 
 				//////////////////////////////////////////////////////////////////////////
-				START_LOG( cout, L"[Å×½ºÆ®·Î±×] ¿ÂÀüÇÑ ÆÐÅ¶ ¸¸Å­Àº ¾Æ´ÏÁö¸¸ ÀÏ´Ü µ¥ÀÌÅÍ¸¦ ¹Þ¾Ò´Ù! °¡º¯¹öÆÛ¿¡ ¼ö½ÅµÈ ÆÐÅ¶µéÀ» ½×ÀÚ!" )
+				START_LOG( cout, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½Å­ï¿½ï¿½ ï¿½Æ´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Þ¾Ò´ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½Åµï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( ret )
 					<< BUILD_LOG( m_ulRecvCP )
 					<< BUILD_LOG( ulTotalPacketSize );
 				//////////////////////////////////////////////////////////////////////////
 			}
 		}
-		// ½×¿©ÀÖ´Â µ¥ÀÌÅÍ°¡ ÀÖ´Ù!
+		// ï¿½×¿ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ö´ï¿½!
 		else
 		{
 			const unsigned long ulRemainSize = m_kRecvVariableBuffer.GetRemainSize();
 
-			// ³²Àº ÆÐÅ¶¸¸Å­ ÆÐÅ¶À» ¼ö½ÅÇß´Â°¡?
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½Å­ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´Â°ï¿½?
 			if( ulRemainSize <= m_ulRecvCP )
 			{
 				m_kRecvVariableBuffer.CopyBuffer( m_cRecvBuffer, ulRemainSize );
 
-				// Ä«ÇÇ ÇÑ ¸¸Å­ ¹öÆÛ¸¦ ÀÌµ¿ ½ÃÅ°ÀÚ!
+				// Ä«ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å­ ï¿½ï¿½ï¿½Û¸ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½Å°ï¿½ï¿½!
 				::memmove( m_cRecvBuffer, m_cRecvBuffer + ulRemainSize, m_ulRecvCP - ulRemainSize );
 				m_ulRecvCP -= ulRemainSize;
 
 				//////////////////////////////////////////////////////////////////////////
-				START_LOG( cout, L"[Å×½ºÆ®·Î±×] ÀÌ¹Ì °¡º¯ ¹öÆÛ¿¡ ¹Þ¾Æ ³õÀº µ¥ÀÌÅÍ¿¡´Ù°¡ ´õ Ãß°¡ÇØ¼­ ¿ÂÀüÇÑ ÇÏ³ªÀÇ ÆÐÅ¶À¸·Î ¸¸µéÀÚ!" )
+				START_LOG( cout, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½] ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½Þ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( ret )
 					<< BUILD_LOG( m_ulRecvCP )
 					<< BUILD_LOG( ulRemainSize );
 				//////////////////////////////////////////////////////////////////////////
 			}
-			// ³²Àº ÆÐÅ¶¸¸Å­ ÆÐÅ¶À» ¸ø¹Þ¾Ò´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½Å­ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Þ¾Ò´ï¿½.
 			else
 			{
 				m_kRecvVariableBuffer.CopyBuffer( m_cRecvBuffer, m_ulRecvCP );
 
-				// ¹öÆÛÀÇ µ¥ÀÌÅÍ¸¦ ¸ðÁ¶¸® Ä«ÇÇÇßÀ¸´Ï ¹öÆÛ´Â ÃÊ±âÈ­ ÇÏÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û´ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½!
 				m_ulRecvCP = 0;
-				//memset( m_cRecvBuffer, 0, MAX_PACKET_SIZE ); -- ±»ÀÌ ÃÊ±âÈ­ÇÒ ÇÊ¿ä°¡ ÀÖÀ»±î?
+				//memset( m_cRecvBuffer, 0, MAX_PACKET_SIZE ); -- ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?
 
 				//////////////////////////////////////////////////////////////////////////
-				START_LOG( cout, L"[Å×½ºÆ®·Î±×] ÀÌ¹Ì °¡º¯ ¹öÆÛ¿¡ ¹Þ¾Æ ³õÀº µ¥ÀÌÅÍ¿¡´Ù°¡ ´õ Ãß°¡ÇØ¼­ ¼ö½ÅµÈ ÆÐÅ¶µéÀ» ½×ÀÚ! ±Ùµ¥ ´õ ¹Þ¾Æ¾ß‰è!" )
+				START_LOG( cout, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½] ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½Þ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½Åµï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½Ùµï¿½ ï¿½ï¿½ ï¿½Þ¾Æ¾ß‰ï¿½!" )
 					<< BUILD_LOG( ret )
 					<< BUILD_LOG( m_ulRecvCP )
 					<< BUILD_LOG( ulRemainSize );
@@ -893,44 +896,44 @@ void KNexonBillingTCPManager::Recv()
 			}
 		}
 
-		// ÆÐÅ¶ÀÌ ¿Ï¼º µÇ¾ú´Â°¡?
+		// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ï¼ï¿½ ï¿½Ç¾ï¿½ï¿½Â°ï¿½?
 		if( m_kRecvVariableBuffer.IsComplete() == true )
 		{
 			//////////////////////////////////////////////////////////////////////////
-			START_LOG( cout, L"[Å×½ºÆ®·Î±×] °¡º¯ ¹öÆÛ¿¡ ¿ÂÀüÇÑ ÆÐÅ¶ ÇÏ³ª°¡ ¿Ï¼º!!!" )
+			START_LOG( cout, L"[ï¿½×½ï¿½Æ®ï¿½Î±ï¿½] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½Ï¼ï¿½!!!" )
 				<< BUILD_LOG( ret )
 				<< BUILD_LOG( m_ulRecvCP )
 				<< BUILD_LOG( m_kRecvVariableBuffer.GetBufferSize() )
 				<< BUILD_LOG( (int)m_kRecvVariableBuffer.GetBuffer() );
 			//////////////////////////////////////////////////////////////////////////
 
-			// ¿Ï¼ºµÈ ÆÐÅ¶ÀÌ ÃÖ´ë ÆÐÅ¶ »çÀÌÁî¸¦ ³Ñ´ÂÁö È®ÀÎ!
+			// ï¿½Ï¼ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½î¸¦ ï¿½Ñ´ï¿½ï¿½ï¿½ È®ï¿½ï¿½!
 			if( m_kRecvVariableBuffer.GetBufferSize() <= MAX_PACKET_SIZE_NBT )
 			{
-				// ¿ÂÀüÇÑ ÇÑ°³ÀÇ ÆÐÅ¶À» ¸¸µéÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ°ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				MakeEventFromReceivedPacket();
 			}
 			else
 			{
-				// ´©°¡ ³ÑÃÆ´ÂÁöµµ ¹àÇô³»ÀÚ!
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 				UidType iUserUID = 0;
 				BYTE bytePacketType = 0;
 				std::wstring wstrPacketTypeName;
 				CheckPacketMaxSizeOverUser( m_kRecvVariableBuffer.GetBuffer(), iUserUID, bytePacketType, wstrPacketTypeName );
 
-                START_LOG( cerr, L"ÃÖ´ë ÆÐÅ¶ »çÀÌÁî¸¦ ³Ñ¾î¼­´Â ÆÐÅ¶ÀÌ ¼ö½ÅµÇ¾ú½À´Ï´Ù! ÇØ´ç ÆÐÅ¶Àº ¼Ò¸ê ½ÃÅµ´Ï´Ù!" )
+                START_LOG( cerr, L"ï¿½Ö´ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½î¸¦ ï¿½Ñ¾î¼­ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ÅµÇ¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½! ï¿½Ø´ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½ï¿½Åµï¿½Ï´ï¿½!" )
 					<< BUILD_LOG( iUserUID )
 					<< BUILD_LOGc( bytePacketType )
 					<< BUILD_LOG( wstrPacketTypeName )
 					<< END_LOG;
 			}
 
-			// ´ÙÀ½ ÆÐÅ¶À» ¹Þ±â À§ÇØ ¹öÆÛ ÃÊ±âÈ­! ( ¸Þ¸ð¸® ÀçÇÒ´çÀ» ÇÏÁö ¾Ê±âÀ§ÇØ Reset()ÇÔ¼ö¸¦ »ç¿ë )
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­! ( ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½Ò´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ Reset()ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ )
 			m_kRecvVariableBuffer.Reset();
 
-			//{{ 2013. 01. 23	ÃÖÀ°»ç	ºô¸µ ÆÐÅ¶ ¼ö½Å Ã³¸® ¼º´É ÃøÁ¤
+			//{{ 2013. 01. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
-			// ¿©±â±îÁöÀÇ ½Ã°£À» Àç¸é µÉ°Í °°´Ù!
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½É°ï¿½ ï¿½ï¿½ï¿½ï¿½!
 			EndCheckPerformance();
 #endif SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
 			//}}
@@ -953,12 +956,12 @@ void KNexonBillingTCPManager::Recv()
 		( int )( MAX_PACKET_SIZE_NBT - m_ulRecvCP ),
 		0 );
 
-	START_LOG( clog, L"ÆÐÅ¶ ¹ÞÀ½." )
+	START_LOG( clog, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½." )
 		<< BUILD_LOG( ret );
 
 	if( ret == SOCKET_ERROR )
 	{
-		//{{ 2009. 11. 21  ÃÖÀ°»ç	¼­¹ö°£Á¢¼Ó±¸Á¶°³¼±
+		//{{ 2009. 11. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		if( IsFirstConnectSucc() )
 		{
 			//			START_LOG( cerr, GET_WSA_MSG );
@@ -967,21 +970,21 @@ void KNexonBillingTCPManager::Recv()
 
 		CLOSE_SOCKET( m_sock );
 
-		//{{ 2010. 10. 13	ÃÖÀ°»ç	³Ø½¼ ºô¸µ Á¢¼Ó Á¾·á
-		OnDisconnectBillingServer( std::wstring( L"À¯È¿ ÇÏÁö ¾ÊÀº ¼ÒÄÏ" ) );
+		//{{ 2010. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		OnDisconnectBillingServer( std::wstring( L"ï¿½ï¿½È¿ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" ) );
 		//}}
 		return;
 	}
 
 	if( ret == 0 )
 	{
-		START_LOG( cerr, L"¼ÒÄÏ ¿¬°áÀÌ ²÷¾îÁü." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
 			<< END_LOG;
 
 		CLOSE_SOCKET( m_sock );
 
-		//{{ 2010. 10. 13	ÃÖÀ°»ç	³Ø½¼ ºô¸µ Á¢¼Ó Á¾·á
-		OnDisconnectBillingServer( std::wstring( L"¿ø°ÝÁö¿¡¼­ Á¢¼Ó Á¾·á" ) );
+		//{{ 2010. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		OnDisconnectBillingServer( std::wstring( L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" ) );
 		//}}
 		return;
 	}
@@ -990,8 +993,8 @@ void KNexonBillingTCPManager::Recv()
 
 	while( m_ulRecvCP >= 10 )
 	{
-		// Çì´õ(9) + Å¸ÀÔ(1) = 10
-		// ¸ðµç ÆÐÅ¶ÀÌ 10¹ÙÀÌÆ® ÀÌ»óÀÓ
+		// ï¿½ï¿½ï¿½(9) + Å¸ï¿½ï¿½(1) = 10
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ 10ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ì»ï¿½ï¿½ï¿½
 
 		unsigned long ulLength;
 		::memcpy( &ulLength, m_cRecvBuffer + 1, sizeof( ulLength ) );
@@ -1000,27 +1003,27 @@ void KNexonBillingTCPManager::Recv()
 		unsigned long ulTotalPacketSize = ulLength + 5;
 		if( ulTotalPacketSize > MAX_PACKET_SIZE_NBT )
 		{
-			//{{ 2013. 01. 08	ÃÖÀ°»ç	ºô¸µ ÆÐÅ¶ ³ÑÄ¡´Â À¯Àú Ã£±â
+			//{{ 2013. 01. 08	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 #ifdef SERV_BILLING_TCP_PACKET_MAX_OVER_USER_CHECK
-			// ´©°¡ ³ÑÃÆ´ÂÁöµµ ¹àÇô³»ÀÚ!
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 			UidType iUserUID = 0;
 			BYTE bytePacketType = 0;
 			std::wstring wstrPacketTypeName;
 			CheckPacketMaxSizeOverUser( m_cRecvBuffer, iUserUID, bytePacketType, wstrPacketTypeName );
 
-			//{{ 2010. 10. 13	ÃÖÀ°»ç	³Ø½¼ ºô¸µ Á¢¼Ó Á¾·á
-			std::wstring wstrReason = boost::str( boost::wformat( L"ÃÖ´ë ÆÐÅ¶ »çÀÌÁî ÃÊ°ú! UserUID : %d, MaxPacketSize : %d, PacketType : %s" ) % iUserUID % ulTotalPacketSize % wstrPacketTypeName );
+			//{{ 2010. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			std::wstring wstrReason = boost::str( boost::wformat( L"ï¿½Ö´ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½! UserUID : %d, MaxPacketSize : %d, PacketType : %s" ) % iUserUID % ulTotalPacketSize % wstrPacketTypeName );
 			OnDisconnectBillingServer( wstrReason );
 			//}}
 
-			START_LOG( cerr, L"ÃßÃâÇÑ ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( iUserUID )
 				<< BUILD_LOG( ulTotalPacketSize )
 				<< BUILD_LOG( MAX_PACKET_SIZE_NBT )
 				<< BUILD_LOG( wstrPacketTypeName )
 				<< END_LOG;
 
-#endif SERV_BILLING_TCP_PACKET_MAX_OVER_USER_CHECK	// ÇØ¿ÜÆÀ À§Ä¡ º¯°æ
+#endif SERV_BILLING_TCP_PACKET_MAX_OVER_USER_CHECK	// ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 			//}}
 
 			CLOSE_SOCKET( m_sock );
@@ -1032,9 +1035,9 @@ void KNexonBillingTCPManager::Recv()
 			return;
 		}
 
-		//{{ 2013. 01. 23	ÃÖÀ°»ç	ºô¸µ ÆÐÅ¶ ¼ö½Å Ã³¸® ¼º´É ÃøÁ¤
+		//{{ 2013. 01. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
-		// ¿©±âºÎÅÍ!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 		BeginCheckPerformance();
 #endif SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
 		//}}
@@ -1047,9 +1050,9 @@ void KNexonBillingTCPManager::Recv()
 		}
 		m_ulRecvCP -= ulTotalPacketSize;
 
-		//{{ 2013. 01. 23	ÃÖÀ°»ç	ºô¸µ ÆÐÅ¶ ¼ö½Å Ã³¸® ¼º´É ÃøÁ¤
+		//{{ 2013. 01. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
-		// ¿©±â±îÁöÀÇ ½Ã°£À» Àç¸é µÉ°Í °°´Ù!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½É°ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		EndCheckPerformance();
 #endif SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
 		//}}
@@ -1068,7 +1071,7 @@ void KNexonBillingTCPManager::Send()
 	}
 
 	int ret;
-	char buf[MAX_PACKET_SIZE_NBT] = {0,}; // 2012. 12. 3   ¹öÆÛ ÃÊ±âÈ­¸¦ ¹è¿­À» ¼±¾ðÇÑ ºÎºÐ¿¡¼­ ÇØÁÖµµ·Ï ¼öÁ¤.
+	char buf[MAX_PACKET_SIZE_NBT] = {0,}; // 2012. 12. 3   ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½è¿­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÎºÐ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
     KNexonBillingTCPPacketPtr spPacket;
 	while( GetSendPacket( spPacket ) )
 	{
@@ -1079,7 +1082,7 @@ void KNexonBillingTCPManager::Send()
 				uiSendQueueSize = m_kSendQueue.size();
 			KCSLOCK_END()
 
-			START_LOG( cerr, L"Æ÷ÀÎÅÍ ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( uiSendQueueSize )
 				<< END_LOG;
 
@@ -1111,14 +1114,14 @@ void KNexonBillingTCPManager::Send()
 	}
 }
 
-//{{ 2010. 10. 13	ÃÖÀ°»ç	³Ø½¼ ºô¸µ Á¢¼Ó Á¾·á	
+//{{ 2010. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½	
 void KNexonBillingTCPManager::OnDisconnectBillingServer( IN const std::wstring& wstrReason )
 {
-	// ÃÖÃÊ Á¢¼ÓÀÌ ¾ÆÁ÷ ¼º°øÇÏÁö ¾Ê¾Ò±â ¶§¹®¿¡ Á¢¼Ó Á¾·á ¸®Æ÷ÆÃÀ» ÇÏÁö ¾Ê´Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 	if( IsFirstConnectSucc() == false )
 		return;
 
-	//{{ 2010. 10. 11	ÃÖÀ°»ç	¼­¹ö°£ Á¢¼Ó ²÷±è ·Î±×
+	//{{ 2010. 10. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_SERVER_DISCONNECT_LOG
 	{
 		CTime kRegDate = CTime::GetCurrentTime();
@@ -1133,7 +1136,7 @@ void KNexonBillingTCPManager::OnDisconnectBillingServer( IN const std::wstring& 
 	}
 #endif SERV_SERVER_DISCONNECT_LOG
 	//}}
-	//{{ 2010. 10. 12	ÃÖÀ°»ç	¼­¹ö ¸ð´ÏÅÍ¸µ
+	//{{ 2010. 10. 12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
 #ifdef SERV_MORNITORING
 	{
 		KE_DISCONNECT_SERVER_REPORT_NOT kNot;
@@ -1145,17 +1148,17 @@ void KNexonBillingTCPManager::OnDisconnectBillingServer( IN const std::wstring& 
 #endif SERV_MORNITORING
 	//}}
 
-	START_LOG( cout, L"³Ø½¼ ºô¸µ ¼­¹ö Á¢¼Ó Á¾·á!" )
+	START_LOG( cout, L"ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( wstrReason );
 }
 //}}
 
-//{{ 2009. 11. 21  ÃÖÀ°»ç	¼­¹ö°£Á¢¼Ó±¸Á¶°³¼±
+//{{ 2009. 11. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void KNexonBillingTCPManager::KeepConnectionThread()
 {
 	if( !IsFirstConnectSucc() )
 	{
-		// ÃÖÃÊ ºô¸µ¼­¹ö Á¢¼Ó ½Ãµµ. connect()ÇÔ¼ö È£ÃâÁß¿¡´Â Thread Block
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½. connect()ï¿½Ô¼ï¿½ È£ï¿½ï¿½ï¿½ß¿ï¿½ï¿½ï¿½ Thread Block
 		if( Connect() )
 		{
 			FirstConnectSucc();
@@ -1172,12 +1175,12 @@ void KNexonBillingTCPManager::KeepConnectionThread()
 
 bool KNexonBillingTCPManager::Connect()
 {
-	//{{ [Âü°í] Connect()ÇÔ¼ö°¡ È£ÃâµÇ´Â »óÈ²¿¡¼­´Â RecvThread¿¡¼­ recv()ÇÔ¼ö°¡ Ç×»ó È£Ãâ½ÇÆÐÇÑ´Ù.
-	//          µû¶ó¼­ m_ulRecvCPº¯¼ö´Â 0À¸·Î ÃÊ±âÈ­ µÇ´õ¶óµµ ¹®Á¦µÇÁö ¾ÊÀ½.
+	//{{ [ï¿½ï¿½ï¿½ï¿½] Connect()ï¿½Ô¼ï¿½ï¿½ï¿½ È£ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½È²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RecvThreadï¿½ï¿½ï¿½ï¿½ recv()ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½×»ï¿½ È£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+	//          ï¿½ï¿½ï¿½ï¿½ m_ulRecvCPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ç´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
     m_ulRecvCP = 0;
 	//}}
 
-	m_sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
+	m_sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	if( INVALID_SOCKET == m_sock )
 	{
@@ -1197,7 +1200,7 @@ bool KNexonBillingTCPManager::Connect()
 
 	if( SOCKET_ERROR == ret )
 	{
-		//{{ 2009. 11. 21  ÃÖÀ°»ç	¼­¹ö°£Á¢¼Ó±¸Á¶°³¼±
+		//{{ 2009. 11. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		if( IsFirstConnectSucc() )
 		{
 //			START_LOG( cerr, GET_WSA_MSG )
@@ -1212,7 +1215,7 @@ bool KNexonBillingTCPManager::Connect()
 		return false;
 	}
 
-    // KENX_BT_INITIALIZE_REQ¸¦ Å¥À×ÇÏ±â Àü¿¡ false ·Î ¸¸µé¾î¾ß ÇÑ´Ù.
+    // KENX_BT_INITIALIZE_REQï¿½ï¿½ Å¥ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ false ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
     m_bInitialized = false;
 
     KENX_BT_INITIALIZE_REQ kPacketInit;
@@ -1227,15 +1230,15 @@ bool KNexonBillingTCPManager::Connect()
 
     switch( ::WaitForSingleObject( m_spEvent.get(), 5000 ) )
     {
-    case WAIT_OBJECT_0: // ack¸¦ Á¦´ë·Î ¹ÞÀº °æ¿ì.
-        START_LOG( cout, L"³Ø½¼ ºô¸µ ¼­¹ö Initialize." )
+    case WAIT_OBJECT_0: // ackï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.
+        START_LOG( cout, L"ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Initialize." )
             << BUILD_LOG( m_bInitialized );
         break;
-    case WAIT_TIMEOUT:  // ½Ã°£ ÃÊ°ú
-        START_LOG( cerr, L"ºô¸µ ¼­¹ö Initialize ½Ã°£ ÃÊ°ú." );
+    case WAIT_TIMEOUT:  // ï¿½Ã°ï¿½ ï¿½Ê°ï¿½
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Initialize ï¿½Ã°ï¿½ ï¿½Ê°ï¿½." );
         break;
     default:
-        START_LOG( cerr, L"ºô¸µ ¼­¹ö Initialize ½ÇÆÐ." );
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Initialize ï¿½ï¿½ï¿½ï¿½." );
         break;
     }
 
@@ -1262,12 +1265,12 @@ void KNexonBillingTCPManager::KeepConnection()
 
     m_dwLastHeartBeatTick = ::GetTickCount();
 
-	//{{ 2008. 5. 30  ÃÖÀ°»ç  ³Ø½¼ºô¸µ ÃÊ±âÈ­ °úÁ¤
+	//{{ 2008. 5. 30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ø½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½
 	if( !m_bInitialized  ||  !IsConnected() )
 		return;
 	//}}
 
-	// ÇãÆ®ºø º¸³»±â
+	// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     KENX_BT_HEART_BEAT_REQ kPacketNot;
     kPacketNot.m_ulPacketNo = GetNextPacketNo();
     kPacketNot.m_bytePacketType = KNexonBillingTCPPacket::HEART_BEAT;
@@ -1288,7 +1291,7 @@ void KNexonBillingTCPManager::CheckConnection()
 
 	if( !IsConnected() )
 	{
-		// ÃÊ±âÈ­ µÇÁö ¾ÊÀº »óÅÂ·Î ¼³Á¤!
+		// ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â·ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		m_bInitialized = false;
 
 		Connect();
@@ -1310,7 +1313,7 @@ bool KNexonBillingTCPManager::GetSendPacket( KNexonBillingTCPPacketPtr& spPacket
     return true;
 }
 
-//{{ 2013. 01. 10	ÃÖÀ°»ç	ºô¸µ TCP ÆÐÅ¶ Å©±â ¿¹¿ÜÃ³¸®
+//{{ 2013. 01. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ TCP ï¿½ï¿½Å¶ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_BILLING_TCP_RECV_VARIABLE_SIZE_BUFFER
 //////////////////////////////////////////////////////////////////////////
@@ -1318,11 +1321,11 @@ void KNexonBillingTCPManager::MakeEventFromReceivedPacket()
 {
 	DumpBuffer( ( BYTE* )m_kRecvVariableBuffer.GetBuffer(), false );
 	
-	// °¡º¯ ¹öÆÛ¿¡¼­ ¿ÂÀüÇÑ ÇÏ³ªÀÇ ÆÐÅ¶À» ¾ò¾î³½´Ù!
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½î³½ï¿½ï¿½!
 	KNexonBillingTCPPacket kPacket;
 	if( !kPacket.ReadFromBuffer( ( BYTE* )m_kRecvVariableBuffer.GetBuffer() ) )
 	{
-		START_LOG( cerr, L"¹öÆÛ¿¡¼­ ÀÐ±â ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< END_LOG;
 
 		DumpBuffer( ( BYTE* )m_kRecvVariableBuffer.GetBuffer(), true );
@@ -1343,14 +1346,14 @@ void KNexonBillingTCPManager::MakeEventFromReceivedPacket()
 		} \
 		break;
 
-//#ifdef SERV_NEXON_COUPON_SYSTEM// ÀÛ¾÷³¯Â¥: 2013-06-23	// ¹Ú¼¼ÈÆ
+//#ifdef SERV_NEXON_COUPON_SYSTEM// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-23	// ï¿½Ú¼ï¿½ï¿½ï¿½
 #undef _ENUM_PROCESS
 #define _ENUM_PROCESS( name, id, pname ) _ENUM( pname, id )
 //#endif // SERV_NEXON_COUPON_SYSTEM
 
 #   include "NexonBillingTCP_def.h"
 	default:
-		START_LOG( cerr, L"ÆÐÅ¶ Å¸ÀÔÀÌ ÀÌ»óÇÔ." )
+		START_LOG( cerr, L"ï¿½ï¿½Å¶ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.GetPacketType() )
 			<< END_LOG;
 		DumpBuffer( ( BYTE* )m_kRecvVariableBuffer.GetBuffer(), true );
@@ -1369,7 +1372,7 @@ void KNexonBillingTCPManager::DumpBuffer( const BYTE* buffer, bool bError )
 	ulLength = ::ntohl( ulLength );
 	unsigned long ulTotalPacketSize = ulLength + 5;
 
-	// LIF( ulTotalPacketSize <= MAX_PACKET_SIZE_NBT ); °¡º¯ ¹öÆÛ¸¦ ¾²¸é ÃÖ´ë ÆÐÅ¶ Å©±â¸¦ ³Ñ¾î¼³¼ö ÀÖ´Ù!
+	// LIF( ulTotalPacketSize <= MAX_PACKET_SIZE_NBT ); ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å¶ Å©ï¿½â¸¦ ï¿½Ñ¾î¼³ï¿½ï¿½ ï¿½Ö´ï¿½!
 	//ulTotalPacketSize = std::min< int >( ulTotalPacketSize, MAX_PACKET_SIZE_NBT );
 
 	char szBuffer[MAX_PACKET_SIZE_NBT * 3 + 1];
@@ -1416,7 +1419,7 @@ void KNexonBillingTCPManager::MakeEventFromReceivedPacket()
 	KNexonBillingTCPPacket kPacket;
 	if( !kPacket.ReadFromBuffer( ( BYTE* )m_cRecvBuffer ) )
     {
-        START_LOG( cerr, L"¹öÆÛ¿¡¼­ ÀÐ±â ½ÇÆÐ." )
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << END_LOG;
 
         DumpBuffer( ( BYTE* )m_cRecvBuffer, true );
@@ -1437,14 +1440,14 @@ void KNexonBillingTCPManager::MakeEventFromReceivedPacket()
         } \
         break;
 
-//#ifdef SERV_NEXON_COUPON_SYSTEM// ÀÛ¾÷³¯Â¥: 2013-06-23	// ¹Ú¼¼ÈÆ
+//#ifdef SERV_NEXON_COUPON_SYSTEM// ï¿½Û¾ï¿½ï¿½ï¿½Â¥: 2013-06-23	// ï¿½Ú¼ï¿½ï¿½ï¿½
 #undef _ENUM_PROCESS
 #define _ENUM_PROCESS( name, id, pname ) _ENUM( pname, id )
 //#endif // SERV_NEXON_COUPON_SYSTEM
 
 #   include "NexonBillingTCP_def.h"
     default:
-        START_LOG( cerr, L"ÆÐÅ¶ Å¸ÀÔÀÌ ÀÌ»óÇÔ." )
+        START_LOG( cerr, L"ï¿½ï¿½Å¶ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket.GetPacketType() )
             << END_LOG;
         DumpBuffer( ( BYTE* )m_cRecvBuffer, true );
@@ -1516,7 +1519,7 @@ void KNexonBillingTCPManager::ResetProductInfo()
     KLocker lock( m_csProductInfo );
 
     m_mapProductInfo.clear();
-	//{{ 2012. 03. 21	±è¹Î¼º		Ä³½¬ »óÇ° ¸®½ºÆ® ¼­¹ö±º ±¸º°¾øÀÌ DB¿¡ ±â·Ï
+	//{{ 2012. 03. 21	ï¿½ï¿½Î¼ï¿½		Ä³ï¿½ï¿½ ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_CASH_ITEM_LIST_ADD
 	m_mapProductInfo_Excepted.clear();
 #endif SERV_CASH_ITEM_LIST_ADD
@@ -1530,7 +1533,7 @@ void KNexonBillingTCPManager::GetAutoPaymentProductList( std::vector< unsigned l
 	KCSLOCK_END()
 }
 
-//{{ 2011. 02. 23	ÃÖÀ°»ç	Ä³½¬ »óÇ° ¸®½ºÆ®
+//{{ 2011. 02. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ä³ï¿½ï¿½ ï¿½ï¿½Ç° ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_CASH_ITEM_LIST
 void KNexonBillingTCPManager::GetCashProductList( OUT std::vector< KCashPruductInfo >& vecCashProductList ) const
 {
@@ -1550,7 +1553,7 @@ void KNexonBillingTCPManager::GetCashProductList( OUT std::vector< KCashPruductI
 		vecCashProductList.push_back( kCashProductInfo );
 	}
 
-#ifdef SERV_CASH_ITEM_LIST_ADD	// ºôµå ¿À·ù·Î ÇØ¿ÜÆÀ Ãß°¡
+#ifdef SERV_CASH_ITEM_LIST_ADD	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 	std::map< unsigned long, KNXBTProductInfo >::const_reverse_iterator mit_Excepted;
 	for( mit_Excepted = m_mapProductInfo_Excepted.rbegin(); mit_Excepted != m_mapProductInfo_Excepted.rend(); ++mit_Excepted )
 	{
@@ -1570,26 +1573,26 @@ void KNexonBillingTCPManager::GetCashProductList( OUT std::vector< KCashPruductI
 #endif SERV_CASH_ITEM_LIST
 
 
-//{{ 2010. 11. 22	ÃÖÀ°»ç	Ã»¾à Ã¶È¸
+//{{ 2010. 11. 22	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Ã»ï¿½ï¿½ Ã¶È¸
 #ifdef SERV_NX_BILLING_REFUND
 bool KNexonBillingTCPManager::GetCashItemRefundRequestID( OUT std::wstring& wstrRequestID )
 {
 	__int64 iServerUID = KBaseServer::GetKObj()->GetUID();
 	if( iServerUID > 0xFF )
 	{
-		START_LOG( cerr, L"ServerUID°¡ 255¸¦ ³ÑÀ¸¸é ¾ÈµË´Ï´Ù!" )
+		START_LOG( cerr, L"ServerUIDï¿½ï¿½ 255ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµË´Ï´ï¿½!" )
 			<< BUILD_LOG( iServerUID )
 			<< END_LOG;
 		return false;
 	}
 
-	// ³¯Â¥ Á¤º¸ ³Ö±â
+	// ï¿½ï¿½Â¥ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½
 	{
 		CTime tCurTime = CTime::GetCurrentTime();
 		wstrRequestID = ( std::wstring )tCurTime.Format( _T( "%Y%m%d%H%M%S" ) );
 	}
 
-	// °ÔÀÓ¼­¹ö ¹ß±Þ ID³Ö±â
+	// ï¿½ï¿½ï¿½Ó¼ï¿½ï¿½ï¿½ ï¿½ß±ï¿½ IDï¿½Ö±ï¿½
 	{
 		__int64 iCashItemRefundRequestID = 0;
 
@@ -1608,7 +1611,7 @@ bool KNexonBillingTCPManager::GetCashItemRefundRequestID( OUT std::wstring& wstr
 #endif SERV_NX_BILLING_REFUND
 //}}
 
-//{{ 2013. 01. 08	ÃÖÀ°»ç	ºô¸µ ÆÐÅ¶ ³ÑÄ¡´Â À¯Àú Ã£±â
+//{{ 2013. 01. 08	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½
 #ifdef SERV_BILLING_TCP_PACKET_MAX_OVER_USER_CHECK
 bool KNexonBillingTCPManager::CheckPacketMaxSizeOverUser( IN const char* pBuffer, OUT UidType& iUserUID, OUT BYTE& bytePacketType, OUT std::wstring& wstrPacketTypeName )
 {
@@ -1619,30 +1622,30 @@ bool KNexonBillingTCPManager::CheckPacketMaxSizeOverUser( IN const char* pBuffer
 	ULONG ulPacketLength = 0;
 	ULONG ulPacketNo = 0;
 	
-	// ¿¹¾à ¹®ÀÚ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	::memcpy( &byteReservedChar, pBuffer, sizeof( BYTE ) );
 	_JIF( byteReservedChar == 0xAF, return false );
 
-	// ÆÐÅ¶ ±æÀÌ
+	// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 	::memcpy( &ulPacketLength, pBuffer + 1, sizeof( unsigned long ) );
 	ulPacketLength = ::ntohl( ulPacketLength );
 	//_JIF( ulPacketLength >= HEADER_IN_PACKET_LENGTH_NBT, return false );
 	//_JIF( ulPacketLength - HEADER_IN_PACKET_LENGTH_NBT <= MAX_PACKET_CONTENT_SIZE_NBT, return false );
 
-	// ÆÐÅ¶ ³Ñ¹ö
+	// ï¿½ï¿½Å¶ ï¿½Ñ¹ï¿½
 	::memcpy( &ulPacketNo, pBuffer + 5, sizeof( unsigned long ) );
 	ulPacketNo = ::ntohl( ulPacketNo );
 
-	// ÆÐÅ¶ Å¸ÀÔ
+	// ï¿½ï¿½Å¶ Å¸ï¿½ï¿½
 	::memcpy( &bytePacketType, pBuffer + 9, sizeof( BYTE ) );
 
-	// ¾î¶² À¯Àú°¡ ¿äÃ»ÇÑ ÆÐÅ¶ÀÎÁö È®ÀÎÇÏÀÚ!
+	// ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	iUserUID = GetCorrespondingUserUID( ulPacketNo );
 
-	// ÆÐÅ¶ Å¸ÀÔ ÀÌ¸§À» ¾òÀÚ!
+	// ï¿½ï¿½Å¶ Å¸ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
 	wstrPacketTypeName = KNexonBillingTCPPacket::GetPacketTypeStr( bytePacketType );
 
-	START_LOG( cout, L"[¾Ë¸²] ÃÖ´ë ÆÐÅ¶ Å©±â¸¦ ³Ñ¾î¼± ÆÐÅ¶ÀÇ Çì´õ Á¤º¸!" )
+	START_LOG( cout, L"[ï¿½Ë¸ï¿½] ï¿½Ö´ï¿½ ï¿½ï¿½Å¶ Å©ï¿½â¸¦ ï¿½Ñ¾î¼± ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOGc( byteReservedChar )
 		<< BUILD_LOG( ulPacketLength )
 		<< BUILD_LOG( ulPacketNo )
@@ -1653,7 +1656,7 @@ bool KNexonBillingTCPManager::CheckPacketMaxSizeOverUser( IN const char* pBuffer
 #endif SERV_BILLING_TCP_PACKET_MAX_OVER_USER_CHECK
 //}}
 
-//{{ 2013. 01. 23	ÃÖÀ°»ç	ºô¸µ ÆÐÅ¶ ¼ö½Å Ã³¸® ¼º´É ÃøÁ¤
+//{{ 2013. 01. 23	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_BILLING_PACKET_RECV_PERFORMANCE_CHECK
 void KNexonBillingTCPManager::BeginCheckPerformance()
 {

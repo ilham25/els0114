@@ -19,7 +19,12 @@
 #endif //SERV_COUNTRY_PH
 
 
-ImplementDBThread( KLoginBillingDBThread );
+//{{ Iruha : 2026-08-27 // VS2010 port: ImplementDBThread is undefined everywhere in this tree.
+// VC7.1 silently parsed it as an implicit-int prototype (harmless, unused); VC10 makes that
+// a hard error (C4430). DeclareDBThread already implements the constructor inline, so this
+// pairing macro never did anything. Most sibling *DBThread.cpp files already comment it out.
+//ImplementDBThread( KLoginBillingDBThread );
+//}}
 ImplPfID( KLoginBillingDBThread, PI_LOGIN_KOG_BILLING_DB );
 
 #define CLASS_TYPE KLoginBillingDBThread
@@ -56,7 +61,7 @@ void KLoginBillingDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 #endif //SERV_COUNTRY_PH
 
 	default:
-		START_LOG( cerr, L"ÀÌº¥Æ® ÇÚµé·¯°¡ Á¤ÀÇµÇÁö ¾Ê¾ÒÀ½. " << spEvent_->GetIDStr() );
+		START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½. " << spEvent_->GetIDStr() );
 	}
 }
 
@@ -96,7 +101,7 @@ IMPL_ON_FUNC( EBILL_GET_TRANS_FOR_CHECK_BALANCE_REQ )
 			break;
 		}
 
-		START_LOG( cerr, L"ºô¸µ Æ®·£Àè¼Ç ¹øÈ£ »ý¼º ½ÇÆÐ" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< END_LOG;
 
@@ -119,7 +124,7 @@ IMPL_ON_FUNC( EBILL_GET_TRANS_FOR_EXCHANGE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ºô¸µ Æ®·£Àè¼Ç ¹øÈ£ »ý¼º ½ÇÆÐ" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< END_LOG;
 	}
@@ -135,7 +140,7 @@ IMPL_ON_FUNC( EBILL_EXCHANGE_CASH_RESERVE_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	kPacket.m_kPacketReq = kPacket_;
 
-	// Æ®·£Àè¼Ç »ý¼º
+	// Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	__int64 iTransactionNo = 0;
 	time_t iTime = 0;
 	kPacket.m_iOK = DoQuery_TransactionNumberServerGet( iTransactionNo, iTime );
@@ -149,7 +154,7 @@ IMPL_ON_FUNC( EBILL_EXCHANGE_CASH_RESERVE_REQ )
 			break;
 		}
 
-		START_LOG( cerr, L"ºô¸µ Æ®·£Àè¼Ç ¹øÈ£ »ý¼º ½ÇÆÐ" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< END_LOG;
 
@@ -162,7 +167,7 @@ IMPL_ON_FUNC( EBILL_EXCHANGE_CASH_RESERVE_REQ )
 	__int64 i64TransactionID = 0LL;
 #endif //SERV_COUNTRY_PH
 	
-	// ÁÖ¹® µî·Ï
+	// ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½
 	kPacket.m_iOK = DoQuery_BillOrderGameServer( kPacket.m_wstrTransaction, 
 		kPacket_.m_PurchaserInfo.m_iUserUID,
 		kPacket_.m_PurchaserInfo.m_wstrUserName,
@@ -179,7 +184,7 @@ IMPL_ON_FUNC( EBILL_EXCHANGE_CASH_RESERVE_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÀÚÀÌ¾ðÆ® Ä³½Ã ÀüÈ¯ ÁÖ¹® µî·Ï ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Ä³ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_wstrTransaction )
 			<< BUILD_LOG( kPacket_.m_PurchaserInfo.m_iUserUID )
 			<< BUILD_LOG( kPacket_.m_PurchaserInfo.m_wstrUserName )
@@ -216,14 +221,14 @@ IMPL_ON_FUNC( EBILL_EXCHANGE_CASH_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÀÚÀÌ¾ðÆ® Ä³½Ã ÀüÈ¯ DB ±â·Ï ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ì¾ï¿½Æ® Ä³ï¿½ï¿½ ï¿½ï¿½È¯ DB ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( NetError::GetErrStr( kPacket.m_iOK ) )
 			<< END_LOG;
 
 		goto end_proc;
 	}
-	//2011.07.26 lygan_Á¶¼º¿í // ÀÜ¾×ºÎÁ· ¿¡·¯ ¸Þ½ÃÁö Ãâ·Â
+	//2011.07.26 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½Ü¾×ºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	if(kPacket_.m_iRet == -3)
 	{
 		kPacket.m_iOK = NetError::ERR_GIANT_BILLING_02;
@@ -234,7 +239,7 @@ IMPL_ON_FUNC( EBILL_EXCHANGE_CASH_REQ )
 	/*
 	if( kPacket_.m_iPoint != kPacket.m_iChargeCash )
 	{
-		START_LOG( cerr, L"ÃæÀü ¿¹Á¤ ±Ý¾×°ú ½ÇÁ¦ ÃæÀü ±Ý¾×ÀÌ ´Ù¸§." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¾×°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¾ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iPoint )
 			<< BUILD_LOG( kPacket.m_iChargeCash )
 			<< END_LOG;
@@ -245,7 +250,7 @@ IMPL_ON_FUNC( EBILL_EXCHANGE_CASH_REQ )
 
 	if( kPacket_.m_iPoint < 0 )
 	{
-		START_LOG( cerr, L"ÃæÀü ±Ý¾×ÀÌ ¸¶ÀÌ³Ê½º." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì³Ê½ï¿½." )
 			<< BUILD_LOG( kPacket_.m_iPoint )
 			<< BUILD_LOG( kPacket.m_iChargeCash )
 			<< END_LOG;
@@ -263,7 +268,7 @@ _IMPL_ON_FUNC( EBILL_USE_COUPON_RESERVE_REQ, KEBILL_USE_COUPON_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 	kPacket.m_kPacketReq = kPacket_;
 
-	// Æ®·£Àè¼Ç »ý¼º
+	// Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	__int64 iTransactionNo = 0;
 	time_t iTime = 0;
 	kPacket.m_iOK = DoQuery_TransactionNumberServerGet( iTransactionNo, iTime );
@@ -277,7 +282,7 @@ _IMPL_ON_FUNC( EBILL_USE_COUPON_RESERVE_REQ, KEBILL_USE_COUPON_REQ )
 			break;
 		}
 
-		START_LOG( cerr, L"ºô¸µ Æ®·£Àè¼Ç ¹øÈ£ »ý¼º ½ÇÆÐ" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< END_LOG;
 
@@ -286,7 +291,7 @@ _IMPL_ON_FUNC( EBILL_USE_COUPON_RESERVE_REQ, KEBILL_USE_COUPON_REQ )
 
 	MakeTID( iTransactionNo, iTime, kPacket.m_kPacketReq.m_wstrTransaction );
 
-	// ÁÖ¹® µî·Ï
+	// ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½
 	kPacket.m_iOK = DoQuery_CouponOrder( kPacket_.m_wstrSerialCode,
 		kPacket.m_kPacketReq.m_wstrTransaction, 
 		kPacket_.m_PurchaserInfo.m_iUserUID,
@@ -296,15 +301,15 @@ _IMPL_ON_FUNC( EBILL_USE_COUPON_RESERVE_REQ, KEBILL_USE_COUPON_REQ )
 		kPacket_.m_PurchaserInfo.m_ucLevel,
 		kPacket_.m_PurchaserInfo.m_wstrIP,
 #ifdef SERV_COUNTRY_CN
-		KGiantBillingPacket::GB_RT_USE_ITEM_CARD //2011.10.28 lygan_Á¶¼º¿í // 1·Î ÇÏµåÄÚµùµÇ¾î ÀÖ´ø°Å ¾ÆÀÌÅÛ Ä«µå °ªÀ¸·Î ¼öÁ¤
+		KGiantBillingPacket::GB_RT_USE_ITEM_CARD //2011.10.28 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 1ï¿½ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #else //SERV_COUNTRY_CN
-		1	// Áß±¹ Á¦¿ÜÇÏ°í´Â ±×³É 1·Î Å¸ÀÔ °íÁ¤ÇÔ
+		1	// ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ï¿½ ï¿½×³ï¿½ 1ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif //
 		);
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÀÚÀÌ¾ðÆ® ÄíÆù ÁÖ¹® µî·Ï ½ÇÆÐ." )			
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )			
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( kPacket_.m_wstrSerialCode )
 			<< BUILD_LOG( kPacket.m_kPacketReq.m_wstrTransaction )
@@ -336,7 +341,7 @@ IMPL_ON_FUNC( EBILL_USE_COUPON_RESULT_REQ )
 
 	if( kPacket.m_iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"ÀÚÀÌ¾ðÆ® ÄíÆù »ç¿ë DB ±â·Ï ½ÇÆÐ." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( kPacket.m_iOK )
 			<< BUILD_LOG( NetError::GetErrStr( kPacket.m_iOK ) )
 			<< END_LOG;
@@ -373,7 +378,7 @@ IMPL_ON_FUNC( EBILL_USE_COUPON_RESULT_REQ )
 		break;
 	}
 
-	START_LOG( clog, L"ÄíÆù »ç¿ë °á°ú" )
+	START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
 		<< BUILD_LOG( kPacket_.m_wstrTransaction )
 		<< BUILD_LOG( kPacket_.m_iRet )
 		<< BUILD_LOG( kPacket_.m_iChargeItem )
@@ -407,7 +412,7 @@ IMPL_ON_FUNC( EBILL_GET_TRANS_FOR_CBT2_CASH_DISTRIBUTION_EVENT_REQ )
 			break;
 		}
 
-		START_LOG( cerr, L"ºô¸µ Æ®·£Àè¼Ç ¹øÈ£ »ý¼º ½ÇÆÐ" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( iRet )
 			<< END_LOG;
 
@@ -446,7 +451,7 @@ IMPL_ON_FUNC( EBILL_GN_CHANGE_GAME_CURRENCY_REQ )
 		kPacketAck.m_bIsOffLine = true;
 	}
 
-	if(kPacket_.m_kGarenaREQ.m_uiGameCurrency_Amount < 0) // 2013.08.06 lygan_Á¶¼º¿í // ÀüÈ¯ ÇÒ ±Ý¾×ÀÌ À½¼ö¸é ¹®Á¦°¡ ÀÖ´Â°Å´Ù
+	if(kPacket_.m_kGarenaREQ.m_uiGameCurrency_Amount < 0) // 2013.08.06 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½ï¿½È¯ ï¿½ï¿½ ï¿½Ý¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Â°Å´ï¿½
 	{
 		kPacketAck.m_kGarenaACK.m_iResult = 2; // 2. Add game currency failed
 		tCurrent  = CTime::GetCurrentTime();
@@ -462,7 +467,7 @@ IMPL_ON_FUNC( EBILL_GN_CHANGE_GAME_CURRENCY_REQ )
 		
 		DoQuery_SetChangeGameCurrencyFailLog(IN KPacketFaillogNOT);
 
-		START_LOG( cerr, L"ÀüÈ¯ ÇÒ ±Ý¾×ÀÌ À½¼ö¸é ¹®Á¦°¡ ÀÖ´Â°Å´Ù" )
+		START_LOG( cerr, L"ï¿½ï¿½È¯ ï¿½ï¿½ ï¿½Ý¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Â°Å´ï¿½" )
 			<< BUILD_LOG( kPacket_.m_kGarenaREQ.m_uiGameCurrency_Amount )
 			<< END_LOG;
 		goto end_proc;
@@ -472,7 +477,7 @@ IMPL_ON_FUNC( EBILL_GN_CHANGE_GAME_CURRENCY_REQ )
 	wstrTransaction = KncUtil::toWideString(kPacket_.m_kGarenaREQ.m_strGarenaTransactionID);
 
 
-	//// Æ®·£Àè¼Ç »ý¼º
+	//// Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//__int64 iTransactionNo = 0;
 	//time_t iTime = 0;
 	//iOK = DoQuery_TransactionNumberServerGet( iTransactionNo, iTime );
@@ -486,7 +491,7 @@ IMPL_ON_FUNC( EBILL_GN_CHANGE_GAME_CURRENCY_REQ )
 	//		break;
 	//	}
 
-	//	START_LOG( cerr, L"ºô¸µ Æ®·£Àè¼Ç ¹øÈ£ »ý¼º ½ÇÆÐ" )
+	//	START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 	//		<< BUILD_LOG( iOK )
 	//		<< END_LOG;
 
@@ -504,7 +509,7 @@ IMPL_ON_FUNC( EBILL_GN_CHANGE_GAME_CURRENCY_REQ )
 
 	__int64 i64TransactionID = 0LL;
 	iOK = NetError::ERR_ODBC_01;
-	// ÁÖ¹® µî·Ï
+	// ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½
 	iOK = DoQuery_BillOrderGameServer( wstrTransaction, 
 		kPacket_.m_PurchaserInfo.m_iUserUID,
 		kPacket_.m_PurchaserInfo.m_wstrUserName,
@@ -519,7 +524,7 @@ IMPL_ON_FUNC( EBILL_GN_CHANGE_GAME_CURRENCY_REQ )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Garena Ä³½Ã ÀüÈ¯ ÁÖ¹® µî·Ï ½ÇÆÐ." )
+		START_LOG( cerr, L"Garena Ä³ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( wstrTransaction )
 			<< BUILD_LOG( kPacket_.m_PurchaserInfo.m_iUserUID )
 			<< BUILD_LOG( kPacket_.m_PurchaserInfo.m_wstrUserName )
@@ -575,7 +580,7 @@ IMPL_ON_FUNC( EBILL_GN_CHANGE_GAME_CURRENCY_REQ )
 
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"Garena Ä³½Ã ÀüÈ¯ DB ±â·Ï ½ÇÆÐ." )
+		START_LOG( cerr, L"Garena Ä³ï¿½ï¿½ ï¿½ï¿½È¯ DB ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iOK )
 			<< BUILD_LOG( NetError::GetErrStr( iOK ) )
 			<< END_LOG;
@@ -959,9 +964,9 @@ int KLoginBillingDBThread::DoQuery_CouponOrder( IN const std::wstring& wstrCoupo
 
 	switch( iOK )
 	{
-	case NetError::NET_OK:	// ¼º°ø
+	case NetError::NET_OK:	// ï¿½ï¿½ï¿½ï¿½
 		break;
-	case -11:	// ÀÌ¹Ì »ç¿ëÇÑ ÄíÆùÀÔ´Ï´Ù.
+	case -11:	// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
 		iOK = NetError::ERR_GIANT_BILLING_05;
 		break;
 	default:
@@ -1112,7 +1117,7 @@ void KLoginBillingDBThread::MakeTID(__int64 iTransactionNo, time_t iTime, std::w
 
 #ifdef SERV_COUNTRY_PH
 
-//{{ 2011. 03. 03	ÃÖÀ°»ç	Áß±¹ ¼­¹ö ºô¸µ. »ç³» ¹öÀüµµ ÀÌ ÇÃ·Î¿ì »ç¿ëÇÔ
+//{{ 2011. 03. 03	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ç³» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ã·Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 int KLoginBillingDBThread::DoQuery_GetCashPointByUserUID( IN const UidType iUserUID, 
 
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
@@ -1122,8 +1127,8 @@ int KLoginBillingDBThread::DoQuery_GetCashPointByUserUID( IN const UidType iUser
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 													  )
 {
-	// ¿ø·¡ ÀÌÂÊ ÄÚµå´Â Á¤»óÀûÀÎ °æ¿ì¶ó¸é Áß±¹¸¸ »ç¿ëÇÏ°Ô µÈ´Ù.
-	// ÇÏÁö¸¸ »ç³» ¹öÀüÀÇ °æ¿ì Ä³½Ã¸¦ º¸¿©ÁÖ·Á°í ¿©±â ÇÁ·Î¼¼½º¸¦ ºô·Á¼­ »ç¿ëÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½È´ï¿½.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ç³» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä³ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 	unsigned long ulTotalCash = 0;
@@ -1137,18 +1142,18 @@ int KLoginBillingDBThread::DoQuery_GetCashPointByUserUID( IN const UidType iUser
 	if( m_kODBC.BeginFetch() )
 	{
 #if defined (SERV_COUNTRY_CN) || defined (SERV_COUNTRY_PH)
-		// 2013.08.07 lygan_Á¶¼º¿í µ¿³²¾Æ½Ã¾Æ ¼­ºñ½º¿ë Æ÷ÇÔ
+		// 2013.08.07 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Æ½Ã¾ï¿½ ï¿½ï¿½ï¿½ñ½º¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 		FETCH_DATA( iRet 
 			>> ulTotalCash
-			>> RemainCashInfo.m_ulCash[KGlobalCashInfo::GCT_KOG_ELSWORD_CASH]			// KOG ºô¸µ¿¡¼­ °ü¸®ÇÏ´Â Ä³½Ã
-			>> RemainCashInfo.m_ulCash[KGlobalCashInfo::GCT_KOG_ELSWORD_BONUS_POINT]	// KOG ºô¸µ¿¡¼­ °ü¸®ÇÏ´Â º¸³Ê½º
+			>> RemainCashInfo.m_ulCash[KGlobalCashInfo::GCT_KOG_ELSWORD_CASH]			// KOG ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Ä³ï¿½ï¿½
+			>> RemainCashInfo.m_ulCash[KGlobalCashInfo::GCT_KOG_ELSWORD_BONUS_POINT]	// KOG ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 			);
 #else //SERV_COUNTRY_CN
-		// »ç³»¿ëÀÓ. Å¬¶óÀÌ¾ðÆ® Ãâ·Â Ã³¸® ÄÚµå ¶§¹®¿¡ GCT_KOG_ELSWORD_CASH, GCT_KOG_ELSWORD_BONUS_POINTÀ» ±×´ë·Î »ç¿ëÇÒ ¼ö ¾ø¾úÀ½.
+		// ï¿½ç³»ï¿½ï¿½ï¿½ï¿½. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ GCT_KOG_ELSWORD_CASH, GCT_KOG_ELSWORD_BONUS_POINTï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		FETCH_DATA( iRet 
 			>> ulTotalCash
-			>> RemainCashInfo.m_ulCash[KGlobalCashInfo::GCT_PUBLISHER_CASH]			// KOG ºô¸µ¿¡¼­ °ü¸®ÇÏ´Â Ä³½Ã
-			>> RemainCashInfo.m_ulCash[KGlobalCashInfo::GCT_PUBLISHER_ELSWORD_CASH]	// KOG ºô¸µ¿¡¼­ °ü¸®ÇÏ´Â º¸³Ê½º
+			>> RemainCashInfo.m_ulCash[KGlobalCashInfo::GCT_PUBLISHER_CASH]			// KOG ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Ä³ï¿½ï¿½
+			>> RemainCashInfo.m_ulCash[KGlobalCashInfo::GCT_PUBLISHER_ELSWORD_CASH]	// KOG ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½
 			);
 #endif //SERV_COUNTRY_CN
 

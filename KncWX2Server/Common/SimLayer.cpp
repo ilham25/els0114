@@ -9,7 +9,7 @@
 #include <sstream>  // std::ostringstream
 #include <boost/bind.hpp>
 #include "KAutoPath.h"
-//{{ 2013. 02. 15	ÃÖÀ°»ç	·Î±× ½Ã½ºÅÛ °³¼±
+//{{ 2013. 02. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_LOG_SYSTEM_NEW
 	#include "LogManager.h"
 #endif SERV_LOG_SYSTEM_NEW
@@ -17,11 +17,17 @@
 
 ImplInstanceKeeping( KSimLayer );
 NiImplementRootRTTI( KSimLayer );
-ImplementException( KSimLayer );
+//{{ Iruha : 2026-08-27 // VS2010 port: ImplementException(x) is a real macro (KncException.h),
+// but this file never includes that header and KSimLayer never uses DeclareException, so this
+// call was never actually defined here. VC7.1 silently parsed it as an implicit-int prototype
+// (harmless, unused); VC10 makes that a hard error (C4430). Same class of issue as
+// ImplementDBThread above.
+//ImplementException( KSimLayer );
+//}}
 
 KSimLayer::KSimLayer( ) 
 :
-//{{ 2012. 05. 10	ÃÖÀ°»ç	¼­¹ö ¹öÀü
+//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //#ifdef SERV_VERSION_FLAG
 	m_dwVersionFlag( VF_NONE ),
 //#endif SERV_VERSION_FLAG
@@ -49,8 +55,8 @@ KSimLayer::KSimLayer( )
 
 KSimLayer::~KSimLayer()
 {
-	//{{ 2010. 8. 30	ÃÖÀ°»ç	¼­¹ö Á¤»ó Á¾·á Ã³¸®	
-	// ¸í½ÃÀûÀ¸·Î shutdownÈ£ÃâÇÏ°í ÀÖ´Âµ¥ ¿©±â¼­ ¶Ç È£ÃâÇÏ°í ÀÖ³× -¤µ - ; ÁÖ¼®Ã³¸®ÇÔ.
+	//{{ 2010. 8. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½	
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ shutdownÈ£ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´Âµï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö³ï¿½ -ï¿½ï¿½ - ; ï¿½Ö¼ï¿½Ã³ï¿½ï¿½ï¿½ï¿½.
     //std::cout << "~KSimLayer" << std::endl;
     //ShutDown();
 	//}}
@@ -58,10 +64,10 @@ KSimLayer::~KSimLayer()
 
 void KSimLayer::Init()
 {
-	//{{ 2013. 02. 15	ÃÖÀ°»ç	·Î±× ½Ã½ºÅÛ °³¼±
+	//{{ 2013. 02. 15	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_LOG_SYSTEM_NEW
 	{
-		// ¸ðµç ¼­¹ö°¡ °øÅëÀ¸·Î ½ºÅ©¸³Æ® ÆÄ½ÌÀ» ÇØ¾ß ÇÏ¹Ç·Î ¿©±â¿¡´Ù°¡ ³Ö¾úÀ½.
+		// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Ä½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½Ï¹Ç·ï¿½ ï¿½ï¿½ï¿½â¿¡ï¿½Ù°ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½.
 		KLogManager::RegScriptName( "LogConfig.lua" );
 		OPEN_SCRIPT_FILE( KLogManager );
 	}
@@ -74,13 +80,13 @@ void KSimLayer::Init()
 
 ImplToStringW( KSimLayer )
 {
-	//{{ 2010. 8. 29	ÃÖÀ°»ç	ÀÌº¥Æ® Å¥ »çÀÌÁî ´ýÇÁ
+	//{{ 2010. 8. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ìºï¿½Æ® Å¥ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_MAX_QUEUE_SIZE_DUMP
 	KActorManager::GetKObj()->ToString( stm_ );
 #endif SERV_MAX_QUEUE_SIZE_DUMP
 	//}}
 
-	//{{ 2013. 02. 13	ÃÖÀ°»ç	TickÆÛÆ÷¸Õ½º DB·Î±× ±â·Ï
+	//{{ 2013. 02. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Tickï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ DBï¿½Î±ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_SIMLAYER_TICK_PERFORMANCE_DB_LOG
 	return START_TOSTRINGW
 		<< TOSTRINGW( KActorManager::GetKObj()->GetCount() )
@@ -117,7 +123,7 @@ void KSimLayer::Run()
 
 void KSimLayer::Tick()
 {
-	//{{ 2011. 12. 14	ÃÖÀ°»ç	SimLayer TickÆÛÆ÷¸Õ½º Ã¼Å©
+	//{{ 2011. 12. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	SimLayer Tickï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ Ã¼Å©
 #ifdef SERV_SIMLAYER_TICK_PERFORMANCE_CHECK
 	BEGIN_CHECK_TICK_LATENCY;
 #endif SERV_SIMLAYER_TICK_PERFORMANCE_CHECK
@@ -127,13 +133,13 @@ void KSimLayer::Tick()
 
     KBaseServer::GetKObj()->Tick();
 
-	//{{ 2013. 02. 	ÃÖÀ°»ç	TickÆÛÆ÷¸Õ½º DB·Î±× ±â·Ï
+	//{{ 2013. 02. 	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Tickï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ DBï¿½Î±ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_SIMLAYER_TICK_PERFORMANCE_DB_LOG
 	m_kTickChecker.CheckSimLayerTick();
 #endif SERV_SIMLAYER_TICK_PERFORMANCE_DB_LOG
 	//}}
 
-	//{{ 2011. 12. 14	ÃÖÀ°»ç	SimLayer TickÆÛÆ÷¸Õ½º Ã¼Å©
+	//{{ 2011. 12. 14	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	SimLayer Tickï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ Ã¼Å©
 #ifdef SERV_SIMLAYER_TICK_PERFORMANCE_CHECK
 	END_CHECK_TICK_LATENCY;
 #endif SERV_SIMLAYER_TICK_PERFORMANCE_CHECK
@@ -144,24 +150,24 @@ void KSimLayer::ShutDown()
 {
     End();
 	
-	// ½º·¹µå ¸Å´ÏÀú Á¾·á Ã³¸®
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
     std::for_each( m_vecpThreadMgr.begin(), m_vecpThreadMgr.end(), boost::bind( &KThreadManager::EndThread, _1, 10000 ) );	
 
-	// SimLayer°¡ ¼Ò¸êÇÒ¶§ ¸â¹ö·Î °¡Áö°í ÀÖ´ø ThreadManagerµéµµ Á×ÀÌÀÚ!
+	// SimLayerï¿½ï¿½ ï¿½Ò¸ï¿½ï¿½Ò¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ThreadManagerï¿½éµµ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!
 	m_vecpThreadMgr.clear();
 	//}}
 
     KActorManager::ReleaseKObj();
 }
 
-//{{ 2009. 7. 13  ÃÖÀ°»ç	ÇÏµåÄÚµù Á¦°Å
+//{{ 2009. 7. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ïµï¿½ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 void KSimLayer::AddPath( const char* pStrPath )
 {
 	KAutoPath::AddPath( std::string( pStrPath ) );
 }
 //}}
 
-//{{ 2009. 12. 15  ÃÖÀ°»ç	¼­¹ö°ü¸®
+//{{ 2009. 12. 15  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void KSimLayer::DumpToLogFile()
 {
 	std::wstringstream wstrDump;
@@ -175,7 +181,7 @@ void KSimLayer::DumpToLogFile()
 void KSimLayer::RegToLua()
 {
 	lua_tinker::class_add<KSimLayer>( g_pLua, "KSimLayer" );
-	//{{ 2012. 05. 10	ÃÖÀ°»ç	¼­¹ö ¹öÀü
+	//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//#ifdef SERV_VERSION_FLAG
 	lua_tinker::class_def<KSimLayer>( g_pLua, "GetVersionFlag",		&KSimLayer::GetVersionFlag );
 	lua_tinker::class_def<KSimLayer>( g_pLua, "SetVersionFlag",		&KSimLayer::SetVersionFlag );
@@ -195,10 +201,10 @@ void KSimLayer::RegToLua()
 	lua_tinker::class_def<KSimLayer>( g_pLua, "SetHanInitFlag",		&KSimLayer::SetHanInitFlag );
 #endif //SERV_COUNTRY_JP
 
-	//{{ 2009. 7. 13  ÃÖÀ°»ç	ÇÏµåÄÚµù Á¦°Å
+	//{{ 2009. 7. 13  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ïµï¿½ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
 	lua_tinker::class_def<KSimLayer>( g_pLua, "AddPath",			&KSimLayer::AddPath );
 	//}}	
-	//{{ 2011.11.17 ÀÓÈ«¶ô À¯·´ ¼­¹ö ´ÜÀÏÈ­
+	//{{ 2011.11.17 ï¿½ï¿½È«ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­
 #ifdef SERV_USE_NATION_FLAG
 	lua_tinker::class_def<KSimLayer>( g_pLua, "GetNationFlag",		&KSimLayer::GetDwNationFlag );
 	lua_tinker::class_def<KSimLayer>( g_pLua, "SetNationFlag",		&KSimLayer::SetDwNationFlag );
@@ -224,7 +230,7 @@ void KSimLayer::RegToLua()
 	lua_tinker::decl( g_pLua, "NF_BR",					KSimLayer::NF_BR );
 	lua_tinker::decl( g_pLua, "NF_PH",					KSimLayer::NF_PH );
 #endif SERV_USE_NATION_FLAG
-	//}} 2011.11.17 ÀÓÈ«¶ô À¯·´ ¼­¹ö ´ÜÀÏÈ­
+	//}} 2011.11.17 ï¿½ï¿½È«ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­
 
 #ifdef SERV_KOG_OTP_VERIFY
 	lua_tinker::class_def<KSimLayer>( g_pLua, "SetUseKogOTP",		&KSimLayer::SetUseKogOTP );
@@ -241,7 +247,7 @@ void KSimLayer::RegToLua()
 	lua_tinker::class_def<KSimLayer>( g_pLua, "SetCheckCouponByPublisher",		&KSimLayer::SetCheckCouponByPublisher );
 #endif // SERV_GLOBAL_BILLING
 
-	//{{ 2012. 05. 10	ÃÖÀ°»ç	¼­¹ö ¹öÀü
+	//{{ 2012. 05. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//#ifdef SERV_VERSION_FLAG
 	lua_tinker::decl( g_pLua, "VF_INTERNAL",			KSimLayer::VF_INTERNAL );
 	lua_tinker::decl( g_pLua, "VF_OPEN_TEST",			KSimLayer::VF_OPEN_TEST );
@@ -250,7 +256,7 @@ void KSimLayer::RegToLua()
 	//}}
 	lua_tinker::decl( g_pLua, "CF_NPGG",				KSimLayer::CF_NPGG );
 	lua_tinker::decl( g_pLua, "CF_CHECK_IP",			KSimLayer::CF_CHECK_IP );
-	//{{ 2009. 8. 18  ÃÖÀ°»ç	hack shield
+	//{{ 2009. 8. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	hack shield
 	lua_tinker::decl( g_pLua, "CF_HSHIELD",				KSimLayer::CF_HSHIELD );
 	//}}
 #ifdef SERV_USE_XTRAP

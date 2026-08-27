@@ -2,7 +2,7 @@
 #include "X2Data/XSLUnit.h"
 
 //////////////////////////////////////////////////////////////////////////
-//{{ 2011. 11. 21  ±è¹Î¼º	ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ
+//{{ 2011. 11. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_UNIT_CLASS_CHANGE_ITEM
 //////////////////////////////////////////////////////////////////////////
 
@@ -58,12 +58,12 @@ ImplementLuaScriptParser( KClassChangeTable )
 	lua_tinker::decl( GetLuaState(), "ClassChangeTable", this );
 }
 
-// Á÷¾÷º° ±×·ìid µî·Ï
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½id ï¿½ï¿½ï¿½
 void KClassChangeTable::SetClassGroupID_Lua( IN int iClassGroup, IN int iUnitClass )
 {
 	if( iClassGroup <= 0 || iUnitClass <= CXSLUnit::UC_NONE || iUnitClass >= CXSLUnit::UC_MAX )
 	{
-		START_LOG( cerr, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ Á÷¾÷°ü·Ã ½ºÅ©¸³Æ® ÆÄ½Ì ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iClassGroup )
 			<< BUILD_LOG( iUnitClass )
 			<< END_LOG;
@@ -73,7 +73,7 @@ void KClassChangeTable::SetClassGroupID_Lua( IN int iClassGroup, IN int iUnitCla
 	std::map< int, int >::iterator mitClassGroupID = m_mapClassGroupID.find( iUnitClass );
 	if( mitClassGroupID != m_mapClassGroupID.end() )
 	{
-		START_LOG( cerr, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ Á÷¾÷°ü·Ã Áßº¹ ÆÄ½Ì!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!" )
 			<< BUILD_LOG( iClassGroup )
 			<< BUILD_LOG( iUnitClass )
 			<< END_LOG;
@@ -95,7 +95,7 @@ void KClassChangeTable::SetClassGroupID_Lua( IN int iClassGroup, IN int iUnitCla
 		std::vector< int >::iterator vit = mitGroupID->second.begin();
 		if( vit == mitGroupID->second.end() )
 		{
-			START_LOG( cerr, L"ClassGroupID ¿¡ µ¥ÀÌÅÍ°¡ ÀÖ´Ù°í Çß´Âµ¥....ºñ¾îÀÖ´Ù. ´Ù½Ã ³ÖÀÚ!" )
+			START_LOG( cerr, L"ClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ö´Ù°ï¿½ ï¿½ß´Âµï¿½....ï¿½ï¿½ï¿½ï¿½Ö´ï¿½. ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iClassGroup )
 				<< BUILD_LOG( iUnitClass )
 				<< END_LOG;
@@ -105,23 +105,25 @@ void KClassChangeTable::SetClassGroupID_Lua( IN int iClassGroup, IN int iUnitCla
 		else
 		{
 			bool bRet = true;
+			//{{ Iruha : 2026-08-27 // VS2010 port: `vit != NULL` compared a vector iterator to
+			// NULL, which VC7.1's raw-pointer-backed iterator allowed; VC10's checked iterator
+			// type has no such comparison. The check was vacuous inside this loop (vit is
+			// always a valid, non-end iterator here), so it's dropped rather than replaced.
 			for( ; vit != mitGroupID->second.end() ; ++vit )
 			{
-				if( vit != NULL )
+				if( (*vit) == iUnitClass )
 				{
-					if( (*vit) == iUnitClass )
-					{
-						START_LOG( cerr, L"ClassGroupID ¿¡ µ¥ÀÌÅÍ°¡ ÀÖ´Ù°í Çß´Âµ¥....Áßº¹ µÇ¾î ÀÖ´Ù!" )
-							<< BUILD_LOG( iClassGroup )
-							<< BUILD_LOG( iUnitClass )
-							<< BUILD_LOG( (*vit) )
-							<< END_LOG;
+					START_LOG( cerr, L"ClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ö´Ù°ï¿½ ï¿½ß´Âµï¿½....ï¿½ßºï¿½ ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½!" )
+						<< BUILD_LOG( iClassGroup )
+						<< BUILD_LOG( iUnitClass )
+						<< BUILD_LOG( (*vit) )
+						<< END_LOG;
 
-						bRet = false;
-						break;
-					}
+					bRet = false;
+					break;
 				}
 			}
+			//}}
 
 			if( bRet == true )
 			{
@@ -131,12 +133,12 @@ void KClassChangeTable::SetClassGroupID_Lua( IN int iClassGroup, IN int iUnitCla
 	}
 }
 
-// ½ºÅ³
+// ï¿½ï¿½Å³
 void KClassChangeTable::SetClassChange_Skill_Lua( IN int iSkillGroup, IN int iSkill, IN int iUnitClass )
 {
 	if( iSkillGroup <= 0 || iSkill <= 0 || iUnitClass <= CXSLUnit::UC_NONE || iUnitClass >= CXSLUnit::UC_MAX )
 	{
-		START_LOG( cerr, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ ½ºÅ³°ü·Ã ½ºÅ©¸³Æ® ÆÄ½Ì ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iSkillGroup )
 			<< BUILD_LOG( iSkill )
 			<< BUILD_LOG( iUnitClass )
@@ -144,11 +146,11 @@ void KClassChangeTable::SetClassChange_Skill_Lua( IN int iSkillGroup, IN int iSk
 		return;
 	}
 
-	// ½ºÅ³º° ±×·ìid »ðÀÔ
+	// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½×·ï¿½id ï¿½ï¿½ï¿½ï¿½
 	std::map< int, int >::iterator mitSkillGroupID = m_mapSkillGroupID.find( iSkill );
 	if( mitSkillGroupID != m_mapSkillGroupID.end() )
 	{
-		START_LOG( clog, L"½ºÅ³ º° ±×·ì ¾ÆÀÌµð Áßº¹ ÆÄ½Ì!!! »óÀ§ Á÷Á¾Àº ÇÏÀ§ Á÷Á¾ÀÇ ½ºÅ³À» °¡Áú ¼ö ÀÖÀ¸¹Ç·Î ¿À·ù°¡ ¾Æ´Ï´Ù" )
+		START_LOG( clog, L"ï¿½ï¿½Å³ ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!!! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï´ï¿½" )
 			<< BUILD_LOG( iSkillGroup )
 			<< BUILD_LOG( iSkill )
 			<< BUILD_LOG( iUnitClass )
@@ -159,7 +161,7 @@ void KClassChangeTable::SetClassChange_Skill_Lua( IN int iSkillGroup, IN int iSk
 		m_mapSkillGroupID.insert( std::make_pair( iSkill, iSkillGroup ) );
 	}
 
-	// ½ÇÁ¦ ½ºÅ³ ¸ñ·ÏÀ» ÀúÀå ÇÒ ÄÁÅ×ÀÌ³Ê¿¡ »ðÀÔ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 	std::map< int, std::map< int, int > >::iterator mit = m_mapClassChangeSkill.find( iSkillGroup );
 	if( mit == m_mapClassChangeSkill.end() )
 	{
@@ -173,7 +175,7 @@ void KClassChangeTable::SetClassChange_Skill_Lua( IN int iSkillGroup, IN int iSk
 		std::map< int, int >::iterator mitGroup = mit->second.find( iUnitClass );
 		if( mitGroup != mit->second.end() )
 		{
-			START_LOG( clog, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ ½ºÅ³°ü·Ã Áßº¹ ÆÄ½Ì!" )
+			START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!" )
 				<< BUILD_LOG( iSkillGroup )
 				<< BUILD_LOG( iSkill )
 				<< BUILD_LOG( iUnitClass )
@@ -185,12 +187,12 @@ void KClassChangeTable::SetClassChange_Skill_Lua( IN int iSkillGroup, IN int iSk
 	}
 }
 
-// ¸Þ¸ð
+// ï¿½Þ¸ï¿½
 void KClassChangeTable::SetClassChange_Memo_Lua( IN int iMemoGroup, IN int iMemo, IN int iUnitClass )
 {
 	if( iMemoGroup < 0 || iMemo <= 0 || iUnitClass <= CXSLUnit::UC_NONE || iUnitClass >= CXSLUnit::UC_MAX )
 	{
-		START_LOG( cerr, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ ¸Þ¸ð°ü·Ã ½ºÅ©¸³Æ® ÆÄ½Ì ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iMemoGroup )
 			<< BUILD_LOG( iMemo )
 			<< BUILD_LOG( iUnitClass )
@@ -198,11 +200,11 @@ void KClassChangeTable::SetClassChange_Memo_Lua( IN int iMemoGroup, IN int iMemo
 		return;
 	}
 
-	// ¸Þ¸ðº° ±×·ìid »ðÀÔ
+	// ï¿½Þ¸ï¿½ ï¿½×·ï¿½id ï¿½ï¿½ï¿½ï¿½
 	std::map< int, int >::iterator mitMemoGroupID = m_mapMemoGroupID.find( iMemo );
 	if( mitMemoGroupID != m_mapMemoGroupID.end() )
 	{
-		START_LOG( clog, L"¸Þ¸ð º° ±×·ì ¾ÆÀÌµð Áßº¹ ÆÄ½Ì!!!" )
+		START_LOG( clog, L"ï¿½Þ¸ï¿½ ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!!!" )
 			<< BUILD_LOG( iMemoGroup )
 			<< BUILD_LOG( iMemo )
 			<< BUILD_LOG( iUnitClass )
@@ -213,7 +215,7 @@ void KClassChangeTable::SetClassChange_Memo_Lua( IN int iMemoGroup, IN int iMemo
 		m_mapMemoGroupID.insert( std::make_pair( iMemo, iMemoGroup ) );
 	}
 
-	// ½ÇÁ¦ ¸Þ¸ð ¸ñ·ÏÀ» ÀúÀå ÇÒ ÄÁÅ×ÀÌ³Ê¿¡ »ðÀÔ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 	std::map< int, std::map< int, int > >::iterator mit = m_mapClassChangeMemo.find( iMemoGroup );
 	if( mit == m_mapClassChangeMemo.end() )
 	{
@@ -227,7 +229,7 @@ void KClassChangeTable::SetClassChange_Memo_Lua( IN int iMemoGroup, IN int iMemo
 		std::map< int, int >::iterator mitGroup = mit->second.find( iUnitClass );
 		if( mitGroup != mit->second.end() )
 		{
-			START_LOG( cerr, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ ¸Þ¸ð°ü·Ã Áßº¹ ÆÄ½Ì!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!" )
 				<< BUILD_LOG( iMemoGroup )
 				<< BUILD_LOG( iMemo )
 				<< BUILD_LOG( iUnitClass )
@@ -239,12 +241,12 @@ void KClassChangeTable::SetClassChange_Memo_Lua( IN int iMemoGroup, IN int iMemo
 	}
 }
 
-// ±³º» ¹× Ä³½¬ ¾ÆÀÌÅÛ
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void KClassChangeTable::SetClassChange_InventoryItem_Lua( IN int iItemGroup, IN int iItem, IN int iUnitClass )
 {
 	if( iItemGroup < 0 || iItem <= 0 || iUnitClass <= CXSLUnit::UC_NONE || iUnitClass >= CXSLUnit::UC_MAX )
 	{
-		START_LOG( cerr, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ ¸Þ¸ð°ü·Ã ½ºÅ©¸³Æ® ÆÄ½Ì ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iItemGroup )
 			<< BUILD_LOG( iItem )
 			<< BUILD_LOG( iUnitClass )
@@ -252,11 +254,11 @@ void KClassChangeTable::SetClassChange_InventoryItem_Lua( IN int iItemGroup, IN 
 		return;
 	}
 
-	// ½ºÅ³º° ±×·ìid »ðÀÔ
+	// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½×·ï¿½id ï¿½ï¿½ï¿½ï¿½
 	std::map< int, int >::iterator mitItemGroupID = m_mapItemGroupID.find( iItem );
 	if( mitItemGroupID != m_mapItemGroupID.end() )
 	{
-		START_LOG( clog, L"¾ÆÀÌÅÛ º° ±×·ì ¾ÆÀÌµð Áßº¹ ÆÄ½Ì!!!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!!!" )
 			<< BUILD_LOG( iItemGroup )
 			<< BUILD_LOG( iItem )
 			<< BUILD_LOG( iUnitClass )
@@ -267,7 +269,7 @@ void KClassChangeTable::SetClassChange_InventoryItem_Lua( IN int iItemGroup, IN 
 		m_mapItemGroupID.insert( std::make_pair( iItem, iItemGroup ) );
 	}
 
-	// ½ÇÁ¦ ¸Þ¸ð ¸ñ·ÏÀ» ÀúÀå ÇÒ ÄÁÅ×ÀÌ³Ê¿¡ »ðÀÔ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 	std::map< int, std::map< int, int > >::iterator mit = m_mapClassChangeItem.find( iItemGroup );
 	if( mit == m_mapClassChangeItem.end() )
 	{
@@ -281,7 +283,7 @@ void KClassChangeTable::SetClassChange_InventoryItem_Lua( IN int iItemGroup, IN 
 		std::map< int, int >::iterator mitGroup = mit->second.find( iUnitClass );
 		if( mitGroup != mit->second.end() )
 		{
-			START_LOG( cerr, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ ¸Þ¸ð°ü·Ã Áßº¹ ÆÄ½Ì!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!" )
 				<< BUILD_LOG( iItemGroup )
 				<< BUILD_LOG( iItem )
 				<< BUILD_LOG( iUnitClass )
@@ -293,12 +295,12 @@ void KClassChangeTable::SetClassChange_InventoryItem_Lua( IN int iItemGroup, IN 
 	}
 }
 
-// Äù½ºÆ®
+// ï¿½ï¿½ï¿½ï¿½Æ®
 void KClassChangeTable::SetClassChange_Quest_Lua( IN int iQuestGroup, IN int iQuest, IN int iUnitClass )
 {
 	if( iQuestGroup <= 0 || iQuest <= 0 || iUnitClass <= CXSLUnit::UC_NONE || iUnitClass >= CXSLUnit::UC_MAX )
 	{
-		START_LOG( cerr, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ ¸Þ¸ð°ü·Ã ½ºÅ©¸³Æ® ÆÄ½Ì ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( iQuestGroup )
 			<< BUILD_LOG( iQuest )
 			<< BUILD_LOG( iUnitClass )
@@ -306,11 +308,11 @@ void KClassChangeTable::SetClassChange_Quest_Lua( IN int iQuestGroup, IN int iQu
 		return;
 	}
 
-	// ½ºÅ³º° ±×·ìid »ðÀÔ
+	// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½×·ï¿½id ï¿½ï¿½ï¿½ï¿½
 	std::map< int, int >::iterator mitQuestGroupID = m_mapQuestGroupID.find( iQuest );
 	if( mitQuestGroupID != m_mapQuestGroupID.end() )
 	{
-		START_LOG( clog, L"½ºÅ³ º° ±×·ì ¾ÆÀÌµð Áßº¹ ÆÄ½Ì!!!" )
+		START_LOG( clog, L"ï¿½ï¿½Å³ ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!!!" )
 			<< BUILD_LOG( iQuestGroup )
 			<< BUILD_LOG( iQuest )
 			<< BUILD_LOG( iUnitClass )
@@ -321,7 +323,7 @@ void KClassChangeTable::SetClassChange_Quest_Lua( IN int iQuestGroup, IN int iQu
 		m_mapQuestGroupID.insert( std::make_pair( iQuest, iQuestGroup ) );
 	}
 
-	// ½ÇÁ¦ ¸Þ¸ð ¸ñ·ÏÀ» ÀúÀå ÇÒ ÄÁÅ×ÀÌ³Ê¿¡ »ðÀÔ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 	std::map< int, std::map< int, int > >::iterator mit = m_mapClassChangeQuest.find( iQuestGroup );
 	if( mit == m_mapClassChangeQuest.end() )
 	{
@@ -335,7 +337,7 @@ void KClassChangeTable::SetClassChange_Quest_Lua( IN int iQuestGroup, IN int iQu
 		std::map< int, int >::iterator mitGroup = mit->second.find( iUnitClass );
 		if( mitGroup != mit->second.end() )
 		{
-			START_LOG( clog, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ ¸Þ¸ð°ü·Ã Áßº¹ ÆÄ½Ì!" )
+			START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!" )
 				<< BUILD_LOG( iQuestGroup )
 				<< BUILD_LOG( iQuest )
 				<< BUILD_LOG( iUnitClass )
@@ -346,7 +348,7 @@ void KClassChangeTable::SetClassChange_Quest_Lua( IN int iQuestGroup, IN int iQu
 		mit->second.insert( std::make_pair( iUnitClass, iQuest ) );
 	}
 
-	// UnitClass º°·Î µ¥ÀÌÅÍ¸¦ Ãß°¡ ÇÏÀÚ
+	// UnitClass ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½
 	mit = m_mapClassChangeQuestList.find( iUnitClass );
 	if( mit == m_mapClassChangeQuestList.end() )
 	{
@@ -360,7 +362,7 @@ void KClassChangeTable::SetClassChange_Quest_Lua( IN int iQuestGroup, IN int iQu
 		std::map< int, int >::iterator mitGroup = mit->second.find( iQuest );
 		if( mitGroup != mit->second.end() )
 		{
-			START_LOG( cerr, L"Á÷¾÷ º¯°æ¿¡ ÇÊ¿äÇÑ ¸Þ¸ð°ü·Ã Áßº¹ ÆÄ½Ì!" )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½Ä½ï¿½!" )
 				<< BUILD_LOG( iQuestGroup )
 				<< BUILD_LOG( iQuest )
 				<< BUILD_LOG( iUnitClass )
@@ -376,7 +378,7 @@ void KClassChangeTable::SetClassChange_DelQuest_Lua( IN int iQuest )
 {
 	if( iQuest <= 0 )
 	{
-		START_LOG( cerr, L"Àß¸øµÈ Quest ÀÔ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ß¸ï¿½ï¿½ï¿½ Quest ï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iQuest )
 			<< END_LOG;
 	}
@@ -384,7 +386,7 @@ void KClassChangeTable::SetClassChange_DelQuest_Lua( IN int iQuest )
 	std::set<int>::iterator sit = m_setClassChangeDeleteQuest.find( iQuest );
 	if( sit != m_setClassChangeDeleteQuest.end() )
 	{
-		START_LOG( cerr, L"Áßº¹µÈ Quest ÀÔ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ßºï¿½ï¿½ï¿½ Quest ï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iQuest )
 			<< END_LOG;
 		return;
@@ -400,7 +402,7 @@ bool KClassChangeTable::GetClassGroupID( IN int& iClass, OUT int& iClassGroupID 
 	std::map< int, int >::iterator mit = m_mapClassGroupID.find( iClass );
 	if( mit == m_mapClassGroupID.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iClass¿¡ ÇØ´çÇÏ´Â iClassGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iClassï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ iClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iClass )
 			<< BUILD_LOG( iClassGroupID )
 			<< END_LOG;
@@ -418,7 +420,7 @@ bool KClassChangeTable::GetSkillGroupID( IN int& iSkill, OUT int& iSkillGroupID 
 	std::map< int, int >::iterator mit = m_mapSkillGroupID.find( iSkill );
 	if( mit == m_mapSkillGroupID.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iSkill¿¡ ÇØ´çÇÏ´Â iClassGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iSkillï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ iClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iSkill )
 			<< BUILD_LOG( iSkillGroupID )
 			<< END_LOG;
@@ -436,7 +438,7 @@ bool KClassChangeTable::GetMemoGroupID( IN int& iMemo, OUT int& iMemoGroupID )
 	std::map< int, int >::iterator mit = m_mapMemoGroupID.find( iMemo );
 	if( mit == m_mapMemoGroupID.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iMemo¿¡ ÇØ´çÇÏ´Â iClassGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iMemoï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ iClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iMemo )
 			<< BUILD_LOG( iMemoGroupID )
 			<< END_LOG;
@@ -454,7 +456,7 @@ bool KClassChangeTable::GetItemGroupID( IN int& iItem, OUT int& iItemGroupID )
 	std::map< int, int >::iterator mit = m_mapItemGroupID.find( iItem );
 	if( mit == m_mapItemGroupID.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iItem¿¡ ÇØ´çÇÏ´Â iClassGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iItemï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ iClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iItem )
 			<< BUILD_LOG( iItemGroupID )
 			<< END_LOG;
@@ -472,7 +474,7 @@ bool KClassChangeTable::GetQuestGroupID( IN int& iQuest, OUT int& iQuestGroupID 
 	std::map< int, int >::iterator mit = m_mapQuestGroupID.find( iQuest );
 	if( mit == m_mapQuestGroupID.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iQuest¿¡ ÇØ´çÇÏ´Â iClassGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iQuestï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ iClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iQuest )
 			<< BUILD_LOG( iQuestGroupID )
 			<< END_LOG;
@@ -490,7 +492,7 @@ bool KClassChangeTable::GetUnitClassList( IN int& iClassGroupID, OUT std::vector
 	std::map< int, std::vector< int > >::iterator mit = m_mapUnitClassGroupID.find( iClassGroupID );
 	if( mit == m_mapUnitClassGroupID.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iClassGroupID¿¡ ÇØ´çÇÏ´Â ClassList °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iClassGroupIDï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ClassList ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iClassGroupID )
 			<< END_LOG;
 		return false;
@@ -508,7 +510,7 @@ bool KClassChangeTable::GetClassChange_NewSkill( IN int& iNewUnitClass, IN int& 
 
 	if( GetSkillGroupID( iOldSkill, iOldSkillGroupID ) == false )
 	{
-		START_LOG( cerr, L"ÇØ´ç iSkill¿¡ ÇØ´çÇÏ´Â iSkillGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( cerr, L"ï¿½Ø´ï¿½ iSkillï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ iSkillGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldSkill )
 			<< BUILD_LOG( iNewSkill )
@@ -519,7 +521,7 @@ bool KClassChangeTable::GetClassChange_NewSkill( IN int& iNewUnitClass, IN int& 
 	std::map< int, std::map< int, int > >::const_iterator mit = m_mapClassChangeSkill.find( iOldSkillGroupID );
 	if( mit == m_mapClassChangeSkill.end() )
 	{
-		START_LOG( cerr, L"ÇØ´ç iSkill¿¡ ÇØ´çÇÏ´Â SkillList °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( cerr, L"ï¿½Ø´ï¿½ iSkillï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ SkillList ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldSkill )
 			<< BUILD_LOG( iNewSkill )
@@ -531,7 +533,7 @@ bool KClassChangeTable::GetClassChange_NewSkill( IN int& iNewUnitClass, IN int& 
 	std::map< int, int >::const_iterator mitList = mit->second.find( iNewUnitClass );
 	if( mitList == mit->second.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iNewUnitClass¿¡ ÇØ´çÇÏ´Â NewSkill °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iNewUnitClassï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ NewSkill ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldSkill )
 			<< BUILD_LOG( iNewSkill )
@@ -553,7 +555,7 @@ bool KClassChangeTable::GetClassChange_NewMemo( IN int& iNewUnitClass, IN int& i
 
 	if( GetMemoGroupID( iOldMemo, iOldMemoGroupID ) == false )
 	{
-		START_LOG( clog, L"ÇØ´ç iClass¿¡ ÇØ´çÇÏ´Â iClassGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iClassï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ iClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldMemo )
 			<< BUILD_LOG( iNewMemo )
@@ -564,7 +566,7 @@ bool KClassChangeTable::GetClassChange_NewMemo( IN int& iNewUnitClass, IN int& i
 	std::map< int, std::map< int, int > >::const_iterator mit = m_mapClassChangeMemo.find( iOldMemoGroupID );
 	if( mit == m_mapClassChangeMemo.end() )
 	{
-		START_LOG( cerr, L"ÇØ´ç iMemo¿¡ ÇØ´çÇÏ´Â MemoList °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( cerr, L"ï¿½Ø´ï¿½ iMemoï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ MemoList ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldMemo )
 			<< BUILD_LOG( iNewMemo )
@@ -576,7 +578,7 @@ bool KClassChangeTable::GetClassChange_NewMemo( IN int& iNewUnitClass, IN int& i
 	std::map< int, int >::const_iterator mitList = mit->second.find( iNewUnitClass );
 	if( mitList == mit->second.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iNewUnitClass¿¡ ÇØ´çÇÏ´Â NewMemo °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iNewUnitClassï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ NewMemo ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldMemo )
 			<< BUILD_LOG( iNewMemo )
@@ -598,7 +600,7 @@ bool KClassChangeTable::GetClassChange_NewItem( IN int& iNewUnitClass, IN int& i
 
 	if( GetItemGroupID( iOldItem, iOldItemGroupID ) == false )
 	{
-		START_LOG( clog, L"ÇØ´ç iClass¿¡ ÇØ´çÇÏ´Â iClassGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iClassï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ iClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldItem )
 			<< BUILD_LOG( iNewItem )
@@ -609,7 +611,7 @@ bool KClassChangeTable::GetClassChange_NewItem( IN int& iNewUnitClass, IN int& i
 	std::map< int, std::map< int, int > >::const_iterator mit = m_mapClassChangeItem.find( iOldItemGroupID );
 	if( mit == m_mapClassChangeItem.end() )
 	{
-		START_LOG( cerr, L"ÇØ´ç iItem¿¡ ÇØ´çÇÏ´Â ItemList °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( cerr, L"ï¿½Ø´ï¿½ iItemï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ItemList ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldItem )
 			<< BUILD_LOG( iNewItem )
@@ -621,7 +623,7 @@ bool KClassChangeTable::GetClassChange_NewItem( IN int& iNewUnitClass, IN int& i
 	std::map< int, int >::const_iterator mitList = mit->second.find( iNewUnitClass );
 	if( mitList == mit->second.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iNewUnitClass¿¡ ÇØ´çÇÏ´Â NewItem °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iNewUnitClassï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ NewItem ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldItem )
 			<< BUILD_LOG( iNewItem )
@@ -643,7 +645,7 @@ bool KClassChangeTable::GetClassChange_NewQuest( IN int& iNewUnitClass, IN int& 
 
 	if( GetQuestGroupID( iOldQuest, iOldQuestGroupID ) == false )
 	{
-		START_LOG( clog, L"ÇØ´ç iClass¿¡ ÇØ´çÇÏ´Â iClassGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iClassï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ iClassGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldQuest )
 			<< BUILD_LOG( iNewQuest )
@@ -654,7 +656,7 @@ bool KClassChangeTable::GetClassChange_NewQuest( IN int& iNewUnitClass, IN int& 
 	std::map< int, std::map< int, int > >::const_iterator mit = m_mapClassChangeQuest.find( iOldQuestGroupID );
 	if( mit == m_mapClassChangeQuest.end() )
 	{
-		START_LOG( cerr, L"ÇØ´ç iQuest¿¡ ÇØ´çÇÏ´Â QuestList °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( cerr, L"ï¿½Ø´ï¿½ iQuestï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ QuestList ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldQuest )
 			<< BUILD_LOG( iNewQuest )
@@ -666,7 +668,7 @@ bool KClassChangeTable::GetClassChange_NewQuest( IN int& iNewUnitClass, IN int& 
 	std::map< int, int >::const_iterator mitList = mit->second.find( iNewUnitClass );
 	if( mitList == mit->second.end() )
 	{
-		START_LOG( clog, L"ÇØ´ç iNewUnitClass¿¡ ÇØ´çÇÏ´Â NewQuest °¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù!" )
+		START_LOG( clog, L"ï¿½Ø´ï¿½ iNewUnitClassï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ NewQuest ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½!" )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iOldQuest )
 			<< BUILD_LOG( iNewQuest )
@@ -686,7 +688,7 @@ bool KClassChangeTable::GetClassQuestList( IN int& iUnitClass, OUT std::map< int
 
 	if( iUnitClass <= CXSLUnit::UC_NONE || iUnitClass >= CXSLUnit::UC_MAX )
 	{
-		START_LOG( cerr, L"Á¸ÀçÇÏÁö ¾Ê´Â UnitClass ÀÔ´Ï´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ UnitClass ï¿½Ô´Ï´ï¿½." )
 			<< BUILD_LOG( iUnitClass )
 			<< END_LOG;
 		return false;
@@ -695,7 +697,7 @@ bool KClassChangeTable::GetClassQuestList( IN int& iUnitClass, OUT std::map< int
 	std::map< int, std::map< int, int > >::const_iterator mit = m_mapClassChangeQuestList.find( iUnitClass );
 	if( mit == m_mapClassChangeQuestList.end() )
 	{
-		START_LOG( cerr, L"µ¥ÀÌÅÍ°¡ ¾ø´Ù? Á¸ÀçÇÏÁö ¾Ê´Â UnitClass ÀÎ°¡? ¾Æ´Ï¸é ½ºÅ©¸³Æ®°¡ ºüÁ®ÀÖ³ª?" )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ UnitClass ï¿½Î°ï¿½? ï¿½Æ´Ï¸ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö³ï¿½?" )
 			<< BUILD_LOG( iUnitClass )
 			<< END_LOG;
 		return false;
@@ -712,7 +714,7 @@ bool KClassChangeTable::CompareUnitClass( IN int& iNowUnitClass, IN int& iNewUni
 	int iNewGroupID = 0;
 	if( GetClassGroupID( iNowUnitClass, iNowGroupID ) == false )
 	{
-		START_LOG( cerr, L"UnitGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â iNowGroupID ÀÌ´Ù." )
+		START_LOG( cerr, L"UnitGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ iNowGroupID ï¿½Ì´ï¿½." )
 			<< BUILD_LOG( iNowUnitClass )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iNowGroupID )
@@ -723,7 +725,7 @@ bool KClassChangeTable::CompareUnitClass( IN int& iNowUnitClass, IN int& iNewUni
 	}
 	if( GetClassGroupID( iNewUnitClass, iNewGroupID ) == false )
 	{
-		START_LOG( cerr, L"UnitGroupID °¡ Á¸ÀçÇÏÁö ¾Ê´Â iNewGroupID ÀÌ´Ù." )
+		START_LOG( cerr, L"UnitGroupID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ iNewGroupID ï¿½Ì´ï¿½." )
 			<< BUILD_LOG( iNowUnitClass )
 			<< BUILD_LOG( iNewUnitClass )
 			<< BUILD_LOG( iNowGroupID )

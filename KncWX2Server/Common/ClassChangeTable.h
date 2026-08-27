@@ -4,10 +4,11 @@
 #include "RefreshSingleton.h"
 #include <map>
 #include <vector>
+#include <set>	// Iruha : 2026-08-27 // VS2010 port: was pulled in transitively under VC7.1; needed explicitly now
 //#include "ServerDefine.h"
 
 
-//{{ 2011. 11. 21  ±è¹Î¼º	ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ
+//{{ 2011. 11. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_UNIT_CLASS_CHANGE_ITEM
 
 class KClassChangeTable
@@ -22,23 +23,23 @@ public:
 	KClassChangeTable();
 	~KClassChangeTable();
 
-// ½ºÅ©¸³Æ® ÆÄ½Ì ÇÔ¼ö
-	// Á÷¾÷º° ±×·ìid µî·Ï
+// ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Ä½ï¿½ ï¿½Ô¼ï¿½
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½id ï¿½ï¿½ï¿½
 	void SetClassGroupID_Lua( IN int iClassGroup, IN int iUnitClass );
 
-	// ÀåÂø½ºÅ³ ¸ÊÇÎ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
 	void SetClassChange_Skill_Lua( IN int iSkillGroup, IN int iSkill, IN int iUnitClass );
 	
-	// ÀåÂø¸Þ¸ð ¸ÊÇÎ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	void SetClassChange_Memo_Lua( IN int iMemoGroup, IN int iMemo, IN int iUnitClass );
 	
-	// ÀÎº¥Åä¸® ³» ±³º», Ä³½¬¸Þ¸ð ¸ÊÇÎ
+	// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, Ä³ï¿½ï¿½ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	void SetClassChange_InventoryItem_Lua( IN int iItemGroup, IN int iItem, IN int iUnitClass );
 	
-	// ¼öÇà Áß Äù½ºÆ® ¸ÊÇÎ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	void SetClassChange_Quest_Lua( IN int iQuestGroup, IN int iQuest, IN int iUnitClass );
 	
-	// »èÁ¦ ÇØ¾ß ÇÒ Äù½ºÆ® ¸ÊÇÎ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	void SetClassChange_DelQuest_Lua( IN int iQuest );
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,29 +62,29 @@ public:
 	void GetClassChangeDeleteQuest( OUT std::set<int>& setQuest )	{	setQuest = m_setClassChangeDeleteQuest;	}
 
 private:
-	// ClassChange °¡´ÉÇÑ Á÷¾÷À» ¸ð¾ÆµÒ
+	// ClassChange ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æµï¿½
 	std::map< int, int >								m_mapClassGroupID;			// std::map< iClass, iClassGroup >
 	std::map< int, std::vector< int > >					m_mapUnitClassGroupID;		// std::map< iClassGroup, std::vector< iClass > >
 
-	// ÀåÂø½ºÅ³ ¸ÊÇÎ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
 	std::map< int, int >								m_mapSkillGroupID;			// std::map< iSkill, iClassGroup >
 	std::map< int, std::map< int, int > >				m_mapClassChangeSkill;		// std::map< iSkillGroup, std::map< iUnitClass, iSkill >>
 
-	// ÀåÂø¸Þ¸ð ¸ÊÇÎ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	std::map< int, int >								m_mapMemoGroupID;			// std::map< iMemo, iClassGroup >
 	std::map< int, std::map< int, int > >				m_mapClassChangeMemo;		// std::map< iMemoGroup, std::map< iUnitClass, iMemo >>
 
-	// ÀÎº¥Åä¸® ³» item ¸ÊÇÎ
+	// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ item ï¿½ï¿½ï¿½ï¿½
 	std::map< int, int >								m_mapItemGroupID;			// std::map< iItem, iClassGroup >
 	std::map< int, std::map< int, int > >				m_mapClassChangeItem;		// std::map< iItemGroup, std::map< iUnitClass, iItem >>
 
-	// ¼öÇà Áß Äù½ºÆ® ¸ÊÇÎ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	std::map< int, int >								m_mapQuestGroupID;			// std::map< iQuest, iClassGroup >
 	std::map< int, std::map< int, int > >				m_mapClassChangeQuest;		// std::map< iQuestGroup, std::map< iUnitClass, iQuest >>
 	std::map< int, std::map< int, int > >				m_mapClassChangeQuestList;	// std::map< iUnitClass, std::map< iQuest, iQuestGroup >>
 
-	// »èÁ¦ ÇØ¾ß ÇÒ Äù½ºÆ® ¸ÊÇÎ
-	std::set< int >										m_setClassChangeDeleteQuest; // »èÁ¦°¡ ÇÊ¿äÇÑ Äù½ºÆ®
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	std::set< int >										m_setClassChangeDeleteQuest; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 	
 };
 

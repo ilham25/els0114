@@ -8,7 +8,7 @@
 
 #ifdef SERV_COUNTRY_TWHK
 
-//{{ 2011.7.12 ÁöÇå : Gash Æ÷ÀÎÆ® ÅëÇÕ
+//{{ 2011.7.12 ï¿½ï¿½ï¿½ï¿½ : Gash ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_BILLING_ADD_GASH_POINT
 
 DWORD KGASHBillingTCPManager::ms_dwConnectionCheckGap[] = { 15 * 1000,  15 * 1000  };
@@ -80,22 +80,25 @@ void KGASHBillingTCPManager::Init( int nThreadNum )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// thread setting : recv´Â recvfrom() ÇÔ¼ö¿¡¼­ ¾Ë¾Æ¼­ blockµÈ´Ù.
+	// thread setting : recvï¿½ï¿½ recvfrom() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¼ï¿½ blockï¿½È´ï¿½.
+	//{{ Iruha : 2026-08-27 // VS2010 port: bare Class::Method as a member-function pointer
+	// was a VC7.1 extension; VC10 requires the explicit &.
 	m_spThreadRecv[GP_AUTHORIZATION] = boost::shared_ptr< KTThread< KGASHBillingTCPManager > >
-		( new KTThread< KGASHBillingTCPManager >( *this, KGASHBillingTCPManager::RecvFromAuthorization, 50 ) );
+		( new KTThread< KGASHBillingTCPManager >( *this, &KGASHBillingTCPManager::RecvFromAuthorization, 50 ) );
 
 	m_spThreadSend[GP_AUTHORIZATION] = boost::shared_ptr< KTThread< KGASHBillingTCPManager > >
-		( new KTThread< KGASHBillingTCPManager >( *this, KGASHBillingTCPManager::SendToAuthorization, 100 ) );
+		( new KTThread< KGASHBillingTCPManager >( *this, &KGASHBillingTCPManager::SendToAuthorization, 100 ) );
 
 	m_spThreadRecv[GP_ACCOUNTING] = boost::shared_ptr< KTThread< KGASHBillingTCPManager > >
-		( new KTThread< KGASHBillingTCPManager >( *this, KGASHBillingTCPManager::RecvFromAccounting, 50 ) );
+		( new KTThread< KGASHBillingTCPManager >( *this, &KGASHBillingTCPManager::RecvFromAccounting, 50 ) );
 
 	m_spThreadSend[GP_ACCOUNTING] = boost::shared_ptr< KTThread< KGASHBillingTCPManager > >
-		( new KTThread< KGASHBillingTCPManager >( *this, KGASHBillingTCPManager::SendToAccounting, 100 ) );
+		( new KTThread< KGASHBillingTCPManager >( *this, &KGASHBillingTCPManager::SendToAccounting, 100 ) );
+	//}}
 
 	KThreadManager::Init( nThreadNum );
 
-	START_LOG(cout, L"GASH TCP Thread »ý¼º Çß´Ù!!")
+	START_LOG(cout, L"GASH TCP Thread ï¿½ï¿½ï¿½ï¿½ ï¿½ß´ï¿½!!")
 		<< BUILD_LOG( nThreadNum )
 		<< END_LOG;
 }
@@ -126,7 +129,7 @@ void KGASHBillingTCPManager::BeginThread()
 	{	
 		if( !Connect( iPortNum ) )
 		{
-			START_LOG( cerr, L"GASH ºô¸µ ¼­¹ö Á¢¼Ó ½ÇÆÐ." )
+			START_LOG( cerr, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 				<< END_LOG;
 		}
 	}
@@ -182,20 +185,20 @@ void KGASHBillingTCPManager::SendTo( int iPortEnum )
 	{
 		if( !spPacket )
 		{
-			START_LOG( cerr, L"Æ÷ÀÎÅÍ ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( m_kSendQueue[iPortEnum].size() )
 				<< END_LOG;
 
 			continue;
 		}
 
-		START_LOG( clog, L"º¸³»´Â ÆÐÅ¶" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶" )
 			<< BUILD_LOG( spPacket->c_str() )
 			<< END_LOG;
 
 		if( spPacket->size() > MAX_PACKET_SIZE_OF_GASH_AUTH )
 		{
-			START_LOG( cerr, L"ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( spPacket->size() )
 				<< END_LOG;
 
@@ -242,7 +245,7 @@ void KGASHBillingTCPManager::RecvFrom(int iPortEnum)
 		MAX_PACKET_SIZE_OF_GASH_AUTH - m_iRecvCP[iPortEnum],
 		0 );
 
-	START_LOG( clog, L"ÆÐÅ¶ ¹ÞÀ½." )
+	START_LOG( clog, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½." )
 		<< BUILD_LOG( ret );
 
 	if( ret == SOCKET_ERROR )
@@ -254,7 +257,7 @@ void KGASHBillingTCPManager::RecvFrom(int iPortEnum)
 
 	if( ret == 0 )
 	{
-		START_LOG( cerr, L"¼ÒÄÏ ¿¬°áÀÌ ²÷¾îÁü." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
 			<< END_LOG;
 
 		CLOSE_SOCKET( m_sock[iPortEnum] );
@@ -263,7 +266,7 @@ void KGASHBillingTCPManager::RecvFrom(int iPortEnum)
 
 	if( ret > MAX_PACKET_SIZE_OF_GASH_AUTH - m_iRecvCP[iPortEnum] )
 	{
-		START_LOG( cerr, L"Àü¼ÛµÈ Å©±â°¡ ³Ê¹« Å©´Ù." )
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ûµï¿½ Å©ï¿½â°¡ ï¿½Ê¹ï¿½ Å©ï¿½ï¿½." )
 			<< BUILD_LOG( ret )
 			<< BUILD_LOG( MAX_PACKET_SIZE_OF_GASH_AUTH )
 			<< BUILD_LOG( m_iRecvCP[iPortEnum] )
@@ -281,7 +284,7 @@ void KGASHBillingTCPManager::RecvFrom(int iPortEnum)
 		strRecv.push_back( m_cRecvBuffer[iPortEnum][i] );
 	}
 	strRecv.push_back( '\0' );
-	START_LOG( clog2, L"¹ÞÀº GASH ÆÐÅ¶ ±×³É" )
+	START_LOG( clog2, L"ï¿½ï¿½ï¿½ï¿½ GASH ï¿½ï¿½Å¶ ï¿½×³ï¿½" )
 		<< BUILD_LOG( strRecv )
 		<< END_LOG;
 	//////
@@ -296,7 +299,7 @@ void KGASHBillingTCPManager::RecvFrom(int iPortEnum)
 			::memcpy( szPacket, m_cRecvBuffer[iPortEnum], iIndex + 2 );
 			std::string strPacket = szPacket;
 
-			START_LOG( clog2, L"¹ÞÀº GASH Billing ÆÐÅ¶" )
+			START_LOG( clog2, L"ï¿½ï¿½ï¿½ï¿½ GASH Billing ï¿½ï¿½Å¶" )
 				<< BUILD_LOG( strPacket )
 				<< END_LOG;
 
@@ -341,8 +344,8 @@ bool KGASHBillingTCPManager::Connect( int iPortSelect )
 	_JIF( iPortSelect >= 0 && iPortSelect < GP_NUM, return false );
 
 	m_iRecvCP[iPortSelect] = 0;
-	//m_sock[iPortSelect] = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
-	SOCKET sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
+	//m_sock[iPortSelect] = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	SOCKET sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	if( INVALID_SOCKET == sock )
 	{
@@ -434,11 +437,11 @@ void KGASHBillingTCPManager::MakeEventFromReceived(int iPortEnum, std::string& s
 		spEvent->SetData(PI_GS_PUBLISHER_BILLING, NULL, EGASH_GET_GASHPOINT_ACK, kPacketAck );
 		break;
 	case GP_ACCOUNTING : 
-		// ÁöÇå : ÇÑ Æ÷Æ®·Î ¿©·¯ Á¾·ùÀÇ ÆÐÅ¶ÀÌ ¿Â´Ù¸é, ¿©±â¼­ ÆÐÅ¶ Á¾·ù ±¸ºÐÇØ¼­ SetData ¿¡ ³Ñ±âÀÚ.
+		// ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Â´Ù¸ï¿½, ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ SetData ï¿½ï¿½ ï¿½Ñ±ï¿½ï¿½ï¿½.
 		spEvent->SetData(PI_GS_PUBLISHER_BILLING, NULL, EGASH_DECREASE_GASHPOINT_ACK, kPacketAck );
 		break;
 	default:
-		START_LOG( cerr, L"Æ÷Æ® Á¾·ù ÀÌ»ó." )
+		START_LOG( cerr, L"ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 			<< BUILD_LOG( iPortEnum )
 			<< END_LOG;
 		break;
@@ -447,7 +450,7 @@ void KGASHBillingTCPManager::MakeEventFromReceived(int iPortEnum, std::string& s
 	QueueingEvent( spEvent );
 }
 
-// Buy ÆÐÅ¶ º¸°ü, °¡Á®¿À±â
+// Buy ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 bool KGASHBillingTCPManager::InsertBuyPacket( IN UidType iSenderUID, IN KEBILL_BUY_PRODUCT_REQ packet)
 {
 	bool ret = false;
@@ -456,24 +459,24 @@ bool KGASHBillingTCPManager::InsertBuyPacket( IN UidType iSenderUID, IN KEBILL_B
 	{
 		KLocker lock( m_csBuyGiftPacket );
 
-		// °°Àº À¯ÀúÀÇ ±¸¸Å Á¤º¸°¡ ÀÌ¹Ì ÀÖ´Ù. ÀÌ°ÍÀÌ Ã³¸® µÉ ¶§ ±îÁö ´ë±âÇÏÀÚ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½Ö´ï¿½. ï¿½Ì°ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		if( m_mapBuyProductReq.find(iSenderUID) != m_mapBuyProductReq.end() )
 		{
-			START_LOG(cerr, L"GASH ±¸¸Å ¿À·ù : ±¸¸ÅÁß- ÇØ´ç À¯ÀúÀÇ ±¸¸Å ÆÐÅ¶ÀÌ ÀÌ¹Ì º¸°üÁßÀÌ´Ù.")
+			START_LOG(cerr, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½- ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½.")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = false;
 		}
 		else if( m_mapGiftItemReq.find(iSenderUID) != m_mapGiftItemReq.end() )
 		{
-			START_LOG(cerr, L"GASH ±¸¸Å ¿À·ù : ±¸¸ÅÁß- ÇØ´ç À¯ÀúÀÇ ¼±¹° ÆÐÅ¶ÀÌ ÀÌ¹Ì º¸°üÁßÀÌ´Ù.")
+			START_LOG(cerr, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½- ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½.")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = false;
 		}
-		else// µ¿ÀÏ À¯ÀúÀÇ ÆÐÅ¶ Á¤º¸°¡ ¾ø´Ù¸é º¸°üÇØµÎÀÚ
+		else// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½
 		{
-			START_LOG(clog, L"GASH ±¸¸Å : ÇØ´ç À¯ÀúÀÇ ±¸¸Å ÆÐÅ¶À» º¸°üÇÑ´Ù")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			m_mapBuyProductReq.insert(std::make_pair(iSenderUID, packet));
@@ -493,17 +496,17 @@ bool KGASHBillingTCPManager::GetBuyPacket( IN UidType iSenderUID, OUT KEBILL_BUY
 
 		std::map<UidType, KEBILL_BUY_PRODUCT_REQ>::iterator itor;
 		itor = m_mapBuyProductReq.find(iSenderUID);
-		// À¯ÀúÀÇ ±¸¸Å Á¤º¸°¡ ¾ø´Ù? ¿À·ù!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½!
 		if(itor == m_mapBuyProductReq.end())
 		{
-			START_LOG(cerr, L"GASH ±¸¸Å ¿À·ù : ÇØ´ç À¯ÀúÀÇ º¸°üÁßÀÎ ±¸¸Å ÆÐÅ¶ ¾ø´Ù??")
+			START_LOG(cerr, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½??")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = false;
 		}
 		else
 		{
-			START_LOG(clog, L"GASH ±¸¸Å : ÇØ´ç À¯ÀúÀÇ º¸°üÁßÀÎ ±¸¸Å ÆÐÅ¶À» °¡Á®¿Ô´Ù.")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½.")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			packet = (KEBILL_BUY_PRODUCT_REQ)itor->second;
@@ -523,24 +526,24 @@ bool KGASHBillingTCPManager::InsertGiftPacket( IN UidType iSenderUID, IN KEBILL_
 	{
 		KLocker lock( m_csBuyGiftPacket );
 
-		// °°Àº À¯ÀúÀÇ ±¸¸Å Á¤º¸°¡ ÀÌ¹Ì ÀÖ´Ù. ÀÌ°ÍÀÌ Ã³¸® µÉ ¶§ ±îÁö ´ë±âÇÏÀÚ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½Ö´ï¿½. ï¿½Ì°ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		if( m_mapGiftItemReq.find(iSenderUID) != m_mapGiftItemReq.end() )
 		{
-			START_LOG(cerr, L"GASH ±¸¸Å ¿À·ù : ¼±¹°Áß- ÇØ´ç À¯ÀúÀÇ ¼±¹° ÆÐÅ¶ÀÌ ÀÌ¹Ì º¸°üÁßÀÌ´Ù.")
+			START_LOG(cerr, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½- ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½.")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = false;
 		}
 		else if( m_mapBuyProductReq.find(iSenderUID) != m_mapBuyProductReq.end() )
 		{
-			START_LOG(cerr, L"GASH ±¸¸Å ¿À·ù : ¼±¹°Áß- ÇØ´ç À¯ÀúÀÇ ±¸¸Å ÆÐÅ¶ÀÌ ÀÌ¹Ì º¸°üÁßÀÌ´Ù.")
+			START_LOG(cerr, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½- ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½.")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = false;
 		}
-		else// µ¿ÀÏ À¯ÀúÀÇ ÆÐÅ¶ Á¤º¸°¡ ¾ø´Ù¸é º¸°üÇØµÎÀÚ
+		else// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½
 		{
-			START_LOG(clog, L"GASH ±¸¸Å : ¼±¹°Áß- ÇØ´ç À¯ÀúÀÇ ¼±¹° ÆÐÅ¶À» º¸°üÇÑ´Ù")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½- ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			m_mapGiftItemReq.insert(std::make_pair(iSenderUID, packet));
@@ -560,17 +563,17 @@ bool KGASHBillingTCPManager::GetGiftPacket( IN UidType iSenderUID, OUT KEBILL_GI
 
 		std::map<UidType, KEBILL_GIFT_ITEM_REQ>::iterator itor;
 		itor = m_mapGiftItemReq.find(iSenderUID);
-		// À¯ÀúÀÇ ±¸¸Å Á¤º¸°¡ ¾ø´Ù? ¿À·ù!
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½!
 		if(itor == m_mapGiftItemReq.end())
 		{
-			START_LOG(cerr, L"GASH ±¸¸Å ¿À·ù : ÇØ´ç À¯ÀúÀÇ º¸°üÁßÀÎ ¼±¹° ÆÐÅ¶ ¾ø´Ù??")
+			START_LOG(cerr, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½??")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = false;
 		}
 		else
 		{
-			START_LOG(clog, L"GASH ±¸¸Å : ÇØ´ç À¯ÀúÀÇ º¸°üÁßÀÎ ¼±¹° ÆÐÅ¶À» °¡Á®¿Ô´Ù.")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½.")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			packet = (KEBILL_GIFT_ITEM_REQ)itor->second;
@@ -582,7 +585,7 @@ bool KGASHBillingTCPManager::GetGiftPacket( IN UidType iSenderUID, OUT KEBILL_GI
 	return ret;
 }
 
-// ±¸¸Å ÆÐÅ¶À» ÀÌ¹Ì º¸°üÁßÀÎÁö Ã¼Å©
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 bool KGASHBillingTCPManager::IsHaveBuyPacket(IN UidType iSenderUID)
 {
 	bool ret = false;
@@ -593,17 +596,17 @@ bool KGASHBillingTCPManager::IsHaveBuyPacket(IN UidType iSenderUID)
 
 		std::map<UidType, KEBILL_BUY_PRODUCT_REQ>::iterator itor;
 		itor = m_mapBuyProductReq.find(iSenderUID);
-		// À¯ÀúÀÇ ¼±¹° Á¤º¸°¡ ¾ø´Ù?
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?
 		if(itor == m_mapBuyProductReq.end())
 		{
-			START_LOG(clog, L"GASH ±¸¸Å : ÇØ´ç À¯ÀúÀÇ ±¸¸ÅÆÐÅ¶Àº ¾ø´Ù.")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = false;
 		}
 		else
 		{
-			START_LOG(clog, L"GASH ±¸¸Å : ÇØ´ç À¯ÀúÀÇ ±¸¸ÅÆÐÅ¶ÀÌ ÀÖ´Ù.")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ö´ï¿½.")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = true;
@@ -613,7 +616,7 @@ bool KGASHBillingTCPManager::IsHaveBuyPacket(IN UidType iSenderUID)
 	return ret;
 }
 
-// ±¸¸Å ÆÐÅ¶À» ÀÌ¹Ì º¸°üÁßÀÎÁö Ã¼Å©
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 bool KGASHBillingTCPManager::IsHaveGiftPacket(IN UidType iSenderUID)
 {
 	bool ret = false;
@@ -624,17 +627,17 @@ bool KGASHBillingTCPManager::IsHaveGiftPacket(IN UidType iSenderUID)
 
 		std::map<UidType, KEBILL_GIFT_ITEM_REQ>::iterator itor;
 		itor = m_mapGiftItemReq.find(iSenderUID);
-		// À¯ÀúÀÇ ¼±¹° Á¤º¸°¡ ¾ø´Ù?
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?
 		if(itor == m_mapGiftItemReq.end())
 		{
-			START_LOG(clog, L"GASH ±¸¸Å : ÇØ´ç À¯ÀúÀÇ ¼±¹°ÆÐÅ¶Àº ¾ø´Ù")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = false;
 		}
 		else
 		{
-			START_LOG(clog, L"GASH ±¸¸Å : ÇØ´ç À¯ÀúÀÇ ¼±¹°ÆÐÅ¶ÀÌ ÀÖ´Ù.")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ö´ï¿½.")
 				<< BUILD_LOG( iSenderUID )
 				<< END_LOG;
 			ret = true;
@@ -644,7 +647,7 @@ bool KGASHBillingTCPManager::IsHaveGiftPacket(IN UidType iSenderUID)
 	return ret;
 }
 
-// ·Î±× ³²±â±â À§ÇØ¼­ ÀÜ¾× Á¶È¸ ÇÒ ¶§¸¶´Ù ±× ¾×¼ö¸¦ º¸°üÇÏ°í, °¡Á®¿Ã ¼ö ÀÖµµ·Ï Çß´Ù.
+// ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½Ü¾ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½×¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ß´ï¿½.
 bool KGASHBillingTCPManager::InsertHaveGashPoint( IN UidType iUserUID, IN int iGashPoint )
 {
 	bool ret = false;
@@ -656,7 +659,7 @@ bool KGASHBillingTCPManager::InsertHaveGashPoint( IN UidType iUserUID, IN int iG
 		std::map<UidType,  int>::iterator itor = m_mapHaveGashPoint.find(iUserUID);
 		if(itor != m_mapHaveGashPoint.end())
 		{
-			START_LOG(clog, L"GASH ±¸¸Å ·Î±× : ÇØ´ç À¯ÀúÀÇ ÀÜ¾× Á¤º¸¸¦ °»½ÅÇÑ´Ù")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ü¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½")
 				<< BUILD_LOG( iUserUID )
 				<< BUILD_LOG( (unsigned long)itor->second )
 				<< BUILD_LOG( iGashPoint )
@@ -667,7 +670,7 @@ bool KGASHBillingTCPManager::InsertHaveGashPoint( IN UidType iUserUID, IN int iG
 		else
 		{
 			m_mapHaveGashPoint.insert(std::make_pair(iUserUID, iGashPoint));
-			START_LOG(clog, L"GASH ±¸¸Å ·Î±× : ÇØ´ç À¯ÀúÀÇ ÀÜ¾× Á¤º¸¸¦ Ãß°¡ÇÑ´Ù")
+			START_LOG(clog, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ü¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ñ´ï¿½")
 				<< BUILD_LOG( iUserUID )
 				<< BUILD_LOG( iGashPoint )
 				<< END_LOG;
@@ -693,7 +696,7 @@ bool KGASHBillingTCPManager::GetHaveGashPoint( IN UidType iUserUID, OUT int &iGa
 		}
 		else
 		{
-			START_LOG(cerr, L"GASH ±¸¸Å ·Î±× ¿¡·¯ : ÇØ´ç À¯ÀúÀÇ ÀÜ¾× Á¤º¸°¡ ¾ø´Ù??")
+			START_LOG(cerr, L"GASH ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ü¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½??")
 				<< BUILD_LOG( iUserUID )
 				<< BUILD_LOG( iGashPoint )
 				<< END_LOG;

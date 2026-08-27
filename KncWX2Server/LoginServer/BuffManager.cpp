@@ -3,7 +3,7 @@
 #include "buffmanager.h"
 #include "X2data/XSLBuffManager.h"
 
-//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 
 ImplementSingleton( KBuffManager );
@@ -26,12 +26,12 @@ bool KBuffManager::AddUnitBuffInfo( IN const UidType& iUnitUID, IN const std::ve
 {
 	//////////////////////////////////////////////////////////////////////////
 	{
-		// ¹öÇÁ Á¤º¸ °ËÁõ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		BOOST_TEST_FOREACH( const KBuffInfo&, kTestBuff, vecBuffInfo )
 		{
 			if( kTestBuff.m_kFactorInfo.m_vecBuffBehaviorFactors.size() > 10 )
 			{
-				START_LOG( cerr, "m_vecBuffBehaviorFactorsÀÇ ¿ø¼Ò °¹¼ö°¡ 10°³¸¦ ³Ñ¾ú´Ù!" )
+				START_LOG( cerr, "m_vecBuffBehaviorFactorsï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 10ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( iUnitUID )
 					<< BUILD_LOG( kTestBuff.m_kFactorInfo.m_vecBuffBehaviorFactors.size() )
 					<< END_LOG;
@@ -39,7 +39,7 @@ bool KBuffManager::AddUnitBuffInfo( IN const UidType& iUnitUID, IN const std::ve
 
 			if( kTestBuff.m_kFactorInfo.m_vecBuffFinalizerFactors.size() > 10 )
 			{
-				START_LOG( cerr, "m_vecBuffFinalizerFactorsÀÇ ¿ø¼Ò °¹¼ö°¡ 10°³¸¦ ³Ñ¾ú´Ù!" )
+				START_LOG( cerr, "m_vecBuffFinalizerFactorsï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 10ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( iUnitUID )
 					<< BUILD_LOG( kTestBuff.m_kFactorInfo.m_vecBuffFinalizerFactors.size() )
 					<< END_LOG;
@@ -49,7 +49,7 @@ bool KBuffManager::AddUnitBuffInfo( IN const UidType& iUnitUID, IN const std::ve
 			{
 				if( kBuffBFactor.m_vecValues.size() > 10 )
 				{
-					START_LOG( cerr, "KBuffBehaviorFactorÀÇ m_vecValues¿ø¼Ò °¹¼ö°¡ 10°³¸¦ ³Ñ¾ú´Ù!" )
+					START_LOG( cerr, "KBuffBehaviorFactorï¿½ï¿½ m_vecValuesï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 10ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOG( iUnitUID )
 						<< BUILD_LOG( kBuffBFactor.m_vecValues.size() )
 						<< END_LOG;
@@ -60,7 +60,7 @@ bool KBuffManager::AddUnitBuffInfo( IN const UidType& iUnitUID, IN const std::ve
 			{
 				if( kBuffFFactor.m_vecValues.size() > 10 )
 				{
-					START_LOG( cerr, "KBuffFinalizerFactorÀÇ m_vecValues¿ø¼Ò °¹¼ö°¡ 10°³¸¦ ³Ñ¾ú´Ù!" )
+					START_LOG( cerr, "KBuffFinalizerFactorï¿½ï¿½ m_vecValuesï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 10ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½ï¿½!" )
 						<< BUILD_LOG( iUnitUID )
 						<< BUILD_LOG( kBuffFFactor.m_vecValues.size() )
 						<< END_LOG;
@@ -75,7 +75,7 @@ bool KBuffManager::AddUnitBuffInfo( IN const UidType& iUnitUID, IN const std::ve
 	{
 		KUnitBuffInfo kNewUnitBuffInfo;
 
-		// ÃÖÃÊ ÀÔ·ÂµÇ´Â °ÍÀÌ¹Ç·Î ½Ã°£À» ÀúÀåÇÏÀÚ.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ÂµÇ´ï¿½ ï¿½ï¿½ï¿½Ì¹Ç·ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 		CTime tCurr = CTime::GetCurrentTime();
 		kNewUnitBuffInfo.m_iInsertTime = tCurr.GetTime();
 		BOOST_TEST_FOREACH( const KBuffInfo&, kNewBuffInfo, vecBuffInfo )
@@ -83,38 +83,38 @@ bool KBuffManager::AddUnitBuffInfo( IN const UidType& iUnitUID, IN const std::ve
 			kNewUnitBuffInfo.m_mapBuffInfo.insert( std::make_pair( kNewBuffInfo.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID, kNewBuffInfo ) );
 		}
 
-		// À¯´ÖÀÇ Á¤º¸°¡ ¾øÀ¸´Ï »õ·Î Ãß°¡ÇÏÀÚ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½
 		m_mapUnitBuffList.insert( std::make_pair( iUnitUID, kNewUnitBuffInfo ) );
 
 		if( AddRenewBuffTime( iUnitUID, kNewUnitBuffInfo.m_iInsertTime ) == false )
 		{
-			// ½Ã°£ Ãß°¡ ½ÇÆÐ
-			// °á°úÀûÀ¸·Î ¹öÇÁ¸¦ Ãß°¡ ÇÏÁö ¸øÇÑ°Ç ¾Æ´Ï´Ï±ñ ½ÇÆÐ Ã³¸®´Â ÇÏÁö ¾Ê´Â´Ù.
+			// ï¿½Ã°ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ°ï¿½ ï¿½Æ´Ï´Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 		}
 		return true;
 	}
 	
-	// À¯´ÖÀÇ Á¤º¸°¡ Á¸ÀçÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	KUnitBuffInfo& kUnitBuffInfo = mit->second;
 
-	// ¿¾³¯ ¹öÇÁÁß¿¡ °°Àº°Ô ÀÖ´ÂÁö Ã£¾Æ º»´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	BOOST_TEST_FOREACH( const KBuffInfo&, kNewBuff, vecBuffInfo )
 	{
 		std::map< int, KBuffInfo >::iterator mitBI;
 		mitBI = kUnitBuffInfo.m_mapBuffInfo.find( kNewBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID );
 		if( mitBI == kUnitBuffInfo.m_mapBuffInfo.end() )
 		{
-			// ¾ø´Â ¹öÇÁ´Â Ãß°¡ÇÑ´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ñ´ï¿½.
 			kUnitBuffInfo.m_mapBuffInfo.insert( std::make_pair( kNewBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID, kNewBuff ) );
 		}
 		else
 		{
-			// Á¤º¸ °»½Å
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			mitBI->second = kNewBuff;
 		}
 	}
 
-	// ¹öÇÁ °»½Å µÇ¾úÀ¸¹Ç·Î ½Ã°£µµ °»½ÅÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	CTime tCurr = CTime::GetCurrentTime();
 	__int64 iOldTime = kUnitBuffInfo.m_iInsertTime;
 	__int64 iNewTime = tCurr.GetTime();
@@ -125,8 +125,8 @@ bool KBuffManager::AddUnitBuffInfo( IN const UidType& iUnitUID, IN const std::ve
 	}
 	else
 	{
-		// ½Ã°£ Ãß°¡ ½ÇÆÐ
-		// °á°úÀûÀ¸·Î ¹öÇÁ¸¦ Ãß°¡ ÇÏÁö ¸øÇÑ°Ç ¾Æ´Ï´Ï±ñ ½ÇÆÐ Ã³¸®´Â ÇÏÁö ¾Ê´Â´Ù.
+		// ï¿½Ã°ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ°ï¿½ ï¿½Æ´Ï´Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 	}
 
 	return true;
@@ -137,7 +137,7 @@ bool KBuffManager::DeleteUnitBuffInfo( IN UidType& iUnitUID, IN std::vector<int>
 	std::map< UidType, KUnitBuffInfo >::iterator mit = m_mapUnitBuffList.find( iUnitUID );
 	if( mit == m_mapUnitBuffList.end() )
 	{
-		START_LOG( clog, L"Á¸ÀçÇÏÁö ¾Ê´Â Unit Á¤º¸¸¦ Áö¿ì·Á°í ÇÕ´Ï´Ù." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ Unit ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½." )
 			<< BUILD_LOG( iUnitUID )
 			<< END_LOG;
 
@@ -152,10 +152,10 @@ bool KBuffManager::DeleteUnitBuffInfo( IN UidType& iUnitUID, IN std::vector<int>
 		
 		if( static_cast<int>(mit->second.m_mapBuffInfo.size()) <= 0 )
 		{			
-			// ½Ã°£ Á¤º¸ Áö¿ì±â
+			// ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 			DeleteBuffTime( mit->second.m_iInsertTime, mit->first );
 
-			// ¹öÇÁ Á¤º¸ Áö¿ì±â
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 			m_mapUnitBuffList.erase( mit );
 		}
 	}
@@ -168,7 +168,7 @@ bool KBuffManager::DeleteUnitAllBuffInfo( IN UidType& iUnitUID )
 	std::map< UidType, KUnitBuffInfo >::iterator mit = m_mapUnitBuffList.find( iUnitUID );
 	if( mit != m_mapUnitBuffList.end() )
 	{
-		START_LOG( clog, L"Á¸ÀçÇÏÁö ¾Ê´Â Unit Á¤º¸¸¦ Áö¿ì·Á°í ÇÕ´Ï´Ù." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ Unit ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½." )
 			<< BUILD_LOG( iUnitUID )
 			<< END_LOG;
 
@@ -176,10 +176,10 @@ bool KBuffManager::DeleteUnitAllBuffInfo( IN UidType& iUnitUID )
 	}
 	else
 	{
-		// ½Ã°£ Á¤º¸ Áö¿ì±â
+		// ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 		DeleteBuffTime( mit->second.m_iInsertTime, mit->first );
 
-		// ¹öÇÁ Á¤º¸ Áö¿ì±â
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 		m_mapUnitBuffList.erase( mit );
 	}
 
@@ -188,10 +188,10 @@ bool KBuffManager::DeleteUnitAllBuffInfo( IN UidType& iUnitUID )
 
 bool KBuffManager::AddRenewBuffTime( IN const UidType& iUnitUID, IN const __int64& iNewTime, IN const __int64 iOleTime /* = 0*/ )
 {
-	// ±âÁ¸ÀÇ ½Ã°£ÀÇ °ªÀÌ ÀÔ·ÂµÇ¾î ÀÖ¾ú´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ÂµÇ¾ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½.
 	if( iOleTime > 0 )
 	{
-		// ±âÁ¸ Á¤º¸¸¦ Ã£¾Æ¼­ Áö¿ìÀÚ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		std::map< __int64, std::vector<UidType> >::iterator mit = m_mapUnitTime.find( iOleTime );
 		if( mit != m_mapUnitTime.end() )
 		{
@@ -200,7 +200,7 @@ bool KBuffManager::AddRenewBuffTime( IN const UidType& iUnitUID, IN const __int6
 			{
 				if( iUnitUID == (*vit) )
 				{
-					// »èÁ¦ÇÏÀÚ
+					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 					mit->second.erase( vit );
 
 					break;
@@ -209,7 +209,7 @@ bool KBuffManager::AddRenewBuffTime( IN const UidType& iUnitUID, IN const __int6
 		}
 		else
 		{
-			START_LOG( clog, L"ÀÖ´Ù°í Çß´Âµ¥ ¾ø´Ù...?" )
+			START_LOG( clog, L"ï¿½Ö´Ù°ï¿½ ï¿½ß´Âµï¿½ ï¿½ï¿½ï¿½ï¿½...?" )
 				<< BUILD_LOG( iUnitUID )
 				<< BUILD_LOG( iNewTime )
 				<< BUILD_LOG( iOleTime )
@@ -226,11 +226,11 @@ bool KBuffManager::AddRenewBuffTime( IN const UidType& iUnitUID, IN const __int6
 		{
 			if( iUID == iUnitUID )
 			{
-				START_LOG( cerr, L"ÀÔ·ÂµÈ µ¥ÀÌÅÍ°¡ ÀÖ´Âµ¥?" )
+				START_LOG( cerr, L"ï¿½Ô·Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ö´Âµï¿½?" )
 					<< BUILD_LOG( iUnitUID )
 					<< END_LOG;
 
-				// ÀÖ´Ù¸é Ãß°¡ ¾ÈÇØµµ µÈ´Ù. ½ÇÆÐ´Â ¾Æ´Ô
+				// ï¿½Ö´Ù¸ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½Øµï¿½ ï¿½È´ï¿½. ï¿½ï¿½ï¿½Ð´ï¿½ ï¿½Æ´ï¿½
 				return true;
 			}
 		}
@@ -250,7 +250,7 @@ bool KBuffManager::AddRenewBuffTime( IN const UidType& iUnitUID, IN const __int6
 
 void KBuffManager::DeleteBuffTime( IN __int64& iTime, IN UidType iUnitUID )
 {
-	// ±âÁ¸ Á¤º¸¸¦ Ã£¾Æ¼­ Áö¿ìÀÚ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	std::map< __int64, std::vector<UidType> >::iterator mit = m_mapUnitTime.find( iTime );
 	if( mit != m_mapUnitTime.end() )
 	{
@@ -259,7 +259,7 @@ void KBuffManager::DeleteBuffTime( IN __int64& iTime, IN UidType iUnitUID )
 		{
 			if( iUnitUID == (*vit) )
 			{
-				// »èÁ¦ÇÏÀÚ
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				mit->second.erase( vit );
 
 				break;
@@ -268,7 +268,7 @@ void KBuffManager::DeleteBuffTime( IN __int64& iTime, IN UidType iUnitUID )
 	}
 	else
 	{
-		START_LOG( clog, L"ÀÖ´Ù°í Çß´Âµ¥ ¾ø´Ù...?" )
+		START_LOG( clog, L"ï¿½Ö´Ù°ï¿½ ï¿½ß´Âµï¿½ ï¿½ï¿½ï¿½ï¿½...?" )
 			<< BUILD_LOG( iUnitUID )
 			<< BUILD_LOG( iTime )
 			<< END_LOG;
@@ -280,7 +280,7 @@ bool KBuffManager::GetUnitAllBuffInfo( IN UidType& iUnitUID, OUT KUnitBuffInfo& 
 	std::map< UidType, KUnitBuffInfo >::iterator mit = m_mapUnitBuffList.find( iUnitUID );
 	if( mit != m_mapUnitBuffList.end() )
 	{
-		// µ¥ÀÌÅÍ¸¦ ¿äÃ» Çß´Ù´Â °ÍÀº Á¢¼ÓÀ» ÇßÀ¸´Ï À¯´Ö Á¤º¸ ½Ã°£À» °»½Å ½ÃÄÑ¾ß ÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½Ã» ï¿½ß´Ù´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¾ï¿½ ï¿½Ñ´ï¿½.
 		CTime tCurr = CTime::GetCurrentTime();
 		__int64 iOldTime = mit->second.m_iInsertTime;
 		__int64 iNewTime = tCurr.GetTime();
@@ -291,15 +291,15 @@ bool KBuffManager::GetUnitAllBuffInfo( IN UidType& iUnitUID, OUT KUnitBuffInfo& 
 		}
 		else
 		{
-			// ½Ã°£ Ãß°¡ ½ÇÆÐ
-			// °á°úÀûÀ¸·Î ¹öÇÁ¸¦ Ãß°¡ ÇÏÁö ¸øÇÑ°Ç ¾Æ´Ï´Ï±ñ ½ÇÆÐ Ã³¸®´Â ÇÏÁö ¾Ê´Â´Ù.
+			// ï¿½Ã°ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ°ï¿½ ï¿½Æ´Ï´Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 		}
 
 		kUnitBuffInfo = mit->second;
 	}
 	else
 	{
-		START_LOG( clog, L"µ¥ÀÌÅÍ°¡ ¾ø´Ù." )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½." )
 			<< BUILD_LOG( iUnitUID )
 			<<END_LOG;
 		return false;
@@ -310,23 +310,23 @@ bool KBuffManager::GetUnitAllBuffInfo( IN UidType& iUnitUID, OUT KUnitBuffInfo& 
 
 void KBuffManager::CheckEndBuff()
 {
-	// ÇöÀç ½Ã°£
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 	CTime tCurr = CTime::GetCurrentTime();
-	// »èÁ¦ ±âÁØ ½Ã°£
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 	CTimeSpan tSpan = CTimeSpan( 0, CXSLBuffManager::UBKT_UNIT_RESET_TIME_HOUR, 0, 0);
 	CTime tDeleteCurr;
 	tDeleteCurr = tCurr - tSpan;
 
-	// »èÁ¦ÇÒ unit À» ÀúÀå ÇØµÑ ÄÁÅ×ÀÌ³Ê
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ unit ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Øµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½
 	std::set< UidType > setUnitList;
 
-	// ÇöÀç ½Ã°£º¸´Ù ³·Àº ½Ã°£ÀÇ À¯Àú¸¦ Ã£¾Æ¼­ Áö¿î´Ù. - ½Ã°£ º°·Î Á¤·Ä µÇ¹Ç·Î Ã³À½ ºÎÅÍ °Ë»ö
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½. - ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¹Ç·ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
 	std::map< __int64, std::vector<UidType> >::iterator mit = m_mapUnitTime.begin();
 	for( ; mit != m_mapUnitTime.end() ; ++mit )
 	{
 		if( mit->first > tDeleteCurr.GetTime() )
 		{
-			START_LOG( clog, L"»èÁ¦ µÇ¾î¾ß ÇÒ ½Ã°£º¸´Ù Å©¹Ç·Î ´ÙÀ½¿¡ Áö¿î´Ù." )
+			START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½." )
 				<< BUILD_LOG( mit->first )
 				<< BUILD_LOG( tDeleteCurr.GetTime() )
 				<< END_LOG;
@@ -342,7 +342,12 @@ void KBuffManager::CheckEndBuff()
 	std::set< UidType >::iterator sit = setUnitList.begin();
 	for( ; sit != setUnitList.end() ; ++sit )
 	{
-		DeleteUnitAllBuffInfo( (*sit) );
+		//{{ Iruha : 2026-08-27 // VS2010 port: VC7.1's std::set::iterator non-conformantly
+		// dereferenced to a mutable reference; VC10 dereferences to const, and
+		// DeleteUnitAllBuffInfo takes UidType& (non-const). Copy into a local instead.
+		UidType uidUnit = *sit;
+		DeleteUnitAllBuffInfo( uidUnit );
+		//}}
 	}
 }
 

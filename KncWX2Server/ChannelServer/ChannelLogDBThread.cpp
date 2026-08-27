@@ -9,13 +9,13 @@
 #include "ActorManager.h"
 #include "NetError.h"
 
-//{{ 2012. 04. 24	ÃÖÀ°»ç	UDP¸±·¹ÀÌ ÆÛÆ÷¸Õ½º Ã¼Å©
+//{{ 2012. 04. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	UDPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ Ã¼Å©
 #ifdef SERV_UDP_RELAY_CHECKER
 	#include "UdpRelayChecker/UdpRelayChecker.h"
 #endif SERV_UDP_RELAY_CHECKER
 //}}
 
-//{{ 2012. 07. 04	ÃÖÀ°»ç		´ë±â¿­ ½Ã½ºÅÛ
+//{{ 2012. 07. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½â¿­ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_WAIT_QUEUE_SYSTEM
 	#include "Enum/Enum.h"
 #endif SERV_WAIT_QUEUE_SYSTEM
@@ -85,21 +85,21 @@ void KChannelLogDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE_NOPARAM( DBE_SERVERGROUP_LIST_REQ );
 #endif SERVER_GROUP_UI_ADVANCED
 
-		//{{ 2009. 12. 16  ÃÖÀ°»ç	µ¿Á¢Åø
+		//{{ 2009. 12. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		CASE( DBE_GET_CONCURRENT_USER_INFO_REQ );
 		//}}
-		//{{ 2010. 02. 16  ÃÖÀ°»ç	ÇØÅ·Åø ¸®½ºÆ®
+		//{{ 2010. 02. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_HACKING_TOOL_LIST
 		CASE( DBE_CHECK_HACKING_TOOL_LIST_REQ );
 #endif SERV_HACKING_TOOL_LIST
 		//}}
 
-		//{{ 2011. 01. 20 ±è¹Î¼º	µ¿Á¢ ¸ð´ÏÅÍ¸µ Åø
+		//{{ 2011. 01. 20 ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½
 #ifdef SERV_CCU_MONITORING_TOOL
 		CASE_NOPARAM( DBE_GET_GAME_SERVER_LIST_REQ );
 #endif SERV_CCU_MONITORING_TOOL
 		//}}
-		//{{ 2012. 04. 24	ÃÖÀ°»ç	UDP¸±·¹ÀÌ ÆÛÆ÷¸Õ½º Ã¼Å©
+		//{{ 2012. 04. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	UDPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ Ã¼Å©
 #ifdef SERV_UDP_RELAY_CHECKER
 		CASE_NOPARAM( DBE_GET_CENTER_SERVER_LIST_REQ );
 		CASE( DBE_UPDATE_UDP_RELAY_CHECK_STATISTICS_NOT );
@@ -110,17 +110,17 @@ void KChannelLogDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_INSERT_LOGIN_RESULT_INFO_REQ );
 #endif SERV_LOGIN_RESULT_INFO
 
-		//{{ 2012. 07. 04	ÃÖÀ°»ç		´ë±â¿­ ½Ã½ºÅÛ
+		//{{ 2012. 07. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½â¿­ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_WAIT_QUEUE_SYSTEM
 		CASE_NOPARAM( DBE_GET_TOTAL_CCU_FOR_WAIT_QUEUE_REQ );
 #endif SERV_WAIT_QUEUE_SYSTEM
 		//}}
-		//{{ 2013. 02. 13	ÃÖÀ°»ç	TickÆÛÆ÷¸Õ½º DB·Î±× ±â·Ï
+		//{{ 2013. 02. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Tickï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ DBï¿½Î±ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_SIMLAYER_TICK_PERFORMANCE_DB_LOG
 		CASE( DBE_TICK_PERFORMANCE_LOG_NOT );
 #endif SERV_SIMLAYER_TICK_PERFORMANCE_DB_LOG
 		//}}
-		//{{ 2013. 02. 21	ÃÖÀ°»ç	·Î±× ½Ã½ºÅÛ °³¼±
+		//{{ 2013. 02. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_LOG_SYSTEM_NEW
 		CASE( DBE_LOG_STATISTICS_INFO_NOT );
 #endif SERV_LOG_SYSTEM_NEW
@@ -130,7 +130,7 @@ void KChannelLogDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 #endif //SERV_ID_NETMARBLE_PCBANG
 
     default:
-        START_LOG( cerr, L"ÀÌº¥Æ® ÇÚµé·¯°¡ Á¤ÀÇµÇÁö ¾Ê¾ÒÀ½. " << spEvent_->GetIDStr() );
+        START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½. " << spEvent_->GetIDStr() );
     }
 
 	//////////////////////////////////////////////////////////////////////////
@@ -155,7 +155,7 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
     KDBE_CHANNEL_SERVER_ON_ACK kPacket;
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
-	//{{ 2013. 01. 17	ÃÖÀ°»ç	¼­¹ö°£ Åë½Å »ç¼³IP Àû¿ë
+	//{{ 2013. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ç¼³IP ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PRIVATE_IP_SERVER_NETWORKING
 #ifdef SERV_RENEWAL_STATISTICS_SP
 	DO_QUERY( L"exec dbo.P_LServerList_By_PublicIP_SEL", L"%d, %d, N\'%s\'", 
@@ -187,7 +187,7 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
 
     if( !m_kODBC.BeginFetch() )
     {
-        START_LOG( cerr, L"Ã¤³Î ¼­¹ö ÀÎÁõ ½ÇÆÐ." )
+        START_LOG( cerr, L"Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << BUILD_LOG( kPacket_.m_wstrIP )
 			<< END_LOG;
 
@@ -195,7 +195,7 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
         goto end_proc;
     }
 
-	//{{ 2013. 01. 17	ÃÖÀ°»ç	¼­¹ö°£ Åë½Å »ç¼³IP Àû¿ë
+	//{{ 2013. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ç¼³IP ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PRIVATE_IP_SERVER_NETWORKING
 	FETCH_DATA( kPacket.m_kServerInfo.m_iUID 
 		>> kPacket.m_kServerInfo.m_wstrName
@@ -226,7 +226,7 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
 
 
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
-	// ·Î±ä¼­¹öµéÀÇ ÁÖ¼Ò¸¦ ¾Ë¾Æ¿Â´Ù.
+	// ï¿½Î±ä¼­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼Ò¸ï¿½ ï¿½Ë¾Æ¿Â´ï¿½.
 	kPacket.m_mapLoginList.clear();
 
 	DO_QUERY( L"exec dbo.lup_get_LLoginProxy", L"%d ", % kPacket.m_kServerInfo.m_iServerGroupID );
@@ -243,7 +243,7 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
 	}
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 
-    //¼­¹ö°¡ ÄÑÁ³´Ù°í Ç¥½ÃÇÑ´Ù.
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ù°ï¿½ Ç¥ï¿½ï¿½ï¿½Ñ´ï¿½.
 #ifdef SERV_RENEWAL_STATISTICS_SP
 	DO_QUERY( L"exec dbo.P_LServerList_UPD", L"%d, %d, 1", % KBaseServer::GetKObj()->GetServerGroupID() % kPacket.m_kServerInfo.m_iUID );
 #else //SERV_RENEWAL_STATISTICS_SP
@@ -257,7 +257,7 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
 
         if( kPacket.m_iOK != NetError::NET_OK )
         {
-            START_LOG( cerr, L"¼­¹ö ÄÑÁü Ç¥½Ã ½ÇÆÐ." )
+            START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
                 << BUILD_LOG( kPacket.m_kServerInfo.m_iUID )
                 << END_LOG;
 
@@ -266,13 +266,13 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
     }
 
 end_proc:
-    //°á°ú º¸³»±â
+    //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     SendToServer( DBE_SERVER_ON_ACK, kPacket );
 }
 
 IMPL_ON_FUNC_NOPARAM( DBE_SERVER_OFF_NOT )
 {
-    //¼­¹ö EnableÀ» ²ö´Ù
+    //ï¿½ï¿½ï¿½ï¿½ Enableï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_RENEWAL_STATISTICS_SP
 	DO_QUERY( L"exec dbo.P_LServerList_UPD", L"%d, %d, 0", % KBaseServer::GetKObj()->GetServerGroupID() % KBaseServer::GetKObj()->GetUID() );
 #else //SERV_RENEWAL_STATISTICS_SP
@@ -288,7 +288,7 @@ IMPL_ON_FUNC_NOPARAM( DBE_SERVER_OFF_NOT )
 
         if( iOK != NetError::NET_OK )
         {
-            START_LOG( cerr, L"¼­¹ö Á¾·á Ç¥½Ã ½ÇÆÐ." )
+            START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
                 << BUILD_LOG( GetKChannelServer()->GetUID() )
                 << END_LOG;
 
@@ -337,7 +337,7 @@ IMPL_ON_FUNC( DBE_CHANNEL_LIST_REQ )
 {
 	KDBE_CHANNEL_LIST_ACK kPacket;
 
-	// DB·ÎºÎÅÍ ¼­¹ö ¸®½ºÆ® µ¥ÀÌÅÍ¸¦ ¹Þ¾Æ¿Â´Ù
+	// DBï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Þ¾Æ¿Â´ï¿½
 #ifdef SERV_RENEWAL_STATISTICS_SP
 	DO_QUERY( L"exec dbo.P_LChannelList_SEL", L"%d", % kPacket_.m_iServerGroupID );
 #else //SERV_RENEWAL_STATISTICS_SP
@@ -365,7 +365,7 @@ IMPL_ON_FUNC( DBE_CHANNEL_LIST_REQ )
 		kPacket.m_mapChannelList.insert( std::make_pair( kInfo.m_iChannelID, kInfo ) );
 	}
 
-	//{{ 2012. 06. 29	¹Ú¼¼ÈÆ	Ã¤³Î UI À¯µ¿ÀûÀ¸·Î º¯°æ °¡´ÉÇÑ ½Ã½ºÅÛ ( Merge )
+	//{{ 2012. 06. 29	ï¿½Ú¼ï¿½ï¿½ï¿½	Ã¤ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ( Merge )
 #ifdef SERV_CHANNEL_LIST_RENEWAL
 	{
 		std::map<int, KChannelInfo>::const_iterator mit;
@@ -393,7 +393,7 @@ IMPL_ON_FUNC( DBE_CHANNEL_LIST_REQ )
 
 				if( iChannelID != mit->first )
 				{
-					START_LOG( cerr, L"Ã¤³Î º¸³Ê½º Á¤º¸°¡ ÀÌ»óÇÕ´Ï´Ù" )
+					START_LOG( cerr, L"Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½" )
 						<< BUILD_LOG( iChannelID )
 						<< BUILD_LOG( mit->first )
 						<< END_LOG;
@@ -401,7 +401,7 @@ IMPL_ON_FUNC( DBE_CHANNEL_LIST_REQ )
 
 				//if( tempChannelBonusInfo.m_iPerExp > 0  ||  tempChannelBonusInfo.m_iPerED > 0 )
 				{
-					// º¸³Ê½º°ªÀÌ ÀÖÀ¸¸é enable
+					// ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ enable
 					tempChannelBonusInfo.m_bEnable = true;
 					kPacket.m_mapChannelBonusList.insert(std::make_pair(mit->first, tempChannelBonusInfo));
 				}
@@ -415,7 +415,7 @@ end_proc:
 	SendToServer( DBE_CHANNEL_LIST_ACK, kPacket );
 }
 
-//{{ 2009. 12. 16  ÃÖÀ°»ç	µ¿Á¢Åø
+//{{ 2009. 12. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 IMPL_ON_FUNC( DBE_GET_CONCURRENT_USER_INFO_REQ )
 {
 	KDBE_GET_CONCURRENT_USER_INFO_ACK kPacket;
@@ -474,7 +474,7 @@ IMPL_ON_FUNC( DBE_GET_CONCURRENT_USER_INFO_REQ )
 
 	default:
 		{
-            START_LOG( cerr, L"CCUTypeÀÌ ÀÌ»óÇÕ´Ï´Ù." )
+            START_LOG( cerr, L"CCUTypeï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½." )
 				<< BUILD_LOGc( kPacket_.m_cCCUType )
 				<< END_LOG;
 
@@ -494,7 +494,7 @@ IMPL_ON_FUNC( DBE_GET_CONCURRENT_USER_INFO_REQ )
 			>> kInfo.m_iCCUCount
 			);
 
-		//{{ 2012. 10. 22	¹Ú¼¼ÈÆ	µ¿Á¢ Á¤º¸ DB ½ÇÆÐ Ã³¸® Ãß°¡
+		//{{ 2012. 10. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_FIX_THE_CCU_INFO
 		if( wstrDate.empty() == true )
 		{
@@ -511,7 +511,7 @@ IMPL_ON_FUNC( DBE_GET_CONCURRENT_USER_INFO_REQ )
 		kPacket.m_vecCCUInfo.push_back( kInfo );
 	}
 
-	//{{ 2012. 10. 22	¹Ú¼¼ÈÆ	µ¿Á¢ Á¤º¸ DB ½ÇÆÐ Ã³¸® Ãß°¡
+	//{{ 2012. 10. 22	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_FIX_THE_CCU_INFO
 	if( kPacket.m_vecCCUInfo.empty() == true )
 	{
@@ -527,7 +527,7 @@ end_proc:
 }
 //}}
 
-//{{ 2010. 02. 16  ÃÖÀ°»ç	ÇØÅ·Åø ¸®½ºÆ®
+//{{ 2010. 02. 16  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 #ifdef SERV_HACKING_TOOL_LIST
 
 IMPL_ON_FUNC( DBE_CHECK_HACKING_TOOL_LIST_REQ )
@@ -535,7 +535,7 @@ IMPL_ON_FUNC( DBE_CHECK_HACKING_TOOL_LIST_REQ )
 	KDBE_CHECK_HACKING_TOOL_LIST_ACK kPacket;
 	kPacket.m_iReleaseTick = kPacket_.m_iReleaseTick;
 
-	// Release Tick ¾ò±â
+	// Release Tick ï¿½ï¿½ï¿½
 #ifdef SERV_RENEWAL_STATISTICS_SP
 	DO_QUERY( L"exec dbo.P_ReleaseTick_SEL", L"%d", % KBaseServer::GetKObj()->GetServerGroupID() );
 #else //SERV_RENEWAL_STATISTICS_SP
@@ -555,12 +555,12 @@ IMPL_ON_FUNC( DBE_CHECK_HACKING_TOOL_LIST_REQ )
 
 		if( iReleaseTick > kPacket_.m_iReleaseTick )
 		{
-			// »õ·Î¿î ReleaseTick°ªÀ» ¾ò´Â´Ù.
+			// ï¿½ï¿½ï¿½Î¿ï¿½ ReleaseTickï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
 			kPacket.m_iReleaseTick = iReleaseTick;
 		}
 	}
 
-	// Release Tick°ªÀÌ ¿Ã¶ó°¬´Ù¸é ¸®½ºÆ® »õ·Î ¹Þ´Â´Ù.
+	// Release Tickï¿½ï¿½ï¿½ï¿½ ï¿½Ã¶ó°¬´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´Â´ï¿½.
 	if( kPacket.m_iReleaseTick > kPacket_.m_iReleaseTick )
 	{
 #ifdef SERV_RENEWAL_STATISTICS_SP
@@ -588,14 +588,14 @@ end_proc:
 #endif SERV_HACKING_TOOL_LIST
 //}}
 
-//{{ 2011. 01. 13 ±è¹Î¼º	µ¿Á¢ ¸ð´ÏÅÍ¸µ Åø
+//{{ 2011. 01. 13 ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½
 #ifdef SERV_CCU_MONITORING_TOOL
 IMPL_ON_FUNC_NOPARAM( DBE_GET_GAME_SERVER_LIST_REQ )
 {
 	KDBE_GET_GAME_SERVER_LIST_ACK kPacket;
 	kPacket.m_iServerCount = 0;
 
-	//¼­¹ö ¸ñ·Ï ¾ò±â
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_RENEWAL_STATISTICS_SP
 	DO_QUERY( L"exec dbo.P_LToolServerList_SEL", L"%d", % KBaseServer::GetKObj()->GetServerGroupID() );
 #else //SERV_RENEWAL_STATISTICS_SP
@@ -625,14 +625,14 @@ end_proc:
 #endif SERV_CCU_MONITORING_TOOL
 //}}	
 
-//{{ 2012. 04. 24	ÃÖÀ°»ç	UDP¸±·¹ÀÌ ÆÛÆ÷¸Õ½º Ã¼Å©
+//{{ 2012. 04. 24	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	UDPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ Ã¼Å©
 #ifdef SERV_UDP_RELAY_CHECKER
 IMPL_ON_FUNC_NOPARAM( DBE_GET_CENTER_SERVER_LIST_REQ )
 {
 	KDBE_GET_CENTER_SERVER_LIST_ACK kPacket;
 
-	//¼­¹ö ¸ñ·Ï ¾ò±â
-	//{{ 2013. 01. 17	ÃÖÀ°»ç	¼­¹ö°£ Åë½Å »ç¼³IP Àû¿ë
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	//{{ 2013. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ç¼³IP ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PRIVATE_IP_SERVER_NETWORKING
 #ifdef SERV_RENEWAL_STATISTICS_SP
 	DO_QUERY( L"exec dbo.P_LServerList_By_ServerType_SEL", L"%d, %d", % KBaseServer::GetKObj()->GetServerGroupID() % KBaseServer::ESC_CENTER );
@@ -648,7 +648,7 @@ IMPL_ON_FUNC_NOPARAM( DBE_GET_CENTER_SERVER_LIST_REQ )
 	{
 		KServerInfo kInfo;
 
-		//{{ 2013. 01. 17	ÃÖÀ°»ç	¼­¹ö°£ Åë½Å »ç¼³IP Àû¿ë
+		//{{ 2013. 01. 17	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ç¼³IP ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PRIVATE_IP_SERVER_NETWORKING
 		FETCH_DATA( kInfo.m_iUID
 			>> kInfo.m_wstrName
@@ -682,7 +682,7 @@ end_proc:
 IMPL_ON_FUNC( DBE_UPDATE_UDP_RELAY_CHECK_STATISTICS_NOT )
 {
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"UDP Relay Server ¼º´É Ã¼Å© Åë°è DB¾÷µ¥ÀÌÆ®!" )
+	START_LOG( cout, L"UDP Relay Server ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®!" )
 		<< BUILD_LOG( kPacket_.m_vecUdpRelayCheckLog.size() );
 	//////////////////////////////////////////////////////////////////////////
 
@@ -690,7 +690,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UDP_RELAY_CHECK_STATISTICS_NOT )
 	{
 		int iOK = NetError::ERR_ODBC_01;
 
-		// UDP Relay ÆÛÆ÷¸Õ½º ±â·Ï
+		// UDP Relay ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_RENEWAL_STATISTICS_SP
 		DO_QUERY( L"exec dbo.P_LUDPRelayCheck_INS", L"%d, %d, N\'%s\', %d, %d, N\'%s\'", 
 			% KBaseServer::GetKObj()->GetServerGroupID()
@@ -718,7 +718,7 @@ IMPL_ON_FUNC( DBE_UPDATE_UDP_RELAY_CHECK_STATISTICS_NOT )
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"UDP Relay ServerÆÛÆ÷¸Õ½º Á¤º¸ ±â·Ï ½ÇÆÐ!" )
+			START_LOG( cerr, L"UDP Relay Serverï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( kInfo.m_iServerUID )
 				<< BUILD_LOG( kInfo.m_wstrServerIP )
 				<< BUILD_LOG( kInfo.m_dwAvgDelayTime )
@@ -737,7 +737,11 @@ IMPL_ON_FUNC( DBE_INSERT_LOGIN_RESULT_INFO_REQ )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-	for(int i = 0; i < KLoginResultInfo::LRTE_SENTINEL; i++)
+	//{{ Iruha : 2026-08-27 // VS2010 port: i is used after the loop (via DO_QUERY's `goto
+	// end_proc`), which VC7.1's non-conformant /Zc:forScope- tolerated; VC10 requires the
+	// loop variable to outlive the loop, so it's hoisted here.
+	int i;
+	for(i = 0; i < KLoginResultInfo::LRTE_SENTINEL; i++)
 	{
 		DO_QUERY( L"exec dbo.P_StatsLoginLOG_INS", L"%d, %d, %d, %d", 
 			% kPacket_.m_iServerGroupID
@@ -756,7 +760,7 @@ IMPL_ON_FUNC( DBE_INSERT_LOGIN_RESULT_INFO_REQ )
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"·Î±×ÀÎ °á°ú Á¤º¸ µî·Ï ½ÇÆÐ" )
+		START_LOG( cerr, L"ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 			<< BUILD_LOG( kPacket_.m_iServerGroupID )
 			<< BUILD_LOG( kPacket_.m_uiServerUID )
 			<< BUILD_LOG( i )
@@ -768,13 +772,13 @@ end_proc:
 
 
 
-//{{ 2012. 07. 04	ÃÖÀ°»ç		´ë±â¿­ ½Ã½ºÅÛ
+//{{ 2012. 07. 04	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½â¿­ ï¿½Ã½ï¿½ï¿½ï¿½
 #ifdef SERV_WAIT_QUEUE_SYSTEM
 IMPL_ON_FUNC_NOPARAM( DBE_GET_TOTAL_CCU_FOR_WAIT_QUEUE_REQ )
 {
 	KDBE_GET_TOTAL_CCU_FOR_WAIT_QUEUE_ACK kPacket;
 
-	// DB·ÎºÎÅÍ ¼­¹ö ¸®½ºÆ® µ¥ÀÌÅÍ¸¦ ¹Þ¾Æ¿Â´Ù
+	// DBï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Þ¾Æ¿Â´ï¿½
 #ifdef SERV_RENEWAL_STATISTICS_SP
 	DO_QUERY( L"exec dbo.P_LChannelList_SEL", L"%d", % KBaseServer::GetKObj()->GetServerGroupID() );
 #else //SERV_RENEWAL_STATISTICS_SP
@@ -807,13 +811,13 @@ end_proc:
 #endif SERV_WAIT_QUEUE_SYSTEM
 //}}
 
-//{{ 2013. 02. 13	ÃÖÀ°»ç	TickÆÛÆ÷¸Õ½º DB·Î±× ±â·Ï
+//{{ 2013. 02. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Tickï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ DBï¿½Î±ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_SIMLAYER_TICK_PERFORMANCE_DB_LOG
 IMPL_ON_FUNC( DBE_TICK_PERFORMANCE_LOG_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-	// SimLayer Tick ÆÛÆ÷¸Õ½º ±â·Ï
+	// SimLayer Tick ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_RENEWAL_STATISTICS_SP
 	DO_QUERY( L"exec dbo.P_LServerSimLayerTickLog_INS", L"%d, %d, %d, %d, N\'%s\', N\'%s\'", 
 		% KBaseServer::GetKObj()->GetServerGroupID()
@@ -842,7 +846,7 @@ IMPL_ON_FUNC( DBE_TICK_PERFORMANCE_LOG_NOT )
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"SimLayer Tick ÆÛÆ÷¸Õ½º ·Î±× ±â·Ï ½ÇÆÐ!" )
+		START_LOG( cerr, L"SimLayer Tick ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_iServerUID )
 			<< BUILD_LOG( kPacket_.m_iServerType )
 			<< BUILD_LOG( kPacket_.m_dwMaxTickCount )
@@ -854,7 +858,7 @@ end_proc:
 #endif SERV_SIMLAYER_TICK_PERFORMANCE_DB_LOG
 //}}
 
-//{{ 2013. 02. 21	ÃÖÀ°»ç	·Î±× ½Ã½ºÅÛ °³¼±
+//{{ 2013. 02. 21	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Î±ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_LOG_SYSTEM_NEW
 IMPL_ON_FUNC( DBE_LOG_STATISTICS_INFO_NOT )
 {
@@ -866,7 +870,7 @@ IMPL_ON_FUNC( DBE_LOG_STATISTICS_INFO_NOT )
 	{
 		int iOK = NetError::ERR_ODBC_01;
 
-		// ¼­¹ö ¿¡·¯ ·Î±× Åë°è
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½
 		DO_QUERY( L"exec dbo.P_LServer_ErrorLog_INS", L"%d, N\'%s\', N\'%s\', N\'%s\', %d, N\'%s\'", 
 			% iServerUID
 			% kInfo.m_wstrFunctionName
@@ -884,7 +888,7 @@ IMPL_ON_FUNC( DBE_LOG_STATISTICS_INFO_NOT )
 end_proc:
 		if( iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"Log Statistics Á¤º¸ ±â·Ï ½ÇÆÐ!" )
+			START_LOG( cerr, L"Log Statistics ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 				<< BUILD_LOG( iServerUID )
 				<< BUILD_LOG( kInfo.m_wstrFunctionName )
 				<< BUILD_LOG( kInfo.m_wstrFileName )
@@ -918,7 +922,7 @@ _IMPL_ON_FUNC( DBE_PCBANG_IP_AND_MAC_INFO_NOT, KECH_PCBANG_IP_AND_MAC_INFO_NOT )
 end_proc:
 	if( iOK != NetError::NET_OK )
 	{
-		START_LOG( cerr, L"IP ¿Í Mac Á¤º¸ ·Î±× ±â·Ï ½ÇÆÐ!" )
+		START_LOG( cerr, L"IP ï¿½ï¿½ Mac ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( kPacket_.m_wstrPublicIP)
 			<< BUILD_LOG( kPacket_.m_wstrMacInfo )
 			<< END_LOG;

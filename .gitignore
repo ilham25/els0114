@@ -22,6 +22,29 @@
 !/libxml/
 !/X2Project_2010.sln
 !/X2Project_2003.sln
+!/X2Project_Servers_2010.sln
+!/VS2003_to_VS2010_Port_Guide.md
+
+# ---- narrow allowlist into KNCSDK (709 MB / 1234 files) for just the files -
+# the VS2010 server port touched, rather than admitting the whole vendored
+# tree. Each directory level needs its own !/-then-re-ignore pair for git to
+# even look inside; add more pairs here if a later change needs another file.
+!/KNCSDK/
+KNCSDK/*
+!/KNCSDK/Include_2010/
+KNCSDK/Include_2010/*
+!/KNCSDK/Include_2010/KncUtil.h
+!/KNCSDK/Include_2010/lua_tinker.h
+!/KNCSDK/Include_2010/KncContainer.h
+!/KNCSDK/Include_2010/VariableSizeBuffer.h
+!/KNCSDK/Include_2010/dbg/
+KNCSDK/Include_2010/dbg/*
+!/KNCSDK/Include_2010/dbg/logfile.hpp
+!/KNCSDK/Include_2010/dbg/logfile.cpp
+!/KNCSDK/KncDebug/
+KNCSDK/KncDebug/*
+!/KNCSDK/KncDebug/KncDebug71_2010.vcxproj
+!/KNCSDK/KncDebug/KncDebug71_2010.vcxproj.filters
 
 # ---- build output directories, at any depth inside the scope --------------
 # Release_*/ covers Release_US, Release_EU, Release_CN (1016 .obj in Release_US

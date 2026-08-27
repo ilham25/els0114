@@ -3,10 +3,10 @@
 #include "Enum/Enum.h"
 #include "socket/NetCommon.h"
 
-//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//{{ 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef SERV_INSERT_GLOBAL_SERVER
 
-//{{ 2012. 04. 23	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+//{{ 2012. 04. 23	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 	#include "..\Common\X2Data\XSLBuffManager.h"
 #endif SERV_REFORM_THE_GATE_OF_DARKNESS
@@ -14,7 +14,7 @@
 
 ImplementSingleton( KGSWorldMissionManager );
 
-//{{ 2013. 04. 15	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+//{{ 2013. 04. 15	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 KGSWorldMissionManager::KGSWorldMissionManager(void)
 {	
@@ -42,7 +42,7 @@ KGSWorldMissionManager::~KGSWorldMissionManager(void)
 
 void KGSWorldMissionManager::Init()
 {
-	// ·Î±×ÀÎ ¼­¹ö·Î ºÎÅÍ ÀÌº¥Æ® ´øÀü µ¥ÀÌÅÍ ¾ò±â
+	// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	KEGB_GET_MISSION_INFO_REQ kPacketReq;
 	kPacketReq.m_iServerUID = KBaseServer::GetKObj()->GetUID();
 	SendToGlobalServer( EGB_GET_MISSION_INFO_REQ, kPacketReq );
@@ -54,7 +54,7 @@ void KGSWorldMissionManager::UpdateMissionInfo( IN const KEGB_GET_MISSION_INFO_A
 	{
 	case KEGB_GET_MISSION_INFO_ACK::FT_NONE:
 		{
-			START_LOG( cerr, L"¹Þ¾Æ¼­´Â ¾ÈµÇ´Â Å¸ÀÔ" )
+			START_LOG( cerr, L"ï¿½Þ¾Æ¼ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ Å¸ï¿½ï¿½" )
 				<< BUILD_LOG( kPacketAck.m_iFlag )
 				<< END_LOG;
 
@@ -92,7 +92,7 @@ void KGSWorldMissionManager::UpdateMissionInfo( IN const KEGB_GET_MISSION_INFO_A
 		} break;
 	default:
 		{
-			START_LOG( cerr, L"¹Þ¾Æ¼­´Â ¾ÈµÇ´Â Å¸ÀÔ" )
+			START_LOG( cerr, L"ï¿½Þ¾Æ¼ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ Å¸ï¿½ï¿½" )
 				<< BUILD_LOG( kPacketAck.m_iFlag )
 				<< END_LOG;
 
@@ -102,7 +102,7 @@ void KGSWorldMissionManager::UpdateMissionInfo( IN const KEGB_GET_MISSION_INFO_A
 
 	m_iTickCount++;
 
-	START_LOG( clog, L"¿ùµå ¹Ì¼Ç Á¤º¸ º¯°æ" )
+	START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 		<< BUILD_LOG( kPacketAck.m_iFlag )
 		<< BUILD_LOG( kPacketAck.m_bActive )
 		<< BUILD_LOG( kPacketAck.m_iWorldCrystalCount )
@@ -120,7 +120,7 @@ void KGSWorldMissionManager::GetMissionInfo( OUT KEGS_WORLD_MISSION_UPDATE_NOT &
 	kOut.m_iWorldMaxCrystalCount	= m_iWorldMaxCrystalCount;
 	kOut.m_iMissionStartRemainTime	= GetMissionStartRemainTime();
 
-	START_LOG( clog, L"¿ùµå ¹Ì¼Ç Á¤º¸" )
+	START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 		<< BUILD_LOG( kOut.m_bActive )
 		<< BUILD_LOG( kOut.m_iRemainTime )
 		<< BUILD_LOG( kOut.m_iWorldCrystalCount )
@@ -140,16 +140,16 @@ bool KGSWorldMissionManager::UpdateWorldBuffInfo( IN const KEGB_UPDATE_WORLD_BUF
 	m_usWorldBuff				= kPacket.m_usSuccessWorldBuff;
 	m_usWorldBuffDurationTime	= kPacket.m_usWorldBuffDurationTime;
 
-	if( m_usWorldBuff == CXSLBuffManager::BTI_NONE )	// µÇµµ·ÏÀÌ¸é ¹üÀ§ ¾È¿¡ µé¾î°¡´ÂÁö Ã¼Å©ÇÏ´Â °ÍÀÌ ÁÁ´Ù.
+	if( m_usWorldBuff == CXSLBuffManager::BTI_NONE )	// ï¿½Çµï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È¿ï¿½ ï¿½ï¿½î°¡ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	{
-		START_LOG( clog, L"¿ùµå ¹öÇÁ°¡ º¯°æ µÇ¾ú½À´Ï´Ù! ¿ùµå ¹öÇÁ Á¾·á!!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!" )
 			<< BUILD_LOG( m_usWorldBuff )
 			<< BUILD_LOG( m_usWorldBuffDurationTime )
 			<< END_LOG;
 	}
 	else
 	{
-		START_LOG( clog, L"¿ùµå ¹öÇÁ°¡ º¯°æ µÇ¾ú½À´Ï´Ù! ¿ùµå ¹öÇÁ ½ÃÀü!!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!" )
 			<< BUILD_LOG( m_usWorldBuff )
 			<< BUILD_LOG( m_usWorldBuffDurationTime )
 			<< END_LOG;
@@ -176,26 +176,31 @@ int KGSWorldMissionManager::GetWorldBuffState()
 	return ret;
 }
 
-//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 int KGSWorldMissionManager::GetWorldBuffEndTime()
 {
 	CTime tCurrentTime = CTime::GetCurrentTime();
 
-	// ¿äÀÏº° ¼¼ÆÃ ½Ã°£ ¾ò±â
+	// ï¿½ï¿½ï¿½Ïºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½
 	std::map< int, std::vector< KDefenseOpenTime > >::const_iterator mit = m_mapDefenseOpenTime.find( tCurrentTime.GetDayOfWeek() );
 
-	// ÇØ´ç ¿äÀÏ¿¡ ¿¹¾àµÈ ¿ÀÇÂ ½Ã°£ Á¸Àç ¿©ºÎ °Ë»ç.
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½.
 	if( mit == m_mapDefenseOpenTime.end() )
 	{
 		return CXSLBuffManager::BTI_NONE;
 	}
 
-	// ¼¼ÆÃ ½Ã°£
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 	const std::vector< KDefenseOpenTime >& vecTime = mit->second;
 
-	// ÇØ´ç ¿äÀÏ¿¡ ¿¹¾àµÈ ¿ÀÇÂ ½Ã°£µéÀ» ¼øÈ¸ÇÏ¸é¼­, ÇöÀç ½Ã°£´ë¿¡ ¸Â´Â Á¤º¸°¡ ÀÖ´ÂÁö °Ë»çÇÑ´Ù.
-	for( std::vector< KDefenseOpenTime >::const_iterator it = vecTime.begin(); it != vecTime.end(); ++it )
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ï¿½Ï¸é¼­, ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ë¿¡ ï¿½Â´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
+	//{{ Iruha : 2026-08-27 // VS2010 port: it is used after the loop, which VC7.1's
+	// non-conformant /Zc:forScope- tolerated; VC10 requires the loop variable to outlive
+	// the loop, so it's hoisted here.
+	std::vector< KDefenseOpenTime >::const_iterator it;
+	//}}
+	for( it = vecTime.begin(); it != vecTime.end(); ++it )
 	{
 		const KDefenseOpenTime& kDefenseOpenTime = *it;
 		CTime tStartTime	= CTime( tCurrentTime.GetYear(), tCurrentTime.GetMonth(), tCurrentTime.GetDay(), kDefenseOpenTime.m_iStartHour, kDefenseOpenTime.m_iStartMinute, 0 );
@@ -226,7 +231,7 @@ int KGSWorldMissionManager::GetWorldBuffEndTime()
 #endif SERV_SERVER_BUFF_SYSTEM
 //}
 
-//{{ 2013. 04. 15	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+//{{ 2013. 04. 15	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 bool KGSWorldMissionManager::UpdateIndividualBuffInfo( IN const KEGB_THE_GATE_OF_DARKNESS_INDIVIDUAL_BUFF_NOT& kPacket_ )
 {
@@ -241,16 +246,16 @@ bool KGSWorldMissionManager::UpdateIndividualBuffInfo( IN const KEGB_THE_GATE_OF
 #endif SERV_NEW_DEFENCE_DUNGEON
 //}}
 
-//{{ 2012. 03. 03	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+//{{ 2012. 03. 03	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 int KGSWorldMissionManager::GetWorldCrystalCount( void )
 { 
-	if( m_iWorldCrystalCount > WBSC_STEP_THREE )	// ¼öÁ¤ÀÇ ÃÖ´ë ¼ö¸¦ ³ÑÀ» °æ¿ì ÃÖ´ë ¼ö·Î ¼³Á¤(client UI's crystal)
+	if( m_iWorldCrystalCount > WBSC_STEP_THREE )	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(client UI's crystal)
 	{
 		m_iWorldCrystalCount = WBSC_STEP_THREE;
 	}
 
-	START_LOG( clog, L"¿ùµå Å©¸®½ºÅ» °¹¼ö È®ÀÎ" )
+	START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½" )
 		<< BUILD_LOG( m_iWorldCrystalCount )
 		<< END_LOG;
 
@@ -261,27 +266,27 @@ bool KGSWorldMissionManager::GetDefenseDungeonEndTime( OUT CTime& tStartTime, OU
 {
 	CTime tCurrentTime = CTime::GetCurrentTime();
 
-	// ¿äÀÏº° ¼¼ÆÃ ½Ã°£ ¾ò±â
+	// ï¿½ï¿½ï¿½Ïºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½
 	std::map< int, std::vector< KDefenseOpenTime > >::const_iterator mit = m_mapDefenseOpenTime.find( tCurrentTime .GetDayOfWeek() );
 
-	// ÇØ´ç ¿äÀÏ¿¡ ¿¹¾àµÈ ¿ÀÇÂ ½Ã°£ Á¸Àç ¿©ºÎ °Ë»ç.
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½.
 	if( mit == m_mapDefenseOpenTime.end() )
 	{
-		START_LOG( cerr, L"µðÆæ½º ´øÀü ½Ã°£ ¼ÂÆÃ °ªÀÌ Á¸Àç ÇÏÁö ¾Ê½À´Ï´Ù." );
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." );
 		return false;
 	}
 
-	// ¼¼ÆÃ ½Ã°£
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 	const std::vector< KDefenseOpenTime >& vecTime = mit->second;
 
-	// ÇØ´ç ¿äÀÏ¿¡ ¿¹¾àµÈ ¿ÀÇÂ ½Ã°£µéÀ» ¼øÈ¸ÇÏ¸é¼­, ÇöÀç ½Ã°£´ë¿¡ ¸Â´Â Á¤º¸°¡ ÀÖ´ÂÁö °Ë»çÇÑ´Ù.
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ï¿½Ï¸é¼­, ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ë¿¡ ï¿½Â´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 	for( std::vector< KDefenseOpenTime >::const_reverse_iterator rit = vecTime.rbegin(); rit != vecTime.rend(); ++rit )
 	{
 		const KDefenseOpenTime& kDefenseOpenTime = *rit;
 		tStartTime = CTime( tCurrentTime .GetYear(), tCurrentTime .GetMonth(), tCurrentTime .GetDay(), kDefenseOpenTime.m_iStartHour, kDefenseOpenTime.m_iStartMinute, 0 );
 		tEndTime = tStartTime + CTimeSpan( 0, 0, kDefenseOpenTime.m_iDurationTime, 0 );
 
-		// ´øÀüÀÌ ¿­·Á ÀÖ´Ù¸é, ÇöÀç ½Ã°¢À» Æ÷ÇÔÇÏ´Â ´øÀü ¿ÀÇÂ ¼³Á¤ ½Ã°¢À» Ã£´Â´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ Ã£ï¿½Â´ï¿½.
 		if( m_bActive )
 		{
 			if( ( tStartTime <= tCurrentTime ) && ( tCurrentTime < tEndTime ) )
@@ -299,7 +304,7 @@ bool KGSWorldMissionManager::GetDefenseDungeonEndTime( OUT CTime& tStartTime, OU
 	std::wstring wstrEndTime = tEndTime.Format(_T("%Y-%m-%d %H:%M:%S"));
 	std::wstring wstrCurrentTime = tCurrentTime.Format(_T("%Y-%m-%d %H:%M:%S"));
 
-	START_LOG( cerr, L"µðÆæ½º ´øÀü EndTime °Ë»ö ½ÇÆÐ")
+	START_LOG( cerr, L"ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ EndTime ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½")
 		<< BUILD_LOG( m_bActive )
 		<< BUILD_LOG( wstrCurrentTime )
 		<< BUILD_LOG( wstrStartTime )
@@ -328,7 +333,7 @@ void KGSWorldMissionManager::UpdateMissionStartTime( IN std::wstring& wstrDate )
 {
 	if( KncUtil::ConvertStringToCTime( wstrDate, m_tWorldMissionNextStartTime ) == false )
 	{
-		START_LOG( cerr, L"½Ã°£ º¯°æ ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( m_tWorldMissionNextStartTime.GetYear() )
 			<< BUILD_LOG( m_tWorldMissionNextStartTime.GetMonth() )
 			<< BUILD_LOG( m_tWorldMissionNextStartTime.GetDay() )
@@ -344,17 +349,17 @@ int KGSWorldMissionManager::GetMissionStartRemainTime()
 {
 	CTime tCurrent = CTime::GetCurrentTime();
 
-	if( m_tWorldMissionNextStartTime > tCurrent )	// ¿ùµå ¹Ì¼ÇÀÌ ÀÌÈÄ¿¡ Á¸ÀçÇÑ´Ù
+	if( m_tWorldMissionNextStartTime > tCurrent )	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½
 	{
 		CTimeSpan gap = m_tWorldMissionNextStartTime - tCurrent;
 
 		return (int)gap.GetTotalMinutes();
 	}
-	else if( m_iMissionTime == 0 )					// ¿ùµå ¹Ì¼Ç ÀÌÈÄ¿¡ ¾ø´Ù
+	else if( m_iMissionTime == 0 )					// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 	{
 		return -1;
 	}
-	else											// ¿ùµå ¹Ì¼ÇÀÌ ÁøÇà ÁßÀÌ´Ù
+	else											// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½
 	{
 		return 0;
 	}
@@ -382,7 +387,7 @@ KGSWorldMissionManager::~KGSWorldMissionManager(void)
 
 void KGSWorldMissionManager::Init()
 {
-	// ·Î±×ÀÎ ¼­¹ö·Î ºÎÅÍ ÀÌº¥Æ® ´øÀü µ¥ÀÌÅÍ ¾ò±â
+	// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	KEGB_GET_MISSION_INFO_REQ kPacketReq;
 	kPacketReq.m_iServerUID = KBaseServer::GetKObj()->GetUID();
 	SendToGlobalServer( EGB_GET_MISSION_INFO_REQ, kPacketReq );
@@ -394,13 +399,13 @@ void KGSWorldMissionManager::UpdateMissionInfo( IN const KEGB_GET_MISSION_INFO_A
 	{
 	case KEGB_GET_MISSION_INFO_ACK::FT_NONE:
 		{
-			START_LOG( cerr, L"¹Þ¾Æ¼­´Â ¾ÈµÇ´Â Å¸ÀÔ" )
+			START_LOG( cerr, L"ï¿½Þ¾Æ¼ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ Å¸ï¿½ï¿½" )
 				<< BUILD_LOG( kPacketAck.m_iFlag )
 				<< END_LOG;
 
 			return;
 		} break;
-		//{{ 2012. 04. 24	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+		//{{ 2012. 04. 24	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 		case KEGB_GET_MISSION_INFO_ACK::FT_INIT:	m_mapDefenseOpenTime = kPacketAck.m_mapDefenseOpenTime;	goto UPDATE_MISSION_INFO_FT_PROCESS;
 		case KEGB_GET_MISSION_INFO_ACK::FT_UPDATE:	goto UPDATE_MISSION_INFO_FT_PROCESS;
@@ -436,7 +441,7 @@ UPDATE_MISSION_INFO_FT_PROCESS:
 		} break;
 	default:
 		{
-			START_LOG( cerr, L"¹Þ¾Æ¼­´Â ¾ÈµÇ´Â Å¸ÀÔ" )
+			START_LOG( cerr, L"ï¿½Þ¾Æ¼ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ Å¸ï¿½ï¿½" )
 				<< BUILD_LOG( kPacketAck.m_iFlag )
 				<< END_LOG;
 
@@ -446,7 +451,7 @@ UPDATE_MISSION_INFO_FT_PROCESS:
 
 	m_iTickCount++;
 
-	START_LOG( clog, L"¿ùµå ¹Ì¼Ç Á¤º¸ º¯°æ" )
+	START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 		<< BUILD_LOG( kPacketAck.m_iFlag )
 		<< BUILD_LOG( kPacketAck.m_bActive )
 		<< BUILD_LOG( kPacketAck.m_iWorldCrystalCount )
@@ -462,7 +467,7 @@ void KGSWorldMissionManager::GetMissionInfo( OUT KEGS_WORLD_MISSION_UPDATE_NOT &
 	kOut.m_iWorldCrystalCount		= m_iWorldCrystalCount;
 	kOut.m_iMissionStartRemainTime	= GetMissionStartRemainTime();
 
-	START_LOG( clog, L"¿ùµå ¹Ì¼Ç Á¤º¸" )
+	START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½" )
 		<< BUILD_LOG( kOut.m_bActive )
 		<< BUILD_LOG( kOut.m_iRemainTime )
 		<< BUILD_LOG( kOut.m_iWorldCrystalCount )
@@ -474,7 +479,7 @@ bool KGSWorldMissionManager::UpdateWorldBuffInfo( IN const KEGB_UPDATE_WORLD_BUF
 {
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS_NO_WORLD_BUFF
 #else //SERV_REFORM_THE_GATE_OF_DARKNESS_NO_WORLD_BUFF
-	if( kPacket.m_usSuccessWorldBuff != CXSLBuffManager::BTI_NONE && m_usWorldBuff < kPacket.m_usSuccessWorldBuff ) // ±âÁ¸ ¿ùµå ¹öÇÁº¸´Ù ³ôÀº °ÍÀÌ¸é °»½Å ÇÊ¿ä
+	if( kPacket.m_usSuccessWorldBuff != CXSLBuffManager::BTI_NONE && m_usWorldBuff < kPacket.m_usSuccessWorldBuff ) // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
 	{
 		m_usWorldBuff = kPacket.m_usSuccessWorldBuff;
 
@@ -491,12 +496,12 @@ bool KGSWorldMissionManager::UpdateWorldBuffInfo( IN const KEGB_UPDATE_WORLD_BUF
 			m_usWorldBuffDurationTime = static_cast<u_short>( kPacket.m_usWorldBuffDurationTime - gap.GetTotalSeconds() );
 		}
 
-		START_LOG( clog, L"¿ùµå ¹öÇÁ°¡ º¯°æ µÇ¾ú½À´Ï´Ù! ¿ùµå ¹öÇÁ ½ÃÀü!!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!" )
 			<< BUILD_LOG( m_usWorldBuff )
 			<< BUILD_LOG( m_usWorldBuffDurationTime )
 			<< END_LOG;
 
-		return true;	// »õ ¹öÇÁ Ãß°¡ µÇ´Â »óÈ²
+		return true;	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½È²
 	}
 
 	if( kPacket.m_usSuccessWorldBuff == CXSLBuffManager::BTI_NONE )
@@ -504,7 +509,7 @@ bool KGSWorldMissionManager::UpdateWorldBuffInfo( IN const KEGB_UPDATE_WORLD_BUF
 		m_usWorldBuff = kPacket.m_usSuccessWorldBuff;
 		m_usWorldBuffDurationTime = 0;
 
-		START_LOG( clog, L"¿ùµå ¹öÇÁ°¡ º¯°æ µÇ¾ú½À´Ï´Ù! ¿ùµå ¹öÇÁ Á¾·á!!" )
+		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½! ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!" )
 			<< BUILD_LOG( m_usWorldBuff )
 			<< BUILD_LOG( m_usWorldBuffDurationTime )
 			<< END_LOG;
@@ -513,7 +518,7 @@ bool KGSWorldMissionManager::UpdateWorldBuffInfo( IN const KEGB_UPDATE_WORLD_BUF
 	}
 #endif //SERV_REFORM_THE_GATE_OF_DARKNESS_NO_WORLD_BUFF
 	
-	return false;		// »õ ¹öÇÁ Ãß°¡ µÇÁö ¾ÊÀ½
+	return false;		// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 }
 
 void KGSWorldMissionManager::GetWorldBuff( OUT KEGS_UPDATE_WORLD_BUFF_NOT& kPacket )
@@ -530,7 +535,7 @@ void KGSWorldMissionManager::GetWorldBuff( OUT KEGS_UPDATE_WORLD_BUFF_NOT& kPack
 		std::wstring wstr = m_tWorldMissionEndTime.Format(_T("%Y-%m-%d %H:%M:%S"));
 		CTimeSpan gap  = tCurrent - m_tWorldMissionEndTime;
 				
-		// ¹öÇÁ À¯Áö ½Ã°£ º¸´Ù °¸ÀÌ ÀÛ¾Æ¾ß ÇÑ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾Æ¾ï¿½ ï¿½Ñ´ï¿½.
 		if( gap.GetTotalSeconds() < m_usWorldBuffDurationTime )
 		{
 			kPacket.m_usWorldBuffDurationTime = static_cast<u_short>(m_usWorldBuffDurationTime - gap.GetTotalSeconds());
@@ -539,7 +544,7 @@ void KGSWorldMissionManager::GetWorldBuff( OUT KEGS_UPDATE_WORLD_BUFF_NOT& kPack
 		{
 			kPacket.m_usWorldBuffDurationTime = 0;
 
-			START_LOG( clog, L"¿ùµå ¹öÇÁ À¯Áö ½Ã°£ÀÌ ÀÌ»óÇÕ´Ï´Ù" )
+			START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Õ´Ï´ï¿½" )
 				<< BUILD_LOG( m_usWorldBuff )
 				<< BUILD_LOG( m_usWorldBuffDurationTime )
 				<< BUILD_LOG( gap.GetTotalSeconds()  )
@@ -560,7 +565,7 @@ int KGSWorldMissionManager::GetWorldBuffState()
 	return ret;
 }
 
-//{{ ¹öÇÁ °ü¸® ½Ã½ºÅÛ - ±è¹Î¼º
+//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î¼ï¿½
 #ifdef SERV_SERVER_BUFF_SYSTEM
 int KGSWorldMissionManager::GetWorldBuffEndTime()
 {
@@ -580,16 +585,16 @@ int KGSWorldMissionManager::GetWorldBuffEndTime()
 #endif SERV_SERVER_BUFF_SYSTEM
 //}
 
-//{{ 2012. 03. 03	¹Ú¼¼ÈÆ	¾îµÒÀÇ ¹® °³Æí
+//{{ 2012. 03. 03	ï¿½Ú¼ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 int KGSWorldMissionManager::GetWorldCrystalCount( void )
 { 
-	if( m_iWorldCrystalCount > WBSC_STEP_THREE )	// ¼öÁ¤ÀÇ ÃÖ´ë ¼ö¸¦ ³ÑÀ» °æ¿ì ÃÖ´ë ¼ö·Î ¼³Á¤(client UI's crystal)
+	if( m_iWorldCrystalCount > WBSC_STEP_THREE )	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(client UI's crystal)
 	{
 		m_iWorldCrystalCount = WBSC_STEP_THREE;
 	}
 
-	START_LOG( clog, L"¿ùµå Å©¸®½ºÅ» °¹¼ö È®ÀÎ" )
+	START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½" )
 		<< BUILD_LOG( m_iWorldCrystalCount )
 		<< END_LOG;
 
@@ -604,7 +609,7 @@ void KGSWorldMissionManager::GetIndividualBuffID( OUT int& iBuffLevel, std::vect
 
 	if( DEFENSE_REWARD_BUFF_MAX_NEEDS <= iWorldCrystalCount )
 	{
-		START_LOG( cerr, L"WorldCrystalCountÀÇ °ªÀÌ ÃÖ´ëÄ¡¸¦ ³Ñ±â°í ÀÖ½À´Ï´Ù." )
+		START_LOG( cerr, L"WorldCrystalCountï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½Ñ±ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOG( iWorldCrystalCount )
 			<< END_LOG;
 		iBuffLevel = CXSLBuffManager::BTI_BUFF_HERO_OF_ELIOS_LEVEL_4;
@@ -634,7 +639,7 @@ void KGSWorldMissionManager::GetIndividualBuffID( OUT int& iBuffLevel, std::vect
 	else
 	{
 		iBuffLevel = CXSLBuffManager::BTI_BUFF_HERO_OF_ELIOS_LEVEL_1;
-		START_LOG( cerr, L"WorldCrystalCountÀÇ °ªÀÌ ÃÖÀúÄ¡º¸´Ù ÀÛ½À´Ï´Ù." )
+		START_LOG( cerr, L"WorldCrystalCountï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ ï¿½Û½ï¿½ï¿½Ï´ï¿½." )
 			<< BUILD_LOG( iWorldCrystalCount )
 			<< END_LOG;
 	}
@@ -644,27 +649,27 @@ bool KGSWorldMissionManager::GetDefenseDungeonEndTime( OUT CTime& tStartTime, OU
 {
 	CTime tCurrentTime = CTime::GetCurrentTime();
 
-	// ¿äÀÏº° ¼¼ÆÃ ½Ã°£ ¾ò±â
+	// ï¿½ï¿½ï¿½Ïºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½
 	std::map< int, std::vector< KDefenseOpenTime > >::const_iterator mit = m_mapDefenseOpenTime.find( tCurrentTime .GetDayOfWeek() );
 
-	// ÇØ´ç ¿äÀÏ¿¡ ¿¹¾àµÈ ¿ÀÇÂ ½Ã°£ Á¸Àç ¿©ºÎ °Ë»ç.
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½.
 	if( mit == m_mapDefenseOpenTime.end() )
 	{
-		START_LOG( cerr, L"µðÆæ½º ´øÀü ½Ã°£ ¼ÂÆÃ °ªÀÌ Á¸Àç ÇÏÁö ¾Ê½À´Ï´Ù." );
+		START_LOG( cerr, L"ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½." );
 		return false;
 	}
 
-	// ¼¼ÆÃ ½Ã°£
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 	const std::vector< KDefenseOpenTime >& vecTime = mit->second;
 
-	// ÇØ´ç ¿äÀÏ¿¡ ¿¹¾àµÈ ¿ÀÇÂ ½Ã°£µéÀ» ¼øÈ¸ÇÏ¸é¼­, ÇöÀç ½Ã°£´ë¿¡ ¸Â´Â Á¤º¸°¡ ÀÖ´ÂÁö °Ë»çÇÑ´Ù.
+	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ï¿½Ï¸é¼­, ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ë¿¡ ï¿½Â´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 	for( std::vector< KDefenseOpenTime >::const_reverse_iterator rit = vecTime.rbegin(); rit != vecTime.rend(); ++rit )
 	{
 		const KDefenseOpenTime& kDefenseOpenTime = *rit;
 		tStartTime = CTime( tCurrentTime .GetYear(), tCurrentTime .GetMonth(), tCurrentTime .GetDay(), kDefenseOpenTime.m_iStartHour, kDefenseOpenTime.m_iStartMinute, 0 );
 		tEndTime = tStartTime + CTimeSpan( 0, 0, kDefenseOpenTime.m_iDurationTime, 0 );
 
-		// ´øÀüÀÌ ¿­·Á ÀÖ´Ù¸é, ÇöÀç ½Ã°¢À» Æ÷ÇÔÇÏ´Â ´øÀü ¿ÀÇÂ ¼³Á¤ ½Ã°¢À» Ã£´Â´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ Ã£ï¿½Â´ï¿½.
 		if( m_bActive )
 		{
 			if( ( tStartTime <= tCurrentTime ) && ( tCurrentTime < tEndTime ) )
@@ -682,7 +687,7 @@ bool KGSWorldMissionManager::GetDefenseDungeonEndTime( OUT CTime& tStartTime, OU
 	std::wstring wstrEndTime = tEndTime.Format(_T("%Y-%m-%d %H:%M:%S"));
 	std::wstring wstrCurrentTime = tCurrentTime.Format(_T("%Y-%m-%d %H:%M:%S"));
 
-	START_LOG( cerr, L"µðÆæ½º ´øÀü EndTime °Ë»ö ½ÇÆÐ")
+	START_LOG( cerr, L"ï¿½ï¿½ï¿½æ½º ï¿½ï¿½ï¿½ï¿½ EndTime ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½")
 		<< BUILD_LOG( m_bActive )
 		<< BUILD_LOG( wstrCurrentTime )
 		<< BUILD_LOG( wstrStartTime )
@@ -711,7 +716,7 @@ void KGSWorldMissionManager::UpdateMissionStartTime( IN std::wstring& wstrDate )
 {
 	if( KncUtil::ConvertStringToCTime( wstrDate, m_tWorldMissionNextStartTime ) == false )
 	{
-		START_LOG( cerr, L"½Ã°£ º¯°æ ½ÇÆÐ!" )
+		START_LOG( cerr, L"ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
 			<< BUILD_LOG( m_tWorldMissionNextStartTime.GetYear() )
 			<< BUILD_LOG( m_tWorldMissionNextStartTime.GetMonth() )
 			<< BUILD_LOG( m_tWorldMissionNextStartTime.GetDay() )
@@ -727,17 +732,17 @@ int KGSWorldMissionManager::GetMissionStartRemainTime()
 {
 	CTime tCurrent = CTime::GetCurrentTime();
 
-	if( m_tWorldMissionNextStartTime > tCurrent )	// ¿ùµå ¹Ì¼ÇÀÌ ÀÌÈÄ¿¡ Á¸ÀçÇÑ´Ù
+	if( m_tWorldMissionNextStartTime > tCurrent )	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½
 	{
 		CTimeSpan gap = m_tWorldMissionNextStartTime - tCurrent;
 
 		return (int)gap.GetTotalMinutes();
 	}
-	else if( m_iMissionTime == 0 )					// ¿ùµå ¹Ì¼Ç ÀÌÈÄ¿¡ ¾ø´Ù
+	else if( m_iMissionTime == 0 )					// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 	{
 		return -1;
 	}
-	else											// ¿ùµå ¹Ì¼ÇÀÌ ÁøÇà ÁßÀÌ´Ù
+	else											// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½
 	{
 		return 0;
 	}
@@ -745,4 +750,4 @@ int KGSWorldMissionManager::GetMissionStartRemainTime()
 #endif SERV_NEW_DEFENCE_DUNGEON
 //}}
 #endif SERV_INSERT_GLOBAL_SERVER
-//}} 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
+//}} 2011. 04. 13  ï¿½ï¿½Î¼ï¿½  ï¿½Û·Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½

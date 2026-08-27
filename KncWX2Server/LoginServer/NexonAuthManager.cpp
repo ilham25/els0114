@@ -7,19 +7,19 @@
 #include "LoginServer.h"
 #include "LoginSimLayer.h"
 
-//{{ 2012. 01. 27  ±è¹Î¼º	·Î±×ÀÎ ÀÎÁõ¼­¹ö ¿¬°á ²÷±è ÀÚµ¿ sms Àü¼Û
+//{{ 2012. 01. 27  ï¿½ï¿½Î¼ï¿½	ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ sms ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEXON_AUTH_SERVER_DISCONNECT_SMS
 	#include "Mornitoring/MornitoringManager.h"
 #endif SERV_NEXON_AUTH_SERVER_DISCONNECT_SMS
 //}}
 
 
-//{{ 2010. 06. 04  ÃÖÀ°»ç	³Ø½¼PC¹æ ÀÎÁõ ¼­¹ö °³Æí
+//{{ 2010. 06. 04  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ø½ï¿½PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_PCBANG_AUTH_NEW
 
 
-DWORD KNexonAuthManager::ms_dwHeartBeatGap( 1 * 60 * 1000 );		// 1ºÐ ¸¶´Ù ÇÏÆ®ºñÆ®
-DWORD KNexonAuthManager::ms_dwConnectionCheckGap( 1 * 30 * 1000 );	// 30ÃÊ ¸¶´Ù Á¢¼Ó Ã¼Å©
+DWORD KNexonAuthManager::ms_dwHeartBeatGap( 1 * 60 * 1000 );		// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½Æ®
+DWORD KNexonAuthManager::ms_dwConnectionCheckGap( 1 * 30 * 1000 );	// 30ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 
 ImplToStringW( KNexonAuthManager )
 {
@@ -68,7 +68,7 @@ void KNexonAuthManager::InitNexonAuthInfo_LUA( const char* szNexonAuthIP, unsign
 
 void KNexonAuthManager::DisconnectAuthServer_LUA()
 {
-	START_LOG( cout, L"Å×½ºÆ®¸¦ À§ÇÑ ÀÎÁõ ¼­¹ö Á¢¼Ó ²÷±â!" );
+	START_LOG( cout, L"ï¿½×½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" );
 
     CLOSE_SOCKET( m_sock );
 }
@@ -78,12 +78,15 @@ void KNexonAuthManager::Init( int nThreadNum )
     m_iRecvCP = 0;
 
     //////////////////////////////////////////////////////////////////////////
-    // thread setting : recv´Â recvfrom() ÇÔ¼ö¿¡¼­ ¾Ë¾Æ¼­ blockµÈ´Ù.
+    // thread setting : recvï¿½ï¿½ recvfrom() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¼ï¿½ blockï¿½È´ï¿½.
+    //{{ Iruha : 2026-08-27 // VS2010 port: bare Class::Method as a member-function pointer
+    // was a VC7.1 extension; VC10 requires the explicit &.
     m_spThreadRecv = boost::shared_ptr< KTThread< KNexonAuthManager > >
-        ( new KTThread< KNexonAuthManager >( *this, KNexonAuthManager::Recv, 50 ) );
+        ( new KTThread< KNexonAuthManager >( *this, &KNexonAuthManager::Recv, 50 ) );
 
     m_spThreadSend = boost::shared_ptr< KTThread< KNexonAuthManager > >
-        ( new KTThread< KNexonAuthManager >( *this, KNexonAuthManager::Send, 100 ) );
+        ( new KTThread< KNexonAuthManager >( *this, &KNexonAuthManager::Send, 100 ) );
+    //}}
 
 	KThreadManager::Init( nThreadNum );
 }
@@ -109,7 +112,7 @@ void KNexonAuthManager::BeginThread()
 
     if( !Connect() )
     {
-        START_LOG( cerr, L"³Ø½¼ PC¹æ ÀÎÁõ ¼­¹ö Á¢¼Ó ½ÇÆÐ." )
+        START_LOG( cerr, L"ï¿½Ø½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << END_LOG;
     }
 }
@@ -158,7 +161,7 @@ void KNexonAuthManager::Recv()
         MAX_PACKET_SIZE_OF_NEXON_AUTH - m_iRecvCP,
         0 );
 
-    START_LOG( clog, L"ÆÐÅ¶ ¹ÞÀ½." )
+    START_LOG( clog, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½." )
         << BUILD_LOG( ret );
 
     if( ret == SOCKET_ERROR )
@@ -166,7 +169,7 @@ void KNexonAuthManager::Recv()
         START_LOG( cerr, GET_WSA_MSG );
         CLOSE_SOCKET( m_sock );
 
-		//{{ 2010. 10. 11	ÃÖÀ°»ç	¼­¹ö°£ Á¢¼Ó ²÷±è ·Î±×
+		//{{ 2010. 10. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_SERVER_DISCONNECT_LOG
 		CTime kRegDate = CTime::GetCurrentTime();
 		KE_LOCAL_LOG_SERVER_DISCONNECT_NOT kNot;
@@ -174,13 +177,13 @@ void KNexonAuthManager::Recv()
 		kNot.m_wstrSourceName		= boost::str( boost::wformat( L"%d" ) % KBaseServer::GetKObj()->GetUID() );
 		kNot.m_wstrDestinationName	= L"Nexon Auth";
 		kNot.m_wstrDestinationIP	= KncUtil::toWideString( m_kNexonAuthInfo.m_strIP );
-		kNot.m_wstrReason			= L"À¯È¿ ÇÏÁö ¾ÊÀº ¼ÒÄÏ";
+		kNot.m_wstrReason			= L"ï¿½ï¿½È¿ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½";
 		kNot.m_wstrRegDate			= (const wchar_t*)kRegDate.Format(_T("%Y-%m-%d %H:%M:%S"));
 		KSIManager.QueueingEvent( E_LOCAL_LOG_SERVER_DISCONNECT_NOT, kNot );
 #endif SERV_SERVER_DISCONNECT_LOG
 		//}}
 
-		//{{ 2012. 01. 27  ±è¹Î¼º	·Î±×ÀÎ ÀÎÁõ¼­¹ö ¿¬°á ²÷±è ÀÚµ¿ sms Àü¼Û
+		//{{ 2012. 01. 27  ï¿½ï¿½Î¼ï¿½	ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ sms ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_NEXON_AUTH_SERVER_DISCONNECT_SMS
 		{
 			KE_DISCONNECT_SERVER_REPORT_NOT kNot;
@@ -197,12 +200,12 @@ void KNexonAuthManager::Recv()
 
     if( ret == 0 )
     {
-        START_LOG( cerr, L"¼ÒÄÏ ¿¬°áÀÌ ²÷¾îÁü." )
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
             << END_LOG;
 
         CLOSE_SOCKET( m_sock );
 
-		//{{ 2010. 10. 11	ÃÖÀ°»ç	¼­¹ö°£ Á¢¼Ó ²÷±è ·Î±×
+		//{{ 2010. 10. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_SERVER_DISCONNECT_LOG
 		CTime kRegDate = CTime::GetCurrentTime();
 		KE_LOCAL_LOG_SERVER_DISCONNECT_NOT kNot;
@@ -210,7 +213,7 @@ void KNexonAuthManager::Recv()
 		kNot.m_wstrSourceName		= boost::str( boost::wformat( L"%d" ) % KBaseServer::GetKObj()->GetUID() );
 		kNot.m_wstrDestinationName	= L"Nexon Auth";
 		kNot.m_wstrDestinationIP	= KncUtil::toWideString( m_kNexonAuthInfo.m_strIP );
-		kNot.m_wstrReason			= L"¿ø°ÝÁö¿¡¼­ Á¢¼Ó Á¾·á";
+		kNot.m_wstrReason			= L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½";
 		kNot.m_wstrRegDate			= (const wchar_t*)kRegDate.Format(_T("%Y-%m-%d %H:%M:%S"));
 		KSIManager.QueueingEvent( E_LOCAL_LOG_SERVER_DISCONNECT_NOT, kNot );
 #endif SERV_SERVER_DISCONNECT_LOG
@@ -222,25 +225,25 @@ void KNexonAuthManager::Recv()
 
     while( m_iRecvCP >= 4 )
     {
-        // Çì´õ(1) + »çÀÌÁî(2) + Å¸ÀÔ(1) = 4
-        // ¸ðµç ÆÐÅ¶ÀÌ 4¹ÙÀÌÆ® ÀÌ»óÀÓ
+        // ï¿½ï¿½ï¿½(1) + ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(2) + Å¸ï¿½ï¿½(1) = 4
+        // ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ 4ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ì»ï¿½ï¿½ï¿½
 
         unsigned short usLength;
         ::memcpy( &usLength, m_cRecvBuffer + 1, sizeof( usLength ) );
 
         usLength = ::ntohs( usLength );
         int iTotalPacketSize = usLength + 3;
-        //if( iTotalPacketSize > MAX_PACKET_SIZE_OF_NEXON_AUTH ) ±è¹Î¼º
+        //if( iTotalPacketSize > MAX_PACKET_SIZE_OF_NEXON_AUTH ) ï¿½ï¿½Î¼ï¿½
 		if( iTotalPacketSize >= MAX_PACKET_SIZE_OF_NEXON_AUTH )
         {
-            START_LOG( cerr, L"ÃßÃâÇÑ ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
+            START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
                 << BUILD_LOG( iTotalPacketSize )
                 << BUILD_LOG( MAX_PACKET_SIZE_OF_NEXON_AUTH )
                 << END_LOG;
 
             CLOSE_SOCKET( m_sock );
 
-			//{{ 2010. 10. 11	ÃÖÀ°»ç	¼­¹ö°£ Á¢¼Ó ²÷±è ·Î±×
+			//{{ 2010. 10. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½
 #ifdef SERV_SERVER_DISCONNECT_LOG
 			CTime kRegDate = CTime::GetCurrentTime();
 			KE_LOCAL_LOG_SERVER_DISCONNECT_NOT kNot;
@@ -248,7 +251,7 @@ void KNexonAuthManager::Recv()
 			kNot.m_wstrSourceName		= boost::str( boost::wformat( L"%d" ) % KBaseServer::GetKObj()->GetUID() );
 			kNot.m_wstrDestinationName	= L"Nexon Auth";
 			kNot.m_wstrDestinationIP	= KncUtil::toWideString( m_kNexonAuthInfo.m_strIP );
-			kNot.m_wstrReason			= boost::str( boost::wformat( L"ÃÖ´ë ÆÐÅ¶ »çÀÌÁî ÃÊ°ú! MaxPacketSize : %d bytes" ) % iTotalPacketSize );
+			kNot.m_wstrReason			= boost::str( boost::wformat( L"ï¿½Ö´ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½! MaxPacketSize : %d bytes" ) % iTotalPacketSize );
 			kNot.m_wstrRegDate			= (const wchar_t*)kRegDate.Format(_T("%Y-%m-%d %H:%M:%S"));
 			KSIManager.QueueingEvent( E_LOCAL_LOG_SERVER_DISCONNECT_NOT, kNot );
 #endif SERV_SERVER_DISCONNECT_LOG
@@ -285,7 +288,7 @@ void KNexonAuthManager::Send()
 	{
 		if( !spPacket )
 		{
-			START_LOG( cerr, L"Æ÷ÀÎÅÍ ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( m_kSendQueue.size() )
 				<< END_LOG;
 
@@ -320,7 +323,7 @@ void KNexonAuthManager::Send()
 bool KNexonAuthManager::Connect()
 {
     m_iRecvCP = 0;
-	m_sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
+	m_sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	if( INVALID_SOCKET == m_sock )
 	{
@@ -334,8 +337,8 @@ bool KNexonAuthManager::Connect()
 	{
 		KLocker lock( m_csSendQueue );
 
-		// »õ·Î Á¢¼ÓÇÏ´Â °Å¶ó¸é sendqueue¸¦ ¿ÏÀüÈ÷ ºñ¿ìÀÚ! 
-		// Á¢¼Ó ¼º°ø ÈÄ Á¦ÀÏ Ã³À½ °¡´Â ÆÐÅ¶Àº ÃÊ±âÈ­ ÆÐÅ¶ÀÌ¾î¾ß ÇÏ±â ¶§¹®!
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Å¶ï¿½ï¿½ sendqueueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½! 
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½Å¶ï¿½Ì¾ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½!
 		while( !m_kSendQueue.empty() )
 		{
 			m_kSendQueue.pop();
@@ -361,31 +364,31 @@ bool KNexonAuthManager::Connect()
 		return false;
 	}
 
-	// ÇöÀç Á¢¼Ó ÀÎ¿ø È®ÀÎ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ È®ï¿½ï¿½
 	const BYTE byteSynchronizeType = ( GetKLoginSimLayer()->GetConcurrentUserCount() == 0 ? 0 : m_kNexonAuthInfo.m_iSynchronizeType );
 
-	// ÀÎÁõ ½Ãµµ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½
     KENX_AUTH_INITIALIZE_REQ kPacketInit;
     kPacketInit.m_bytePacketType	  = 41;
 	kPacketInit.m_byteInitializeType  = 1;
-    kPacketInit.m_byteGameSN		  = 29;									  // ¿¤¼Òµå °ÔÀÓ ¹øÈ£
+    kPacketInit.m_byteGameSN		  = 29;									  // ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£
     kPacketInit.m_byteDomainSN		  = m_kNexonAuthInfo.m_iDomain;
     kPacketInit.m_wstrDomainName	  = m_kNexonAuthInfo.m_wstrDomainName;
-	kPacketInit.m_byteSynchronizeType = byteSynchronizeType;				  // [ÁÖÀÇ] 0:µ¿±âÈ­ ¾ÈÇÔ, 1:¼¼¼Ç¹øÈ£ µ¿±âÈ­, 2:¼¼¼Ç¹øÈ£,¸¶½ºÅÍ °èÁ¤ ¾ÆÀÌµð µ¿±âÈ­
-	kPacketInit.m_ulSynchronizeCount  = m_kNexonAuthInfo.m_iSynchronizeCount; // ÆÐÅ¶´ç µ¿±âÈ­ÇÒ ´ë»ó ¼¼¼Ç ¼ö
+	kPacketInit.m_byteSynchronizeType = byteSynchronizeType;				  // [ï¿½ï¿½ï¿½ï¿½] 0:ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½, 1:ï¿½ï¿½ï¿½Ç¹ï¿½È£ ï¿½ï¿½ï¿½ï¿½È­, 2:ï¿½ï¿½ï¿½Ç¹ï¿½È£,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½È­
+	kPacketInit.m_ulSynchronizeCount  = m_kNexonAuthInfo.m_iSynchronizeCount; // ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 
     boost::shared_ptr< KNexonAuthPacket > spPacket( new KNexonAuthPacket );
     spPacket->Write( kPacketInit );
     QueueingSendPacket( spPacket );
 
-    START_LOG( cout, L"³Ø½¼ PC¹æ ÀÎÁõ ¼­¹ö Á¢¼Ó ¼º°ø! ÃÊ±âÈ­ ÆÐÅ¶ Àü¼Û!" )
+    START_LOG( cout, L"ï¿½Ø½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! ï¿½Ê±ï¿½È­ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½!" )
 		<< BUILD_LOG( kPacketInit.m_byteGameSN )
 		<< BUILD_LOG( kPacketInit.m_byteDomainSN )
 		<< BUILD_LOG( kPacketInit.m_wstrDomainName )
 		<< BUILD_LOG( byteSynchronizeType )
 		<< BUILD_LOG( m_kNexonAuthInfo.m_iSynchronizeCount );
 
-	// Á¢¼Ó¼º°ø ÀÌÈÄ 1ºÐ µÚ¿¡ ÇÏÆ®ºñÆ®¸¦ º¸³»±â À§ÇØ¼­ ¿©±â¼­ TickCountÀúÀåÇØµÐ´Ù.
+	// ï¿½ï¿½ï¿½Ó¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ú¿ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½â¼­ TickCountï¿½ï¿½ï¿½ï¿½ï¿½ØµÐ´ï¿½.
 	m_dwLastHeartBeatTick = ::GetTickCount();
 	return true;
 }
@@ -404,13 +407,13 @@ void KNexonAuthManager::KeepConnection()
 	
 	if( IsConnected() == false )
 	{
-		// Á¢¼ÓÇÑ »óÅÂ°¡ ¾Æ´Ï¶ó¸é º¸³»Áö ¾Ê´Â´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 		return;
 	}
 
     m_dwLastHeartBeatTick = ::GetTickCount();
 
-	// ÇãÆ®ºø º¸³»±â
+	// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     KENX_AUTH_ALIVE_NOT kPacketNot;
     kPacketNot.m_bytePacketType = 100;
     boost::shared_ptr< KNexonAuthPacket > spPacket( new KNexonAuthPacket );
@@ -454,7 +457,7 @@ void KNexonAuthManager::MakeEventFromReceivedPacket()
 	KNexonAuthPacket kReceivedPacket;
 	if( !kReceivedPacket.ReadFromBuffer( ( BYTE* )m_cRecvBuffer ) )
     {
-        START_LOG( cerr, L"¹öÆÛ¿¡¼­ ÀÐ±â ½ÇÆÐ." )
+        START_LOG( cerr, L"ï¿½ï¿½ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ï¿½." )
             << END_LOG;
 
         DumpBuffer( ( BYTE* )m_cRecvBuffer, true );
@@ -468,10 +471,10 @@ void KNexonAuthManager::MakeEventFromReceivedPacket()
 			KENX_AUTH_INITIALIZE_ACK kPacket;
 			kReceivedPacket.Read( kPacket );
 
-			// ÀÀ´ä ¿ÔÀ¸¸é ¾î¶»°Ô Ã³¸®ÇÒ±î?
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½î¶»ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ò±ï¿½?
 			if( kPacket.m_byteResult == 0 )
 			{
-				START_LOG( cout, L"³Ø½¼ PC¹æ ÀÎÁõ¼­¹ö ÃÊ±âÈ­ ¼º°ø!" )
+				START_LOG( cout, L"ï¿½Ø½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( kPacket.m_byteInitializeType )
 					<< BUILD_LOG( kPacket.m_byteResult )
 					<< BUILD_LOG( kPacket.m_byteDomainSN )
@@ -479,13 +482,13 @@ void KNexonAuthManager::MakeEventFromReceivedPacket()
 			}
 			else
 			{
-				START_LOG( cerr, L"³Ø½¼ PC¹æ ÀÎÁõ¼­¹ö ÃÊ±âÈ­ ½ÇÆÐ!" )
+				START_LOG( cerr, L"ï¿½Ø½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½!" )
 					<< BUILD_LOG( kPacket.m_byteInitializeType )
 					<< BUILD_LOG( kPacket.m_byteResult )
 					<< BUILD_LOG( kPacket.m_byteDomainSN )
 					<< BUILD_LOG( kPacket.m_wstrMessage );
 
-				// ÀÎÁõ ½ÇÆÐÇßÀ¸¹Ç·Î ¼ÒÄÏ ¿¬°áÀ» Á¾·áÇÑ´Ù.
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 				CLOSE_SOCKET( m_sock );
 			}
 		}
@@ -496,7 +499,7 @@ void KNexonAuthManager::MakeEventFromReceivedPacket()
 			KENX_AUTH_LOGIN_ACK kPacket;
 			kReceivedPacket.Read( kPacket );
 
-			//{{ 2011. 07. 27    ±è¹Î¼º    Åõ´Ï·£µå Ã¤³Î¸µ
+			//{{ 2011. 07. 27    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ Ã¤ï¿½Î¸ï¿½
 #ifdef SERV_TOONILAND_CHANNELING
 			std::wstring wstrResult = KncUtil::EraseFrontWord( kPacket.m_wstrUserID, L';' );
 			kPacket.m_wstrUserID = wstrResult;
@@ -514,7 +517,7 @@ void KNexonAuthManager::MakeEventFromReceivedPacket()
 			KENX_AUTH_TERMINATE_NOT kPacket;
 			kReceivedPacket.Read( kPacket );
 
-			//{{ 2011. 07. 27    ±è¹Î¼º    Åõ´Ï·£µå Ã¤³Î¸µ
+			//{{ 2011. 07. 27    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ Ã¤ï¿½Î¸ï¿½
 #ifdef SERV_TOONILAND_CHANNELING
 			std::wstring wstrResult = KncUtil::EraseFrontWord( kPacket.m_wstrUserID, L';' );
 			kPacket.m_wstrUserID = wstrResult;
@@ -532,7 +535,7 @@ void KNexonAuthManager::MakeEventFromReceivedPacket()
 			KENX_AUTH_MESSAGE_NOT kPacket;
 			kReceivedPacket.Read( kPacket );
 
-			//{{ 2011. 07. 27    ±è¹Î¼º    Åõ´Ï·£µå Ã¤³Î¸µ
+			//{{ 2011. 07. 27    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ Ã¤ï¿½Î¸ï¿½
 #ifdef SERV_TOONILAND_CHANNELING
 			std::wstring wstrResult = KncUtil::EraseFrontWord( kPacket.m_wstrUserID, L';' );
 			kPacket.m_wstrUserID = wstrResult;
@@ -558,7 +561,7 @@ void KNexonAuthManager::MakeEventFromReceivedPacket()
 
 	default:
 		{
-			START_LOG( cerr, L"ÆÐÅ¶ Å¸ÀÔ ÀÌ»ó." )
+			START_LOG( cerr, L"ï¿½ï¿½Å¶ Å¸ï¿½ï¿½ ï¿½Ì»ï¿½." )
 				<< BUILD_LOG( kReceivedPacket.GetPacketType() )
 				<< END_LOG;
 

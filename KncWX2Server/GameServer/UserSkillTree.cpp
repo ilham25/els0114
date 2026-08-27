@@ -304,10 +304,13 @@ bool KUserSkillTree::ChangeSkillSlot( IN const KEGS_CHANGE_SKILL_SLOT_REQ& kPack
 {
 	SET_ERROR( NET_OK );
 
-	const iSlotID	= kPacket_.m_iSlotID;
-	const iSkillID	= kPacket_.m_iSkillID;
-	const iSlotID2	= GetSlotID( kPacket_.m_iSkillID );
-	const iSkillID2	= GetSkillID( kPacket_.m_iSlotID );
+	//{{ Iruha : 2026-08-27 // VS2010 port: missing type specifiers defaulted to int under
+	// VC7.1's lenient implicit-int rule; VC10 makes that a hard error (C4430).
+	const int iSlotID	= kPacket_.m_iSlotID;
+	const int iSkillID	= kPacket_.m_iSkillID;
+	const int iSlotID2	= GetSlotID( kPacket_.m_iSkillID );
+	const int iSkillID2	= GetSkillID( kPacket_.m_iSlotID );
+	//}}
 
 	if( ( iSlotID < 0 ) || ( iSlotID >= MAX_SKILL_SLOT ) )
 	{
@@ -1956,10 +1959,13 @@ bool KUserSkillTree::ChangeSkillSlot( IN const KEGS_CHANGE_SKILL_SLOT_REQ& kPack
 {
 	SET_ERROR( NET_OK );
 
-	const iSlotID	= kPacket_.m_iSlotID;
-	const iSkillID	= kPacket_.m_iSkillID;
-	const iSlotID2	= GetSlotID( kPacket_.m_iSkillID );
-	const iSkillID2	= GetSkillID( kPacket_.m_iSlotID );
+	//{{ Iruha : 2026-08-27 // VS2010 port: missing type specifiers defaulted to int under
+	// VC7.1's lenient implicit-int rule; VC10 makes that a hard error (C4430).
+	const int iSlotID	= kPacket_.m_iSlotID;
+	const int iSkillID	= kPacket_.m_iSkillID;
+	const int iSlotID2	= GetSlotID( kPacket_.m_iSkillID );
+	const int iSkillID2	= GetSkillID( kPacket_.m_iSlotID );
+	//}}
 
 	if( ( iSlotID < 0 ) || ( iSlotID >= MAX_SKILL_SLOT ) )
 	{

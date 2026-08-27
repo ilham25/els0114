@@ -1,0 +1,36 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameServer", "KncWX2Server\GameServer\GameServer_2010.vcxproj", "{3028DBC3-7BA6-42C5-90E6-26D8B5D51762}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LoginServer", "KncWX2Server\LoginServer\LoginServer_2010.vcxproj", "{CB3A432A-180D-4214-9EC7-061ACE5B7D8A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChannelServer", "KncWX2Server\ChannelServer\ChannelServer_2010.vcxproj", "{CB3A432A-180D-4214-9EC7-061ACE5B7D8B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CenterServer", "KncWX2Server\CenterServer\CenterServer_2010.vcxproj", "{3028DBC3-7BA6-42C5-90E6-26D8B5D51763}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GlobalServer", "KncWX2Server\GlobalServer\GlobalServer_2010.vcxproj", "{8826FB1B-6B3A-44CB-BA6F-F0848A763D7C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameClient", "KncWX2Server\GameClient\GameClient_2010.vcxproj", "{3982D27F-ABC8-4450-8B63-2BF7C71CC959}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release_US|Win32 = Release_US|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3028DBC3-7BA6-42C5-90E6-26D8B5D51762}.Release_US|Win32.ActiveCfg = Release_US|Win32
+		{3028DBC3-7BA6-42C5-90E6-26D8B5D51762}.Release_US|Win32.Build.0 = Release_US|Win32
+		{CB3A432A-180D-4214-9EC7-061ACE5B7D8A}.Release_US|Win32.ActiveCfg = Release_US|Win32
+		{CB3A432A-180D-4214-9EC7-061ACE5B7D8A}.Release_US|Win32.Build.0 = Release_US|Win32
+		{CB3A432A-180D-4214-9EC7-061ACE5B7D8B}.Release_US|Win32.ActiveCfg = Release_US|Win32
+		{CB3A432A-180D-4214-9EC7-061ACE5B7D8B}.Release_US|Win32.Build.0 = Release_US|Win32
+		{3028DBC3-7BA6-42C5-90E6-26D8B5D51763}.Release_US|Win32.ActiveCfg = Release_US|Win32
+		{3028DBC3-7BA6-42C5-90E6-26D8B5D51763}.Release_US|Win32.Build.0 = Release_US|Win32
+		{8826FB1B-6B3A-44CB-BA6F-F0848A763D7C}.Release_US|Win32.ActiveCfg = Release_US|Win32
+		{8826FB1B-6B3A-44CB-BA6F-F0848A763D7C}.Release_US|Win32.Build.0 = Release_US|Win32
+		{3982D27F-ABC8-4450-8B63-2BF7C71CC959}.Release_US|Win32.ActiveCfg = Release_US|Win32
+		{3982D27F-ABC8-4450-8B63-2BF7C71CC959}.Release_US|Win32.Build.0 = Release_US|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
