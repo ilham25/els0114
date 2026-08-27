@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Full source for **Elsword (internal codename "ProjectX2")** by KOG Studios — the DirectX 9 Windows game client, its five backend servers, and the in-house content tooling. This is the `EU_CN_US` trunk, roughly 2014-era. Not a git repo (it was a Subversion/VSS working copy; `.vssscc` bindings remain, `.svn` metadata does not).
+Full source for **Elsword (internal codename "ProjectX2")** by KOG Studios — the DirectX 9 Windows game client, its five backend servers, and the in-house content tooling. This is the `EU_CN_US` trunk, roughly 2014-era. It was originally a Subversion/VSS working copy (`.vssscc` bindings remain, `.svn` metadata does not) and has since been imported into git as the working repo for local changes — see `MODS.md` for what's been changed since the import, and `VS2003_to_VS2010_Port_Guide.md` for the VS2010 server port.
 
 **This file documents the US live build only.** The tree carries ~50 configurations for other regions and environments (EU, CN, TW/HK, JP, KR, ID, TH, BR, PH × internal/test/open-test/service). Ignore them unless explicitly asked; they change which publisher, billing, auth, and anti-cheat stack compiles in, and cross-referencing them is how you end up debugging the wrong code path.
 
@@ -16,7 +16,7 @@ Define the flag in **`KTDXLIB/Always.h`**. That is the only flag file that reach
 
 Do **not** define client flags in:
 
-- `KncWX2Server/Common/ServerDefine.h` — that is the shared/server file. It *is* visible inside `X2Lib` (via `X2ServerPacket.h` → `CommonPacket.h:16`), but it is **not** visible inside `KTDXLIB`, and defining a client flag there drags it into the VS2003 server build too.
+- `KncWX2Server/Common/ServerDefine.h` — that is the shared/server file. It *is* visible inside `X2Lib` (via `X2ServerPacket.h` → `CommonPacket.h:16`), but it is **not** visible inside `KTDXLIB`, and defining a client flag there drags it into the server build too.
 - `KTDXLIB/InHouse1.h`–`InHouse6.h`, `InHouseEtc.h` — these are excluded from `US_SERVICE` entirely, so anything defined there is dead code in this build.
 
 Pattern to follow — append to the end of `Always.h`, using the house comment block:
@@ -44,34 +44,41 @@ And at each call site, keeping the original code reachable in the `#else` branch
 
 One flag per logical change, not one per file. Use the house `#endif SERV_IRUHADEV_FOO` trailing-token style.
 
-If an edit touches `KncWX2Server/Common/` (packet structs, event IDs, shared enums), it is **not** a client-only change — the servers must be rebuilt under VS2003 and the flag must be defined for both sides, or the wire format desyncs silently. See *The client/server contract* below.
+If an edit touches `KncWX2Server/Common/` (packet structs, event IDs, shared enums), it is **not** a client-only change — the servers must be rebuilt (via `X2Project_Servers_2010.sln`, or `X2Project_2003.sln` if VS2003 is installed) and the flag must be defined for both sides, or the wire format desyncs silently. See *The client/server contract* below.
 
-## Toolchains — two of them
+## Toolchains — client is VS2010; servers build under either
 
-The client and the servers are built with **different versions of Visual Studio**. This is not optional or legacy drift; the servers do not build under VS2010.
+Historically the client and the servers were built with **different versions of Visual Studio**, because the servers didn't build under VS2010 at all. **That changed 2026-08-27**: the five servers now also build under VS2010, via a dedicated solution added by a from-scratch port (see `VS2003_to_VS2010_Port_Guide.md` for exactly what the port did and why — the process is written to be reusable on other old-toolchain codebases, not just this one). VS2010 is the toolchain actually installed in this environment and is the maintained path going forward; VS2003 remains usable for the servers only on a machine that still has it installed.
 
 | Target | Solution | Config | Toolchain |
 |---|---|---|---|
 | Client, engine, tools | `X2Project_2010.sln` | `US_SERVICE` | VS2010 (`v100`), Win32, Unicode |
-| The five servers | `X2Project_2003.sln` | `Release_US` | VS2003 (`v70`), Win32 |
+| The five servers (current) | `X2Project_Servers_2010.sln` | `Release_US` | VS2010 (`v100`), Win32 |
+| The five servers (legacy, needs VS2003 installed) | `X2Project_2003.sln` | `Release_US` | VS2003 (`v70`), Win32 |
 
-The server projects also appear in `X2Project_2010.sln` with `US_SERVICE` configurations. Those are dead — build the servers from the 2003 solution via their `_2003.vcproj` files. (`KncWX2Server/KncWX2Server_2003.sln` is a narrower VS2003 solution holding only GameServer, CenterServer, and GameClient, with plain Debug/Release configs.)
+`X2Project_Servers_2010.sln` is a **separate solution** from `X2Project_2010.sln`, deliberately — the five server projects are *also* registered in `X2Project_2010.sln`, but under a `US_SERVICE` configuration that is still dead (wrong include paths, source list missing ~50–100 files per project; that config predates the port and was never fixed). Don't build servers from `X2Project_2010.sln`; use `X2Project_Servers_2010.sln`. `X2Project_2003.sln` was left byte-for-byte untouched by the port and remains the toolchain of record if you ever need to cross-check against a VS2003 build. (`KncWX2Server/KncWX2Server_2003.sln` is a narrower VS2003 solution holding only GameServer, CenterServer, and GameClient, with plain Debug/Release configs — unrelated to the port, predates it.)
 
 ```sh
-# Client — VS2010. Not installed in this environment, so this cannot be run from here.
+# Client — VS2010.
 msbuild X2Project_2010.sln /p:Configuration=US_SERVICE /p:Platform=Win32
 msbuild X2/X2_2010.vcxproj /p:Configuration=US_SERVICE /p:Platform=Win32   # client exe only
 
-# Servers — VS2003 devenv; msbuild cannot consume .vcproj.
+# Servers — VS2010 (current; this is what's actually installed here).
+msbuild X2Project_Servers_2010.sln /p:Configuration=Release_US /p:Platform=Win32
+msbuild KncWX2Server/GameServer/GameServer_2010.vcxproj /p:Configuration=Release_US /p:Platform=Win32   # one server only
+
+# Servers — VS2003 (legacy; devenv, msbuild cannot consume .vcproj). Requires VS2003 installed.
 devenv X2Project_2003.sln /build "Release_US|Win32"
 devenv X2Project_2003.sln /build "Release_US|Win32" /project GameServer
 ```
 
-Build artifacts (all present in-tree from the last build):
+Build artifacts:
 
 - `X2/US_SERVICE/X2.exe` — the client
 - `X2/X2Lib.lib`, `X2/KTDXLIB.lib` — static libs; `OutDir` is `..\X2\`, only the `.obj` intermediates land in `X2Lib/US_SERVICE/` and `KTDXLIB/US_SERVICE/`
-- `KncWX2Server/<Server>/Release_US/<Server>.exe` — all five servers
+- `KncWX2Server/<Server>/Release_US/<Server>.exe` — all five servers, built by **either** toolchain into the **same** output directory (the config is named `Release_US` on both sides by design — see the port guide §0). Building with one toolchain overwrites an exe built by the other; there's no separate output path to keep them apart.
+
+**Running a VS2010-built server**: it needs the VC10 runtime DLLs (`msvcr100.dll`, `msvcp100.dll`, `mfc100u.dll` — source from `<VS10 install>\VC\redist\x86\Microsoft.VC100.{CRT,MFC}\`) copied alongside the exe; the old VC7.1 ones already there (`msvcr71.dll` etc.) don't satisfy it. It also depends on a fix in `KncWX2Server/Common/ui/SubclassWnd.h` (a hand-rolled window-subclassing thunk that writes and executes machine code at runtime, which modern Windows' DEP blocks unless `VirtualProtect`'d executable first) — that fix is already in the tree from the port; if a server built from a *newer* checkout of this file ever regresses that, expect every server to crash instantly with `0xC0000005` on launch. Full detail in the port guide §6–7.
 
 There is **no runnable test suite**. The one CppUnit fixture (`X2Lib/X2GameUnitTestCase.h`) is gated behind `CPPUNIT_BY_TOOL_TEAM`, commented out in `KTDXLIB/AlwaysButConditionally.h`. `Libs/InternalLib/KNCSDK/UnitTest/` is the vendored SDK's own test project, not wired into either solution.
 
@@ -107,7 +114,7 @@ The `X2` project's `US_SERVICE` post-build step copies the exe and Lua content t
 | `X2/` | Thin client `.exe` shell: `WinMain`, anti-cheat bootstrap, crash reporting. Almost no logic. |
 | `X2ServerProtocol/` | Client-side networking runtime (`KUserProxy`, `KTRUser`, `KPerformer`, ODBC, thread manager). Linked into the client; mirrors the server's actor model. |
 | `KncWX2Server/` | Five server executables plus the shared `Common/` layer. |
-| `Libs/InternalLib/KNCSDK/` | KOG's in-house SDK: serializer, Lua bindings (`lua_tinker`/`luabind`), crypto, object pools, threading. Source of the `SERIALIZE_*` / `DECL_PACKET` macros. |
+| `KNCSDK/` | KOG's in-house SDK: serializer, Lua bindings (`lua_tinker`/`luabind`), crypto, object pools, threading. Source of the `SERIALIZE_*` / `DECL_PACKET` macros. Both client and servers use the prebuilt `.lib`s here (`Include`/`lib` for VS2003, `Include_2010`/`lib_2010` for VS2010) — not the near-duplicate at `Libs/InternalLib/KNCSDK/`, which nothing in either solution actually references. |
 | `Libs/ExternalLib/` | Vendored Boost, DXSDK, Intel TBB, Lua, log4cxx, freetype, jsoncpp, cppunit. |
 
 ### Client control flow
@@ -148,7 +155,7 @@ The client compiles the server's headers directly — `X2Lib`'s include path con
 - **`KncWX2Server/Common/{Client,System,Common}Packet.h/.cpp`** — payload structs via `DECL_PACKET( EGS_FOO_REQ )` (declares `struct KEGS_FOO_REQ`), with hand-written `SERIALIZE_DEFINE_PUT` / `SERIALIZE_DEFINE_GET` bodies in the `.cpp` listing fields in order. **Put and Get must stay in the same order, and every new field must be added to both.**
 - **`KncWX2Server/Common/Enum/Enum.h`** — shared `SEnum::` gameplay enums.
 
-Because the two sides are compiled by different toolchains with different macro sets, **a shared-header change means rebuilding the VS2010 client *and* the VS2003 servers**, with the relevant flags enabled in both. Skip one and packets desynchronize silently at runtime rather than failing to compile.
+Because the two sides are compiled separately (even now that both can use VS2010, they're still two different solutions with different macro sets), **a shared-header change means rebuilding the client *and* the servers**, with the relevant flags enabled in both. Skip one and packets desynchronize silently at runtime rather than failing to compile.
 
 ### Feature flags
 
@@ -165,7 +172,7 @@ When adding a flag, follow the local pattern: new `#define` at the end of the ow
 - Change blocks are marked `//{{ author : date // description` … `//}}` and are expected on non-trivial edits.
 - `#endif SERV_FOO` — a trailing token after `#endif` (invalid standard C++, tolerated by MSVC) is the house style for matching a long `#ifdef`. Keep it.
 - Every client edit is gated behind a `SERV_IRUHADEV_*` flag defined in `KTDXLIB/Always.h` — see the rule at the top of this file.
-- The servers are VS2003 (C++98, pre-conforming): no `auto`, no range-for, no `nullptr`, no rvalue references, and the VC7.1 standard library. Client code (VS2010) may use C++03 plus whatever VC10 offers, but anything in `KncWX2Server/Common/` compiles under **both** and must stay VS2003-clean.
+- Write server code (`KncWX2Server/`) as VS2003/C++98-clean anyway, even though it now also builds under VS2010: no `auto`, no range-for, no `nullptr`, no rvalue references. This isn't a hard toolchain requirement any more (see *Toolchains* above), but `X2Project_2003.sln` is kept around specifically as a cross-check, and anything in `KncWX2Server/Common/` still compiles under **both** toolchains — a VC10-only construct there would quietly break that. Genuine VS2003→VS2010 compiler-conformance fixes (bare member-function pointers needing `&`, for-scope leaks, etc.) are expected and fine; see the port guide for the recurring patterns.
 - Prefix by layer: `CKTDX*` / `KTDG*` engine, `CX2*` client gameplay, `K*` server and KNCSDK.
 - Wide strings (`std::wstring`, `WCHAR`) throughout; `#pragma pack(push,1)` around every packet struct.
 
@@ -177,6 +184,6 @@ Content tools are separate executables, mostly with their own solutions. C++ wor
 
 ## Cautions
 
-- `X2Project_2010.sdf` (270 MB) and `X2Project_2003.ncb` (22 MB) are IntelliSense databases, and `ipch/` is precompiled-header cache. Never edit them; deleting them is safe and VS regenerates them.
+- `X2Project_2010.sdf` (270 MB), `X2Project_Servers_2010.sdf`, and `X2Project_2003.ncb` (22 MB) are IntelliSense databases, and `ipch/` is precompiled-header cache. Never edit them; deleting them is safe and VS regenerates them.
 - `Libs/` holds ~22,000 vendored files. Scope searches to `X2Lib`, `KTDXLIB`, `KncWX2Server`, or `X2ServerProtocol` — a repo-wide recursive grep takes minutes.
 - Server config `.dsn` files contain real database hostnames and plaintext credentials from the original deployment. Don't propagate them into new files, logs, or anything published.
