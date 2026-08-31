@@ -2435,6 +2435,17 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 #define SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
 //////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-31
+// Description: Offline mode - emulate the game/channel servers in-process,
+//              persist all player state to a local SQLite file (els_db.sql).
+//              NOTE: X2ServerProtocol does NOT include KTDX.h, so this flag
+//              must ALSO be set in X2ServerProtocol_2010.vcxproj's
+//              US_SERVICE PreprocessorDefinitions. Toggle both together.
+#define SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////
+
 
 //�ؿ��� ���� ������
 #define CLIENT_GLOBAL_COMMON

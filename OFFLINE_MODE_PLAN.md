@@ -224,19 +224,38 @@ under VS2010, and land the feature flag. No behavior change yet.
 ### 0.1 Build and launch the stock client
 
 ```sh
-msbuild X2Project_2010.sln /p:Configuration=US_SERVICE /p:Platform=Win32
+msbuild X2/X2_2010.vcxproj /p:Configuration=US_SERVICE /p:Platform=Win32 \
+  "/p:SolutionDir=<absolute path to Trunk>\"
 ```
 
 - Artifact is `X2/US_SERVICE/x2.exe` (**lowercase** — `TargetName` is `x2`).
-- The post-build step copies to `E:\Elsword_InHouse\Data\…` and **will fail**.
-  Judge success by whether `X2/US_SERVICE/x2.exe` exists, not by exit code.
+- **`/p:SolutionDir` is mandatory**, with the trailing backslash. Every
+  `IncludePath` entry for Boost, DXSDK, KNCSDK and freetype is written as
+  `$(SolutionDir)Libs\…`, so building the project standalone without it
+  dies on `fatal error C1083: Cannot open include file: 'boost/shared_ptr.hpp'`.
+- **`msbuild X2Project_2010.sln` never produces the exe** — the original
+  instruction here was wrong. The solution builds the three client libs
+  (KTDXLIB, X2Lib, X2ServerProtocol) correctly, but `X2_2010.vcxproj` itself
+  never runs: the `US_SERVICE` sweep drags in ~15 dead tool/server projects
+  (NexonModule alone throws ~2400 errors, the five servers throw `MSB8013`
+  "doesn't contain the Configuration"), msbuild returns 1, and the exe is
+  silently never linked. Build the libs from the sln if you like, but link the
+  exe with the direct invocation above.
+- **The post-build step does not run and does not fail** — contradicting both
+  this plan's first draft and `CLAUDE.md`'s *"Post-build event will fail here"*
+  section. [X2/X2_2010.vcxproj:699](X2/X2_2010.vcxproj#L699) sets
+  `PostBuildEventUseInBuild` to `false` for `US_SERVICE|Win32`, so the
+  `E:\Elsword_InHouse\…` copy is disabled in this configuration and a clean
+  client build exits **0**. Judging by the artifact is still good practice,
+  just not for the stated reason.
 - Copy it to the game dir as `X2_offline.exe`.
 - Create `start_offline.bat` in the game dir:
   ```
   start X2_offline.exe pxk19slammsu286nfha02kpqnf729ck
   ```
-- Run it. It must reach the login screen and then fail to connect. **That
-  failure is the Phase 0 baseline** — it proves the client boots, mounts all
+- Run it with the working directory set to the game `data\` folder. It must
+  reach the login screen and then fail to connect. **That failure is the
+  Phase 0 baseline** — it proves the client boots, mounts all
   145 `.kom` archives, and reaches `CX2StateLogin`.
 
 ### 0.2 Add SQLite to the `X2Lib` project
@@ -249,10 +268,23 @@ msbuild X2Project_2010.sln /p:Configuration=US_SERVICE /p:Platform=Win32
   `SQLITE_OMIT_LOAD_EXTENSION`, `SQLITE_DEFAULT_FOREIGN_KEYS=1`,
   `_CRT_SECURE_NO_WARNINGS`.
 - Add `Libs/ExternalLib/sqlite3` to `AdditionalIncludeDirectories` for `X2Lib`.
-- **Risk:** SQLite 3.53.4 is far newer than VS2010. It still carries explicit
-  `_MSC_VER<1800` compatibility branches (e.g. `sqlite3.c:132`), so it is
-  expected to build. If it does not, drop back to the 3.39.x amalgamation
-  rather than fighting it.
+- **The VS2010 risk was real, and the fix is one define — do not downgrade
+  SQLite.** 3.53.4 fails to compile with two instances of
+  `error C2065: 'INFINITY' : undeclared identifier` (`sqlite3.c:37174` and
+  `:37204`); C99 `INFINITY` only reached MSVC's `math.h` in VS2013. Add
+  `INFINITY=HUGE_VAL` to the front of that file's `PreprocessorDefinitions`:
+  `HUGE_VAL` is VS2010's double +infinity, and `<math.h>` is already included
+  at `sqlite3.c:36409`, well above both uses. The third occurrence,
+  `sqlite3.c:15697`, sits inside a dead `#ifdef SQLITE_OMIT_FLOATING_POINT`
+  block, so the define produces no redefinition warning. With that, `sqlite3.c`
+  compiles clean and the vendored amalgamation stays byte-identical — nothing
+  under `Libs/ExternalLib/sqlite3/` was edited.
+- The `AdditionalIncludeDirectories` entry matters only for *our* later
+  `#include "sqlite3.h"` from `X2Lib` code; `sqlite3.c`'s own quoted include
+  resolves next to the source file regardless.
+- `sqlite3.c` compiles in **all** ~50 configurations, not just `US_SERVICE`.
+  Until a later phase references it, it is unreferenced dead code that the
+  linker drops, so `x2.exe` does not change size.
 - `.gitignore`: `Libs/` is excluded by the root `/*` rule. Either leave sqlite3
   untracked (simplest, it is vendored source) or add an explicit
   `!/Libs/` + re-ignore ladder mirroring the existing `KNCSDK` block at
@@ -260,9 +292,16 @@ msbuild X2Project_2010.sln /p:Configuration=US_SERVICE /p:Platform=Win32
 
 ### 0.3 Define the flag — in TWO places
 
-Append to the end of `KTDXLIB/Always.h`, using the house block, **in ASCII**
-(the file is CP949; do not re-encode it — see the Edit-tool warning in
-`CLAUDE.md`):
+Append to the end of `KTDXLIB/Always.h`, using the house block, **in ASCII**.
+
+Note on this specific file: `Always.h` is **already UTF-8**, and its Korean
+comments were already destroyed (every multi-byte sequence is now U+FFFD)
+*before* the git import — `git show <first-commit>:KTDXLIB/Always.h | file -`
+confirms it, so this is neither recoverable nor something a later edit caused.
+Appending ASCII to it is therefore safe and does not change its encoding class.
+The CP949 caution in `CLAUDE.md` still applies in full to every *other* file
+later phases will touch (`X2StateServerSelect.cpp`, `Session.cpp`, most of
+`X2Lib`):
 
 ```c
 //////////////////////////////////////////////////////////////////////////
@@ -296,9 +335,52 @@ git diff --stat <path>       # a 5-line edit must not show 500 changed lines
 If the encoding flipped, `git checkout -- <path>` (confirm with the user first)
 and redo the edit with a byte-level Python script in `"rb"`/`"wb"` mode.
 
-### Exit test
+In practice all Phase 0 edits were made with such a script from the start,
+matching exact byte anchors and asserting each anchor was unique. That is the
+recommended default for this tree rather than a recovery step — it also
+catches a stale assumption (a missing anchor aborts the run) instead of
+silently editing the wrong place. The `.vcxproj` files are UTF-8 **with BOM**
+and CRLF; preserve both.
+
+### Exit test — PASSED (2026-08-31)
+
 `X2_offline.exe` builds with the flag defined, launches via `start_offline.bat`,
 reaches the login screen, and fails to connect. `sqlite3.c` compiles clean.
+
+Observed: the client boots fully and stalls on the **"connecting to server"**
+dialog, which is the intended baseline. The client runs exclusive-fullscreen
+and cannot be screenshotted (see below), so these are the signals that stood in
+for a visual check:
+
+- process alive well past the `.kom` mount — a missing archive is an instant
+  null-deref (*Critical facts* #3) — ~412 MB working set, window title
+  `Elsword`;
+- `log.htm` in the game dir rewritten at launch;
+- exactly one bound UDP socket (`0.0.0.0:8493`) and **zero** TCP connections,
+  i.e. the `KXPT_PORT_CHECK_REQ` path from *Critical facts* #5.
+
+Footprint: 21 inserted lines across `KTDXLIB/Always.h`,
+`X2Lib/X2Lib_2010.vcxproj` and `X2ServerProtocol/X2ServerProtocol_2010.vcxproj`;
+no `.cpp`/`.h` logic touched. `sqlite3.obj` (2.8 MB) verified present inside
+`X2/X2Lib.lib`.
+
+### Operational notes that apply to every later phase
+
+Phases 1+ mean restarting `X2_offline.exe` constantly. Two things make that
+slower than expected:
+
+- **The client resists termination.** `taskkill /F /T /PID <pid>` returns
+  `ERROR: … could not be terminated. Access is denied.`, and both
+  `Process.CloseMainWindow()` and a posted `WM_CLOSE` are ignored. Killing it
+  needs Task Manager or an elevated shell. Budget for this in any
+  build-run-inspect loop; do not assume a script can reclaim the process.
+- **Exclusive fullscreen holds the display.** `GameOptions.lua` has
+  `FULLSCREEN = TRUE`, so a hung client leaves the desktop showing a flat
+  colour, and a GDI screen capture returns a flat surface rather than the game.
+  `ShowWindow(hwnd, SW_MINIMIZE)` releases the display mode immediately without
+  killing the process — that is the fast recovery. For genuine visual
+  confirmation of a UI state, set `FULLSCREEN = FALSE` in `GameOptions.lua`
+  first, and back the file up: the client rewrites it on a graceful exit.
 
 ---
 

@@ -1618,7 +1618,7 @@
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>./;../luaLib;../KTDXLIB;./Common;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/Socket/;../KncWX2Server/Common/;../NexonModule;../NexonModule/NMClass;../X2;../X2/dat;../X2/dat/script;../libxml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../luaLib;../KTDXLIB;./Common;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/Socket/;../KncWX2Server/Common/;../NexonModule;../NexonModule/NMClass;../X2;../X2/dat;../X2/dat/script;../libxml;$(SolutionDir)Libs\ExternalLib\sqlite3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_IN_HOUSE_;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;CLIENT_COUNTRY_US;SERV_COUNTRY_US;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -1664,7 +1664,7 @@
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>./;../luaLib;../KTDXLIB;./Common;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/Socket/;../KncWX2Server/Common/;../NexonModule;../NexonModule/NMClass;../X2;../X2/dat;../X2/dat/script;../libxml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../luaLib;../KTDXLIB;./Common;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/Socket/;../KncWX2Server/Common/;../NexonModule;../NexonModule/NMClass;../X2;../X2/dat;../X2/dat/script;../libxml;$(SolutionDir)Libs\ExternalLib\sqlite3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_SERVICE_;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;CLIENT_COUNTRY_US;SERV_COUNTRY_US;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -3108,6 +3108,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Libs\ExternalLib\sqlite3\sqlite3.c">
+      <CompileAs>CompileAsC</CompileAs>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>INFINITY=HUGE_VAL;SQLITE_THREADSAFE=1;SQLITE_OMIT_LOAD_EXTENSION;SQLITE_DEFAULT_FOREIGN_KEYS=1;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="BasicExcel.cpp" />
     <ClCompile Include="HttpSession.cpp" />
