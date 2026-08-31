@@ -7,6 +7,15 @@
 #include "IOCP.h"
 //#endif
 
+//{{ Iruha : 2026-08-31 // offline mode - in-process server emulation
+#ifdef SERV_IRUHADEV_OFFLINE
+#include "../OfflineHook.h"
+
+/// Set by CX2OfflineServer::Instance() (X2Lib). NULL in every other build.
+IX2OfflineHook* g_pX2OfflineHook = NULL;
+#endif SERV_IRUHADEV_OFFLINE
+//}}
+
 void KSkSession::OnRecvCompleted( DWORD dwTransfered_ )
 {
     if( dwTransfered_ == 0 )
@@ -163,6 +172,13 @@ KSession::KSession( bool bIsProxy )
 
 KSession::~KSession(void)
 {
+//{{ Iruha : 2026-08-31 // offline mode
+#ifdef SERV_IRUHADEV_OFFLINE
+	if( g_pX2OfflineHook != NULL )
+		g_pX2OfflineHook->OnSessionClose( this );
+#endif SERV_IRUHADEV_OFFLINE
+//}}
+
 	if( m_spSockObj )
 	{
 		m_spSockObj->CloseSocket();
@@ -316,6 +332,14 @@ bool KSession::CheckExceedRefCount( int nCount_ )
 
 bool KSession::SendPacket( IN const KEvent& kEvent )
 {
+//{{ Iruha : 2026-08-31 // offline mode - consume the packet here, above the
+//            socket checks below: m_spSockObj is never connected offline.
+#ifdef SERV_IRUHADEV_OFFLINE
+	if( g_pX2OfflineHook != NULL )
+		return g_pX2OfflineHook->OnClientSend( this, kEvent );
+#endif SERV_IRUHADEV_OFFLINE
+//}}
+
     //if( m_bDestroyReserved ) return true;       ///< 종료가 예약되었을때 send 시도. 이런 경우가 다분하므로, true 인정.
     _JIF( m_spSockObj, return false );
     _JIF( m_spSockObj->IsConnected(), return false );    ///< 소켓이 유효하지 않음.
@@ -415,6 +439,22 @@ void KSession::ResetMaxSendData()
 bool KSession::Connect( const char* szIP_, unsigned short usPort_ )
 {
     PROXY_ONLY;
+//{{ Iruha : 2026-08-31 // offline mode - no socket, no SPI key exchange.
+//            Begin() still runs, so Run() keeps calling Tick() and the
+//            offline server's replies drain on the usual worker thread.
+#ifdef SERV_IRUHADEV_OFFLINE
+    if( g_pX2OfflineHook != NULL )
+    {
+        g_pX2OfflineHook->OnSessionConnect( this, szIP_, usPort_ );
+
+        if( !m_bUseIocp )
+            Begin();    // thread run
+
+        m_bAuthKeyRecved = true;
+        return true;
+    }
+#endif SERV_IRUHADEV_OFFLINE
+//}}
     _JIF( m_spSockObj, return false );
 
     std::vector< std::pair<int,int> > vecOpt;
@@ -537,10 +577,26 @@ void KSession::Run()
 
     while( bLoop )
     {
+//{{ Iruha : 2026-08-31 // offline mode - a full login is ~15 chained
+//            round-trips; at the stock 100ms poll that costs ~1.5s.
+//            Deliberately NOT done with SetEvent( m_hEvents[EVENT_RECV_COMPLETED] ):
+//            that path calls m_spSockObj->OnIOCompleted( IO_RECV ), which on a
+//            socket that was never connected reports 0 bytes transferred and is
+//            treated as a close by the remote end.
+#ifdef SERV_IRUHADEV_OFFLINE
+        DWORD dwWaitMS = ( g_pX2OfflineHook != NULL ) ? 5 : 100;
+
+        ret = ::WaitForMultipleObjects( EVENT_MAX_VALUE,
+            m_hEvents, 
+            false, 
+            dwWaitMS );
+#else SERV_IRUHADEV_OFFLINE
         ret = ::WaitForMultipleObjects( EVENT_MAX_VALUE,
             m_hEvents, 
             false, 
             100 );     // 0.1s 간격
+#endif SERV_IRUHADEV_OFFLINE
+//}}
 
         switch( ret )
         {

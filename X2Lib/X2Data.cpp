@@ -1,6 +1,12 @@
 #include "stdafx.h"
 #include ".\x2data.h"
 
+//{{ Iruha : 2026-08-31 // offline mode
+#ifdef SERV_IRUHADEV_OFFLINE
+#include "Offline/X2OfflineServer.h"
+#endif SERV_IRUHADEV_OFFLINE
+//}}
+
 //#ifdef USER_DEFINED_KEYBOARD_SETTING
 //	unsigned char CX2Data::s_KeyMappingLayer[2][256];
 //#endif USER_DEFINED_KEYBOARD_SETTING
@@ -2122,6 +2128,15 @@ CX2TrainingCenterTable* CX2Data::ResetTrainingCenterTable( const WCHAR* pFileNam
 CX2ServerProtocol* CX2Data::ResetServerProtocol()
 {
 	SAFE_DELETE( m_pServerProtocol );
+
+//{{ Iruha : 2026-08-31 // offline mode - stand the emulator up and register
+//            it as the socket layer's hook before any proxy can connect.
+//            It outlives every CX2ServerProtocol on purpose: the client
+//            drops and rebuilds its proxies several times per session.
+#ifdef SERV_IRUHADEV_OFFLINE
+	CX2OfflineServer::Instance();
+#endif SERV_IRUHADEV_OFFLINE
+//}}
 
 	bool bIsSERVICE = false;
 #ifndef _SERVICE_

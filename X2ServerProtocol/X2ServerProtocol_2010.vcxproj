@@ -1573,6 +1573,7 @@
     <ClInclude Include="ActorProxy.h" />
     <ClInclude Include="Performer.h" />
     <ClInclude Include="Event.h" />
+    <ClInclude Include="OfflineHook.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="UserProxy.h" />
     <ClInclude Include="TRUser.h" />

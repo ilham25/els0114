@@ -395,6 +395,11 @@ client made and every reply given — and flagging anything unhandled.
 
 ### 1.1 The logging facility — build this first
 
+> **Superseded in part.** The advice below to name events with
+> `KEvent::GetIDStr()` and to reuse `CX2PacketLog::PrintLog` does not work in a
+> `US_SERVICE` build — see *Corrections to this plan*, item 1, after the exit
+> test.
+
 `X2Lib/Offline/X2OfflineLog.{h,cpp}`. Two files, both written to the process
 working directory (which is the game `data\` dir):
 
@@ -424,6 +429,12 @@ Requirements:
   knows how to pretty-print.
 
 ### 1.2 The hook
+
+> **Superseded in part.** The `WakeForOffline()` /
+> `SetEvent( m_hEvents[EVENT_RECV_COMPLETED] )` suggestion at the end of this
+> section is unsafe — see *Corrections to this plan*, item 3. A fourth hook
+> point (`~KSession`) is also required; see *Decisions made while implementing
+> phase 1*.
 
 **`X2ServerProtocol/OfflineHook.h`** — as sketched above. Define
 `IX2OfflineHook* g_pX2OfflineHook = NULL;` in `Session.cpp` (or a new
@@ -495,6 +506,11 @@ succeeded and skip the send. Otherwise login stalls ~30 s on 10 retries.
 
 ### 1.5 Packets to implement in Phase 1
 
+> **Incomplete as written.** This list is missing three requests the client
+> actually sends (two of them mandatory) and includes one,
+> `EGS_GET_SERVER_SET_DATA_REQ`, that is never sent at all. See *Packets the plan
+> did not predict* and *Corrections to this plan*, item 4, after the exit test.
+
 Read the client's `Handler_*` for each to see exactly which fields it inspects;
 read `GSUserSession.cpp` / `GSUserGameCommon.cpp` for what the real server put
 there. Struct definitions are in `KncWX2Server/Common/{Common,Client}Packet.h`,
@@ -544,6 +560,292 @@ This helper is reused by every later phase — build it carefully once.
 4. `offline_packets.log` contains the full ordered request/reply chain.
 5. Any packet not yet handled appears as `*** UNHANDLED ***` and the client does
    **not** hang or crash on it.
+
+### Exit test — PASSED (2026-08-31)
+
+All five criteria met. `X2_offline.exe` reaches a working character-select screen
+with **no server process anywhere and zero TCP connections**, showing the one
+hardcoded character (`OfflineTest`, Elsword/Swordman, Lv1) in a 3-slot list next
+to a live "Create a new character" slot, with the channel name `Offline-1` in the
+header. No error popups, no infinite loading. Verified visually (windowed mode)
+and against `offline_packets.log`.
+
+The full chain, 17 request/reply pairs, ~1.1s wall clock from the first channel
+packet to the character list:
+
+```
+CH  ECH_VERIFY_ACCOUNT_REQ/ACK
+CH  ECH_GET_SERVERGROUP_LIST_REQ -> _NOT then _ACK
+CH  ECH_GET_CHANNEL_LIST_REQ     -> _NOT then _ACK
+GS  EGS_CONNECT_REQ/ACK
+CH  ECH_DISCONNECT_REQ/ACK
+GS  EGS_VERIFY_ACCOUNT_REQ/ACK   + push ENX_USER_LOGIN_NOT
+GS  EGS_CHECK_MACHINE_ID_REQ/ACK
+GS  EGS_STATE_CHANGE_SERVER_SELECT_REQ/ACK
+GS  EGS_CURRENT_TIME_REQ/ACK
+GS  EGS_SELECT_SERVER_SET_REQ/ACK
+GS  EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ/ACK   <- the character list
+GS  push EGS_KEYBOARD_MAPPING_INFO_NOT, EGS_CHAT_OPTION_INFO_NOT
+GS  EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ/ACK
+GS  EGS_DISCONNECT_FOR_SERVER_SELECT_REQ/ACK      <- "Go to Channel Selection"
+```
+
+Criterion 5 was demonstrated for real rather than argued: before it was
+implemented, `EGS_DISCONNECT_FOR_SERVER_SELECT_REQ` logged as
+`*** UNHANDLED ***` and the client neither hung nor crashed — it walked back to
+the channel list and carried on (see *Packets the plan did not predict* below for
+why it still had to be implemented).
+
+Footprint: 7 new files (~700 lines), 105 inserted lines across 5 existing files,
+no line deleted anywhere. Encoding of every CP949 file touched verified unchanged
+with `file` + `git diff --stat` after each edit.
+
+### Corrections to this plan, found by doing it
+
+Four things in the sections above are wrong for a `US_SERVICE` build. They cost
+real time; later phases should not re-learn them.
+
+1. **`KEvent::GetIDStr()` cannot name events, and `X2PacketLog` is dead code.**
+   §1.1 says to use `GetIDStr()` because it "is already wired to the
+   `ms_szEventID[]` table", and *Critical facts* #7 recommends reusing
+   `CX2PacketLog::PrintLog`. Neither works under `_SERVICE_`:
+   - `CX2ServerEvent::SERVER_EVENT_ID_STR` collapses to `{ L"" }`
+     (`X2ServerEvent.cpp:19-23`), and `CX2ServerProtocol`'s ctor only passes it
+     to `KEvent::SetEventID()` when `bIsSERVICE == false`
+     (`X2ServerProtocol/Event.h:58`), which is exactly backwards for us.
+   - `KEvent::ms_szEventIDList` therefore stays at the 24-entry
+     `EventID_System.h` list with `m_EventIDEnd == E_SYSTEM_EVENT_ID_END`, so
+     `GetIDStr()` reads **one past the end of that array** for every `EGS_*` /
+     `ECH_*` id (`X2ServerProtocol/Event.cpp:115-122`).
+   - every `CX2PacketLog::PrintLog` body is wrapped in `#ifdef _IN_HOUSE_`, and
+     writes to `dbg::clog`, not to a file. All 60-odd overloads are no-ops here.
+
+   Fix: `X2Lib/Offline/X2OfflineEventName.cpp` rebuilds the full table from
+   `EventID_System.h` + `EventID_Client.h` with the same X-macro, under the flag.
+
+2. **`KSession` has a different layout in X2Lib than in X2ServerProtocol — do
+   not read any `KActorProxy` / `KUserProxy` member from X2Lib.**
+   `X2ServerProtocol/StdAfx.h:32` defines `ADD_COLLECT_CLIENT_INFO_PROTOCOL`
+   *before* including `X2ServerProtocolLib.h`; X2Lib reaches the same header via
+   `X2Main.h`, where `Session.h` is included **before** `X2ServerProtocol.h:3`
+   defines that macro. The macro adds `m_pSADatabase` to `KSession`, so
+   `sizeof(KSession)` differs by 4 bytes between the two projects and every
+   member of the derived proxy classes reads 4 bytes low from X2Lib.
+
+   Observed concretely: `KActorProxy::GetClassID()` called from X2Lib returned
+   `-1`, which is the value of `m_nAckOK` — the `int` declared immediately
+   before `m_iClassID`. This is pre-existing, not caused by offline mode
+   (`CX2ServerProtocol::UserProxy_SetIntendedDisconnect()` is an inline that
+   writes `KUserProxy::m_bIntendedDisconnect` from X2Lib at the wrong offset).
+   Base-class members are safe: `KPerformer::QueueingEvent` and everything in
+   `KSession` itself sit before the divergence, which is why the seam works.
+
+   Fix: `CX2OfflineServer::KindFromEventID()` classifies a session from its first
+   packet's ID namespace (`ECH_` / `ETR_` / `ECS_` / else game) instead.
+
+3. **Do not wake the session with `SetEvent( m_hEvents[EVENT_RECV_COMPLETED] )`**
+   as §1.2 suggests. That event's arm in `KSession::Run()` calls
+   `m_spSockObj->OnIOCompleted( KOVERLAPPED::IO_RECV )`, and on a socket that was
+   never connected `WSAGetOverlappedResult` fails, leaving `dwTransfered == 0` —
+   which `KSkSession::OnRecvCompleted` treats as "closed by remote machine" and
+   turns into `OnSocketError()`. Shorten the poll instead: `Run()`'s
+   `WaitForMultipleObjects` timeout drops from 100ms to 5ms while the hook is
+   registered. A full login then costs ~80ms of polling instead of ~1.5s.
+
+4. **`EGS_GET_SERVER_SET_DATA_REQ` is never sent during login.** §1.5 lists it
+   as a phase-1 packet; the client only ever names it in the enum. It was not
+   implemented and the chain completes without it.
+
+### Packets the plan did not predict
+
+Three requests appear in the login chain that §1.5 does not list. Two of them
+are not optional.
+
+| Packet | Why it matters |
+|---|---|
+| `EGS_CHECK_MACHINE_ID_REQ` | Sent from `Handler_EGS_VERIFY_ACCOUNT_ACK` (`X2State.cpp:10619`). The ACK **must echo `m_strMachineID` back unchanged** — `CX2State::Handler_EGS_CHECK_MACHINE_ID_ACK` compares it to `g_pMain->GetMachineId()` and on a mismatch reports the player as a hacker via `EGS_REPORT_HACK_USER_NOT`. |
+| `EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ` | A consequence of pushing an empty `EGS_KEYBOARD_MAPPING_INFO_NOT`: the client falls back to `SetDefaultMap()` and writes those 40 bindings straight back, exactly as it would against a real server on a new account. It waits on the ACK (`X2KeyPad.cpp:720`), so it must be answered. Phase 1 acknowledges and discards; persisting is phase 5. |
+| `EGS_DISCONNECT_FOR_SERVER_SELECT_REQ` | "Go to Channel Selection" on the character-select screen (`UnitSelectExit()`). The ACK is the **only** thing that clears `m_bWaiting_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK`, and while that flag is set the `SSSUCM_SERVER_CONNECT0` case returns early — so leaving it unhandled strands the player on the channel list with every channel button inert. |
+
+### What was actually built, against *Code layout to create*
+
+```
+X2ServerProtocol/
+  OfflineHook.h                 NEW   38 lines   as planned
+  Socket/Session.cpp            EDIT  +56        4 hook points, not 3 (see below)
+
+X2Lib/Offline/
+  X2OfflineServer.h/.cpp        NEW   179/289    singleton, hook impl, dispatch, session registry
+  X2OfflineLog.h/.cpp           NEW    72/176    two log files, flush per line
+  X2OfflineEventName.cpp        NEW    78        NOT IN THE PLAN - see correction 1
+  Handlers_Login.cpp            NEW   386        11 handlers
+```
+
+Three deviations from the planned layout:
+
+- **`X2OfflineEventName.cpp` is new**, and is not optional — without it the
+  packet log cannot name anything (correction 1).
+- **`X2OfflineSession.h` was not created.** Per-connection state is a nested
+  `CX2OfflineServer::KOfflineSession` struct instead; it is 7 fields and only the
+  offline server touches it, so a separate header bought nothing. Promote it if
+  phase 3+ makes it grow.
+- **`Handlers_Stub.cpp` was not needed yet.** The catch-all lives in
+  `OnClientSend`'s "consume and log `*** UNHANDLED ***`" path, which is enough
+  while the handled set is small. Create the file when there are real per-packet
+  stubs to write (phase 7's social systems).
+
+`X2OfflineDB.{h,cpp}` is untouched, as specified — no SQLite in phase 1.
+
+### Decisions made while implementing phase 1
+
+Design calls that are not in the plan and that later phases inherit. All of it
+sits behind the single `SERV_IRUHADEV_OFFLINE` flag, per `CLAUDE.md`.
+
+**`IsConnected()` was deliberately left returning `false`.**
+The tempting move is to fake it — the proxies are "connected" in every sense the
+game cares about. It was rejected because the only way to do it is a new member
+on `KSession`, and a flag-guarded member there is exactly the layout split
+described in correction 2: `Session.h` is on the `X2ServerProtocolLib.h` include
+path, which X2Lib reaches *before* `Always.h` defines the flag, so X2Lib and
+X2ServerProtocol would disagree about `sizeof(KSession)` and corrupt each other's
+view of every proxy. Every call site was audited instead:
+
+| Site | Consequence of `false` |
+|---|---|
+| `KSession::Tick` | returns before the heart-beat block — no `E_HEART_BEAT` is ever generated. Strictly better. |
+| `ConnectedTo{Game,Channel}Server` | the "already connected" early-out never fires, so the reconnect path works. Required. |
+| `CX2StateServerSelect` ctor | skips a re-entry flag reset that is a no-op on a first login (the *game* proxy is not up yet either way). |
+| `X2StateLogin.cpp:1018`, `X2StateServerSelect.cpp:7377` | `IsChConnected() \|\| ConnectedToChannelServer(...)` — falls through to the connect, which is what we want. |
+| `X2Main.cpp:7361`, `X2State.cpp:8254` | two `SendChID`/`SendChPacket` calls (server time, PC-bang IP/MAC) are skipped. Both are online-only extras. |
+| `X2Main.cpp:11376/11400` | skips a `.kom` tamper report. Irrelevant offline. |
+
+Nothing in the login chain needs it, and it keeps every offline edit out of
+X2ServerProtocol's headers. **Keep it that way**: put offline changes in
+`Session.cpp`, never in `Session.h`.
+
+**`OfflineHook.h` is not included from `X2ServerProtocolLib.h`.** Same reason. It
+is included explicitly by `Session.cpp` (where the flag comes from the vcxproj)
+and by the X2Lib offline sources (where it comes from `Always.h`, already parsed
+by then). The header carries a comment saying so.
+
+**`g_pX2OfflineHook` is defined in `Session.cpp`,** not in a new
+`OfflineHook.cpp`, to avoid adding a source file to `X2ServerProtocol`'s ~50
+configurations for one pointer.
+
+**A fourth hook point was needed: `~KSession`.** The plan lists three seams
+(connect / outbound / inbound). Session *teardown* also has to be observed, or
+the session registry leaks entries and — worse — hands out dangling `KSession*`
+after the client drops a proxy, which it does routinely
+(`DisconnectFromChannelServer` after `ECH_DISCONNECT_ACK`, and
+`DisconnectFromGameServer` on backout). `OnSessionClose` is called from the top
+of the destructor, before `End()`.
+
+**The offline server is a process-lifetime singleton** that outlives every
+`CX2ServerProtocol`. `CX2Data::ResetServerProtocol` calls `Instance()` rather
+than constructing per-protocol, because the client tears down and rebuilds its
+protocol object several times per session and the account/session state must
+survive that.
+
+**`OnClientSend` always returns `true`, handled or not.** An unhandled packet is
+logged and dropped on the floor; letting it fall through would reach the socket
+path with `m_spSockObj` unconnected. This is what made criterion 5 hold for free.
+
+**Handlers are dispatched inside a `try { } catch( ... )`** that logs and
+consumes. One malformed packet must not take the process down; phase 8 asks for
+this anyway, and it costs nothing now.
+
+**The packet log defers replies so the file reads causally.** A reply is written
+from inside `Reply()`, i.e. before the request line that caused it can be
+composed — its `HANDLED` / `*** UNHANDLED ***` tag is only known once the handler
+returned. `DeferBegin()` / `DeferEnd()` buffer the replies and emit the request
+line above them. Without it every ACK appears one line *before* its REQ, which is
+actively misleading when reading a failure.
+
+**Session kind (`GS` / `CH`) is pinned from the session's first packet,** by ID
+namespace, because the proxy object cannot be asked (correction 2). Logged once
+per session as a `SESSION 0x... is the GS proxy` line.
+
+**The UDP port check is short-circuited by synthesising the ACK the client would
+have built for itself** and calling its own `Handler_KXPT_PORT_CHECK_ACK`, using
+the same `GetMyIPAddress()` / `GetMyPort()` values as its 10-retry give-up path
+already does (`X2StateServerSelect.cpp:~878`). So the offline path takes a route
+the client is known to tolerate, instead of inventing one.
+
+**Reply field choices with a reason behind them:**
+
+- `KECH_VERIFY_ACCOUNT_ACK::m_iChannelingCode = -1` — anything else sends
+  `CX2StateLogin` into the publisher/channeling branch, where it overwrites the
+  server-group ID with `code % 2` and re-picks the channel server by index.
+- `m_wstrPassport` must be **non-empty**; the client gates on
+  `!kEvent.m_wstrPassport.empty()` before it will advance past the login screen,
+  and uses the passport in place of the password from then on.
+- `m_wstrCurrentTime` must parse as `YYYY-MM-DD HH:MM:SS` — it is fed to
+  `KGCMassFileManager::SetServerCurrentTime`, then `MassFileMapping()` builds a
+  `CTime` from it. That is the only format `KncUtil::ConvertStringToCTime`
+  accepts, hence the shared `CX2OfflineServer::NowString()`.
+- `KAccountInfo::m_wstrOTP` is left **empty**, so the client keeps the passport it
+  already has rather than replacing it with an OTP that means nothing offline.
+- `KChannelInfo::m_wstrIP` must be non-empty: the client feeds it straight into
+  `Handler_EGS_CONNECT_REQ`, which bails out on an empty string. `127.0.0.1` is
+  never dialled — `Connect()` is intercepted — it just has to look like an
+  address.
+- The server group's `m_iServerGroupUID` and `KECH_GET_CHANNEL_LIST_NOT::
+  m_iServerGroupID` are **the same value (1)** on purpose, so that clicking the
+  single server-group button is a no-op instead of triggering a
+  disconnect/reconnect cycle (`SSSUCM_SELECT_SERVER_GROUP` compares them).
+
+**`MakeDefaultUnitInfo` reuses the client's own EXP table** rather than
+hardcoding EXP thresholds — `g_pData->GetEXPTable()->GetEXPData( level )`, the
+same call `X2StateMenu.cpp:4564` makes. This is the "reuse the client's loaded
+managers" decision applied at the first opportunity; phase 2 onward should keep
+using this helper as the single place a `KUnitInfo` is constructed.
+
+**The keyboard/chat option pushes go out *after* the character-list ACK,** not on
+login. They are the client's first chance to apply defaults, and sending them
+earlier risks touching UI (`GetKeyPad()`, `g_pChatBox`) that is not constructed
+yet at server-select time.
+
+**Log file conventions:** truncated on every launch (one run, not history),
+UTF-8 with BOM so nicknames survive and ordinary `grep` still works, and
+`fflush` after every single line — a crash must not lose the last packet,
+because that line is usually the cause.
+
+### Two tools worth reusing in later phases
+
+- **Preprocess the real translation unit instead of reading `#ifdef` nesting.**
+  `cl /P` with X2Lib's `US_SERVICE` include paths and defines resolves every flag
+  question definitively in one shot (`SERVER_GROUP_UI_ADVANCED`,
+  `SERV_KOG_OTP_VERIFY`, `SERV_MASSFILE_MAPPING_FUNCTION`, ... are all **on**;
+  `_IN_HOUSE_`, `SERV_SERVER_TIME_GET`, `CLIENT_PURPLE_MODULE` are **off**). The
+  ~19MB `.i` also gives every packet struct with its conditional members already
+  resolved, which is far more reliable than reading `CommonPacket.h` by eye.
+- **Byte-level Python patching as the default, not the recovery path.** Every
+  edit to an existing file was applied by a script that asserts its byte anchor
+  is unique and reuses surrounding CP949 bytes by slicing. This caught two stale
+  assumptions (a mis-typed anchor) instead of silently editing the wrong place.
+
+### Build notes that bit
+
+- **`X2ServerProtocol` is not a dependency of `X2_2010.vcxproj`.** Editing
+  `Socket/Session.cpp` and rebuilding the client links the *stale*
+  `X2Lib\X2ServerProtocol.lib` and fails on `g_pX2OfflineHook` being undefined.
+  Build it explicitly first:
+  `msbuild X2ServerProtocol/X2ServerProtocol_2010.vcxproj /p:Configuration=US_SERVICE /p:Platform=Win32 /p:SolutionDir=...`
+- **`/p:SolutionDir` needs its trailing backslash doubled** inside a quoted
+  argument (`"...\Trunk\\"`), or `cmd` escapes the closing quote and msbuild
+  reports `MSB6001: ... contains an odd number of double-quote characters` with
+  the rest of the command line glued into an include path.
+
+### Operational note, extending phase 0's
+
+`X2_offline.exe` runs at a **higher integrity level than a normal shell**, so it
+cannot be driven or stopped programmatically at all: `taskkill /F /T`,
+`Stop-Process -Force`, `PostMessage(WM_CLOSE)` and synthetic `Alt+F4` all fail
+with `ERROR_ACCESS_DENIED` (5), and `Get-CimInstance Win32_Process` returns an
+empty `ExecutablePath` / `CommandLine`. Synthetic mouse clicks do not reach it
+either. Every build-run-inspect cycle needs the client closed by hand, and any
+UI interaction has to be performed by a person; plan the verification around
+reading the two log files, which is where the real signal is anyway.
 
 ---
 

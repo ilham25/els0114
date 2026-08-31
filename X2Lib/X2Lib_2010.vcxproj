@@ -2042,6 +2042,8 @@
     <ClInclude Include="OnlyGlobal\JP\Auth\PurpleForClient.h" />
     <ClInclude Include="SHA1.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Offline\X2OfflineLog.h" />
+    <ClInclude Include="Offline\X2OfflineServer.h" />
     <ClInclude Include="X2GlobalMissionManager.h" />
     <ClInclude Include="X2Steam.h" />
     <ClInclude Include="ThemidaSDK.h" />
@@ -3114,6 +3116,10 @@
       <PreprocessorDefinitions>INFINITY=HUGE_VAL;SQLITE_THREADSAFE=1;SQLITE_OMIT_LOAD_EXTENSION;SQLITE_DEFAULT_FOREIGN_KEYS=1;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
     </ClCompile>
+    <ClCompile Include="Offline\Handlers_Login.cpp" />
+    <ClCompile Include="Offline\X2OfflineEventName.cpp" />
+    <ClCompile Include="Offline\X2OfflineLog.cpp" />
+    <ClCompile Include="Offline\X2OfflineServer.cpp" />
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="BasicExcel.cpp" />
     <ClCompile Include="HttpSession.cpp" />
