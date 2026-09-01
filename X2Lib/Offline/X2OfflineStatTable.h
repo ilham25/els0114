@@ -25,14 +25,17 @@
 //                  GetLuaBinder()->DoMemory( ... )    <- runs the chunk
 //
 //              That matters for two reasons. _ENCRIPT_SCRIPT_ is defined for
-//              _SERVICE_ (KTDX.h:86), so a packed script is encrypted and
-//              cannot be read as text - LoadDataFile is what reverses both the
-//              container and the encryption. And MASS_FILE_FIRST is defined
-//              (KTDX.h:92), so the same call checks the mounted archives first
-//              and falls back to a loose file on disk
-//              (KGCMassFileManager.cpp:665) - one code path covers packed and
-//              unpacked, and the file needs no luac step either way, since
-//              Lua's own loader takes source or bytecode.
+//              _SERVICE_ (KTDX.h:86), so every shipped script is XOR-encrypted
+//              and cannot be read as text. The two layers come off separately:
+//              LoadDataFile unwraps the .kom container, and DoMemory runs
+//              XORDecrypt unconditionally (KLuabinder.h:25). Encryption is a
+//              step applied to the .lua before packing - X2MassFileTool does
+//              not do it - so a plaintext copy is handled by falling back to
+//              DoMemoryNotEncript. And MASS_FILE_FIRST is defined (KTDX.h:92),
+//              so LoadDataFile checks the mounted archives first and falls back
+//              to a loose file on disk (KGCMassFileManager.cpp:665) - one code
+//              path covers packed and unpacked. No luac step is needed either
+//              way, since Lua's own loader takes source or bytecode.
 //
 //              The chunk calls StatTable:ReserveMemory(...) and
 //              StatTable:SetUnitStat( class, level, { ... } ) on a global, so

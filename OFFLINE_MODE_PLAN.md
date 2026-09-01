@@ -1417,9 +1417,9 @@ client's Lua state.** This reverses a first attempt that parsed it as text from
 the working directory, which was wrong for two reasons:
 
 - **`_ENCRIPT_SCRIPT_` is defined for `_SERVICE_`** ([KTDX.h:86](KTDXLIB/KTDX.h#L86)),
-  so a script packed into a `.kom` is encrypted. Text parsing only ever works on
-  a loose, unpacked copy - which means the offline build would have needed a
-  loose game-data file forever, sitting outside the archive set the client
+  so every shipped script is XOR-encrypted. Text parsing only ever works on a
+  loose, unencrypted copy - which means the offline build would have needed a
+  plaintext game-data file forever, sitting outside the archive set the client
   actually ships.
 - **`MASS_FILE_FIRST` is defined** ([KTDX.h:92](KTDXLIB/KTDX.h#L92)), and
   `KGCMassFileManager::LoadDataFile` checks the mounted archives first and then
@@ -1432,6 +1432,26 @@ The loader is the three-line pattern from
 `CX2UnitManager::OpenScriptFile` ([X2UnitManager.cpp:127](X2Lib/X2UnitManager.cpp#L127)):
 `LoadDataFile` then `GetLuaBinder()->DoMemory`. No `luac` step is needed either
 way - Lua's own loader takes source or precompiled bytecode.
+
+**The two wrappers come off separately, and the file has to be encrypted.** This
+is worth spelling out because getting it wrong fails silently:
+
+- `LoadDataFile` unwraps the `.kom` **container only**.
+- `KLuabinder::DoMemory` runs `XORDecrypt` **unconditionally**
+  ([KLuabinder.h:25](luaLib/KLuabinder.h#L25)) - it does not sniff the content.
+- The encryption is a **separate step on the `.lua` before packing**;
+  `X2MassFileTool` does not do it. The cipher is symmetric 4-byte XOR against a
+  rotating 3-key schedule (`XOR_KEY0..2`, [KTDX.h:388](KTDXLIB/KTDX.h#L388)), so
+  `XOREncrypt` is literally `XORDecrypt`
+  ([KTDXCommonFunc.h:715](KTDXLIB/KTDXCommonFunc.h#L715)), and `FileEncrypt()`
+  right below it is the studio's own file-level helper.
+
+So a plaintext file handed to `DoMemory` is XOR'd into garbage and simply fails to
+load. Rather than make that a footgun, the loader **tries `DoMemory` first and
+falls back to `DoMemoryNotEncript`**, logging a `STAT NOTE ... is NOT encrypted`
+line when the fallback wins. Encrypted stays the shipped path; a forgotten
+encryption step degrades to a visible warning instead of a silent drop to the
+synthetic curve.
 
 **The object is bound into Lua as `StatTable`, and the stat table is read off the
 stack.** The chunk calls `StatTable:ReserveMemory(...)` and

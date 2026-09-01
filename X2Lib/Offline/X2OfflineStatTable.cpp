@@ -96,8 +96,8 @@ void CX2OfflineStatTable::EnsureLoaded()
 
 	// Archive first, loose file second - MASS_FILE_FIRST is defined for
 	// _SERVICE_ (KTDX.h:92), so this resolves a packed StatTable.lua out of any
-	// mounted .kom and only then looks on disk. It is also what decrypts a
-	// packed script, since _ENCRIPT_SCRIPT_ is on (KTDX.h:86).
+	// mounted .kom and only then looks on disk. It unwraps the archive container
+	// only; the script's own XOR encryption is undone by DoMemory below.
 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kInfo;
 	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( SCRIPT_NAME );
 
@@ -111,12 +111,43 @@ void CX2OfflineStatTable::EnsureLoaded()
 		return;
 	}
 
-	// Lua's own loader takes source or precompiled bytecode, so it does not
-	// matter whether the packed copy went through luac.
-	if( E_FAIL == g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) )
+	// Every shipped script is XOR-encrypted, and KLuabinder::DoMemory runs
+	// XORDecrypt *unconditionally* under _ENCRIPT_SCRIPT_ (KLuabinder.h:25-27) -
+	// it does not sniff the content. The encryption is a separate step applied to
+	// the .lua before packing; X2MassFileTool does not do it. So DoMemory is the
+	// right call for a properly prepared file, packed or loose.
+	//
+	// A *plaintext* copy would be XOR'd into garbage by that, which is exactly
+	// how a loose unencrypted file dropped in for testing behaves. So fall back
+	// to DoMemoryNotEncript. Encrypted is tried first because that is the shipped
+	// form; a chunk that fails to load has executed nothing, so the Lua state is
+	// clean for the retry.
+	//
+	// Lua's own loader takes source or precompiled bytecode, so neither path
+	// cares whether the file went through luac.
+	bool bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) );
+
+	if( false == bRan || 0 == m_iRowsLoaded )
+	{
+		m_mapStat.clear();
+		m_iRowsLoaded = 0;
+
+		bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size ) );
+
+		if( true == bRan && m_iRowsLoaded > 0 )
+		{
+			CX2OfflineLog::Server(
+				L"STAT     NOTE '%s' is NOT encrypted - loaded as plaintext. Fine for testing;"
+				L" encrypt it (XOREncrypt / FileEncrypt) to match every other packed script.",
+				SCRIPT_NAME );
+		}
+	}
+
+	if( false == bRan )
 	{
 		CX2OfflineLog::Server(
-			L"STAT     ERROR '%s' failed to run - falling back to a synthetic stat curve.", SCRIPT_NAME );
+			L"STAT     ERROR '%s' failed to run, encrypted or plaintext"
+			L" - falling back to a synthetic stat curve.", SCRIPT_NAME );
 		return;
 	}
 
