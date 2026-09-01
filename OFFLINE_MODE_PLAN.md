@@ -1285,7 +1285,10 @@ GS  EGS_FIELD_UNIT_SYNC_DATA_NOT    every ~2s while moving
 
 `offline_packets.log` ends with exactly one `*** UNHANDLED ***` kind,
 `EGS_BILL_PRODUCT_INFO_REQ`, from opening a billing UI. That is phase 7, it hangs
-nothing, and it is the intended phase boundary.
+nothing, and it is the intended phase boundary. A run that only logs in, enters
+the village and walks around logs **no unhandled packets at all** - confirmed on
+the follow-up run below - so from here on any `*** UNHANDLED ***` line is new
+information, which is what makes phase 4's discovery loop cheap.
 
 **The stat work verified itself.** Reading `els_db.sql` after the run gives
 `cur_hp = 11250`, which is exactly `StatTable.lua`'s HP for Elsword/Swordman at
@@ -1293,6 +1296,17 @@ level 1 - so the whole round trip closed: `StatTable.lua` ->
 `EGS_SELECT_UNIT_4_NOT` -> `CX2GageManager` -> the client's own 3-second push ->
 SQLite. `cur_mp = 70`, a real mid-walk value, shows the write is live rather than
 one-shot.
+
+**Re-verified after packing (2026-09-01, later run).** With `StatTable.lua`
+XOR-encrypted inside `data036.kom` and the loose copy deleted, the log reports
+`STAT 'StatTable.lua' loaded: 50 class(es), 4000 row(s)` with no
+`is NOT encrypted` note - so it really came out of the archive through the
+encrypted path, not off a disk fallback - and `cur_hp` is still `11250`. Encryption
+and packing round-trip the same numbers the text parser produced; the change moved
+the transport, not the data. That run logged **zero** unhandled packets, and the
+`STAT` line appears immediately before `UNITLIST` rather than at startup, which is
+the lazy load landing exactly where it has to (after the archive mount, at the
+first `KUnitInfo` that needs a stat).
 
 **Where the run now stops:** the portal out of the village. That is phase 4, not
 a phase-3 defect - see correction 4.
@@ -1315,10 +1329,13 @@ a phase-3 defect - see correction 4.
    `KStatTable::GetUnitStat( class, level )`
    ([GSUserFunction.cpp:4490](KncWX2Server/GameServer/GSUserFunction.cpp#L4490)),
    loaded from `StatTable.lua`. So the offline server has to own the table, and
-   **`StatTable.lua` becomes a client-side data file**, copied from
-   `KncWX2Server/ServerResource/US/` and read through the client's own mass-file
-   loader - so it lives inside a `.kom` archive like every other script. See the
-   decisions below for why it is loaded that way rather than parsed as text.
+   **`StatTable.lua` becomes a client-side data file**: copied from
+   `KncWX2Server/ServerResource/US/`, XOR-encrypted, and packed into
+   `data036.kom`, then read through the client's own mass-file loader - so it
+   ships inside an archive like every other script rather than sitting loose in
+   the game folder. See the decisions below for why it is loaded that way rather
+   than parsed as text, and for the encryption step, which the packing tool does
+   not do for you.
    (`UnitTemplet::m_UnitType` *is* populated, and that is what `CharAbilTypeOf`
    reuses - the decision still holds for the class/type mapping, just not for the
    numbers.)
@@ -1393,11 +1410,17 @@ X2Lib/Offline/
 X2Lib/X2StateServerSelect.cpp   EDIT  +10       the tutorial scaffold (3.0.1), verbatim
 X2Lib/X2Lib_2010.vcxproj        EDIT   +3       the three new sources
 
-StatTable.lua                   NEW            copied from KncWX2Server/ServerResource/US/
-                                               into a .kom (data036.kom), or loose
-                                               in the game data folder - LoadDataFile
-                                               resolves either
+StatTable.lua                   NEW            KncWX2Server/ServerResource/US/StatTable.lua,
+                                               XOR-encrypted and packed into data036.kom
 ```
+
+`StatTable.lua` is the one file phase 3 adds outside the source tree. It is a
+copy of the GameServer's own resource, XOR-encrypted the same way every other
+script is, and packed into `data036.kom`; no loose copy is left behind. A loose
+plaintext copy in the game data folder also works and is convenient while
+testing - `LoadDataFile` falls back to disk and the loader falls back to
+`DoMemoryNotEncript` - but it is not the shipped arrangement, and it will mask a
+failed repack, so delete it once the archive carries the file.
 
 Two deviations from the planned layout:
 
