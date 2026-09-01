@@ -1266,6 +1266,228 @@ Two things from phase 2 make that loop work better than it did:
 Character select → loading → village map renders, the character is controllable,
 NPCs are present, no error popups, no infinite loading.
 
+### Exit test — PASSED (2026-09-01)
+
+All five criteria met. A selected character loads into Ruben, is controllable,
+NPCs are present, the health bar is full, and there are no error popups or
+infinite loads. Verified visually (windowed) and against both logs.
+
+The village tail, after the phase-2 chain:
+
+```
+GS  EGS_STATE_CHANGE_FIELD_REQ/ACK          <- what leaves character select
+GS  EGS_OPTION_UPDATE_REQ/ACK               <- CX2StateField ctor
+GS  push-only EGS_MODULE_INFO_UPDATE_NOT
+GS  EGS_FIELD_LOADING_COMPLETE_REQ/ACK      <- village is up
+GS  EGS_UPDATE_PLAY_STATUS_NOT      every ~3s
+GS  EGS_FIELD_UNIT_SYNC_DATA_NOT    every ~2s while moving
+```
+
+`offline_packets.log` ends with exactly one `*** UNHANDLED ***` kind,
+`EGS_BILL_PRODUCT_INFO_REQ`, from opening a billing UI. That is phase 7, it hangs
+nothing, and it is the intended phase boundary.
+
+**The stat work verified itself.** Reading `els_db.sql` after the run gives
+`cur_hp = 11250`, which is exactly `StatTable.lua`'s HP for Elsword/Swordman at
+level 1 - so the whole round trip closed: `StatTable.lua` ->
+`EGS_SELECT_UNIT_4_NOT` -> `CX2GageManager` -> the client's own 3-second push ->
+SQLite. `cur_mp = 70`, a real mid-walk value, shows the write is live rather than
+one-shot.
+
+**Where the run now stops:** the portal out of the village. That is phase 4, not
+a phase-3 defect - see correction 4.
+
+### Corrections to this plan, found by doing it
+
+1. **§3.0.2 understates the job: `KUnitInfo::m_kStat` / `m_kGameStat` matter more
+   than `m_kGamePlayStatus`.** The section only asks for the gage packet, which
+   seeds the HUD. But `CX2GUUser::InitStat`
+   ([X2GUUser.cpp:2737](X2Lib/X2GUUser.cpp#L2737)) builds the *unit's* max HP from
+   `UnitData::m_GameStat` when its base HP is above zero and `m_Stat` otherwise -
+   and both were zero. Filling only `m_kGamePlayStatus` would have produced a
+   correct-looking HUD on a character whose in-world max HP was still 0.
+
+2. **The client has no per-level stat table, so "reuse the client's loaded
+   managers" does not apply here - the first place that decision runs out.**
+   `CX2Unit::UnitTemplet` has an `m_Stat` field, but
+   `CX2UnitManager::AddUnitTemplet_LUA` never populates it: it is dead on the
+   client side. The real server reads base stats out of `dbo.GUnit` and adds
+   `KStatTable::GetUnitStat( class, level )`
+   ([GSUserFunction.cpp:4490](KncWX2Server/GameServer/GSUserFunction.cpp#L4490)),
+   loaded from `StatTable.lua`. So the offline server has to own the table, and
+   **`StatTable.lua` is now a shipped runtime file in the game data folder**,
+   copied from `KncWX2Server/ServerResource/US/`. (`UnitTemplet::m_UnitType` *is*
+   populated, and that is what `CharAbilTypeOf` reuses - the decision still holds
+   for the class/type mapping, just not for the numbers.)
+
+3. **`EGS_STATE_CHANGE_FIELD_ACK` must never carry an error.** Every failure path
+   in `CX2StateServerSelect::Handler_EGS_STATE_CHANGE_FIELD_ACK`
+   ([:6074](X2Lib/X2StateServerSelect.cpp#L6074)) ends in
+   `Handler_EGS_STATE_CHANGE_FIELD_REQ( true )`, i.e. an immediate re-send. A
+   refusal there is not "the client shows an error", it is an unbounded
+   request/reply loop. Contrast `EGS_JOIN_BATTLE_FIELD_ACK`, whose failure path
+   just returns false - that one *can* be refused. Check which kind you have
+   before returning anything but `NET_OK`.
+
+4. **§3.0.2's "that branch will not fire yet" is right about login and wrong
+   about the village.** It reasons from `unit.last_pos` being 20000 while
+   battlefields start at 40000, which holds for the login path. The village
+   *portal* reaches `EGS_JOIN_BATTLE_FIELD_REQ` by a completely different route:
+   in this build the fields outside a village **are** `VMI_BATTLE_FIELD_*` rooms,
+   so "walk out of Ruben" is phase 4 §4.1 room emulation in full - a `KRoomInfo`,
+   a `KRoomSlotInfo` list, `ConnectRelayServer()` and `XS_BATTLE_FIELD`. Phase 3's
+   goal ("village and field entry") therefore overlaps phase 4 more than the plan
+   admits, and **phase 3 cannot deliver a walkable field.** The client also gates
+   the portal on its own side: it sent the packet once and then stopped sending it
+   at all, so the refusal described below is a safety net rather than something
+   the player normally sees.
+
+5. **The session FSM from §1.3 is not decoration - without the real server's
+   state gate the client bounces itself out of character select.** Within 1-2ms of
+   `EGS_STATE_CHANGE_FIELD_ACK` the client intermittently re-sends
+   `EGS_SELECT_UNIT_REQ`. Answering it restarts the whole character-select tail
+   (five `_NOT`s, the ACK, `EGS_GET_MY_INVENTORY_REQ`) whose ACK calls
+   `Handler_EGS_STATE_CHANGE_FIELD_REQ` again - so leaving the village for
+   character select would sometimes throw the player straight back to the village
+   with the "moving to the village area" dialog. The live client never showed this,
+   because `KGSUser` opens that handler with
+   `VERIFY_STATE_WARN_REPEAT_FILTER( ( 1, KGSFSM::S_SERVER_SELECT ), ... )`
+   ([GSUserGameCommon.cpp:800](KncWX2Server/GameServer/GSUserGameCommon.cpp#L800))
+   and a successful select moves the user to `S_FIELD_MAP` immediately
+   ([GSUserFunction.cpp:4823](KncWX2Server/GameServer/GSUserFunction.cpp#L4823)).
+   **Any handler a later phase adds should be checked against the real one for a
+   `VERIFY_STATE*` macro, and mirror it.**
+
+### Packets the plan did not predict
+
+Six - and none of the four things §3.1 actually lists ("field enter/leave, field
+user list, NPC list, village channel/instance info") exist as packets at all. The
+village, its NPCs and its line map all come out of the client's own `.kom` data,
+and the field user list is a server *push* that correctly never arrives. §3.1
+also predicted "~20-40 new packets, most of them trivially ACK with OK"; it was
+six, and only two of those were derivable without running the game.
+
+| Packet | Why it matters |
+|---|---|
+| `EGS_OPTION_UPDATE_REQ` | Sent from the `CX2StateField` constructor ([X2StateField.cpp:131](X2Lib/X2StateField.cpp#L131)), so once per village entry, and waited on. It carries the graphics detail level the real server used to size field sectors; nothing to do with it offline, but it must be answered. |
+| `EGS_UPDATE_PLAY_STATUS_NOT` | The client's live HP/MP/hyper, pushed every ~3s by `CX2State::CheckAndSendingPlayStatus`. This is the **write half** of `m_kGamePlayStatus` - implementing the read side without it means HP never persists. Note it carries a bare `KGamePlayStatus`, not the `KGamePlayStatusContainer` that `_4_NOT` uses. |
+| `EGS_FIELD_UNIT_SYNC_DATA_NOT` | Position sync, every ~2s while moving. The real server rebroadcasts it; offline there is nobody to broadcast to - but it is the **only** packet that reports where the character is standing, so without it `last_line_index` / `last_pos_value` are written once from the spawn point and "log back in where you left off" silently does nothing. |
+| `EGS_MODULE_INFO_UPDATE_NOT` | ~3.4KB of loaded-module names, once per session, for spotting injected DLLs. Explicit ignore rather than left to the catch-all, so the packet log stays signal-only. |
+| `EGS_JOIN_BATTLE_FIELD_REQ` | The village portal. Phase 4 - see correction 4. |
+| `EGS_BILL_PRODUCT_INFO_REQ` | Phase 7. Deliberately left unhandled; it hangs nothing. |
+
+### What was actually built, against *Code layout to create*
+
+```
+X2Lib/Offline/
+  X2OfflineStatTable.h/.cpp     NEW    97/277   StatTable.lua parser - NOT IN THE PLAN
+  Handlers_Field.cpp            NEW   261       6 handlers, not the 1 the plan implies
+  X2OfflineDB.h/.cpp            EDIT  +32/+124  schema v1 -> v3, position and gauge writes
+  X2OfflineServer.h/.cpp        EDIT  +29/+78   MakeGamePlayStatus, base stats, dispatch
+  Handlers_Unit.cpp             EDIT  +58       m_kGamePlayStatus, the FSM gate
+  Handlers_Stub.cpp             EDIT  +14       EGS_MODULE_INFO_UPDATE_NOT
+
+X2Lib/X2StateServerSelect.cpp   EDIT  +10       the tutorial scaffold (3.0.1), verbatim
+X2Lib/X2Lib_2010.vcxproj        EDIT   +3       the three new sources
+
+<game data dir>/StatTable.lua   NEW            copied from KncWX2Server/ServerResource/US/
+```
+
+Two deviations from the planned layout:
+
+- **`X2OfflineStatTable.{h,cpp}` is new, and is not optional** - without it every
+  character has 0 max HP (correction 2).
+- **`X2OfflineSession.h` still does not exist.** `KOfflineSession` grew by four
+  ints (the gauge write-cache), which is not enough to earn a file.
+
+No line was deleted anywhere. Encoding of `X2StateServerSelect.cpp` (CP949) and
+`X2Lib_2010.vcxproj` (UTF-8 BOM + CRLF) verified unchanged with `file` and
+`git diff --stat` after each edit.
+
+### Decisions made while implementing phase 3
+
+**`StatTable.lua` is parsed as text, not through a Lua state.** The file is a flat
+list of `StatTable:SetUnitStat( class, level, { ... } )` calls, so a short parser
+avoids both touching the client's Lua globals and depending on the mass-file
+loader for a file that is in no `.kom`. Checked against the real file before the
+client ever saw it: 50 classes, 4038 rows, 0 rejects, levels 1-80 complete for
+every class.
+
+**HP is truncated, not rounded.** The server reads these through `LUA_GET_VALUE`
+into `UINT`/`USHORT`, so `HP = 12937.5` becomes 12937. Rounding would give an
+offline character one more hit point than the same character online.
+
+**`MAX_LEVEL` is 80, matching the server's own `ReserveMemory( class, 80 )`.**
+Classes 110 and 111 carry rows up to level 99 in the US file; those are dropped
+and lookups clamp to 80, which is what the server does too
+(`unitLevel < mit->second.size()`).
+
+**A missing `StatTable.lua` logs loudly and falls back to a synthetic curve**
+(Elsword/Swordman's own, fitted from its level 1 and 17 rows) rather than
+returning zeroes. A wrong-but-playable character with a shouting log beats an
+unplayable one with a silent log.
+
+**`m_kGameStat` is set equal to `m_kStat`.** On the real server it is base plus
+equipped items plus sockets; offline there is no gear until phase 5, so the two
+coincide. **When gear lands, `m_kGameStat` is the one that grows.**
+
+**`cur_hp = 0` means "never stored", and is restored as full health.** It is also
+what a character who died would carry, and either way it must not be handed back
+as zero: `Handler_EGS_GET_MY_INVENTORY_ACK` routes a zero-HP character out of a
+battlefield, and there is nowhere in a village to heal.
+
+**The gauge write is change-detected, cached on the session.** The push arrives
+every three seconds for the whole run; writing unconditionally would be ~1200
+pointless `UPDATE`s an hour. The cache lives on `KOfflineSession`, so a reconnect
+costs one redundant write - cheaper than tracking it globally and getting it wrong
+when the character changes.
+
+**The portal refusal uses `ERR_BATTLEFIELD_00`** ("not in a state that can move to
+that area") because it is both true and *not* one of the two codes
+`Handler_EGS_JOIN_BATTLE_FIELD_ACK` special-cases - `ERR_BATTLEFIELD_13` / `_14`
+print a required level or dungeon, which would be a lie. So it falls through to
+`CX2Main::IsValidPacket`'s default branch: one OK dialog, and the player stays in
+the village instead of hanging on an unanswered `AddServerPacket`.
+
+**The FSM gate replies `ERR_WRONG_STATE_00` rather than dropping the packet.** That
+is what the house macro sends, and the code is deliberately in
+`CX2Main::IsValidPacket`'s silent-false set
+([X2Main.cpp:6936](X2Lib/X2Main.cpp#L6936)) so the client swallows it without a
+dialog. Dropping instead would leave the client's wait to time out into a network
+error.
+
+**Only `EGS_SELECT_UNIT_REQ` is gated, not `EGS_GET_MY_INVENTORY_REQ`,** even
+though the real server gates both (`VERIFY_STATE( ( 1, KGSFSM::S_FIELD_MAP ) )`).
+The risk is asymmetric: a wrong gate on select means a click does nothing and is
+visible immediately, while a wrong gate on `GET_MY_INVENTORY` strands the player
+on character select permanently. Fix the cause, do not add a second gate that can
+misfire. `EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ` also resets the state to
+`S_SERVER_SELECT` as a belt-and-braces net, since only `CX2StateServerSelect` ever
+asks for the character list.
+
+**Migration stays a ladder, and the new rungs apply to fresh files too.**
+`SCHEMA_V1` is left exactly as phase 2 wrote it; v2 (last field position) and v3
+(live gauges) are additive `ALTER TABLE`s that run on a brand-new save as well as
+on an upgrade, so the ladder stays the single source of truth. Both rungs were
+dry-run against a copy of the real phase-2 save before shipping.
+
+### Operational notes, extending the earlier phases'
+
+- **"Log back in where you left off" is not observable until a character has
+  EXP > 0.** `CX2StateServerSelect::Handler_EGS_STATE_CHANGE_FIELD_REQ`
+  ([:5954](X2Lib/X2StateServerSelect.cpp#L5954)) forces `VMI_RUBEN` start
+  position 1 whenever EXP <= 0. Both halves of the write path run and the values
+  persist; only the *read* is gated. Do not debug it as broken before phase 4
+  gives a character some EXP.
+- **HP and MP likewise cannot change inside a village** - nothing there damages
+  you. Verify both by copying the whole WAL set and reading `els_db.sql`, not by
+  looking at the screen.
+- **The Bash tool's `cat` re-renders indentation.** An anchor copied out of `cat`
+  output will not match the file for a byte-level patch - a line that is really a
+  tab followed by `static void Foo(` displays tab-aligned instead. Take anchors
+  from `cat -A` or from `python -c "print(repr(...))"`. This cost two failed patch
+  runs.
+
 ---
 
 # Phase 4 — Rooms, the tutorial dungeon, and dungeon results
@@ -1282,6 +1504,12 @@ because the tutorial room did not exist yet and refusing the request has no
 fallback. **The tutorial cannot trigger while that
 line is there.** Remove it first, or §4.2 will look broken for a reason that has
 nothing to do with §4.2. See phase 3 §3.0.1 for the full reasoning.
+
+Phase 3 also refuses `EGS_JOIN_BATTLE_FIELD_REQ` with `ERR_BATTLEFIELD_00`
+(`Handlers_Field.cpp`). Remove that too - and note that **the village portal is
+the first thing §4.1 should make work**, because in this build the fields outside a
+village are `VMI_BATTLE_FIELD_*` rooms, so reaching them is room emulation and not
+a separate system. See phase 3 correction 4.
 
 ### 4.1 Room emulation
 

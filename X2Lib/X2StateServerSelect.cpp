@@ -4432,6 +4432,16 @@ bool CX2StateServerSelect::Handler_EGS_GET_MY_INVENTORY_ACK( HWND hWnd, UINT uMs
 		}
 		else
 		{
+#ifdef SERV_IRUHADEV_OFFLINE
+			// Offline mode: phase 4 owns the tutorial room. Until
+			// EGS_CREATE_TUTORIAL_ROOM_REQ is implemented, always take the
+			// field branch below - refusing the tutorial request has no
+			// fallback (Handler_EGS_CREATE_TUTORIAL_ROOM_ACK does everything
+			// inside if( IsValidPacket( m_iOK ) ) and otherwise just returns),
+			// so the player would simply sit on character select.
+			// DELETE THIS when the tutorial room exists.
+			g_pMain->SetIsPlayingTutorial( false );
+#endif SERV_IRUHADEV_OFFLINE
 			if ( g_pMain->GetIsPlayingTutorial() == true )
 			{
 				// 튜토리얼 진입요청

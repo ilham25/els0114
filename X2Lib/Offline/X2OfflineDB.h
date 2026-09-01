@@ -49,6 +49,12 @@ struct KOfflineUnitRow
 	int				m_iSP;
 	int				m_iSpirit;
 	int				m_iLastPos;
+	int				m_iLastLineIndex;
+	int				m_iLastPosValue;
+	int				m_iCurHP;			///< 0 means "never stored" - see MakeGamePlayStatus
+	int				m_iCurMP;
+	int				m_iHyperGage;
+	int				m_iAbilCount;		///< WSP / cannonballs / force, per unit type
 	__int64			m_tRegDate;
 	__int64			m_tDelDate;
 	__int64			m_tLastDate;
@@ -67,6 +73,12 @@ struct KOfflineUnitRow
 		, m_iSP( 0 )
 		, m_iSpirit( 0 )
 		, m_iLastPos( 0 )
+		, m_iLastLineIndex( 0 )
+		, m_iLastPosValue( 0 )
+		, m_iCurHP( 0 )
+		, m_iCurMP( 0 )
+		, m_iHyperGage( 0 )
+		, m_iAbilCount( 0 )
 		, m_tRegDate( 0 )
 		, m_tDelDate( 0 )
 		, m_tLastDate( 0 )
@@ -83,7 +95,7 @@ public:
 	{
 		/// Schema revision. Bump it and add a rung to Migrate() when a later
 		/// phase needs a new table, so existing saves are not wiped.
-		SCHEMA_VERSION			= 1,
+		SCHEMA_VERSION			= 3,
 
 		/// How long after a soft delete the final delete becomes possible.
 		/// Zero: a solo save has nobody to protect a character from, so the
@@ -133,6 +145,24 @@ public:
 	bool	RestoreUnit( UidType nUnitUID );						///< del_date = reg_date
 	bool	FinalDeleteUnit( UidType nUnitUID );					///< the only real DELETE FROM
 	bool	TouchLastDate( UidType nUnitUID );
+
+	/// Which village the character is standing in - dbo.GUnit.LastPosition.
+	/// Written when the client asks to enter a field, so the next login starts
+	/// where this one left off.
+	bool	SaveLastPosition( UidType nUnitUID, int iMapID );
+
+	/// Where on that village's line map. REMEMBER_LOGOUT_POSITION_TEST is on
+	/// (KTDXLIB/Always.h:1943), so the client sends these in
+	/// EGS_FIELD_LOADING_COMPLETE_REQ and reads them back out of
+	/// KUnitInfo::m_kLastPos on the next login.
+	bool	SaveLastFieldPos( UidType nUnitUID, int iLineIndex, int iPosValue );
+
+	/// The live gauges, as the client reports them in EGS_UPDATE_PLAY_STATUS_NOT
+	/// roughly every three seconds. This is the write half of what
+	/// CX2OfflineServer::MakeGamePlayStatus reads back on the next login; the
+	/// real server keeps the same values in its GUnitPlayInfo table.
+	bool	SaveGamePlayStatus( UidType nUnitUID, int iCurHP, int iCurMP,
+								int iHyperGage, int iAbilCount );
 
 	//////////////////////////////////////////////////////////////////////////
 	// inventory

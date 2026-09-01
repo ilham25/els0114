@@ -56,4 +56,18 @@ bool CX2OfflineServer::Handler_EGS_GET_RIDING_PET_LIST_REQ( KOfflineSession& kSe
 	return Reply( kSes, EGS_GET_RIDING_PET_LIST_ACK, kAck );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// anti-cheat bookkeeping - deliberately ignored, and listed here rather than
+// left to the UNHANDLED catch-all so the packet log stays signal-only.
+
+bool CX2OfflineServer::Handler_EGS_MODULE_INFO_UPDATE_NOT( KOfflineSession& /*kSes*/, const KEvent& /*kEvent*/ )
+{
+	// ~3.4KB of loaded-module names, pushed once per session from
+	// X2State.cpp:9070 so the operator can spot injected DLLs. No reply, and
+	// nothing offline would ever look at it. Not even deserialized: the payload
+	// is a list of strings this build has no use for, and parsing it would only
+	// create a way for the handler to fail.
+	return true;
+}
+
 #endif SERV_IRUHADEV_OFFLINE

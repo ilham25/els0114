@@ -10,7 +10,8 @@ CX2OfflineDB* CX2OfflineDB::ms_pInstance = NULL;
 
 /*static*/ const char* CX2OfflineDB::UNIT_COLUMNS =
 	"unit_uid, user_uid, unit_class, nickname, level, exp, ed, sp, spirit, "
-	"last_pos, reg_date, del_date, last_date";
+	"last_pos, last_line_index, last_pos_value, cur_hp, cur_mp, hyper_gage, abil_count, "
+	"reg_date, del_date, last_date";
 
 namespace
 {
@@ -86,6 +87,26 @@ namespace
 		"  clear_count INTEGER NOT NULL DEFAULT 0,"
 		"  best_rank   INTEGER NOT NULL DEFAULT 0,"
 		"  PRIMARY KEY( unit_uid, dungeon_id ) );"
+		;
+
+	// v2 (phase 3): where in the village the character was standing. Additive
+	// ALTER TABLEs so an existing v1 save is upgraded instead of wiped - both
+	// default to 0, which is the same "start of line 0" the client sends for a
+	// character that has never entered a field.
+	const char* const SCHEMA_V2 =
+		"ALTER TABLE unit ADD COLUMN last_line_index INTEGER NOT NULL DEFAULT 0;"
+		"ALTER TABLE unit ADD COLUMN last_pos_value  INTEGER NOT NULL DEFAULT 0;"
+		;
+
+	// v3 (phase 3): the live gauges, from EGS_UPDATE_PLAY_STATUS_NOT. cur_hp 0
+	// is the "never stored" marker, which MakeGamePlayStatus turns into full
+	// health - a character logging in on 0 HP would otherwise be routed straight
+	// back out of a battlefield by Handler_EGS_GET_MY_INVENTORY_ACK.
+	const char* const SCHEMA_V3 =
+		"ALTER TABLE unit ADD COLUMN cur_hp     INTEGER NOT NULL DEFAULT 0;"
+		"ALTER TABLE unit ADD COLUMN cur_mp     INTEGER NOT NULL DEFAULT 0;"
+		"ALTER TABLE unit ADD COLUMN hyper_gage INTEGER NOT NULL DEFAULT 0;"
+		"ALTER TABLE unit ADD COLUMN abil_count INTEGER NOT NULL DEFAULT 0;"
 		;
 }
 
@@ -205,9 +226,15 @@ sqlite3_stmt* CX2OfflineDB::Prepare( const char* szSQL )
 	kOut.m_iSP			= sqlite3_column_int( pStmt, 7 );
 	kOut.m_iSpirit		= sqlite3_column_int( pStmt, 8 );
 	kOut.m_iLastPos		= sqlite3_column_int( pStmt, 9 );
-	kOut.m_tRegDate		= (__int64)sqlite3_column_int64( pStmt, 10 );
-	kOut.m_tDelDate		= (__int64)sqlite3_column_int64( pStmt, 11 );
-	kOut.m_tLastDate	= (__int64)sqlite3_column_int64( pStmt, 12 );
+	kOut.m_iLastLineIndex	= sqlite3_column_int( pStmt, 10 );
+	kOut.m_iLastPosValue	= sqlite3_column_int( pStmt, 11 );
+	kOut.m_iCurHP		= sqlite3_column_int( pStmt, 12 );
+	kOut.m_iCurMP		= sqlite3_column_int( pStmt, 13 );
+	kOut.m_iHyperGage	= sqlite3_column_int( pStmt, 14 );
+	kOut.m_iAbilCount	= sqlite3_column_int( pStmt, 15 );
+	kOut.m_tRegDate		= (__int64)sqlite3_column_int64( pStmt, 16 );
+	kOut.m_tDelDate		= (__int64)sqlite3_column_int64( pStmt, 17 );
+	kOut.m_tLastDate	= (__int64)sqlite3_column_int64( pStmt, 18 );
 }
 
 /*static*/ std::wstring CX2OfflineDB::FormatDate( __int64 tEpoch )
@@ -325,6 +352,27 @@ bool CX2OfflineDB::Migrate()
 		if( false == Exec( "COMMIT;" ) )		return false;
 
 		CX2OfflineLog::Server( L"DB       schema created (v1)" );
+	}
+
+	if( iFrom < 2 )
+	{
+		// A brand-new save has just run SCHEMA_V1, which does not carry these
+		// two columns, so the rung applies to a fresh file as well as an
+		// upgrade - that is what keeps the ladder the single source of truth.
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( SCHEMA_V2 ) )		{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v2 (last field position)" );
+	}
+
+	if( iFrom < 3 )
+	{
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( SCHEMA_V3 ) )		{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v3 (live HP/MP gauges)" );
 	}
 
 	char szSetVersion[64];
@@ -653,6 +701,74 @@ bool CX2OfflineDB::TouchLastDate( UidType nUnitUID )
 
 	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
 	sqlite3_bind_int64( pStmt, 2, NowEpoch() );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::SaveLastPosition( UidType nUnitUID, int iMapID )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare( "UPDATE unit SET last_pos = ?2 WHERE unit_uid = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iMapID );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::SaveLastFieldPos( UidType nUnitUID, int iLineIndex, int iPosValue )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"UPDATE unit SET last_line_index = ?2, last_pos_value = ?3 WHERE unit_uid = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iLineIndex );
+	sqlite3_bind_int(   pStmt, 3, iPosValue );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::SaveGamePlayStatus( UidType nUnitUID, int iCurHP, int iCurMP,
+									   int iHyperGage, int iAbilCount )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"UPDATE unit SET cur_hp = ?2, cur_mp = ?3, hyper_gage = ?4, abil_count = ?5 "
+		"WHERE unit_uid = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iCurHP );
+	sqlite3_bind_int(   pStmt, 3, iCurMP );
+	sqlite3_bind_int(   pStmt, 4, iHyperGage );
+	sqlite3_bind_int(   pStmt, 5, iAbilCount );
 
 	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
 

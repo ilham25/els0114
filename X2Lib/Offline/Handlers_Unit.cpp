@@ -56,6 +56,12 @@ bool CX2OfflineServer::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( KOffline
 	if( false == EnsureAccount( kSes, kSes.m_wstrLoginID ) )
 		return false;
 
+	// Belt and braces for the gate in Handler_EGS_SELECT_UNIT_REQ: only
+	// CX2StateServerSelect asks for this list, so receiving it means the player
+	// is on the character-select screen whatever the session thought.
+	// EGS_STATE_CHANGE_SERVER_SELECT_REQ normally gets there first.
+	kSes.m_eState = S_SERVER_SELECT;
+
 	std::vector< KOfflineUnitRow > vecRow;
 	CX2OfflineDB::Instance()->LoadUnits( kSes.m_nUserUID, vecRow );
 
@@ -368,6 +374,39 @@ bool CX2OfflineServer::Handler_EGS_SELECT_UNIT_REQ( KOfflineSession& kSes, const
 	if( false == ReadReq( kEvent, kReq ) )
 		return false;
 
+	// The FSM gate the real server has, and the offline server did not.
+	//
+	// KGSUser's handler opens with
+	//   VERIFY_STATE_WARN_REPEAT_FILTER( ( 1, KGSFSM::S_SERVER_SELECT ), ... )
+	// (GSUserGameCommon.cpp:800), and a successful select moves the user
+	// straight to S_FIELD_MAP in KGSUser::OnAccountSelectUnitAck
+	// (GSUserFunction.cpp:4823) - so a *second* select is state-rejected.
+	//
+	// That matters because the client sends one. Within 1-2ms of
+	// EGS_STATE_CHANGE_FIELD_ACK it intermittently re-sends
+	// EGS_SELECT_UNIT_REQ, and answering it properly restarts the whole
+	// character-select tail: five _NOTs, EGS_SELECT_UNIT_ACK,
+	// EGS_GET_MY_INVENTORY_REQ, and finally another
+	// Handler_EGS_STATE_CHANGE_FIELD_REQ - which is why leaving the village for
+	// character select would sometimes throw the player straight back to the
+	// village with the "moving to the village area" dialog.
+	//
+	// The reply is what the house macro sends: the ACK carrying
+	// ERR_WRONG_STATE_00. That code is deliberately listed in
+	// CX2Main::IsValidPacket's silent-false set (X2Main.cpp:6936), so it clears
+	// the client's AddServerPacket wait and shows nothing - whereas dropping the
+	// packet outright would leave that wait to time out into a network error.
+	if( S_SERVER_SELECT != kSes.m_eState )
+	{
+		KEGS_SELECT_UNIT_ACK kAck;
+		kAck.m_iOK = NetError::ERR_WRONG_STATE_00;
+
+		CX2OfflineLog::Server( L"SELECT   ignored repeat for unitUID=%I64d - session is past character select",
+			(__int64)kReq.m_iUnitUID );
+
+		return Reply( kSes, EGS_SELECT_UNIT_ACK, kAck );
+	}
+
 	CX2OfflineDB* pDB = CX2OfflineDB::Instance();
 
 	KOfflineUnitRow kRow;
@@ -438,8 +477,10 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 	//
 	// Phase 2 fills _1_NOT (the unit and its inventory shape) and _2_NOT (which
 	// has nothing to say yet, but is what the client's quest list is reset
-	// from). _3_NOT / _4_NOT / _5_NOT go out with empty collections; they are
-	// titles and pets, social state, and events - phases 5 to 7.
+	// from). Phase 3 adds _4_NOT's m_kGamePlayStatus, the live HP/MP the HUD
+	// is built from. The rest of _3_NOT / _4_NOT / _5_NOT still goes out with
+	// empty collections; they are titles and pets, social state, and events -
+	// phases 5 to 7.
 
 	CX2OfflineDB* pDB = CX2OfflineDB::Instance();
 
@@ -509,6 +550,19 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 		kNot.m_iOK					= NetError::NET_OK;
 		kNot.m_bIsRecommend			= false;
 		kNot.m_iRecommendUnitUID	= 0;
+
+		// The live HP/MP. Phase 2 left this container deliberately empty,
+		// because a zeroed entry is worse than none: the handler at
+		// X2StateServerSelect.cpp:3115 pushes it straight into
+		// CX2GageManager, so an empty max HP would show up as an empty
+		// health bar and would send a battlefield character down the
+		// "dead, go back to the village" branch of
+		// Handler_EGS_GET_MY_INVENTORY_ACK. Phase 3 has a real stat table,
+		// so it can be filled properly - and the studio's own
+		// ASSERT( !empty() ) right above that line stops firing.
+		KGamePlayStatus kStatus;
+		MakeGamePlayStatus( kRow, kStatus );
+		kNot.m_kGamePlayStatus.Set( kStatus );
 
 		Reply( kSes, EGS_SELECT_UNIT_4_NOT, kNot );
 	}

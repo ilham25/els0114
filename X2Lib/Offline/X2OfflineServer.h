@@ -13,6 +13,7 @@
 //
 //              Phase 1: no SQLite. Login chain plus one hardcoded character.
 //              Phase 2: SQLite behind it (X2OfflineDB) and real character CRUD.
+//              Phase 3: real base stats (X2OfflineStatTable) and field entry.
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef SERV_IRUHADEV_OFFLINE
@@ -20,6 +21,7 @@
 #include "OfflineHook.h"
 #include "X2OfflineLog.h"
 #include "X2OfflineDB.h"
+#include "X2OfflineStatTable.h"
 
 class CX2OfflineServer : public IX2OfflineHook
 {
@@ -51,6 +53,14 @@ public:
 		FSM_STATE		m_eState;
 		UidType			m_nUserUID;
 		UidType			m_nSelectedUnitUID;
+
+		/// Last gauge values written to SQLite, so the three-second
+		/// EGS_UPDATE_PLAY_STATUS_NOT only touches the file when something
+		/// actually moved. -1 means "nothing written yet on this session".
+		int				m_iSavedHP;
+		int				m_iSavedMP;
+		int				m_iSavedHyper;
+		int				m_iSavedAbil;
 		std::wstring	m_wstrLoginID;
 		std::wstring	m_wstrPassport;
 
@@ -60,6 +70,10 @@ public:
 			, m_eState( S_INIT )
 			, m_nUserUID( 0 )
 			, m_nSelectedUnitUID( 0 )
+			, m_iSavedHP( -1 )
+			, m_iSavedMP( -1 )
+			, m_iSavedHyper( -1 )
+			, m_iSavedAbil( -1 )
 		{
 		}
 	};
@@ -95,6 +109,11 @@ public:
 	/// the soft-delete state the character-select screen renders its restore
 	/// and final-delete UI from.
 	static void MakeUnitInfoFromRow( KUnitInfo& kOut, const KOfflineUnitRow& kRow );
+
+	/// The live HP/MP the client's HUD is seeded from. Sent in
+	/// EGS_SELECT_UNIT_4_NOT; without it CX2GageManager never receives a max HP
+	/// and the health bar renders empty.
+	static void MakeGamePlayStatus( const KOfflineUnitRow& kRow, OUT KGamePlayStatus& kOut );
 
 	static const wchar_t* KindStr( PROXY_KIND eKind );
 
@@ -146,9 +165,19 @@ private:
 	void PushSelectUnitNotifications( KOfflineSession& kSes, const KOfflineUnitRow& kRow );
 
 	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Field.cpp
+	bool Handler_EGS_STATE_CHANGE_FIELD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_FIELD_LOADING_COMPLETE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_OPTION_UPDATE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_UPDATE_PLAY_STATUS_NOT( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_FIELD_UNIT_SYNC_DATA_NOT( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_JOIN_BATTLE_FIELD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
 	// Handlers_Stub.cpp - answered because the client blocks on them, nothing more
 	bool Handler_EGS_GET_PET_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_GET_RIDING_PET_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_MODULE_INFO_UPDATE_NOT( KOfflineSession& kSes, const KEvent& kEvent );
 
 private:
 	static CX2OfflineServer*					ms_pInstance;

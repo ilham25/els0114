@@ -27,12 +27,16 @@ CX2OfflineServer* CX2OfflineServer::Instance()
 		ms_pInstance = new CX2OfflineServer;
 		g_pX2OfflineHook = ms_pInstance;
 
-		CX2OfflineLog::Server( L"---- offline server up (SERV_IRUHADEV_OFFLINE, phase 2) ----" );
+		CX2OfflineLog::Server( L"---- offline server up (SERV_IRUHADEV_OFFLINE, phase 3) ----" );
 
 		// els_db.sql sits next to the two logs, in the process working
 		// directory - which is the game data\ folder (X2Main mounts the .kom
 		// archives through a "./" prefix, so it can be nothing else).
 		CX2OfflineDB::Instance()->Open( L"els_db.sql" );
+
+		// The one game-data table the client does not carry. Same folder, same
+		// reasoning; see X2OfflineStatTable.h for why it has to be loaded at all.
+		CX2OfflineStatTable::Instance()->Load( L"StatTable.lua" );
 	}
 
 	return ms_pInstance;
@@ -49,6 +53,7 @@ void CX2OfflineServer::Release()
 	delete ms_pInstance;
 	ms_pInstance = NULL;
 
+	CX2OfflineStatTable::Release();
 	CX2OfflineDB::Release();
 	CX2OfflineLog::Close();
 }
@@ -291,6 +296,18 @@ bool CX2OfflineServer::ReplyID( KOfflineSession& kSes, unsigned short usEventID 
 
 	kOut.m_bDeleted		= false;
 	kOut.m_wstrLastDate	= NowString();
+
+	// Base stats. Not optional and not cosmetic: CX2Unit::ResetUnitData feeds
+	// m_kStat / m_kGameStat into UnitData::m_Stat / m_GameStat, and
+	// CX2GUUser::InitStat then takes m_GameStat when its base HP is above zero
+	// and m_Stat otherwise - so leaving both zeroed gives the village unit a max
+	// HP of 0.
+	//
+	// m_kGameStat is the same value as m_kStat here. On the real server it is
+	// base + equipped items + sockets; offline there is no gear yet (phase 5),
+	// so the two coincide. When gear lands, m_kGameStat is the one that grows.
+	CX2OfflineStatTable::Instance()->GetUnitStat( (int)cUnitClass, iLevel, kOut.m_kStat );
+	kOut.m_kGameStat = kOut.m_kStat;
 }
 
 
@@ -335,9 +352,19 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_GET_MY_INVENTORY_REQ:			return Handler_EGS_GET_MY_INVENTORY_REQ( kSes, kEvent );
 
 	//////////////////////////////////////////////////////////////////////////
+	// village / field entry - Handlers_Field.cpp
+	case EGS_STATE_CHANGE_FIELD_REQ:		return Handler_EGS_STATE_CHANGE_FIELD_REQ( kSes, kEvent );
+	case EGS_FIELD_LOADING_COMPLETE_REQ:	return Handler_EGS_FIELD_LOADING_COMPLETE_REQ( kSes, kEvent );
+	case EGS_OPTION_UPDATE_REQ:				return Handler_EGS_OPTION_UPDATE_REQ( kSes, kEvent );
+	case EGS_UPDATE_PLAY_STATUS_NOT:		return Handler_EGS_UPDATE_PLAY_STATUS_NOT( kSes, kEvent );
+	case EGS_FIELD_UNIT_SYNC_DATA_NOT:		return Handler_EGS_FIELD_UNIT_SYNC_DATA_NOT( kSes, kEvent );
+	case EGS_JOIN_BATTLE_FIELD_REQ:			return Handler_EGS_JOIN_BATTLE_FIELD_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
 	// answered only because the client blocks on them - Handlers_Stub.cpp
 	case EGS_GET_PET_LIST_REQ:				return Handler_EGS_GET_PET_LIST_REQ( kSes, kEvent );
 	case EGS_GET_RIDING_PET_LIST_REQ:		return Handler_EGS_GET_RIDING_PET_LIST_REQ( kSes, kEvent );
+	case EGS_MODULE_INFO_UPDATE_NOT:		return Handler_EGS_MODULE_INFO_UPDATE_NOT( kSes, kEvent );
 
 	default:
 		break;
@@ -396,6 +423,14 @@ bool CX2OfflineServer::EnsureAccount( KOfflineSession& kSes, const std::wstring&
 	kOut.m_iSPoint				= kRow.m_iSP;
 	kOut.m_iSpirit				= kRow.m_iSpirit;
 	kOut.m_kLastPos.m_iMapID	= kRow.m_iLastPos;
+
+	// REMEMBER_LOGOUT_POSITION_TEST is on, so CX2StateServerSelect::
+	// Handler_EGS_STATE_CHANGE_FIELD_REQ rebuilds the spawn point from these two
+	// by walking the village line map - which is the whole "log back in where
+	// you left off" behaviour. It only does that for a character with EXP above
+	// zero; a fresh one is always placed at Ruben start position 1.
+	kOut.m_kLastPos.m_ucLastTouchLineIndex	= (unsigned char)kRow.m_iLastLineIndex;
+	kOut.m_kLastPos.m_usLastPosValue		= (unsigned short)kRow.m_iLastPosValue;
 	kOut.m_wstrLastDate			= CX2OfflineDB::FormatDate( kRow.m_tLastDate );
 
 	// The character-select screen draws its whole delete/restore UI from these
@@ -408,6 +443,47 @@ bool CX2OfflineServer::EnsureAccount( KOfflineSession& kSes, const std::wstring&
 									? CX2OfflineDB::DelAbleDate( kRow.m_tDelDate )
 									: 0LL;
 	kOut.m_trRestoreAbleDate	= 0LL;
+}
+
+/*static*/ void CX2OfflineServer::MakeGamePlayStatus( const KOfflineUnitRow& kRow,
+													 OUT KGamePlayStatus& kOut )
+{
+	KStat kStat;
+	CX2OfflineStatTable::Instance()->GetUnitStat( kRow.m_iUnitClass, kRow.m_iLevel, kStat );
+
+	// KGamePlayStatus's own constructor does NOT initialise m_iMaxHP - it is the
+	// one field it forgets - so every field here is set explicitly.
+	kOut.m_iMaxHP			= kStat.m_iBaseHP;
+
+	// cur_hp 0 is the schema's "never stored" marker, and it is also what a
+	// character who died would carry. Either way it must not be handed back as
+	// zero: Handler_EGS_GET_MY_INVENTORY_ACK routes a zero-HP character out of a
+	// battlefield and back to the village, and there is nowhere in a village to
+	// heal. So a stored zero means full health.
+	kOut.m_iCurHP			= ( kRow.m_iCurHP > 0 ) ? kRow.m_iCurHP : kStat.m_iBaseHP;
+
+	if( kOut.m_iCurHP > kOut.m_iMaxHP )
+		kOut.m_iCurHP		= kOut.m_iMaxHP;		///< a level or gear change shrank max HP
+
+	// ONE_CHARGE * 3 is what CX2GUUser::ResetMaxMP computes for a character with
+	// no MP-boosting gear (X2GageUI.h defines ONE_CHARGE as 100). Current MP
+	// starts empty, which is what a character has on entering a village.
+	kOut.m_iMaxMP			= (int)( ONE_CHARGE * 3.0f );
+	kOut.m_iCurMP			= min( kRow.m_iCurMP, kOut.m_iMaxMP );
+
+	kOut.m_iCurHyperGage	= kRow.m_iHyperGage;
+	kOut.m_cCurHyperCount	= 0;
+
+	// The per-character resource: Elsword's Way-of-the-Sword points, Chung's
+	// cannonballs, Ara's force. The type must match the character or the count
+	// reads back as 0 - KGamePlayStatus::GetWSP and its siblings all return 0
+	// unless m_cCharAbilType is theirs.
+	kOut.m_cCharAbilType	= CX2OfflineStatTable::CharAbilTypeOf( kRow.m_iUnitClass );
+	kOut.m_iCharAbilCount	= kRow.m_iAbilCount;
+
+	kOut.m_mapSkillCoolTime.clear();
+	kOut.m_mapQuickSlotCoolTime.clear();
+	kOut.m_mapPetMP.clear();
 }
 
 #endif SERV_IRUHADEV_OFFLINE
