@@ -34,9 +34,9 @@ CX2OfflineServer* CX2OfflineServer::Instance()
 		// archives through a "./" prefix, so it can be nothing else).
 		CX2OfflineDB::Instance()->Open( L"els_db.sql" );
 
-		// The one game-data table the client does not carry. Same folder, same
-		// reasoning; see X2OfflineStatTable.h for why it has to be loaded at all.
-		CX2OfflineStatTable::Instance()->Load( L"StatTable.lua" );
+		// CX2OfflineStatTable is NOT loaded here. It reads StatTable.lua through
+		// the client's mass-file loader, and the .kom archives are not
+		// necessarily mounted at this point - so it loads itself on first use.
 	}
 
 	return ms_pInstance;

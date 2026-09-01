@@ -1315,10 +1315,13 @@ a phase-3 defect - see correction 4.
    `KStatTable::GetUnitStat( class, level )`
    ([GSUserFunction.cpp:4490](KncWX2Server/GameServer/GSUserFunction.cpp#L4490)),
    loaded from `StatTable.lua`. So the offline server has to own the table, and
-   **`StatTable.lua` is now a shipped runtime file in the game data folder**,
-   copied from `KncWX2Server/ServerResource/US/`. (`UnitTemplet::m_UnitType` *is*
-   populated, and that is what `CharAbilTypeOf` reuses - the decision still holds
-   for the class/type mapping, just not for the numbers.)
+   **`StatTable.lua` becomes a client-side data file**, copied from
+   `KncWX2Server/ServerResource/US/` and read through the client's own mass-file
+   loader - so it lives inside a `.kom` archive like every other script. See the
+   decisions below for why it is loaded that way rather than parsed as text.
+   (`UnitTemplet::m_UnitType` *is* populated, and that is what `CharAbilTypeOf`
+   reuses - the decision still holds for the class/type mapping, just not for the
+   numbers.)
 
 3. **`EGS_STATE_CHANGE_FIELD_ACK` must never carry an error.** Every failure path
    in `CX2StateServerSelect::Handler_EGS_STATE_CHANGE_FIELD_ACK`
@@ -1390,7 +1393,10 @@ X2Lib/Offline/
 X2Lib/X2StateServerSelect.cpp   EDIT  +10       the tutorial scaffold (3.0.1), verbatim
 X2Lib/X2Lib_2010.vcxproj        EDIT   +3       the three new sources
 
-<game data dir>/StatTable.lua   NEW            copied from KncWX2Server/ServerResource/US/
+StatTable.lua                   NEW            copied from KncWX2Server/ServerResource/US/
+                                               into a .kom (data036.kom), or loose
+                                               in the game data folder - LoadDataFile
+                                               resolves either
 ```
 
 Two deviations from the planned layout:
@@ -1406,12 +1412,46 @@ No line was deleted anywhere. Encoding of `X2StateServerSelect.cpp` (CP949) and
 
 ### Decisions made while implementing phase 3
 
-**`StatTable.lua` is parsed as text, not through a Lua state.** The file is a flat
-list of `StatTable:SetUnitStat( class, level, { ... } )` calls, so a short parser
-avoids both touching the client's Lua globals and depending on the mass-file
-loader for a file that is in no `.kom`. Checked against the real file before the
-client ever saw it: 50 classes, 4038 rows, 0 rejects, levels 1-80 complete for
-every class.
+**`StatTable.lua` is loaded through the client's mass-file loader and run in the
+client's Lua state.** This reverses a first attempt that parsed it as text from
+the working directory, which was wrong for two reasons:
+
+- **`_ENCRIPT_SCRIPT_` is defined for `_SERVICE_`** ([KTDX.h:86](KTDXLIB/KTDX.h#L86)),
+  so a script packed into a `.kom` is encrypted. Text parsing only ever works on
+  a loose, unpacked copy - which means the offline build would have needed a
+  loose game-data file forever, sitting outside the archive set the client
+  actually ships.
+- **`MASS_FILE_FIRST` is defined** ([KTDX.h:92](KTDXLIB/KTDX.h#L92)), and
+  `KGCMassFileManager::LoadDataFile` checks the mounted archives first and then
+  falls back to a loose file on disk
+  ([KGCMassFileManager.cpp:665](KTDXLIB/KGCMassFileManager.cpp#L665)). So **one
+  call covers both**, and going through it costs nothing while removing the
+  loose-file requirement. It is also what reverses the encryption.
+
+The loader is the three-line pattern from
+`CX2UnitManager::OpenScriptFile` ([X2UnitManager.cpp:127](X2Lib/X2UnitManager.cpp#L127)):
+`LoadDataFile` then `GetLuaBinder()->DoMemory`. No `luac` step is needed either
+way - Lua's own loader takes source or precompiled bytecode.
+
+**The object is bound into Lua as `StatTable`, and the stat table is read off the
+stack.** The chunk calls `StatTable:ReserveMemory(...)` and
+`StatTable:SetUnitStat( class, level, { ... } )` on a global, so
+`class_add` / `class_def` / `decl` register this object under that name exactly as
+`KStatTable::RegisterLuaBind` does
+([StatTable.cpp:131](KncWX2Server/GameServer/StatTable.cpp#L131)). The trailing
+table is **not** a declared parameter: `KLuaManager`'s default table depth of 1
+makes `LUA_GET_VALUE` read fields out of the table left on the stack, which is
+the same convention `KStatTable::SetUnitStat` and
+`CX2UnitManager::AddUnitTemplet_LUA` both use. `ReserveMemory` is a no-op here
+(this side keeps a map, not a pre-sized vector) but must still be bound, or the
+chunk errors on its first line.
+
+**The table loads on first use, not at startup.** `CX2OfflineServer::Instance()`
+runs around `CX2Data::ResetServerProtocol`, and the 145 `.kom` archives are not
+necessarily mounted by then - `LoadDataFile` would just return NULL. Reading a
+loose file from the working directory did not care about ordering; reading the
+archive does. One attempt per process either way, since a retry would re-run the
+chunk on every character.
 
 **HP is truncated, not rounded.** The server reads these through `LUA_GET_VALUE`
 into `UINT`/`USHORT`, so `HP = 12937.5` becomes 12937. Rounding would give an
@@ -1482,6 +1522,11 @@ dry-run against a copy of the real phase-2 save before shipping.
 - **HP and MP likewise cannot change inside a village** - nothing there damages
   you. Verify both by copying the whole WAL set and reading `els_db.sql`, not by
   looking at the screen.
+- **Verify the stat table from the log, not by eye.** `offline_server.log` prints
+  `STAT 'StatTable.lua' loaded: <n> class(es), <n> row(s)` on the first character
+  that needs a stat - 50 classes and 4000 rows is a correct US file. Anything else,
+  including the synthetic-curve fallback, says so on its own line. Because the
+  load is lazy, that line appears at first character select rather than at startup.
 - **The Bash tool's `cat` re-renders indentation.** An anchor copied out of `cat`
   output will not match the file for a byte-level patch - a line that is really a
   tab followed by `static void Foo(` displays tab-aligned instead. Take anchors

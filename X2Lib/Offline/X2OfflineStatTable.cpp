@@ -11,8 +11,8 @@ namespace
 {
 	/// Elsword/Swordman's own curve, read off StatTable.lua's class 1 rows
 	/// (level 1 and level 17 give an exact linear fit). Used only when
-	/// StatTable.lua is missing entirely, so that a character is playable with
-	/// approximate numbers instead of unplayable with zeroes.
+	/// StatTable.lua cannot be loaded at all, so that a character is playable
+	/// with approximate numbers instead of unplayable with zeroes.
 	const double SYN_HP_L1			= 11250.0;
 	const double SYN_HP_PER_LEVEL	= 1687.5;
 	const double SYN_ATKP_L1		= 360.0;
@@ -23,11 +23,15 @@ namespace
 	const double SYN_DEFP_PER_LEVEL	= 2.25;
 	const double SYN_DEFM_L1		= 66.0;
 	const double SYN_DEFM_PER_LEVEL	= 1.875;
+
+	const wchar_t* const SCRIPT_NAME = L"StatTable.lua";
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 CX2OfflineStatTable::CX2OfflineStatTable()
+: m_bLoadAttempted( false )
+, m_iRowsLoaded( 0 )
 {
 }
 
@@ -53,108 +57,134 @@ void CX2OfflineStatTable::Release()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Loading
 
-/*static*/ double CX2OfflineStatTable::ReadKey( const char* szLine, const char* szKey, double fDefault )
+void CX2OfflineStatTable::EnsureLoaded()
 {
-	const char* p = strstr( szLine, szKey );
-	if( NULL == p )
-		return fDefault;
+	if( true == m_bLoadAttempted )
+		return;
 
-	p += strlen( szKey );
+	// One attempt per process either way: a second try would not find the file
+	// any more readily, and GetUnitStat is called often enough that retrying
+	// would mean re-running the chunk on every character.
+	m_bLoadAttempted = true;
 
-	while( ' ' == *p || '\t' == *p )
-		++p;
-
-	if( '=' != *p )
-		return fDefault;
-
-	++p;
-
-	return atof( p );
-}
-
-bool CX2OfflineStatTable::ParseLine( const char* szLine )
-{
-	const char* p = strstr( szLine, "SetUnitStat" );
-	if( NULL == p )
-		return false;
-
-	p = strchr( p, '(' );
-	if( NULL == p )
-		return false;
-
-	int iUnitClass	= 0;
-	int iLevel		= 0;
-
-	if( 2 != sscanf( p + 1, " %d , %d", &iUnitClass, &iLevel ) )
-		return false;
-
-	if( iUnitClass <= 0 || iLevel <= 0 || iLevel > (int)MAX_LEVEL )
-		return false;
-
-	// The stat block is only the part inside the braces; keeping the search
-	// anchored there stops a key from being picked up out of a trailing comment.
-	const char* pBrace = strchr( p, '{' );
-	if( NULL == pBrace )
-		return false;
-
-	KStat kStat;
-
-	// The server reads these into UINT / USHORT via LUA_GET_VALUE, so a
-	// fractional HP such as 12937.5 truncates. Truncate here too, or an offline
-	// character has one more hit point than the same character online.
-	kStat.m_iBaseHP		= (int)ReadKey( pBrace, "HP",			0.0 );
-	kStat.m_iAtkPhysic	= (int)ReadKey( pBrace, "AtkPhysic",	0.0 );
-	kStat.m_iAtkMagic	= (int)ReadKey( pBrace, "AtkMagic",		0.0 );
-	kStat.m_iDefPhysic	= (int)ReadKey( pBrace, "DefPhysic",	0.0 );
-	kStat.m_iDefMagic	= (int)ReadKey( pBrace, "DefMagic",		0.0 );
-
-	if( 0 >= kStat.m_iBaseHP )
-		return false;
-
-	m_mapStat[ iUnitClass ][ iLevel ] = kStat;
-
-	return true;
-}
-
-bool CX2OfflineStatTable::Load( const wchar_t* szPath )
-{
-	m_mapStat.clear();
-
-	FILE* pFile = _wfopen( szPath, L"rb" );
-	if( NULL == pFile )
+	if( NULL == g_pKTDXApp ||
+		NULL == g_pKTDXApp->GetLuaBinder() ||
+		NULL == g_pKTDXApp->GetDeviceManager() ||
+		NULL == g_pKTDXApp->GetDeviceManager()->GetMassFileManager() )
 	{
-		CX2OfflineLog::Server(
-			L"STAT     ERROR '%s' not found - falling back to a synthetic stat curve.",
-			szPath );
-		CX2OfflineLog::Server(
-			L"STAT     Copy KncWX2Server/ServerResource/US/StatTable.lua into the game data folder." );
-		return false;
+		CX2OfflineLog::Server( L"STAT     ERROR engine not ready - falling back to a synthetic stat curve." );
+		return;
 	}
 
-	char szLine[1024];
-	int iRows = 0;
-
-	while( NULL != fgets( szLine, (int)sizeof( szLine ), pFile ) )
+	lua_State* pLuaState = g_pKTDXApp->GetLuaBinder()->GetLuaState();
+	if( NULL == pLuaState )
 	{
-		if( true == ParseLine( szLine ) )
-			++iRows;
+		CX2OfflineLog::Server( L"STAT     ERROR no lua state - falling back to a synthetic stat curve." );
+		return;
 	}
 
-	fclose( pFile );
+	// Bind this object as the global the script calls into, exactly as
+	// KStatTable::RegisterLuaBind does on the server side
+	// (KncWX2Server/GameServer/StatTable.cpp:131-136). ReserveMemory has to be
+	// bound too, or the chunk errors on its first line.
+	lua_tinker::class_add< CX2OfflineStatTable >( pLuaState, "CX2OfflineStatTable" );
+	lua_tinker::class_def< CX2OfflineStatTable >( pLuaState, "SetUnitStat",   &CX2OfflineStatTable::SetUnitStat_LUA );
+	lua_tinker::class_def< CX2OfflineStatTable >( pLuaState, "ReserveMemory", &CX2OfflineStatTable::ReserveMemory_LUA );
+	lua_tinker::decl( pLuaState, "StatTable", this );
 
-	if( 0 == iRows )
+	// Archive first, loose file second - MASS_FILE_FIRST is defined for
+	// _SERVICE_ (KTDX.h:92), so this resolves a packed StatTable.lua out of any
+	// mounted .kom and only then looks on disk. It is also what decrypts a
+	// packed script, since _ENCRIPT_SCRIPT_ is on (KTDX.h:86).
+	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kInfo;
+	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( SCRIPT_NAME );
+
+	if( NULL == kInfo )
 	{
 		CX2OfflineLog::Server(
-			L"STAT     ERROR '%s' parsed to zero rows - falling back to a synthetic stat curve.",
-			szPath );
-		return false;
+			L"STAT     ERROR '%s' not found in any .kom or on disk - falling back to a synthetic stat curve.",
+			SCRIPT_NAME );
+		CX2OfflineLog::Server(
+			L"STAT     Pack KncWX2Server/ServerResource/US/StatTable.lua into a .kom, or drop it in the game data folder." );
+		return;
+	}
+
+	// Lua's own loader takes source or precompiled bytecode, so it does not
+	// matter whether the packed copy went through luac.
+	if( E_FAIL == g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) )
+	{
+		CX2OfflineLog::Server(
+			L"STAT     ERROR '%s' failed to run - falling back to a synthetic stat curve.", SCRIPT_NAME );
+		return;
+	}
+
+	if( 0 == m_iRowsLoaded )
+	{
+		CX2OfflineLog::Server(
+			L"STAT     ERROR '%s' ran but produced no rows - falling back to a synthetic stat curve.", SCRIPT_NAME );
+		return;
 	}
 
 	CX2OfflineLog::Server( L"STAT     '%s' loaded: %u class(es), %d row(s)",
-		szPath, (unsigned int)m_mapStat.size(), iRows );
+		SCRIPT_NAME, (unsigned int)m_mapStat.size(), m_iRowsLoaded );
+}
 
-	return true;
+//////////////////////////////////////////////////////////////////////////
+// Bound into Lua as StatTable:*
+
+void CX2OfflineStatTable::ReserveMemory_LUA( int /*iUnitClass*/, int /*iMaxLevel*/ )
+{
+	// The server pre-sizes a std::vector per class here so that SetUnitStat can
+	// index into it. This side keeps a map, so there is nothing to reserve - but
+	// the method has to exist, because every class in the file calls it before
+	// any SetUnitStat row appears.
+}
+
+void CX2OfflineStatTable::SetUnitStat_LUA( int iUnitClass, int iLevel )
+{
+	if( iUnitClass <= 0 || iLevel <= 0 || iLevel > (int)MAX_LEVEL )
+	{
+		// Classes 110 and 111 carry rows up to level 99 in the US file. The
+		// server drops those too (its vector is sized maxLevel + 1), so
+		// ignoring them keeps the two sides agreeing.
+		return;
+	}
+
+	// The third argument - the { AtkPhysic = ..., HP = ... } table - is not a
+	// declared parameter. It is still on the Lua stack, and KLuaManager's
+	// default table depth of 1 reads fields out of it, which is exactly how
+	// KStatTable::SetUnitStat and CX2UnitManager::AddUnitTemplet_LUA both work.
+	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+
+	// Read into the same widths the server uses, so a fractional HP such as
+	// 12937.5 truncates identically - rounding would give an offline character
+	// one more hit point than the same character online.
+	UINT	uiHP		= 0;
+	USHORT	usAtkPhysic	= 0;
+	USHORT	usAtkMagic	= 0;
+	USHORT	usDefPhysic	= 0;
+	USHORT	usDefMagic	= 0;
+
+	LUA_GET_VALUE( luaManager, "HP",			uiHP,			0 );
+	LUA_GET_VALUE( luaManager, "AtkPhysic",	usAtkPhysic,	0 );
+	LUA_GET_VALUE( luaManager, "AtkMagic",	usAtkMagic,		0 );
+	LUA_GET_VALUE( luaManager, "DefPhysic",	usDefPhysic,	0 );
+	LUA_GET_VALUE( luaManager, "DefMagic",	usDefMagic,		0 );
+
+	if( 0 == uiHP )
+		return;
+
+	KStat kStat;
+	kStat.m_iBaseHP		= (int)uiHP;
+	kStat.m_iAtkPhysic	= (int)usAtkPhysic;
+	kStat.m_iAtkMagic	= (int)usAtkMagic;
+	kStat.m_iDefPhysic	= (int)usDefPhysic;
+	kStat.m_iDefMagic	= (int)usDefMagic;
+
+	m_mapStat[ iUnitClass ][ iLevel ] = kStat;
+	++m_iRowsLoaded;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -204,7 +234,7 @@ bool CX2OfflineStatTable::Load( const wchar_t* szPath )
 	return (char)KGamePlayStatus::CAC_NONE;
 }
 
-/*static*/ void CX2OfflineStatTable::SyntheticStat( int iUnitClass, int iLevel, OUT KStat& kOut )
+/*static*/ void CX2OfflineStatTable::SyntheticStat( int /*iUnitClass*/, int iLevel, OUT KStat& kOut )
 {
 	const double fSteps = (double)( iLevel - 1 );
 
@@ -215,8 +245,10 @@ bool CX2OfflineStatTable::Load( const wchar_t* szPath )
 	kOut.m_iDefMagic	= (int)( SYN_DEFM_L1 + SYN_DEFM_PER_LEVEL * fSteps );
 }
 
-void CX2OfflineStatTable::GetUnitStat( int iUnitClass, int iLevel, OUT KStat& kOut ) const
+void CX2OfflineStatTable::GetUnitStat( int iUnitClass, int iLevel, OUT KStat& kOut )
 {
+	EnsureLoaded();
+
 	kOut.Init();
 
 	if( iLevel < 1 )
@@ -233,7 +265,7 @@ void CX2OfflineStatTable::GetUnitStat( int iUnitClass, int iLevel, OUT KStat& kO
 	std::map< int, std::map< int, KStat > >::const_iterator mitClass = m_mapStat.find( iUnitClass );
 
 	// An unknown class falls back to the character's base class, which is what
-	// the base-class row of the table is for. (Every class the client can
+	// the base-class rows of the table are for. (Every class the client can
 	// actually create is in the file; this covers a job class added later
 	// against an older StatTable.lua.)
 	if( mitClass == m_mapStat.end() )
@@ -256,8 +288,8 @@ void CX2OfflineStatTable::GetUnitStat( int iUnitClass, int iLevel, OUT KStat& kO
 
 	std::map< int, KStat >::const_iterator mitLevel = mapLevel.find( iLevel );
 
-	// Clamp down to the highest level the file actually carries rather than
-	// handing back a zeroed stat, which would mean max HP 0.
+	// Clamp to the nearest level the file actually carries rather than handing
+	// back a zeroed stat, which would mean max HP 0.
 	if( mitLevel == mapLevel.end() )
 	{
 		mitLevel = mapLevel.lower_bound( iLevel );
