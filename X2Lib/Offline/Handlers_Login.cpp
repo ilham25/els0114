@@ -7,8 +7,10 @@
 // Description: Offline mode - phase 1. The login chain, from channel-server
 //              account verification down to the character list.
 //
-//              Nothing is persisted yet: the account is fabricated and the
-//              character list is one hardcoded unit. SQLite arrives in phase 2.
+//              Phase 2 moved the account onto SQLite and the character list
+//              into Handlers_Unit.cpp; what is left here is the shard the
+//              client is told about, which is entirely synthetic and has no
+//              reason to be persisted.
 //
 //              Where a reply's contents matter, the reference is the client's
 //              own Handler_* in X2Lib/X2StateLogin.cpp and
@@ -30,50 +32,6 @@ namespace
 	const wchar_t* const	OFFLINE_IP				= L"127.0.0.1";
 	const unsigned short	OFFLINE_PORT			= 9400;
 	const int				OFFLINE_UDP_PORT		= 9500;
-
-	const UidType			OFFLINE_USER_UID		= 1;
-	const int				OFFLINE_UNIT_SLOTS		= 3;
-
-	// The one phase-1 character.
-	const UidType			DUMMY_UNIT_UID			= 1;
-	const char				DUMMY_UNIT_CLASS		= (char)CX2Unit::UC_ELSWORD_SWORDMAN;
-	const wchar_t* const	DUMMY_UNIT_NICKNAME		= L"OfflineTest";
-	const int				DUMMY_UNIT_LEVEL		= 1;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
-{
-	switch( kEvent.m_usEventID )
-	{
-	//////////////////////////////////////////////////////////////////////////
-	// channel server (PI_CHANNEL_USER)
-	case ECH_VERIFY_ACCOUNT_REQ:			return Handler_ECH_VERIFY_ACCOUNT_REQ( kSes, kEvent );
-	case ECH_GET_SERVERGROUP_LIST_REQ:		return Handler_ECH_GET_SERVERGROUP_LIST_REQ( kSes, kEvent );
-	case ECH_GET_CHANNEL_LIST_REQ:			return Handler_ECH_GET_CHANNEL_LIST_REQ( kSes, kEvent );
-	case ECH_DISCONNECT_REQ:				return Handler_ECH_DISCONNECT_REQ( kSes, kEvent );
-
-	//////////////////////////////////////////////////////////////////////////
-	// game server (PI_GS_USER)
-	case EGS_CONNECT_REQ:					return Handler_EGS_CONNECT_REQ( kSes, kEvent );
-	case EGS_VERIFY_ACCOUNT_REQ:			return Handler_EGS_VERIFY_ACCOUNT_REQ( kSes, kEvent );
-	case EGS_CHECK_MACHINE_ID_REQ:			return Handler_EGS_CHECK_MACHINE_ID_REQ( kSes, kEvent );
-	case EGS_STATE_CHANGE_SERVER_SELECT_REQ:return Handler_EGS_STATE_CHANGE_SERVER_SELECT_REQ( kSes, kEvent );
-	case EGS_CURRENT_TIME_REQ:				return Handler_EGS_CURRENT_TIME_REQ( kSes, kEvent );
-	case EGS_SELECT_SERVER_SET_REQ:			return Handler_EGS_SELECT_SERVER_SET_REQ( kSes, kEvent );
-	case EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ:
-											return Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( kSes, kEvent );
-	case EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ:
-											return Handler_EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ( kSes, kEvent );
-	case EGS_DISCONNECT_FOR_SERVER_SELECT_REQ:
-											return Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ( kSes, kEvent );
-
-	default:
-		break;
-	}
-
-	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -88,27 +46,24 @@ bool CX2OfflineServer::Handler_ECH_VERIFY_ACCOUNT_REQ( KOfflineSession& kSes, co
 	// Accept anything. The password never matters again: from here on the
 	// client uses the passport this reply hands it
 	// (CX2StateLogin::Handler_ECH_VERIFY_ACCOUNT_ACK -> SetUserPassword).
-	std::wstring wstrID = kReq.m_wstrID;
-	if( true == wstrID.empty() )
-		wstrID = L"offline";
+	// The account row is created on first sight of a login ID and reused
+	// forever after, so the character list survives a restart.
+	if( false == EnsureAccount( kSes, kReq.m_wstrID ) )
+		return false;
 
-	m_nUserUID		= OFFLINE_USER_UID;
-	m_wstrLoginID	= wstrID;
-
-	kSes.m_nUserUID		= OFFLINE_USER_UID;
-	kSes.m_wstrLoginID	= wstrID;
 	kSes.m_wstrPassport	= L"OFFLINE_PASSPORT";
 	kSes.m_eState		= S_UID_UPDATED;
 
-	CX2OfflineLog::Server( L"LOGIN    accepted id='%s' -> userUID=%d", wstrID.c_str(), (int)OFFLINE_USER_UID );
+	CX2OfflineLog::Server( L"LOGIN    accepted id='%s' -> userUID=%I64d",
+		kSes.m_wstrLoginID.c_str(), (__int64)kSes.m_nUserUID );
 
 	KECH_VERIFY_ACCOUNT_ACK kAck;
 	kAck.m_iOK				= NetError::NET_OK;
-	kAck.m_iUserUID			= OFFLINE_USER_UID;
+	kAck.m_iUserUID			= kSes.m_nUserUID;
 	kAck.m_wstrPassport		= kSes.m_wstrPassport;		///< must be non-empty or the client stays on the login screen
 	kAck.m_iChannelingCode	= -1;						///< -1 keeps the client out of the channeling/publisher branch
 	kAck.m_wstrCurrentTime	= NowString();				///< fed to KGCMassFileManager::SetServerCurrentTime, must parse
-	kAck.m_wstrUserID		= wstrID;
+	kAck.m_wstrUserID		= kSes.m_wstrLoginID;
 	kAck.m_wstrPurchaseTok	= L"";
 	kAck.m_strAgreementURL	= "";
 
@@ -201,21 +156,15 @@ bool CX2OfflineServer::Handler_EGS_VERIFY_ACCOUNT_REQ( KOfflineSession& kSes, co
 	if( false == ReadReq( kEvent, kReq ) )
 		return false;
 
-	std::wstring wstrID = kReq.m_wstrUserID;
-	if( true == wstrID.empty() )
-		wstrID = m_wstrLoginID;
-	if( true == wstrID.empty() )
-		wstrID = L"offline";
-
-	kSes.m_nUserUID		= OFFLINE_USER_UID;
-	kSes.m_wstrLoginID	= wstrID;
+	if( false == EnsureAccount( kSes, kReq.m_wstrUserID ) )
+		return false;
 
 	KEGS_VERIFY_ACCOUNT_ACK kAck;
 	kAck.m_iOK											= NetError::NET_OK;
 
-	kAck.m_kAccountInfo.m_nUserUID						= OFFLINE_USER_UID;
-	kAck.m_kAccountInfo.m_wstrID						= wstrID;
-	kAck.m_kAccountInfo.m_wstrName						= wstrID;
+	kAck.m_kAccountInfo.m_nUserUID						= kSes.m_nUserUID;
+	kAck.m_kAccountInfo.m_wstrID						= kSes.m_wstrLoginID;
+	kAck.m_kAccountInfo.m_wstrName						= kSes.m_wstrLoginID;
 	kAck.m_kAccountInfo.m_iAuthLevel					= CX2User::XUAL_NORMAL_USER;
 	kAck.m_kAccountInfo.m_bInternalUser					= false;
 	kAck.m_kAccountInfo.m_kAccountOption.m_bPlayGuide	= false;
@@ -303,39 +252,23 @@ bool CX2OfflineServer::Handler_EGS_SELECT_SERVER_SET_REQ( KOfflineSession& kSes,
 	return Reply( kSes, EGS_SELECT_SERVER_SET_ACK, kAck );
 }
 
-bool CX2OfflineServer::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
+bool CX2OfflineServer::Handler_EGS_CHECK_BALANCE_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
 {
-	// THE character list. Phase 1 returns one hardcoded unit; phase 2 replaces
-	// this body with a SQLite query and nothing above it changes.
-	KEGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK kAck;
+	// Sent with no body (SendID) from CX2State::Handler_EGS_CHECK_BALANCE_REQ,
+	// which CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK calls
+	// unconditionally - so picking a character stalls on the AddServerPacket
+	// wait unless this is answered.
+	//
+	// The balance is the cash-shop wallet. Phase 7 pays it out of
+	// account.cash_balance; until then it is flat zero, which the cash shop
+	// reads as "cannot afford anything" rather than as an error.
+	KEGS_CHECK_BALANCE_ACK kAck;
 	kAck.m_iOK			= NetError::NET_OK;
-	kAck.m_nUnitSlot	= OFFLINE_UNIT_SLOTS;
-	kAck.m_bSharingBank	= false;
+	kAck.m_ulBalance	= 0;
+	kAck.m_bOnlyType	= false;
+	kAck.m_iCashType	= -1;
 
-	KUnitInfo kUnit;
-	MakeDefaultUnitInfo( kUnit, OFFLINE_USER_UID, DUMMY_UNIT_UID,
-		DUMMY_UNIT_CLASS, DUMMY_UNIT_NICKNAME, DUMMY_UNIT_LEVEL );
-
-	kAck.m_vecUnitInfo.push_back( kUnit );
-
-	Reply( kSes, EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK, kAck );
-
-	CX2OfflineLog::Server( L"UNITLIST 1 unit, %d slots ('%s', class=%d, lv=%d)",
-		OFFLINE_UNIT_SLOTS, DUMMY_UNIT_NICKNAME, (int)DUMMY_UNIT_CLASS, DUMMY_UNIT_LEVEL );
-
-	// Server-push defaults the client would otherwise never receive. Both
-	// handlers fall back to sane defaults on an empty collection
-	// (CX2StateServerSelect::Handler_EGS_KEYBOARD_MAPPING_INFO_NOT calls
-	// CKTDIManager::SetDefaultMap()).
-	KEGS_KEYBOARD_MAPPING_INFO_NOT kKeyNot;
-	kKeyNot.m_iOK = NetError::NET_OK;
-	Reply( kSes, EGS_KEYBOARD_MAPPING_INFO_NOT, kKeyNot );
-
-	KEGS_CHAT_OPTION_INFO_NOT kChatNot;
-	kChatNot.m_iOK = NetError::NET_OK;
-	Reply( kSes, EGS_CHAT_OPTION_INFO_NOT, kChatNot );
-
-	return true;
+	return Reply( kSes, EGS_CHECK_BALANCE_ACK, kAck );
 }
 
 bool CX2OfflineServer::Handler_EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ( KOfflineSession& kSes, const KEvent& kEvent )

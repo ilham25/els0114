@@ -12,12 +12,14 @@
 //              Everything above the socket layer runs unmodified.
 //
 //              Phase 1: no SQLite. Login chain plus one hardcoded character.
+//              Phase 2: SQLite behind it (X2OfflineDB) and real character CRUD.
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef SERV_IRUHADEV_OFFLINE
 
 #include "OfflineHook.h"
 #include "X2OfflineLog.h"
+#include "X2OfflineDB.h"
 
 class CX2OfflineServer : public IX2OfflineHook
 {
@@ -89,6 +91,11 @@ public:
 									 const std::wstring& wstrNickName,
 									 int iLevel );
 
+	/// MakeDefaultUnitInfo plus everything the `unit` row persists, including
+	/// the soft-delete state the character-select screen renders its restore
+	/// and final-delete UI from.
+	static void MakeUnitInfoFromRow( KUnitInfo& kOut, const KOfflineUnitRow& kRow );
+
 	static const wchar_t* KindStr( PROXY_KIND eKind );
 
 	/// Which server a session stands in for, derived from the event ID's own
@@ -103,6 +110,10 @@ private:
 	/// returns true if a handler consumed the packet, false -> log it UNHANDLED
 	bool Dispatch( KOfflineSession& kSes, const KEvent& kEvent );
 
+	/// Resolve (or create) the single offline account this login ID maps to,
+	/// caching it on the server and on the session.
+	bool EnsureAccount( KOfflineSession& kSes, const std::wstring& wstrLoginID );
+
 	//////////////////////////////////////////////////////////////////////////
 	// Handlers_Login.cpp
 	bool Handler_ECH_VERIFY_ACCOUNT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
@@ -116,9 +127,28 @@ private:
 	bool Handler_EGS_STATE_CHANGE_SERVER_SELECT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_CURRENT_TIME_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_SELECT_SERVER_SET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
-	bool Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHECK_BALANCE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Unit.cpp
+	bool Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CREATE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_FINAL_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_RESTORE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SELECT_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_MY_INVENTORY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	/// The five SERV_SELECT_UNIT_PACKET_DIVISION notifications, pushed in order
+	/// before EGS_SELECT_UNIT_ACK.
+	void PushSelectUnitNotifications( KOfflineSession& kSes, const KOfflineUnitRow& kRow );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Stub.cpp - answered because the client blocks on them, nothing more
+	bool Handler_EGS_GET_PET_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_RIDING_PET_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 
 private:
 	static CX2OfflineServer*					ms_pInstance;
@@ -127,6 +157,7 @@ private:
 	std::map< KSession*, KOfflineSession >		m_mapSession;
 
 	UidType										m_nUserUID;			///< the single offline account
+	int											m_iUnitSlots;
 	std::wstring								m_wstrLoginID;
 };
 

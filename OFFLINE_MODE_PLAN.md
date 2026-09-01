@@ -958,6 +958,207 @@ Create a character → it appears in the list → restart the exe → it is stil
 there. Delete it → shows as deleted with a restore timer → restore it → back to
 normal. Select it → the client proceeds past character select without error.
 
+### Exit test — PASSED (2026-09-01)
+
+Every step, plus final delete, which the exit test does not ask for but which the
+client offers as soon as a character is soft-deleted. Verified against
+`offline_server.log` and by reading `els_db.sql` directly.
+
+```
+CREATE   'reben' class=4 -> unitUID=1                     <- create
+UNITLIST 2 unit(s) (0 deleted), 3 slots                   <- after a full exe restart: still there
+DELETE   'reben' (unitUID=1) pending
+RESTORE  'reben' (unitUID=1) is back
+SELECT   'ars' (unitUID=5, class=2, lv=1)
+ENTER    unitUID=5 leaving character select               <- past character select, no error
+DELETE   'ars' (unitUID=5) pending, final delete from 20:12:49
+DELETE   'ars' (unitUID=5) erased for good                <- 6s later, no UI round trip
+```
+
+The last two lines are the correction-6 fix working: the character was deleted at
+20:13:49 and the able-date backdated to 20:12:49, so the final-delete button was
+live immediately instead of only after a trip out to channel selection and back.
+
+The save holds the account, the surviving units, and 14 `inventory_size` rows per
+unit — every category except `ST_PET`, whose base size is 0 by design — with
+category 11 at 6 slots, consistent with `SERV_IRUHADEV_QUICK_SLOT_FULL_FREE`.
+After a final delete, `SELECT COUNT(*) FROM inventory_size WHERE unit_uid NOT IN
+(SELECT unit_uid FROM unit)` is 0, so the child-row cleanup holds.
+
+**Where the run now stops.** `offline_packets.log` ends with exactly one kind of
+`*** UNHANDLED ***` line, `EGS_CREATE_TUTORIAL_ROOM_REQ`, fired immediately after
+`ENTER`. That is the intended phase boundary, not a defect: the client has
+finished character select and is asking for the tutorial room, which is phase 4.
+A fresh level-1 character always takes that branch, because
+`KEGS_SELECT_UNIT_5_NOT`'s `SERV_ARA_FIRST_SELECT_TUTORIAL` block sets
+`IsPlayingTutorial` whenever level is 1 and EXP is 0, and
+`Handler_EGS_GET_MY_INVENTORY_ACK` then picks
+`Handler_EGS_CREATE_TUTORIAL_ROOM_REQ` over `Handler_EGS_STATE_CHANGE_FIELD_REQ`.
+**Phase 3 will not be reachable with a newly created character until phase 4's
+tutorial room exists**, or until a character has non-zero EXP. Worth knowing
+before phase 3 is debugged against a brand-new save.
+
+### Corrections to this plan, found by doing it
+
+1. **The character-select screen is dead on a fresh login until the server
+   pushes `EGS_SECOND_SECURITY_INFO_NOT`.** This is the most important thing in
+   phase 2 and the plan does not mention it. `SERV_SECOND_SECURITY` is on;
+   `CX2StateServerSelect::m_bEnableUnitSelectBySecondSecurity` starts `false`;
+   and while it is false, `SUSUCM_UNIT_BUTTON_UP`, `SUSUCM_CREATE_UNIT`,
+   `SUSUCM_SELECT_UNIT` **and** `Handler_EGS_SELECT_UNIT_REQ` each `return true`
+   immediately. Every click is a silent no-op: no packet, no error, no dialog,
+   nothing in the log to grep for. Only two things clear the flag — this
+   unprompted push with `m_bUseSecondPW = false` (what the real server sends for
+   an account with no second password), and `X2StateServerSelect.cpp:339`, which
+   runs only when the state is *re-entered* with the static
+   `m_sbSelectedServerSet` already true.
+
+   That second path is a trap. Creating a character bounces the client back into
+   `XS_SERVER_SELECT` and unlocks the screen as a side effect, so the bug is
+   invisible in the obvious test (log in, create, click it) and shows up only on
+   the *next* launch, where it looks exactly like a persistence failure. It is
+   not. **When a click does nothing and the packet log stays silent, suspect a
+   client-side gate, not the DB.**
+
+2. **`gup_create_unit` seeds no starting gear.** §2.4's "starting-gear seeding"
+   overstates the original: `dbo.gup_create_unit` inserts no items whatsoever.
+   It inserts one class skill, four `GDenyOption` rows, quest 13, and spirit.
+
+3. **Its skill seeding is unusable in this build, and must not be copied.** The
+   IDs it writes (10000 / 20030 / 30000 / 40010, classes 1-4 only) predate
+   `UPGRADE_SKILL_SYSTEM_2013`, which is **on** here — they do not exist in this
+   build's `CX2SkillTree::SKILL_ID`, and that snapshot knows nothing of Eve,
+   Chung, Ara or Elesis. Seeding from it would write IDs the client cannot
+   resolve. `unit_skill` is in the schema and stays empty until the skill tree is
+   wired up. Treat everything under `DataBase/` as a *2010-era* snapshot: its
+   shapes are still good, its IDs often are not.
+
+4. **Dates are stored as INTEGER epoch, not §2.2's TEXT.** The client's currency
+   is `__int64` time_t (`m_trDelAbleDate`, `m_trRestoreAbleDate`, `CTime`,
+   `GetServerCurrentTime64`), so TEXT would mean parsing on every read for no
+   gain. The soft-delete rule is unchanged: `del_date == reg_date` means alive.
+
+5. **There is no three-day delete guard in the code.** The confirmation text
+   (`STR_ID_16102`) says days because that string is baked into the `.kom`
+   string table; it gates nothing. The only gate is
+   `KUnitInfo::m_trDelAbleDate`, and changing the wording would mean repacking a
+   `.kom`, which *Critical facts* #4 rules out.
+
+6. **`m_trDelAbleDate` must be strictly in the past, not "now".**
+   `CreateUnitButton()` enables the final-delete button on
+   `m_trDelAbleDate < GetServerCurrentTime64()` — a **strict** comparison
+   evaluated **once**, when the slots are rebuilt. A zero wait that returns the
+   delete instant makes that "now < now" at the one moment it is tested, so the
+   button comes up greyed and stays greyed until something else rebuilds the
+   buttons; the symptom is that it only lights up after a trip out to channel
+   selection and back. `GetServerCurrentTime64()` makes it worse — it is the
+   login-time snapshot plus whole seconds of `GetTickCount`, so it can sit a
+   second or two behind. Hence `CX2OfflineDB::DelAbleDate()`, which backdates a
+   zero wait by `DELETE_CLOCK_SLACK_SECONDS`. Any later phase computing a date
+   the client compares against `GetServerCurrentTime64()` needs the same care.
+
+### Packets the plan did not predict
+
+Four, on top of the CRUD set in §2.3. The first three all fire unprompted in the
+second after `EGS_SELECT_UNIT_ACK`.
+
+| Packet | Why it matters |
+|---|---|
+| `EGS_GET_MY_INVENTORY_REQ` | Despite the name it carries no inventory — the items already went out in `_1_NOT`. It is the **last step of character select**: its ACK is what calls `Handler_EGS_STATE_CHANGE_FIELD_REQ` or `Handler_EGS_CREATE_TUTORIAL_ROOM_REQ`. Unanswered, the player is stranded on the screen and every re-click repeats the whole select chain. |
+| `EGS_GET_PET_LIST_REQ` | No `AddServerPacket`, so it never times out — but `CX2UIPetInfo` sets `m_bProcessPetList` and refuses to ask again until the ACK clears it. Unanswered, the pet window is wedged shut for the rest of the run. |
+| `EGS_GET_RIDING_PET_LIST_REQ` | A hard 60s `AddServerPacket` wait. |
+| `EGS_CHECK_BALANCE_REQ` | Sent unconditionally from `Handler_EGS_SELECT_UNIT_ACK`, and waited on. |
+
+### What was actually built, against *Code layout to create*
+
+```
+X2Lib/Offline/
+  X2OfflineDB.h/.cpp            NEW   193/809   sqlite3 wrapper, schema, migration ladder, queries
+  Handlers_Unit.cpp             NEW   533       character CRUD + the five SELECT_UNIT notifications
+  Handlers_Stub.cpp             NEW    59       the two pet packets - five phases earlier than planned
+  X2OfflineServer.h/.cpp        EDIT  +33/+128  Dispatch moved here, EnsureAccount, MakeUnitInfoFromRow
+  Handlers_Login.cpp            EDIT  -101      account onto SQLite; character list moved out
+  X2Lib_2010.vcxproj            EDIT   +4       the three new sources
+```
+
+Two deviations from the planned layout:
+
+- **`Dispatch` moved out of `Handlers_Login.cpp` into `X2OfflineServer.cpp`.** It
+  was there because phase 1 had one handler file. With four, a single switch in
+  the owning class keeps each `Handlers_*.cpp` a flat list of handlers.
+- **`Handlers_Stub.cpp` arrived in phase 2, not phase 7.** The bar for putting a
+  handler there is narrow and worth keeping: a packet belongs in the stub file
+  only when *dropping it wedges the client* — it waits on the ACK, or holds an
+  in-flight latch only the ACK clears. Everything else can be logged and dropped
+  by the catch-all.
+
+`X2OfflineSession.h` still does not exist; per-connection state is still the
+nested `KOfflineSession`.
+
+### Decisions made while implementing phase 2
+
+**Text goes through SQLite's UTF-16 API** (`sqlite3_bind_text16` /
+`sqlite3_column_text16`), so a `std::wstring` round-trips with no conversion of
+ours, while the file itself stays UTF-8 and greppable. §2.1 asks for one
+convention held consistently; this is it.
+
+**Accounts are keyed by login ID, not hardcoded.** `EnsureAccount()` creates the
+row on first sight of an ID and reuses it forever, so the schema's
+`login_id UNIQUE` earns its keep and a different `LoginKey.lua` gets a different
+character list instead of silently sharing one.
+
+**Nickname uniqueness is checked among live units only**, which is how
+`dbo.gup_delete_unit` behaves (it nulls `GUnitNickName` on delete). The deleted
+row keeps its nickname so the character-select screen can still draw the slot.
+`Handler_EGS_RESTORE_UNIT_REQ` therefore re-checks before restoring: a live
+character may have taken the name in the meantime.
+
+**Nickname validation mirrors `SERV_NICK_NAME_DOUBLE_CHECK`** — ASCII
+alphanumerics, 2 to 16 characters — and returns the same `NetError` codes
+(`ERR_CREATE_UNIT_04` / `_08` / `_01` / `_05`), because
+`CX2StateCreateUnit::Handler_EGS_CREATE_UNIT_ACK` switches on exactly those to
+pick its message. The failed ACK echoes the nickname and class back, as the
+original does, because the client re-populates its form from them.
+
+**`m_bIsRecommend` in `EGS_GET_MY_INVENTORY_ACK` is `true`.** It means "this
+account has already been through the friend-recommendation flow"; false pops a
+dialog asking for somebody else's nickname. There is nobody to recommend.
+
+**`KEGS_SELECT_UNIT_4_NOT::m_kGamePlayStatus` is left empty, deliberately.** The
+studio's own `ASSERT( !empty() )` says the real server always fills it, and the
+live handler guards with `if( !empty() )`, so an empty one is safe. Filling it
+means HP/MP/hyper values, which come from the character's stat calculation —
+sending a zeroed entry would actively push MaxHP 0 into `CX2GageManager`, which
+is worse than not pushing at all (and would make the battlefield branch in
+`Handler_EGS_GET_MY_INVENTORY_ACK` take its "dead" path). **This is phase 3's
+first job**: the village HUD is where it becomes visible.
+
+**`BaseSlotSize()` mirrors `KInventory::GetBaseSlotSize` with the same
+`#ifdef`s**, which resolve identically because `ServerDefine.h` is on X2Lib's
+include path. Category 11 lands on 6 through the existing
+`SERV_IRUHADEV_QUICK_SLOT_FULL_FREE` arm rather than a second hardcoded 6.
+
+**Migration uses `PRAGMA user_version`,** not a `schema_version` table as §2.1
+suggests — it is a header field, so there is no bootstrap problem of migrating
+the migration table itself. Schema is v1; add a rung to `Migrate()` rather than
+a new `CREATE TABLE` block, so existing saves upgrade instead of being wiped.
+
+### Operational notes, extending phase 0's and phase 1's
+
+- **Windows Defender quarantines every freshly linked `x2.exe`** as
+  `Trojan:Win32/Bearfoos.B!ml`, a cloud/ML false positive on the game binary. It
+  takes both the build output and the copy in the game dir, then refuses to
+  launch either. Folder exclusions on `<Trunk>\X2\US_SERVICE` and the game
+  `data\` dir fix it permanently, but `Add-MpPreference` needs an elevated
+  shell, so this cannot be self-served from the agent's session. Symptom to
+  recognise: msbuild exits 0 but the exe is gone, or `Start-Process` reports
+  "the file contains a virus or potentially unwanted software". Check
+  `Get-MpThreatDetection` before suspecting the build. Relinking after the
+  exclusion is quick — the `.obj`s survive quarantine.
+- **Reading `els_db.sql` while the client holds it** works if the whole WAL set
+  is copied first (`els_db.sql`, `-wal`, `-shm`) and the copy is opened. Opening
+  the live file directly fights the client for the lock.
+
 ---
 
 # Phase 3 — Village and field entry

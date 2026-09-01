@@ -8,7 +8,8 @@ CX2OfflineServer* CX2OfflineServer::ms_pInstance = NULL;
 //////////////////////////////////////////////////////////////////////////
 
 CX2OfflineServer::CX2OfflineServer()
-: m_nUserUID( 1 )
+: m_nUserUID( 0 )
+, m_iUnitSlots( CX2OfflineDB::DEFAULT_UNIT_SLOTS )
 , m_wstrLoginID( L"" )
 {
 }
@@ -26,7 +27,12 @@ CX2OfflineServer* CX2OfflineServer::Instance()
 		ms_pInstance = new CX2OfflineServer;
 		g_pX2OfflineHook = ms_pInstance;
 
-		CX2OfflineLog::Server( L"---- offline server up (SERV_IRUHADEV_OFFLINE, phase 1) ----" );
+		CX2OfflineLog::Server( L"---- offline server up (SERV_IRUHADEV_OFFLINE, phase 2) ----" );
+
+		// els_db.sql sits next to the two logs, in the process working
+		// directory - which is the game data\ folder (X2Main mounts the .kom
+		// archives through a "./" prefix, so it can be nothing else).
+		CX2OfflineDB::Instance()->Open( L"els_db.sql" );
 	}
 
 	return ms_pInstance;
@@ -43,6 +49,7 @@ void CX2OfflineServer::Release()
 	delete ms_pInstance;
 	ms_pInstance = NULL;
 
+	CX2OfflineDB::Release();
 	CX2OfflineLog::Close();
 }
 
@@ -284,6 +291,123 @@ bool CX2OfflineServer::ReplyID( KOfflineSession& kSes, unsigned short usEventID 
 
 	kOut.m_bDeleted		= false;
 	kOut.m_wstrLastDate	= NowString();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Dispatch lives here rather than in a Handlers_*.cpp so that each of those
+// files stays a flat list of handlers as the phases add more of them.
+
+bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	switch( kEvent.m_usEventID )
+	{
+	//////////////////////////////////////////////////////////////////////////
+	// channel server (PI_CHANNEL_USER) - Handlers_Login.cpp
+	case ECH_VERIFY_ACCOUNT_REQ:			return Handler_ECH_VERIFY_ACCOUNT_REQ( kSes, kEvent );
+	case ECH_GET_SERVERGROUP_LIST_REQ:		return Handler_ECH_GET_SERVERGROUP_LIST_REQ( kSes, kEvent );
+	case ECH_GET_CHANNEL_LIST_REQ:			return Handler_ECH_GET_CHANNEL_LIST_REQ( kSes, kEvent );
+	case ECH_DISCONNECT_REQ:				return Handler_ECH_DISCONNECT_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// game server (PI_GS_USER), login chain - Handlers_Login.cpp
+	case EGS_CONNECT_REQ:					return Handler_EGS_CONNECT_REQ( kSes, kEvent );
+	case EGS_VERIFY_ACCOUNT_REQ:			return Handler_EGS_VERIFY_ACCOUNT_REQ( kSes, kEvent );
+	case EGS_CHECK_MACHINE_ID_REQ:			return Handler_EGS_CHECK_MACHINE_ID_REQ( kSes, kEvent );
+	case EGS_STATE_CHANGE_SERVER_SELECT_REQ:return Handler_EGS_STATE_CHANGE_SERVER_SELECT_REQ( kSes, kEvent );
+	case EGS_CURRENT_TIME_REQ:				return Handler_EGS_CURRENT_TIME_REQ( kSes, kEvent );
+	case EGS_SELECT_SERVER_SET_REQ:			return Handler_EGS_SELECT_SERVER_SET_REQ( kSes, kEvent );
+	case EGS_CHECK_BALANCE_REQ:				return Handler_EGS_CHECK_BALANCE_REQ( kSes, kEvent );
+	case EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ:
+											return Handler_EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ( kSes, kEvent );
+	case EGS_DISCONNECT_FOR_SERVER_SELECT_REQ:
+											return Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// character CRUD - Handlers_Unit.cpp
+	case EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ:
+											return Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( kSes, kEvent );
+	case EGS_CREATE_UNIT_REQ:				return Handler_EGS_CREATE_UNIT_REQ( kSes, kEvent );
+	case EGS_DELETE_UNIT_REQ:				return Handler_EGS_DELETE_UNIT_REQ( kSes, kEvent );
+	case EGS_FINAL_DELETE_UNIT_REQ:			return Handler_EGS_FINAL_DELETE_UNIT_REQ( kSes, kEvent );
+	case EGS_RESTORE_UNIT_REQ:				return Handler_EGS_RESTORE_UNIT_REQ( kSes, kEvent );
+	case EGS_SELECT_UNIT_REQ:				return Handler_EGS_SELECT_UNIT_REQ( kSes, kEvent );
+	case EGS_GET_MY_INVENTORY_REQ:			return Handler_EGS_GET_MY_INVENTORY_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// answered only because the client blocks on them - Handlers_Stub.cpp
+	case EGS_GET_PET_LIST_REQ:				return Handler_EGS_GET_PET_LIST_REQ( kSes, kEvent );
+	case EGS_GET_RIDING_PET_LIST_REQ:		return Handler_EGS_GET_RIDING_PET_LIST_REQ( kSes, kEvent );
+
+	default:
+		break;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+bool CX2OfflineServer::EnsureAccount( KOfflineSession& kSes, const std::wstring& wstrLoginID )
+{
+	std::wstring wstrID = wstrLoginID;
+	if( true == wstrID.empty() )
+		wstrID = m_wstrLoginID;
+	if( true == wstrID.empty() )
+		wstrID = L"offline";
+
+	// Already resolved on this server object, and the ID has not changed:
+	// nothing to look up. The client rebuilds its proxies several times per
+	// session, so this runs far more often than an account is created.
+	if( 0 != m_nUserUID && wstrID == m_wstrLoginID )
+	{
+		kSes.m_nUserUID		= m_nUserUID;
+		kSes.m_wstrLoginID	= m_wstrLoginID;
+		return true;
+	}
+
+	UidType nUserUID	= 0;
+	int		iUnitSlots	= CX2OfflineDB::DEFAULT_UNIT_SLOTS;
+
+	if( false == CX2OfflineDB::Instance()->GetOrCreateAccount( wstrID, nUserUID, iUnitSlots ) )
+	{
+		CX2OfflineLog::Server( L"ERROR    could not resolve account '%s' - the save file is unusable",
+			wstrID.c_str() );
+		return false;
+	}
+
+	m_nUserUID		= nUserUID;
+	m_iUnitSlots	= iUnitSlots;
+	m_wstrLoginID	= wstrID;
+
+	kSes.m_nUserUID		= nUserUID;
+	kSes.m_wstrLoginID	= wstrID;
+
+	return true;
+}
+
+/*static*/ void CX2OfflineServer::MakeUnitInfoFromRow( KUnitInfo& kOut, const KOfflineUnitRow& kRow )
+{
+	MakeDefaultUnitInfo( kOut, kRow.m_nUserUID, kRow.m_nUnitUID,
+		(char)kRow.m_iUnitClass, kRow.m_wstrNickName, kRow.m_iLevel );
+
+	kOut.m_iEXP					= kRow.m_iEXP;
+	kOut.m_iED					= kRow.m_iED;
+	kOut.m_iSPoint				= kRow.m_iSP;
+	kOut.m_iSpirit				= kRow.m_iSpirit;
+	kOut.m_kLastPos.m_iMapID	= kRow.m_iLastPos;
+	kOut.m_wstrLastDate			= CX2OfflineDB::FormatDate( kRow.m_tLastDate );
+
+	// The character-select screen draws its whole delete/restore UI from these
+	// three: m_bDeleted picks the deleted slot layout, m_trDelAbleDate is both
+	// the date printed on it and the gate on the final-delete button
+	// (CreateUnitButton compares it against GetServerCurrentTime64), and
+	// m_trRestoreAbleDate would gate restore - offline it never does.
+	kOut.m_bDeleted				= kRow.IsDeleted();
+	kOut.m_trDelAbleDate		= kRow.IsDeleted()
+									? CX2OfflineDB::DelAbleDate( kRow.m_tDelDate )
+									: 0LL;
+	kOut.m_trRestoreAbleDate	= 0LL;
 }
 
 #endif SERV_IRUHADEV_OFFLINE
