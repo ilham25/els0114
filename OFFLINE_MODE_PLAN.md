@@ -1165,6 +1165,81 @@ a new `CREATE TABLE` block, so existing saves upgrade instead of being wiped.
 
 **Goal:** a selected character loads into the village map and can walk around.
 
+### 3.0 Two things phase 2 leaves in the way — clear these first
+
+Both were found by running phase 2 to its exit test. Neither is optional: the
+first makes the village unreachable, the second makes it render wrong.
+
+#### 3.0.1 The tutorial gate blocks field entry entirely
+
+`CX2StateServerSelect::Handler_EGS_GET_MY_INVENTORY_ACK`
+([:4404](X2Lib/X2StateServerSelect.cpp#L4404)) forks at
+[:4435](X2Lib/X2StateServerSelect.cpp#L4435):
+
+```cpp
+if ( g_pMain->GetIsPlayingTutorial() == true )
+    Handler_EGS_CREATE_TUTORIAL_ROOM_REQ();     // phase 4
+else
+    ... Handler_EGS_STATE_CHANGE_FIELD_REQ();   // phase 3 - what we want
+```
+
+A newly created character **always** takes the tutorial arm, from two
+independent sources:
+
+- `KEGS_SELECT_UNIT_5_NOT`'s handler arms it whenever level is 1 and EXP is 0
+  ([:3267](X2Lib/X2StateServerSelect.cpp#L3267), `SERV_ARA_FIRST_SELECT_TUTORIAL`,
+  which is on at `ServerDefine.h:3491`);
+- `CX2StateCreateUnit::Handler_EGS_CREATE_UNIT_ACK` sets it unconditionally at
+  [:1185](X2Lib/X2StateCreateUnit.cpp#L1185). The
+  `AuthLevel >= XUAL_OPERATOR` bypass sitting next to it — which would have gone
+  straight to `XS_VILLAGE_MAP` — is `#ifndef REFORM_TUTORIAL`, and
+  `REFORM_TUTORIAL` **is** defined (`KTDXLIB/Always.h:1086`), so it is dead code.
+  Raising the account's auth level does nothing.
+
+**Fix: one flag-guarded line**, immediately before the fork at `:4435`:
+
+```cpp
+#ifdef SERV_IRUHADEV_OFFLINE
+    // Phase 4 owns the tutorial room; until it exists, offline always goes to
+    // the field. Delete this when EGS_CREATE_TUTORIAL_ROOM_REQ is implemented.
+    g_pMain->SetIsPlayingTutorial( false );
+#endif SERV_IRUHADEV_OFFLINE
+```
+
+`X2StateServerSelect.cpp` is CP949 — patch it at the byte level and verify with
+`file` + `git diff --stat` afterwards, per `CLAUDE.md`.
+
+**This is a scaffold with a debt attached: deleting it is phase 4's first task.**
+Until then the tutorial is unreachable, which is the point.
+
+Three alternatives were considered and rejected; do not relitigate them:
+
+| Alternative | Why not |
+|---|---|
+| Answer `EGS_CREATE_TUTORIAL_ROOM_REQ` with an error | Does not fall back. `Handler_EGS_CREATE_TUTORIAL_ROOM_ACK` ([:6237](X2Lib/X2StateServerSelect.cpp#L6237)) does everything inside `if( IsValidPacket( m_iOK ) )` and otherwise just `return false` — no village, no error path, the player simply sits on character select. |
+| Seed new characters with EXP > 0 | Only silences the `_5_NOT` source. The create-unit source still fires, so the tutorial still runs every time a character is made — and a level-1 character carries a fake EXP bar forever. |
+| Stop sending `_5_NOT` | Works, and is the wrong kind of clever: `_5_NOT` also carries `m_bCashShopOpen` and the shop-agency info, so it buys silence now and an invisible dead-cash-shop bug in phase 7. |
+
+#### 3.0.2 `m_kGamePlayStatus` has to be filled now
+
+`KEGS_SELECT_UNIT_4_NOT::m_kGamePlayStatus` is deliberately empty as of phase 2
+(see phase 2's *Decisions*). The village HUD is where that first shows: without
+it `CX2GageManager` never receives HP/MP and the health bar renders empty.
+
+It needs a real max HP, which means the character's stat calculation — do it
+properly rather than picking a number. It also matters for correctness one line
+below the fork above: the battlefield branch tests
+`pGageManager->GetMyGageData()->GetNowHp() > 0.0f` and routes a zero-HP character
+to a village-return instead of the battlefield.
+
+**That branch will not fire yet**, and that is already correct: `unit.last_pos`
+defaults to 20000 = `SEnum::VMI_RUBEN` (`Enum.h:212`), while battlefields start
+at `VMI_BATTLE_FIELD_RUBEN_FIELD_01 = 40000` (`Enum.h:245`). So a phase-2 save
+takes the plain `Handler_EGS_STATE_CHANGE_FIELD_REQ()` path. Keep it that way
+until battlefields are actually a thing.
+
+### 3.1 The phase proper
+
 - `EGS_STATE_CHANGE_FIELD_REQ/ACK` (`EventID_Client.h:977-978`). The client's
   `Handler_EGS_STATE_CHANGE_VILLAGE_MAP_REQ` ([X2StateServerSelect.cpp:4247](X2Lib/X2StateServerSelect.cpp#L4247))
   delegates to it at [:5928](X2Lib/X2StateServerSelect.cpp#L5928); the ACK handler is at
@@ -1180,6 +1255,13 @@ a new `CREATE TABLE` block, so existing saves upgrade instead of being wiped.
 `UNHANDLED`, implement, repeat. Expect ~20-40 new packets in this phase, most of
 them trivially "ACK with OK".
 
+Two things from phase 2 make that loop work better than it did:
+
+- the log now ends clean, so any `*** UNHANDLED ***` line is new information;
+- `Handlers_Stub.cpp` exists, and its bar still applies — a packet belongs there
+  only when dropping it wedges the client (it waits on the ACK, or holds a latch
+  only the ACK clears). Everything else can be logged and dropped.
+
 ### Exit test
 Character select → loading → village map renders, the character is controllable,
 NPCs are present, no error popups, no infinite loading.
@@ -1190,6 +1272,16 @@ NPCs are present, no error popups, no infinite loading.
 
 **Goal:** the first-run flow completes — new character → tutorial stage →
 village → main progression quest triggered.
+
+### 4.0 First: delete phase 3's tutorial scaffold
+
+Phase 3 forces `SetIsPlayingTutorial( false )` just before the fork in
+`Handler_EGS_GET_MY_INVENTORY_ACK`
+([:4435](X2Lib/X2StateServerSelect.cpp#L4435)), under `SERV_IRUHADEV_OFFLINE`,
+because the tutorial room did not exist yet and refusing the request has no
+fallback. **The tutorial cannot trigger while that
+line is there.** Remove it first, or §4.2 will look broken for a reason that has
+nothing to do with §4.2. See phase 3 §3.0.1 for the full reasoning.
 
 ### 4.1 Room emulation
 
