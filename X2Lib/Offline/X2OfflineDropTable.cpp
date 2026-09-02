@@ -24,6 +24,7 @@ CX2OfflineDropTable::CX2OfflineDropTable()
 : m_bLoadAttempted( false )
 , m_iNpcExpRows( 0 )
 , m_iMonsterRows( 0 )
+, m_iItemCaseRows( 0 )
 {
 }
 
@@ -152,8 +153,10 @@ void CX2OfflineDropTable::EnsureLoaded()
 	RunScript( SCRIPT_NPC_EXP );
 	RunScript( SCRIPT_DROP_TABLE );
 
-	CX2OfflineLog::Server( L"DROP     loaded: %d npc-exp row(s), %d monster row(s)",
-		m_iNpcExpRows, m_iMonsterRows );
+	CX2OfflineLog::Server( L"DROP     loaded: %d npc-exp row(s), %d monster row(s),"
+		L" %d item case(s) in %u group(s)",
+		m_iNpcExpRows, m_iMonsterRows, m_iItemCaseRows,
+		(unsigned int)m_mapDropGroup.size() );
 
 	if( 0 == m_iNpcExpRows )
 	{
@@ -179,7 +182,7 @@ void CX2OfflineDropTable::ReadDropBlock( const char* szKeyField, bool bBattleFie
 	// The block is the call's only argument and is still on the Lua stack, so
 	// KLuaManager reads its fields directly - the same convention
 	// KDropTable::AddMonsterDropInfo_LUA and CX2OfflineStatTable::SetUnitStat_LUA
-	// both use. DropItemList / DropGroupList are left unread on purpose.
+	// both use.
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
 
 	int		iKey			= 0;
@@ -197,15 +200,85 @@ void CX2OfflineDropTable::ReadDropBlock( const char* szKeyField, bool bBattleFie
 	if( iMonsterID <= 0 )
 		return;
 
-	// A row with neither reward is not worth a map entry: GetNpcReward returns
-	// zeroes for a missing key anyway, and DropTable.lua has thousands of them.
-	if( iExp <= 0 && iED <= 0 )
-		return;
-
 	KNpcReward kReward;
 	kReward.m_iExpGate		= iExp;
 	kReward.m_iEDPerLevel	= iED;
 	kReward.m_fEDProperty	= fEDProperty;
+
+	// DropItemList: { itemID, probability } pairs, read by position exactly as
+	// KDropTable::AddMonsterDropInfo_LUA reads them (Inventory-side sibling at
+	// KDropTable.cpp:515-551). An item the client cannot resolve is dropped from
+	// the list rather than from the monster - the real loader does the same
+	// GetItemTemplet check and skips the case.
+	if( true == luaManager.BeginTable( "DropItemList" ) )
+	{
+		int iIndex = 1;
+		while( true == luaManager.BeginTable( iIndex ) )
+		{
+			int		iItemID	= -1;
+			float	fProb	= 0.0f;
+
+			LUA_GET_VALUE( luaManager, 1, iItemID,	-1 );
+			LUA_GET_VALUE( luaManager, 2, fProb,	0.0f );
+
+			if( iItemID > 0 && fProb > 0.0f )
+			{
+				KDropCase kCase;
+				kCase.m_iID		= iItemID;
+				kCase.m_fProb	= fProb;
+				kCase.m_bGroup	= false;
+
+				kReward.m_vecItemCase.push_back( kCase );
+				++m_iItemCaseRows;
+			}
+
+			++iIndex;
+			luaManager.EndTable();
+		}
+
+		luaManager.EndTable();
+	}
+
+	// DropGroupList: { groupID, probability }. The group itself was built by
+	// AddToGroup_LUA earlier in the file; a group ID that has not been seen is
+	// skipped, which is the check the real loader makes too.
+	if( true == luaManager.BeginTable( "DropGroupList" ) )
+	{
+		int iIndex = 1;
+		while( true == luaManager.BeginTable( iIndex ) )
+		{
+			int		iGroupID	= -1;
+			float	fProb		= 0.0f;
+
+			LUA_GET_VALUE( luaManager, 1, iGroupID,	-1 );
+			LUA_GET_VALUE( luaManager, 2, fProb,	0.0f );
+
+			if( iGroupID > 0 && fProb > 0.0f &&
+				m_mapDropGroup.find( iGroupID ) != m_mapDropGroup.end() )
+			{
+				KDropCase kCase;
+				kCase.m_iID		= iGroupID;
+				kCase.m_fProb	= fProb;
+				kCase.m_bGroup	= true;
+
+				kReward.m_vecItemCase.push_back( kCase );
+				++m_iItemCaseRows;
+			}
+
+			++iIndex;
+			luaManager.EndTable();
+		}
+
+		luaManager.EndTable();
+	}
+
+	// A row with no reward of any kind is not worth a map entry: GetNpcReward
+	// and GetNpcItemDrop both return nothing for a missing key anyway, and
+	// DropTable.lua has thousands of them. The item test is part of the
+	// condition now - phase 4 could skip on EXP and ED alone because it did not
+	// read items, and keeping that would have thrown away every drop-only row.
+	if( iExp <= 0 && iED <= 0 && true == kReward.m_vecItemCase.empty() )
+		return;
 
 	if( true == bBattleField )
 		m_mapBattleFieldDrop[ std::make_pair( iKey, iMonsterID ) ] = kReward;
@@ -252,10 +325,98 @@ void CX2OfflineDropTable::AddExtraStageMonsterDropInfo_LUA()
 	LUA_GET_VALUE( luaManager, "MonsterID", iMonsterID, -1 );
 }
 
-void CX2OfflineDropTable::AddToGroup_LUA( int /*iGroupID*/, int /*iItemID*/, float /*fProbability*/ )
+void CX2OfflineDropTable::AddToGroup_LUA( int iGroupID, int iItemID, float fProbability )
 {
-	// The item-group lottery. Bound so the chunk runs; ignored because no items
-	// drop this phase (see GetNpcReward).
+	if( iGroupID <= 0 || iItemID <= 0 || fProbability <= 0.0f )
+		return;
+
+	KDropCase kCase;
+	kCase.m_iID		= iItemID;
+	kCase.m_fProb	= fProbability;
+	kCase.m_bGroup	= false;			///< a group never contains another group
+
+	m_mapDropGroup[ iGroupID ].push_back( kCase );
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+/*static*/ int CX2OfflineDropTable::Decide( const std::vector<KDropCase>& vecCase,
+											OUT bool& bGroup )
+{
+	bGroup = false;
+
+	if( true == vecCase.empty() )
+		return -1;
+
+	// KLottery::Decision (KncWX2Server/Common/Lottery.cpp:115). The roll is
+	// uniform over [0,100) and the cases are accumulated in order; the first
+	// whose running total reaches the roll wins, and falling off the end is
+	// CASE_BLANK. Two hundredths of a percent of resolution, which is finer
+	// than any probability the table actually uses.
+	const float fRoll = (float)( rand() % 10000 ) * 0.01f;		///< 0.00 .. 99.99
+
+	float fAccumulate = 0.0f;
+
+	for( size_t i = 0; i < vecCase.size(); ++i )
+	{
+		fAccumulate += vecCase[i].m_fProb;
+
+		if( fRoll <= fAccumulate )
+		{
+			bGroup = vecCase[i].m_bGroup;
+			return vecCase[i].m_iID;
+		}
+	}
+
+	return -1;
+}
+
+void CX2OfflineDropTable::GetNpcItemDrop( int iKey, bool bBattleField, int iNpcID,
+										  OUT std::vector<int>& vecItemID )
+{
+	vecItemID.clear();
+
+	EnsureLoaded();
+
+	if( iNpcID <= 0 )
+		return;
+
+	const std::map< std::pair< int, int >, KNpcReward >& mapDrop =
+		( true == bBattleField ) ? m_mapBattleFieldDrop : m_mapMonsterDrop;
+
+	// Specific row first, then the wildcard, the same two-step GetNpcReward does.
+	std::map< std::pair< int, int >, KNpcReward >::const_iterator mit;
+
+	mit = mapDrop.find( std::make_pair( iKey, iNpcID ) );
+	if( mit == mapDrop.end() )
+		mit = mapDrop.find( std::make_pair( 0, iNpcID ) );
+
+	if( mit == mapDrop.end() )
+		return;
+
+	bool bGroup = false;
+
+	const int iCase = Decide( mit->second.m_vecItemCase, bGroup );
+	if( iCase <= 0 )
+		return;							///< CASE_BLANK - nothing dropped
+
+	if( false == bGroup )
+	{
+		vecItemID.push_back( iCase );
+		return;
+	}
+
+	// The case was a group, so draw once more inside it. A group draw that
+	// comes up blank drops nothing, which is how the real one behaves.
+	std::map< int, std::vector<KDropCase> >::const_iterator git = m_mapDropGroup.find( iCase );
+	if( git == m_mapDropGroup.end() )
+		return;
+
+	bool bInner = false;
+
+	const int iItemID = Decide( git->second, bInner );
+	if( iItemID > 0 )
+		vecItemID.push_back( iItemID );
 }
 
 //////////////////////////////////////////////////////////////////////////

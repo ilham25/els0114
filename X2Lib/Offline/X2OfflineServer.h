@@ -16,6 +16,10 @@
 //              Phase 3: real base stats (X2OfflineStatTable) and field entry.
 //              Phase 4: rooms, the tutorial dungeon, and dungeon results
 //                       (X2OfflineDropTable for the EXP and ED numbers).
+//              Phase 5: inventory, equipment and skills (X2OfflineInventory
+//                       and X2OfflineSkill), and the item drops phase 4
+//                       deliberately deferred until there was an inventory to
+//                       drop them into.
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef SERV_IRUHADEV_OFFLINE
@@ -26,6 +30,8 @@
 #include "X2OfflineStatTable.h"
 #include "X2OfflineDropTable.h"
 #include "X2OfflineBattleField.h"
+#include "X2OfflineInventory.h"
+#include "X2OfflineSkill.h"
 
 class CX2OfflineServer : public IX2OfflineHook
 {
@@ -109,6 +115,22 @@ public:
 
 		UidType			m_nUnitUID;				///< whose room it is
 
+		/// Is this the tutorial room? Set only by
+		/// Handler_EGS_CREATE_TUTORIAL_ROOM_REQ, which is the only thing that
+		/// makes one.
+		///
+		/// This exists because the client's own flags cannot answer the question
+		/// at the time it has to be asked. Phase 4 gated the dungeon-leave fix
+		/// on CX2Main::GetIsExitingTutorial(), which turned out to be wrong
+		/// twice over: it is set to true when the tutorial is left
+		/// (X2StateDungeonGame.cpp:1448) and cleared only on the way back to
+		/// character select or the PvP lobby, so it stays true for the whole
+		/// session and suppressed the fix in every later dungeon. Its sibling
+		/// GetIsPlayingTutorial() is no use either - the ESC dialog clears it
+		/// one line *before* sending the leave request. The room's own identity
+		/// is the only thing that is still true when the request arrives.
+		bool			m_bTutorial;
+
 		/// NPC UID -> the level and ID the client reported when it asked for the
 		/// monster. KEGS_NPC_UNIT_DIE_REQ carries neither, and both are needed
 		/// to price the kill.
@@ -127,6 +149,29 @@ public:
 		/// EGS_NPC_UNIT_CREATE_NOT. Monotonic for the life of the room, so a
 		/// stale UID can never alias a live monster.
 		int				m_iNextNpcUID;
+
+		/// Drop item UID -> item ID, for the items lying on the floor (phase 5).
+		/// The offline server owns these UIDs for the same reason it owns NPC
+		/// UIDs: EGS_GET_ITEM_REQ names one, and the client only knows the
+		/// number because EGS_DROP_ITEM_NOT told it.
+		///
+		/// An entry is removed when the item is picked up, so a second
+		/// EGS_GET_ITEM_REQ for the same drop finds nothing and duplicates
+		/// nothing. Whatever is left over when the room closes was simply never
+		/// collected.
+		std::map< int, int >	m_mapDropItem;
+		int				m_iNextDropUID;
+
+		/// Drop item UID -> the ED that coin is worth, for the ED coins a kill
+		/// scatters. Kept apart from m_mapDropItem because a coin is not an
+		/// inventory item: picking one up converts it to money and nothing
+		/// lands in the bag.
+		std::map< int, int >	m_mapDropED;
+
+		/// ED actually picked up this run. The result screen shows this rather
+		/// than m_iRewardED, because uncollected coins are money the player
+		/// walked past - which is how the real game behaves.
+		int				m_iCollectedED;
 
 		/// Accumulated across the run, mirroring KRoomUser::AddRewardEXP /
 		/// AddRewardED on the CenterServer.
@@ -196,9 +241,14 @@ public:
 			m_bActive			= false;
 			m_kInfo.Initialize();
 			m_nUnitUID			= 0;
+			m_bTutorial			= false;
 			m_mapNpcLevel.clear();
 			m_mapNpcID.clear();
 			m_iNextNpcUID		= 1;			///< RoomMonsterManager.cpp:20 seeds it the same way
+			m_mapDropItem.clear();
+			m_iNextDropUID		= 1;
+			m_mapDropED.clear();
+			m_iCollectedED		= 0;
 			m_iRewardEXP		= 0;
 			m_iRewardED			= 0;
 			m_iKillNPCNum		= 0;
@@ -254,6 +304,13 @@ public:
 	/// EGS_SELECT_UNIT_4_NOT; without it CX2GageManager never receives a max HP
 	/// and the health bar renders empty.
 	static void MakeGamePlayStatus( const KOfflineUnitRow& kRow, OUT KGamePlayStatus& kOut );
+
+	/// Base stat for a row plus whatever its equipped gear adds - the value
+	/// that belongs in KUnitInfo::m_kGameStat and KRoomUserInfo::m_kGameStat.
+	/// Phase 3 and 4 used the base stat alone because there was no gear; now
+	/// there is, and every place that sends a game stat has to go through here
+	/// or a weapon stops mattering the moment the player leaves the village.
+	static void MakeGameStat( const KOfflineUnitRow& kRow, OUT KStat& kOut );
 
 	static const wchar_t* KindStr( PROXY_KIND eKind );
 
@@ -349,6 +406,7 @@ private:
 	bool Handler_EGS_DUNGEON_SUB_STAGE_GO_NEXT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_TALK_WITH_NPC_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_DUNGEON_KILLALLNPC_CHECK_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 
 	/// combat. This is where EXP and ED are actually earned.
@@ -384,6 +442,23 @@ private:
 	/// NOT cosmetic: CX2Unit::UnitData::SetKRoomUserInfo assigns it straight
 	/// over the unit's own game stat, so a zeroed one gives the in-dungeon
 	/// character max HP 0 - the same trap phase 3 hit in the village.
+	/// Fill the stamina gauge's pair of fields.
+	///
+	/// Spirit - the gauge the client labels stamina - is NOT modelled offline:
+	/// nothing consumes it, nothing regenerates it, and no dungeon is refused
+	/// for lack of it. What matters is that it must not be left at zero, which
+	/// is what phase 3 did: every consumer computes m_iSpirit / (float)
+	/// m_iSpiritMax with no guard, so 0/0 is a NaN that stretches the gauge
+	/// bitmap to a garbage width and prints as `-1.$%` in the tooltip
+	/// ([X2StateMenu.cpp:3378](X2Lib/X2StateMenu.cpp#L3378),
+	/// [X2StateDungeonRoom.cpp:3029](X2Lib/X2StateDungeonRoom.cpp#L3029)).
+	///
+	/// Only the *ratio* is ever displayed, so reporting the two equal renders
+	/// the full gauge that "not modelled" calls for. The real maximum is
+	/// MAX_SPIRIT in the server's SpiritTable.lua, which is not in this tree at
+	/// all - see the plan for what to do if spirit is ever modelled properly.
+	static void FillSpirit( OUT int& iSpirit, OUT int& iSpiritMax );
+
 	void MakeRoomUserInfo( const KOfflineUnitRow& kRow, OUT KRoomUserInfo& kOut );
 
 	/// The single-occupant slot list. The slot is always host: CX2Game::IsHost()
@@ -427,13 +502,100 @@ private:
 
 	/// Apply the run's EXP and ED to the character and persist them, levelling
 	/// up off the client's own EXP table. Returns the new level.
-	int  ApplyDungeonReward( UidType nUnitUID, int iAddEXP, int iAddED );
+	///
+	/// Since phase 5 it also grants the skill points the levels are worth, out
+	/// of the client's own CalcLevelUpIncreaseSkillPoint - a character that
+	/// levelled and got no SP would have a skill tree it could never spend on.
+	/// Add EXP and ED to a character, level it up if the EXP table says so,
+	/// grant the skill points those levels are worth, and persist all of it.
+	/// Returns the level afterwards; piOldLevel, when given, reports the
+	/// level before, so a caller can tell whether a level-up happened.
+	///
+	/// Called once per kill, which is what the real server does -
+	/// KGSUser's ERM_NPC_UNIT_DIE_NOT handler runs m_kEXP.AddExp( SumEXP() )
+	/// and CheckCharLevelUp() on every monster
+	/// ([GSUserRoomCommon.cpp:1959](KncWX2Server/GameServer/GSUserRoomCommon.cpp#L1959)).
+	int  ApplyDungeonReward( UidType nUnitUID, int iAddEXP, int iAddED,
+							 OUT int* piOldLevel = NULL );
+
+	/// Resend the character to the client mid-play, so a level gained during
+	/// a run shows up without waiting for the village.
+	void PushUnitInfoUpdate( KOfflineSession& kSes, UidType nUnitUID );
+
+	/// Announce a level-up: the packet that plays the effect.
+	///
+	/// EGS_CHAR_LEVEL_UP_NOT is what sets CX2Unit::SetIsLevelUp( true ) and
+	/// calls DisplayLevelUpEffect ([X2StateMenu.cpp:4576](X2Lib/X2StateMenu.cpp#L4576)),
+	/// and the village then replays the effect off that flag on its next frame
+	/// ([X2TFieldGame.cpp:1932](X2Lib/X2TFieldGame.cpp#L1932)) - which is also
+	/// how the dungeon result screen knows to show its level-up animation. It
+	/// carries the new level and both stats, and the handler refills HP and MP,
+	/// so it is the whole of what a level-up looks like to the client.
+	///
+	/// Safe to send from anywhere: the village, the dungeon and the battlefield
+	/// all dispatch it (X2StateField.cpp:1138, X2StateDungeonGame.cpp:1902,
+	/// X2StateBattleField.cpp:361), and unlike EGS_UPDATE_UNIT_INFO_NOT it does
+	/// not touch the dungeon leave gate.
+	void PushLevelUp( KOfflineSession& kSes, UidType nUnitUID );
+
+	/// Put one dead monster's loot on the floor: the ED it is worth, split into
+	/// coins, plus whatever the item lottery drew. One EGS_DROP_ITEM_NOT for
+	/// both, because they scatter from the same corpse.
+	///
+	/// Phase 4 deferred items deliberately - there was no inventory to pick
+	/// them up into - and credited ED silently at kill time, which left the
+	/// floor of a dungeon empty and the money appearing out of nowhere. Both
+	/// halves land here.
+	void PushNpcDrop( KOfflineSession& kSes, int iNpcID, int iED, const VECTOR3& kDiePos );
+
+	/// GetEDItemID: which coin represents this much ED.
+	/// KDropTable::GetEDItemID (KDropTable.cpp:1166) verbatim.
+	static int EDCoinItemID( int iED );
 
 	/// The static monster list for one stage, keyed by sub-stage index, in the
 	/// shape EGS_DUNGEON_STAGE_LOAD_NOT carries it. Read out of the client's own
 	/// copy of the dungeon script; mirrors CXSLDungeon::GetNPCData. Stamps a UID
 	/// on every monster and records its level and ID for the kill reward.
 	void BuildStageNpcData( int iStageID, OUT std::map< int, KNPCList >& mapOut );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Inventory.cpp - phase 5
+
+	bool Handler_EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DELETE_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SORT_CATEGORY_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_USE_QUICK_SLOT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_BUY_ED_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SELL_ED_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	/// Endurance repair at the village NPC. Implementable from client data
+	/// alone - the per-point cost is on the item templet - and a no-op in
+	/// practice, because nothing offline wears gear down: see the handler.
+	bool Handler_EGS_REPAIR_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	/// Answered with a refusal because the client waits on them and their
+	/// tables are server-only. See the handlers.
+	bool Handler_EGS_ENCHANT_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SOCKET_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	/// Tell the client its own gear changed. The broadcast is what redraws the
+	/// character - phase 4 correction 6 again - and it is a different packet in
+	/// a room than in a village.
+	void PushEquipChanged( KOfflineSession& kSes,
+						   const std::vector< KInventoryItemInfo >& vecChanged );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Skill.cpp - phase 5
+
+	bool Handler_EGS_GET_SKILL_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_RESET_SKILL_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_INIT_SKILL_TREE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHANGE_SKILL_SLOT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	/// First unequipped item of this ID in the bag, or 0. Used to spend a
+	/// consumable the request did not name.
+	static UidType FindItemByID( int iItemID );
 
 	//////////////////////////////////////////////////////////////////////////
 	// Handlers_Stub.cpp - answered because the client blocks on them, nothing more

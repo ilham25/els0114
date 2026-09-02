@@ -78,13 +78,28 @@ public:
 	/// the battlefield row - Exp = 0 for all six - silently overwrite the
 	/// dungeon row and cost those monsters their EXP in a dungeon.
 	///
-	/// Item drops are not returned. They are phase 5 work, not an oversight:
-	/// an item has to land in an inventory, and the inventory does not
-	/// round-trip through SQLite until then (EGS_SELECT_UNIT_1_NOT still sends
-	/// an empty m_mapItem). Dropping items a relog would silently eat is worse
-	/// than dropping none.
+	/// Item drops come from GetNpcItemDrop, not from here.
 	void	GetNpcReward( int iKey, bool bBattleField, int iNpcID, int iNpcLevel,
 						  OUT int& iEXP, OUT int& iED );
+
+	/// The item lottery for one kill (phase 5). Rolls the same two-stage draw
+	/// KDropTable::NpcDropItem does: one pick across the monster's whole case
+	/// list, and if that pick names a group, a second pick inside the group.
+	/// Comes back empty far more often than not, which is correct.
+	///
+	/// The four multipliers the server folds in first - fContribution,
+	/// fDungeonFactor, fLevelFactor and the party bonus - are all 1.0 here, the
+	/// same simplification phase 4 already made for EXP and ED: contribution is
+	/// 1.0 for a solo player who did all the damage, the party bonus is 1.0 for
+	/// a party of one, and the other two are room state the offline server does
+	/// not model. That leaves the drop table's own probability, unmodified,
+	/// which is the live rate for a solo player of the right level.
+	///
+	/// No ED coins. KDropTable drops ED as pickup items (GetEDItemID) and the
+	/// pickup converts them; phase 4 already credits the kill's ED directly out
+	/// of GetNpcReward, so dropping coins as well would pay twice.
+	void	GetNpcItemDrop( int iKey, bool bBattleField, int iNpcID,
+							OUT std::vector<int>& vecItemID );
 
 	bool	IsLoaded() const					{ return false == m_mapNpcExp.empty(); }
 
@@ -108,8 +123,11 @@ public:
 	void	AddHenirMonsterDropInfo_LUA();
 	void	AddExtraStageMonsterDropInfo_LUA();
 
-	/// DropTable:AddToGroup( groupID, itemID, probability ) - the item-group
-	/// lottery. Ignored: no items drop this phase.
+	/// DropTable:AddToGroup( groupID, itemID, probability ) - one case of one
+	/// item group. Every AddToGroup call for a group has to arrive before the
+	/// AddMonsterDropInfo block that references it, which is how the file is
+	/// written and what the real KDropTable relies on too (it refuses a
+	/// DropGroupList entry for a group it has not seen).
 	void	AddToGroup_LUA( int iGroupID, int iItemID, float fProbability );
 
 private:
@@ -124,16 +142,38 @@ private:
 	int		GetNpcExp( int iNpcLevel ) const;
 
 	/// Shared body of the AddXxxDropInfo_LUA readers: pulls the key field,
-	/// MonsterID, Exp, ED and EDProperty off the table on the Lua stack and
-	/// files the row in the map it belongs to.
+	/// MonsterID, Exp, ED and EDProperty off the table on the Lua stack, plus
+	/// DropItemList and DropGroupList, and files the row in the map it belongs
+	/// to.
 	void	ReadDropBlock( const char* szKeyField, bool bBattleField );
 
 private:
+	/// One case of a lottery, in KLottery::KCaseUnit's shape: the thing drawn,
+	/// its probability as a percentage, and whether the thing is an item or a
+	/// group of items. Kept as a vector rather than KLottery's map because the
+	/// map's only purpose there is deduplicating a repeated case ID, which
+	/// DropTable.lua does not do.
+	struct KDropCase
+	{
+		int		m_iID;				///< item ID, or group ID when m_bGroup
+		float	m_fProb;			///< percentage
+		bool	m_bGroup;
+
+		KDropCase() : m_iID( 0 ), m_fProb( 0.0f ), m_bGroup( false ) {}
+	};
+
+	/// KLottery::Decision: roll once in [0,100), accumulate the cases in order,
+	/// and take the first whose running total reaches the roll. Returns -1 for
+	/// KLottery::CASE_BLANK - nothing was drawn, which is the usual outcome.
+	static int	Decide( const std::vector<KDropCase>& vecCase, OUT bool& bGroup );
+
 	struct KNpcReward
 	{
 		int		m_iExpGate;			///< > 0 means this monster grants EXP
 		int		m_iEDPerLevel;		///< > 0 means it grants ED, at this rate
 		float	m_fEDProperty;		///< percentage chance the ED drops at all
+
+		std::vector<KDropCase>	m_vecItemCase;
 
 		KNpcReward()
 			: m_iExpGate( 0 )
@@ -158,9 +198,14 @@ private:
 	/// range: see GetNpcReward for the six monsters that made that necessary.
 	std::map< std::pair< int, int >, KNpcReward >		m_mapBattleFieldDrop;
 
+	/// group ID -> the items in it. Built by AddToGroup_LUA before any drop
+	/// block can name a group.
+	std::map< int, std::vector<KDropCase> >				m_mapDropGroup;
+
 	bool	m_bLoadAttempted;
 	int		m_iNpcExpRows;
 	int		m_iMonsterRows;
+	int		m_iItemCaseRows;
 };
 
 #endif SERV_IRUHADEV_OFFLINE

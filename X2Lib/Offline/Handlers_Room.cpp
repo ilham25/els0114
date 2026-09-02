@@ -103,15 +103,34 @@ void CX2OfflineServer::MakeRoomUserInfo( const KOfflineUnitRow& kRow, OUT KRoomU
 	kOut.m_bIsGuestUser		= false;
 	kOut.m_bIsPvpNpc		= false;
 
+	// No stamina pair here on purpose. SERV_DELETE_ROOM_USER_INFO_DATA is
+	// defined in this build, so KRoomUserInfo no longer carries m_iSpirit /
+	// m_iSpiritMax and the block in CX2Unit::UnitData::SetKRoomUserInfo that
+	// used to read them ([X2Unit.cpp:3446](X2Lib/X2Unit.cpp#L3446)) is compiled
+	// out. Entering a room therefore cannot clobber what SetKUnitInfo already
+	// put on the unit, which is why fixing KUnitInfo alone fixes the dungeon
+	// room's gauge too - it reads the unit, not the slot.
+
 	// The whole reason the room slot has to be built carefully. CX2Unit::
 	// UnitData::SetKRoomUserInfo (X2Unit.cpp:3451) does
 	//     m_GameStat.SetKStat( data.m_kGameStat );
 	// i.e. it assigns straight over the unit's game stat - the same field
 	// CX2GUUser::InitStat builds the in-world max HP from. A zeroed one here
 	// undoes everything phase 3 did for the village unit, in the dungeon, where
-	// it matters most. Base stat only: gear is phase 5, and until then
-	// m_kGameStat and m_kStat coincide (see MakeDefaultUnitInfo).
-	CX2OfflineStatTable::Instance()->GetUnitStat( kRow.m_iUnitClass, kRow.m_iLevel, kOut.m_kGameStat );
+	// it matters most. Base stat plus gear since phase 5 - a dungeon entered
+	// with the base stat alone would strip the player's equipment bonuses at
+	// exactly the point they are needed.
+	MakeGameStat( kRow, kOut.m_kGameStat );
+
+	// The equipped items and the skill state, so the in-dungeon character wears
+	// what the village character was wearing and has the same skills on its
+	// bar. KUnitInfo carries both and the room slot list is built from this
+	// struct, so leaving them out is how a dungeon run ends up unarmed.
+	CX2OfflineInventory::Instance()->Load( kRow.m_nUnitUID );
+	CX2OfflineSkill::Instance()->Load( kRow.m_nUnitUID );
+
+	CX2OfflineInventory::Instance()->GetEquippedItems( kOut.m_mapEquippedItem );
+	CX2OfflineSkill::Instance()->FillUnitSkillData( kOut.m_UnitSkillData );
 
 	// The client's own UDP address, so it becomes its own P2P peer and the
 	// connect test succeeds over loopback. See the file header.
@@ -232,6 +251,11 @@ bool CX2OfflineServer::Handler_EGS_CREATE_TUTORIAL_ROOM_REQ( KOfflineSession& kS
 		kAck.m_iOK = NetError::ERR_ROOM_00;
 		return Reply( kSes, EGS_CREATE_TUTORIAL_ROOM_ACK, kAck );
 	}
+
+	// The one place this is set. Leaving the room reads it - see
+	// Handler_EGS_LEAVE_ROOM_REQ for why the client's own tutorial flags cannot
+	// be used for that.
+	m_kRoom.m_bTutorial = true;
 
 	MakeRoomInfo( kAck.m_RoomInfo );
 	MakeRoomSlots( kRow, (int)CX2Room::SS_WAIT, kAck.m_vecSlot );
@@ -805,14 +829,11 @@ bool CX2OfflineServer::Handler_EGS_LEAVE_ROOM_REQ( KOfflineSession& kSes, const 
 	kAck.m_bNotLeaveParty	= false;
 	kAck.m_kBattleFieldJoinInfo.Initialize();
 
-	// A player leaving mid-run still keeps what the run earned so far; the real
-	// server does the same through Result_DUNGEON_BREAK. Nothing else does it,
-	// because EGS_END_GAME_REQ is only sent when the dungeon actually ends.
-	if( true == m_kRoom.m_bActive &&
-		( m_kRoom.m_iRewardEXP > 0 || m_kRoom.m_iRewardED > 0 ) )
-	{
-		ApplyDungeonReward( m_kRoom.m_nUnitUID, m_kRoom.m_iRewardEXP, m_kRoom.m_iRewardED );
-	}
+	// Nothing is paid out here any more, and that is the point: EXP is credited
+	// per kill in Handler_EGS_NPC_UNIT_DIE_REQ and ED coin by coin as they are
+	// picked up (Handler_EGS_GET_ITEM_REQ), so a player leaving mid-run already
+	// has everything the run earned. Paying m_iRewardEXP again here would double
+	// it, which is exactly the bug this replaced.
 
 	// Leaving a dungeon mid-run needs a second packet, and the comment above was
 	// wrong to say the ACK is what leaves - that is true of the room screen and
@@ -840,14 +861,31 @@ bool CX2OfflineServer::Handler_EGS_LEAVE_ROOM_REQ( KOfflineSession& kSes, const 
 	// StateChangeResultReq(), racing the village transition with a results
 	// screen for a run that was abandoned rather than finished.
 	//
-	// Gated on GetIsExitingTutorial() - which the client sets immediately before
-	// sending this very request - so the tutorial keeps the branch it already
-	// leaves correctly through, rather than being silently moved onto the other one.
+	// Gated on the room's own m_bTutorial, so the tutorial keeps the branch it
+	// already leaves correctly through (m_bLeaveRoomAtTutorial) rather than
+	// being silently moved onto the other one.
+	//
+	// This gate used to read g_pMain->GetIsExitingTutorial(), and that was
+	// wrong in a way the phase 4 exit test could not see: the client sets that
+	// flag true when the tutorial is left (X2StateDungeonGame.cpp:1448) and
+	// clears it only on the way back to character select, the PvP lobby or unit
+	// select - never on entering a village or a dungeon. So after one tutorial
+	// run it stayed true for the whole session, this block never ran again, and
+	// pressing Leave in any later dungeon sent EGS_LEAVE_ROOM_ACK with no
+	// EGS_UPDATE_UNIT_INFO_NOT behind it: the client set one of its two flags,
+	// the condition at X2StateDungeonGame.cpp:894 never passed, and it re-sent
+	// the request on every ESC with nothing happening. The packet log showed it
+	// exactly - six LEAVE_ROOM_REQ/ACK pairs and not one _NOT.
+	//
+	// GetIsPlayingTutorial() would not have worked either: the ESC dialog calls
+	// SetIsPlayingTutorial( false ) one line before sending this request
+	// (X2StateDungeonGame.cpp:1445), so by the time it arrives both client
+	// flags say the same thing for both cases.
 	if( true == m_kRoom.m_bActive &&
+		false == m_kRoom.m_bTutorial &&
 		(char)CX2Room::RT_DUNGEON == m_kRoom.m_kInfo.m_RoomType &&
 		NULL != g_pMain &&
-		CX2Main::XS_DUNGEON_GAME == g_pMain->GetNowStateID() &&
-		false == g_pMain->GetIsExitingTutorial() )
+		CX2Main::XS_DUNGEON_GAME == g_pMain->GetNowStateID() )
 	{
 		KOfflineUnitRow kAfter;
 		if( true == CX2OfflineDB::Instance()->LoadUnit( m_kRoom.m_nUnitUID, kAfter ) )
@@ -945,7 +983,10 @@ bool CX2OfflineServer::Handler_EGS_STATE_CHANGE_GAME_START_REQ( KOfflineSession&
 	KEGS_STATE_CHANGE_GAME_START_NOT kNot;
 	kNot.m_cRoomState	= (char)CX2Room::RS_LOADING;
 	kNot.m_iGameType	= (int)CX2Game::GT_DUNGEON;
-	kNot.m_iSpirit		= kRow.m_iSpirit;
+	{
+		int iSpiritMaxUnused = 0;
+		FillSpirit( kNot.m_iSpirit, iSpiritMaxUnused );	///< this packet carries no max
+	}
 	kNot.m_sWorldID		= kReq.m_sWorldID;
 	MakeRoomSlots( kRow, (int)CX2Room::SS_LOADING, kNot.m_vecSlot );
 	kNot.m_vecInventorySlotInfo.clear();		///< no inventory until phase 5
@@ -1447,6 +1488,37 @@ bool CX2OfflineServer::Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_REQ( KOfflineSession&
 	return Reply( kSes, EGS_DUNGEON_SUB_STAGE_CLEAR_ACK, kAck );
 }
 
+bool CX2OfflineServer::Handler_EGS_TALK_WITH_NPC_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_TALK_WITH_NPC_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	// Clicking any village NPC sends this and then waits on the ACK
+	// ([X2TFieldNpc.cpp:2198](X2Lib/X2TFieldNpc.cpp#L2198)). Leaving it
+	// unanswered is not harmless: the wait registered by AddServerPacket times
+	// out and the client raises its own "no reply from the server" dialog, which
+	// is where the E_SYSTEM_* code on screen comes from. The NPC conversation
+	// itself is entirely client-side, so the ACK is all that was ever missing.
+	//
+	// KGSUser answers NET_OK and then runs two side effects - the quest
+	// manager's talk handler and the title manager's OnTalkWithNpc
+	// ([GSUserGameCommon.cpp:1660](KncWX2Server/GameServer/GSUserGameCommon.cpp#L1660)).
+	// Neither system exists offline yet, so neither is faked here; when quests
+	// land, this is where accepting one from an NPC hangs off.
+	//
+	// Its only refusal is ERR_ITEM_14, for talking while a trade or personal
+	// shop is open. Neither can happen with one player, so the answer is
+	// unconditional.
+	KEGS_TALK_WITH_NPC_ACK kAck;
+	kAck.m_iOK		= NetError::NET_OK;
+	kAck.m_iQuestID	= 0;
+
+	CX2OfflineLog::Server( L"GAME     talked to NPC %d", kReq.m_iNPCID );
+
+	return Reply( kSes, EGS_TALK_WITH_NPC_ACK, kAck );
+}
+
 bool CX2OfflineServer::Handler_EGS_DUNGEON_KILLALLNPC_CHECK_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
 {
 	// No request body (SendID). m_bResult MUST be true: on false the client
@@ -1457,7 +1529,32 @@ bool CX2OfflineServer::Handler_EGS_DUNGEON_KILLALLNPC_CHECK_REQ( KOfflineSession
 	KEGS_DUNGEON_KILLALLNPC_CHECK_ACK kAck;
 	kAck.m_bResult = true;
 
-	return Reply( kSes, EGS_DUNGEON_KILLALLNPC_CHECK_ACK, kAck );
+	if( false == Reply( kSes, EGS_DUNGEON_KILLALLNPC_CHECK_ACK, kAck ) )
+		return false;
+
+	// And then the broadcast, which is the half that actually clears the
+	// dungeon. KDungeonRoom sends both - the ACK to the asker and then
+	// BroadCastID( ERM_DUNGEON_KILLALLNPC_CHECK_NOT ) to every member when the
+	// result is true (CenterServer/DungeonRoom.cpp:8886-8893) - and each
+	// GameServer forwards that as EGS_DUNGEON_KILLALLNPC_CHECK_NOT
+	// (GSUserSecurity.cpp:1722).
+	//
+	// It matters because SERV_FIX_NONE_NPC_DUNGEON_LINES *is* defined in this
+	// build (ServerDefine.h:2645, reachable from X2Lib via CommonPacket.h), so
+	// the ClearDungeonGame() call inside the client's own ACK handler is
+	// #ifndef'd out (X2StateDungeonGame.cpp:3555) and
+	// Handler_EGS_DUNGEON_KILLALLNPC_CHECK_NOT is the only live caller left
+	// (:7102). ClearDungeonGame is what sets m_fEndGameDelay = 7.0f and starts
+	// the ending event (X2DungeonSubStage.cpp:1223) - and the end-game countdown
+	// is the only thing that ever sends EGS_END_GAME_REQ. Reply with the ACK
+	// alone and the dungeon simply never ends: the boss is dead, m_fEndGameDelay
+	// is still 0 so the countdown block never runs, and the client sits in the
+	// cleared room heartbeating forever with no error anywhere.
+	ReplyID( kSes, EGS_DUNGEON_KILLALLNPC_CHECK_NOT );
+
+	CX2OfflineLog::Server( L"GAME     all NPCs dead - dungeon clear broadcast sent" );
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1592,8 +1689,12 @@ bool CX2OfflineServer::Handler_EGS_NPC_UNIT_DIE_REQ( KOfflineSession& kSes, cons
 		}
 
 		m_kRoom.m_iRewardEXP += iEXP;
-		m_kRoom.m_iRewardED  += iED;
 		++m_kRoom.m_iKillNPCNum;
+
+		// m_iRewardED is now only a running total of what the run *offered*,
+		// for the log line below. The money itself is credited when a coin is
+		// picked up - see PushNpcDrop.
+		m_kRoom.m_iRewardED  += iED;
 
 		CX2OfflineLog::Server( L"GAME     -> +%d exp, +%d ED (key=%d%s, run total %d exp / %d ED)",
 			iEXP, iED, iKey, bBattleField ? L" battlefield" : L"",
@@ -1605,6 +1706,53 @@ bool CX2OfflineServer::Handler_EGS_NPC_UNIT_DIE_REQ( KOfflineSession& kSes, cons
 				L"GAME     -> NOTE monster %d has no reward row for key %d, and none on the"
 				L" wildcard key either - it simply grants nothing, which is common", iNpcID, iKey );
 		}
+
+		// Pay the EXP now, not at the end of the run. The real server does it
+		// here: KGSUser's ERM_NPC_UNIT_DIE_NOT handler calls
+		// m_kEXP.AddExp( SumEXP() ) and then CheckCharLevelUp() on every single
+		// monster (GSUserRoomCommon.cpp:1959-1963).
+		//
+		// Phase 4 accumulated into m_iRewardEXP and paid out at EGS_END_GAME_REQ
+		// or EGS_LEAVE_ROOM_REQ instead, which works for a dungeon and is silently
+		// broken for a field: a field is never "ended" and never "left" - the
+		// player walks out through EGS_STATE_CHANGE_FIELD_REQ - so every point of
+		// field EXP was accumulated and then dropped on the floor. The character
+		// could grind all day and never level.
+		//
+		// It looked like it was working because the client adds the EXP to its own
+		// unit data as the packet arrives (CX2Game::ProcessExpListByNpcUnitDie,
+		// X2Game.cpp:7498) - so the bar filled up and then stuck at full, since
+		// only the server ever grants the level.
+		if( iEXP > 0 )
+		{
+			int iOldLevel = 0;
+			const int iNewLevel = ApplyDungeonReward( m_kRoom.m_nUnitUID, iEXP, 0,
+													  &iOldLevel );
+
+			if( iNewLevel > iOldLevel )
+			{
+				// The level-up itself: new level, new stats, refilled HP, and the
+				// effect over the character. Safe everywhere.
+				PushLevelUp( kSes, m_kRoom.m_nUnitUID );
+
+				// And the rest of the character - EXP and the skill points the
+				// level just paid - but only in a field. CX2StateBattleField hands
+				// EGS_UPDATE_UNIT_INFO_NOT to the battlefield game and it just
+				// resets the unit (X2StateBattleField.cpp:1518), whereas
+				// CX2StateDungeonGame's handler also sets
+				// m_bReceive_KEGS_UNIT_INFO_UPDATE - one of the two flags that let
+				// a dungeon be left - so sending it mid-dungeon would poke at the
+				// leave gate for no reason. A dungeon resends the character at the
+				// result screen a moment later anyway.
+				if( 0 != m_kRoom.m_kInfo.m_iBattleFieldID )
+					PushUnitInfoUpdate( kSes, m_kRoom.m_nUnitUID );
+			}
+		}
+
+		// The loot: ED as coins, plus whatever the item lottery drew. Phase 4
+		// left both out - items because there was no inventory to hold them,
+		// ED because it was credited invisibly instead.
+		PushNpcDrop( kSes, iNpcID, iED, kReq.m_DiePos );
 	}
 
 	// Field bookkeeping: free the cap slot, queue the respawn, add the danger and
@@ -1668,33 +1816,275 @@ bool CX2OfflineServer::Handler_EGS_WORLD_TRIGGER_RELOCATION_REQ( KOfflineSession
 	return Reply( kSes, EGS_WORLD_TRIGGER_RELOCATION_NOT, kNot );
 }
 
+/*static*/ int CX2OfflineServer::EDCoinItemID( int iED )
+{
+	// KDropTable::GetEDItemID (KDropTable.cpp:1166). The three coin IDs are
+	// client-side constants too - BRONZE_ED_ITEM_ID / SILVER / GOLD at
+	// X2Lib/X2Define.h:1082-1084 - so this needs nothing that is not shipped.
+	if( iED <= 0 )		return 0;
+	if( iED <= 50 )		return BRONZE_ED_ITEM_ID;
+	if( iED <= 150 )	return SILVER_ED_ITEM_ID;
+
+	return GOLD_ED_ITEM_ID;
+}
+
+void CX2OfflineServer::PushNpcDrop( KOfflineSession& kSes, int iNpcID, int iED,
+									const VECTOR3& kDiePos )
+{
+	if( iNpcID <= 0 )
+		return;
+
+	const bool bBattleField = ( 0 != m_kRoom.m_kInfo.m_iBattleFieldID );
+	const int  iKey			= bBattleField
+								? m_kRoom.m_kInfo.m_iBattleFieldID
+								: ( m_kRoom.m_kInfo.m_iDungeonID +
+									(int)m_kRoom.m_kInfo.m_DifficultyLevel );
+
+	std::vector<int> vecItemID;
+	CX2OfflineDropTable::Instance()->GetNpcItemDrop( iKey, bBattleField, iNpcID, vecItemID );
+
+	KEGS_DROP_ITEM_NOT kNot;
+	kNot.m_CreatePos = kDiePos;
+
+	//////////////////////////////////////////////////////////////////////////
+	// The ED, as coins.
+	//
+	// KDropTable::NpcDropItem scatters an ordinary kill's ED across [2,3] coins
+	// and a boss's across [10,20], each worth the total divided by the count
+	// (KDropTable.cpp:1242-1251). Phase 4 skipped this and credited the ED at
+	// kill time instead, which was invisible: the floor stayed empty and the
+	// money simply grew. Coins are how the player is told a kill paid.
+	//
+	// The ED is NOT credited here any more. It is credited when a coin is
+	// picked up, which means walking past one loses it - exactly as on live.
+	if( iED > 0 )
+	{
+		const int iCoinNum	= ( rand() % 2 ) + 2;
+		const int iPerCoin	= iED / iCoinNum;
+
+		if( iPerCoin > 0 )
+		{
+			for( int i = 0; i < iCoinNum; ++i )
+			{
+				const int iDropUID = m_kRoom.m_iNextDropUID++;
+
+				m_kRoom.m_mapDropED[ iDropUID ] = iPerCoin;
+
+				KDropItemData kData;
+				kData.m_iItemID			= EDCoinItemID( iPerCoin );
+				kData.m_iDropItemUID	= iDropUID;
+				kData.m_bLeft			= ( 0 == ( rand() % 2 ) );
+				kData.m_fSpeed			= 100.0f + (float)( rand() % 100 );
+				kData.m_cEnchantLevel	= 0;
+
+				kNot.m_DropItemDataList.push_back( kData );
+			}
+
+			CX2OfflineLog::Server( L"DROP     monster %d dropped %d ED as %d coin(s) of %d",
+				iNpcID, iED, iCoinNum, iPerCoin );
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// The item lottery.
+	for( size_t i = 0; i < vecItemID.size(); ++i )
+	{
+		// The offline server owns the drop UID, exactly as it owns NPC UIDs -
+		// the client learns the number from this packet and quotes it back in
+		// EGS_GET_ITEM_REQ.
+		const int iDropUID = m_kRoom.m_iNextDropUID++;
+
+		m_kRoom.m_mapDropItem[ iDropUID ] = vecItemID[i];
+
+		KDropItemData kData;
+		kData.m_iItemID			= vecItemID[i];
+		kData.m_iDropItemUID	= iDropUID;
+
+		// Which way it bounces and how fast. The real server randomises both
+		// (KRoom's drop scatter); the numbers are cosmetic - the item lands
+		// wherever the client's own physics puts it and the pickup is by UID.
+		kData.m_bLeft			= ( 0 == ( rand() % 2 ) );
+		kData.m_fSpeed			= 100.0f + (float)( rand() % 100 );
+
+		// No random enhancement on drops. SiCXSLEnchantItemManager()->
+		// RandomEnchant reads the enchant event tables, which are server data
+		// with no client copy, so every drop comes out at +0 rather than at an
+		// invented level.
+		kData.m_cEnchantLevel	= 0;
+
+		kNot.m_DropItemDataList.push_back( kData );
+
+		CX2OfflineLog::Server( L"DROP     monster %d dropped item %d (dropUID=%d)",
+			iNpcID, vecItemID[i], iDropUID );
+	}
+
+	if( true == kNot.m_DropItemDataList.empty() )
+		return;
+
+	// The _NOT is the only thing that puts an item on the floor:
+	// CX2Game::Handler_EGS_DROP_ITEM_NOT is the sole caller of
+	// CX2DropItemManager::AddDropItem (X2Game.cpp:8315-8327).
+	Reply( kSes, EGS_DROP_ITEM_NOT, kNot );
+}
+
 bool CX2OfflineServer::Handler_EGS_GET_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
 {
 	KEGS_GET_ITEM_REQ kReq;
 	if( false == ReadReq( kEvent, kReq ) )
 		return false;
 
-	// The client waits 60s on this ACK, so it has to be answered even though
-	// there is nothing to pick up: no EGS_DROP_ITEM_NOT is ever sent, so this
-	// can only fire on an item the client dropped for itself (a quick-slot
-	// item, a quest object). Acknowledged and discarded - see the file header
-	// for why items are phase 5.
+	// The client waits 60s on this ACK, so it is answered first and
+	// unconditionally - a pickup that cannot be honoured must still not hang.
 	KEGS_GET_ITEM_ACK kAck;
 	kAck.m_iOK = NetError::NET_OK;
 
-	return Reply( kSes, EGS_GET_ITEM_ACK, kAck );
+	Reply( kSes, EGS_GET_ITEM_ACK, kAck );
+
+	// An ED coin first. It is not an inventory item: picking one up converts it
+	// to money, so the whole insert path below is skipped.
+	std::map< int, int >::iterator eit = m_kRoom.m_mapDropED.find( kReq.m_iDropItemUID );
+	if( eit != m_kRoom.m_mapDropED.end() )
+	{
+		const int iED = eit->second;
+
+		m_kRoom.m_mapDropED.erase( eit );
+		m_kRoom.m_iCollectedED += iED;
+
+		KOfflineUnitRow kRow;
+		if( true == CX2OfflineDB::Instance()->LoadUnit( kSes.m_nSelectedUnitUID, kRow ) )
+		{
+			kRow.m_iED += iED;
+
+			CX2OfflineDB::Instance()->SaveProgress( kRow.m_nUnitUID, kRow.m_iLevel,
+				kRow.m_iEXP, kRow.m_iED );
+		}
+
+		// m_mapGetED is what the client adds to its own unit's ED and prints in
+		// the chat log - CX2Game::ProcessGetEDItem (X2Game.cpp:16932). It is
+		// keyed by unit UID, and CX2Game reads only its own unit's entry.
+		KEGS_GET_ITEM_NOT kEDNot;
+		kEDNot.m_GetUnitUID		= kSes.m_nSelectedUnitUID;
+		kEDNot.m_iItemID		= EDCoinItemID( iED );
+		kEDNot.m_iDropItemUID	= kReq.m_iDropItemUID;
+		kEDNot.m_cGetItemType	= KEGS_GET_ITEM_NOT::GIT_DROP_ITEM;
+		kEDNot.m_bIsItemSuccess	= true;
+		kEDNot.m_iTotalED		= iED;
+		kEDNot.m_cEnchantLevel	= 0;
+
+		KDungeonRewardED kRewardED;
+		kRewardED.m_iED			= iED;
+		kRewardED.m_iBonusED	= 0;
+
+		kEDNot.m_mapGetED[ kSes.m_nSelectedUnitUID ] = kRewardED;
+
+		Reply( kSes, EGS_GET_ITEM_NOT, kEDNot );
+
+		CX2OfflineLog::Server( L"DROP     picked up %d ED (dropUID=%d, %d ED this run)",
+			iED, kReq.m_iDropItemUID, m_kRoom.m_iCollectedED );
+
+		return true;
+	}
+
+	// Which item this drop UID was. The request also carries the client's own
+	// m_kItemInfo, and the real server ignores it in favour of the room's
+	// record; so does this. A UID that is not in the map has either been picked
+	// up already or was never dropped by us - either way there is nothing to
+	// give, and saying so is better than trusting the request.
+	std::map< int, int >::iterator mit = m_kRoom.m_mapDropItem.find( kReq.m_iDropItemUID );
+	if( mit == m_kRoom.m_mapDropItem.end() )
+	{
+		CX2OfflineLog::Server( L"DROP     pickup of dropUID=%d ignored - no such drop on the floor"
+			L" (already collected, or the client asked for something it invented)",
+			kReq.m_iDropItemUID );
+
+		return true;
+	}
+
+	const int iItemID = mit->second;
+
+	// Removed before the insert, so a repeated request cannot duplicate the
+	// item even if the insert below fails.
+	m_kRoom.m_mapDropItem.erase( mit );
+
+	// The display half. CX2Game::Handler_EGS_GET_ITEM_NOT looks the item up in
+	// its own drop manager by UID, prints the pickup and removes the sprite, so
+	// this has to go out even though it carries no inventory data.
+	//
+	// m_mapGetED stays empty and m_iTotalED zero: the kill's ED was already
+	// credited in Handler_EGS_NPC_UNIT_DIE_REQ out of the drop table, and the
+	// real server pays it here instead by dropping ED coins. Doing both would
+	// pay twice.
+	KEGS_GET_ITEM_NOT kNot;
+	kNot.m_GetUnitUID		= kSes.m_nSelectedUnitUID;
+	kNot.m_iItemID			= iItemID;
+	kNot.m_iDropItemUID		= kReq.m_iDropItemUID;
+	kNot.m_cGetItemType		= KEGS_GET_ITEM_NOT::GIT_DROP_ITEM;
+	kNot.m_bIsItemSuccess	= true;
+	kNot.m_iTotalED			= 0;
+	kNot.m_cEnchantLevel	= 0;
+
+	Reply( kSes, EGS_GET_ITEM_NOT, kNot );
+
+	// The inventory half. Separate packet, and it is the one that actually adds
+	// the item - EGS_GET_ITEM_NOT only draws the pickup.
+	CX2OfflineInventory* pInven = CX2OfflineInventory::Instance();
+
+	std::vector< KInventoryItemInfo > vecChanged;
+	int iInserted = 0;
+
+	if( false == pInven->InsertItem( iItemID, 1, 0, vecChanged, iInserted ) )
+	{
+		// A full bag. The real server parks the item in a temp inventory the
+		// player empties later; that is a whole subsystem
+		// (KTempInventory plus EGS_GET_ITEM_TEMP_INVENTORY_NOT and its own
+		// screen) and is not implemented, so the item is lost - which is what
+		// the log says, rather than the pickup silently doing nothing.
+		CX2OfflineLog::Server( L"DROP     item %d could not be picked up - the inventory is full,"
+			L" and the temp inventory is not implemented offline, so it is lost", iItemID );
+
+		return true;
+	}
+
+	KEGS_GET_ITEM_REALTIME_NOT kRealtime;
+	kRealtime.m_vecKInventorySlotInfo = vecChanged;
+
+	Reply( kSes, EGS_GET_ITEM_REALTIME_NOT, kRealtime );
+
+	CX2OfflineLog::Server( L"DROP     picked up item %d (dropUID=%d)",
+		iItemID, kReq.m_iDropItemUID );
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ending the run
 
-int CX2OfflineServer::ApplyDungeonReward( UidType nUnitUID, int iAddEXP, int iAddED )
+void CX2OfflineServer::PushUnitInfoUpdate( KOfflineSession& kSes, UidType nUnitUID )
+{
+	KOfflineUnitRow kRow;
+	if( false == CX2OfflineDB::Instance()->LoadUnit( nUnitUID, kRow ) )
+		return;
+
+	KEGS_UPDATE_UNIT_INFO_NOT kUpdate;
+	MakeUnitInfoFromRow( kUpdate.m_kUnitInfo, kRow );
+	kUpdate.m_bGameEnd = false;			///< true is what ends a run; this is not one
+	kUpdate.m_vecKInventorySlotInfo.clear();
+	kUpdate.m_mapItemObtained.clear();
+
+	Reply( kSes, EGS_UPDATE_UNIT_INFO_NOT, kUpdate );
+}
+
+int CX2OfflineServer::ApplyDungeonReward( UidType nUnitUID, int iAddEXP, int iAddED,
+										 OUT int* piOldLevel /*= NULL*/ )
 {
 	KOfflineUnitRow kRow;
 	if( false == CX2OfflineDB::Instance()->LoadUnit( nUnitUID, kRow ) )
 		return 0;
 
 	const int iOldLevel = kRow.m_iLevel;
+
+	if( NULL != piOldLevel )
+		*piOldLevel = iOldLevel;
 
 	int iEXP = kRow.m_iEXP + iAddEXP;
 	int iED  = kRow.m_iED  + iAddED;
@@ -1730,6 +2120,26 @@ int CX2OfflineServer::ApplyDungeonReward( UidType nUnitUID, int iAddEXP, int iAd
 	{
 		CX2OfflineLog::Server( L"REWARD   unitUID=%I64d LEVEL UP %d -> %d",
 			(__int64)nUnitUID, iOldLevel, iLevel );
+
+		// The skill points those levels are worth. KGSUser does this in the
+		// same place (GSUserFunction.cpp:7404-7415), one level at a time out of
+		// the skill tree's own curve; SkillPointForLevelUp is the client's copy
+		// of that curve, so the two agree by construction rather than by luck.
+		//
+		// Without this a character levels for ever and can never learn
+		// anything, which is the sort of thing that looks like a broken skill
+		// UI rather than a missing reward.
+		const int iAddSP = CX2OfflineSkill::SkillPointForLevelUp( iOldLevel, iLevel );
+
+		if( iAddSP > 0 )
+		{
+			kRow.m_iSP += iAddSP;
+
+			CX2OfflineDB::Instance()->SaveSkillPoint( nUnitUID, kRow.m_iSP, kRow.m_iCSP );
+
+			CX2OfflineLog::Server( L"REWARD   unitUID=%I64d +%d SP (%d total)",
+				(__int64)nUnitUID, iAddSP, kRow.m_iSP );
+		}
 	}
 
 	CX2OfflineLog::Server( L"REWARD   unitUID=%I64d +%d exp (%d total), +%d ED (%d total), lv=%d",
@@ -1765,7 +2175,11 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 	CX2OfflineDB::Instance()->LoadUnit( m_kRoom.m_nUnitUID, kBefore );
 
 	const int iAddEXP = bWin ? m_kRoom.m_iRewardEXP : 0;
-	const int iAddED  = m_kRoom.m_iRewardED;
+
+	// The ED the player actually collected, which is already in the bank - the
+	// coin pickups credited it as they happened. It is carried here only so the
+	// result screen can show what the run paid.
+	const int iAddED  = m_kRoom.m_iCollectedED;
 
 	// Result_DUNGEON's clear bonus: 30% of what the run earned, on a win only
 	// (ResultProcess.cpp:2054). The rank bonus is deliberately not applied -
@@ -1774,8 +2188,17 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 	// a fabricated number rather than a missing one.
 	const int iClearBonusEXP = bWin ? (int)( iAddEXP * 0.3f ) : 0;
 
-	const int iNewLevel = ApplyDungeonReward( m_kRoom.m_nUnitUID,
-		iAddEXP + iClearBonusEXP, iAddED );
+	// Only the clear bonus is paid here. iAddEXP is already in the character -
+	// every kill credited itself as it happened - so adding it again would pay
+	// the run twice. ED is 0 for the same reason: the coins already paid it.
+	const int iNewLevel = ApplyDungeonReward( m_kRoom.m_nUnitUID, iClearBonusEXP, 0 );
+
+	// The clear bonus can be the thing that levels the character, and the result
+	// screen's own level-up animation keys off CX2Unit::GetIsLevelUp - which only
+	// this packet ever sets. Without it a level earned on the last hit of a run
+	// appears silently.
+	if( iNewLevel > kBefore.m_iLevel )
+		PushLevelUp( kSes, m_kRoom.m_nUnitUID );
 
 	if( true == bWin && 0 != m_kRoom.m_kInfo.m_iDungeonID )
 	{
@@ -1810,8 +2233,15 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 	kUnitResult.m_nComboScore		= m_kRoom.m_kPlayResult.m_ComboScore;
 	kUnitResult.m_nTechnicalScore	= m_kRoom.m_kPlayResult.m_TechScore;
 	kUnitResult.m_nDamaged			= m_kRoom.m_kPlayResult.m_nDamageCount;
-	kUnitResult.m_nOldEXP			= kBefore.m_iEXP;
-	kUnitResult.m_nOldED			= kBefore.m_iED;
+	// kBefore was read after the kills had already credited their EXP, so the
+	// "before" figure has to have the run's EXP taken back off - same correction
+	// as the ED line below, and for the same reason.
+	kUnitResult.m_nOldEXP			= kBefore.m_iEXP - iAddEXP;
+
+	// kBefore was read after the coins were credited, so the "before" ED has to
+	// have them taken back off or the result screen animates from the finished
+	// total to itself.
+	kUnitResult.m_nOldED			= kBefore.m_iED - iAddED;
 	kUnitResult.m_nED				= iAddED;
 	kUnitResult.m_nEXP				= iAddEXP;
 	kUnitResult.m_nClearBonusEXP	= iClearBonusEXP;
@@ -1852,8 +2282,12 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 
 	// The run is banked; a second EGS_END_GAME_REQ (the client guards against
 	// sending one, but a re-entered room would) must not pay out twice.
+	// m_iCollectedED goes with them so a repeat cannot re-report ED either -
+	// it is only a display figure now, but a doubled one would still be a lie
+	// on the result screen.
 	m_kRoom.m_iRewardEXP	= 0;
 	m_kRoom.m_iRewardED		= 0;
+	m_kRoom.m_iCollectedED	= 0;
 
 	return Reply( kSes, EGS_END_GAME_NOT, kNot );
 }

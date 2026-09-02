@@ -656,6 +656,7 @@ real time; later phases should not re-learn them.
    as a phase-1 packet; the client only ever names it in the enum. It was not
    implemented and the chain completes without it.
 
+
 ### Packets the plan did not predict
 
 Three requests appear in the login chain that §1.5 does not list. Two of them
@@ -2064,6 +2065,654 @@ only ever existed server-side — and the handling is settled:
 ### Exit test
 Equip items, learn skills, rearrange the bag, restart — every change persisted
 exactly.
+
+### Exit test — PASSED (2026-09-03)
+
+*Equip items, learn skills, rearrange the bag, restart — every change persisted
+exactly.* Confirmed at the keyboard; the client runs at a higher integrity level
+than the agent's shell and cannot be driven programmatically (phase 1's
+operational note), so every round of this was a person playing. The save was
+backed up first as `els_db.sql.bak-pre-phase5` plus its `-wal` and `-shm`,
+because the phase migrates the schema to v4.
+
+**It took six rounds, and the faults were not in the inventory or skill code.**
+Everything §5 actually asked for worked on the first build. What did not work
+was the surrounding game — the parts phase 4 had built but never had a reason to
+exercise end to end, which only a real session reaches:
+
+| Round | Symptom | Actually |
+|---|---|---|
+| 1 | new character had no gear | `GBase_Item`, not `gup_create_unit` — corrections 10–13 |
+| 1 | monsters "dropped nothing" | drop rate was right; ED had no coins — decision 8, reversed |
+| 1 | ESC would not leave a dungeon | sticky client tutorial flag — correction 9 |
+| 2 | stuck after the boss died | missing `..._KILLALLNPC_CHECK_NOT` — correction 14 |
+| 3 | stamina bar filled the screen | `m_iSpiritMax = 0` → NaN — correction 16 |
+| 4 | could not level up | EXP paid at room exit, and a field has none — correction 17 |
+| 4 | every NPC threw an error dialog | `EGS_TALK_WITH_NPC_REQ` unanswered — correction 18 |
+| 5 | level-up had no effect | `EGS_CHAR_LEVEL_UP_NOT` never sent — correction 19 |
+
+The pattern across all eight: **not one was a wrong value, and not one produced
+an error.** Six were a packet or a payout that never happened, and the client's
+response to nothing happening is to wait quietly — a full EXP bar that never
+turns over, a cleared dungeon that never ends, a bar drawn at NaN width. The
+packet log was decisive in exactly one of them (correction 18, an `UNHANDLED`
+line); everywhere else the log looked healthy and the last line before the
+silence was the clue.
+
+Round 6 was test data rather than a fault: `reyaa` set to level 50 with 999 SP
+directly in `unit`, so the skill half could be exercised without grinding. EXP
+was set to 38,676,300 — level 50's cumulative total from `ScriptData/ExpTable.xls`
+— rather than left where it was, because the EXP bar is drawn against the
+level's own base and a value below it draws a negative fill; and `cur_hp` to 0,
+the schema's "never stored" marker, which resolves to full HP at the new level
+instead of a level-2 sliver.
+
+Re-running it later, this is what the log should say:
+
+| Step | Expect in `offline_server.log` |
+|---|---|
+| Launch | `DB schema upgraded to v4 (item detail, skill points)`, once |
+| Create a character | `SKILL seeded N default skill(s) for class C`, then `ITEM promotional costume for class N: 5 worn` and `ITEM beginner equipment for class N: 5 worn` |
+| Enter the village | `ITEM inventory loaded for unitUID=...: N item(s)`, `SKILL loaded ... row(s)` |
+| Kill anything | `GAME -> +N exp`, then `REWARD unitUID=... +N exp (N total)` — the second line is the one correction 17 added |
+| Level up | `REWARD unitUID=... LEVEL UP a -> b` and `+N SP`, with the effect on screen |
+| Clear a dungeon | `GAME all NPCs dead - dungeon clear broadcast sent`, then the result screen ~7s later |
+| Talk to an NPC | `GAME talked to NPC N` |
+| Learn a skill | `SKILL skill ... level 0 -> 1` |
+| Equip a weapon | `ITEM move 1/0 -> 9/9, 2 slot(s) changed` |
+| Drag items around the bag | one `ITEM move` line per drag |
+| Sell something | `SHOP sold 1 x item ... for N ED` |
+| Restart, reselect | the same item count, the same skills, the weapon still worn |
+
+`grep UNHANDLED offline_packets.log` should show only `EGS_SKILL_USE_REQ`
+(correction 15 — fire-and-forget, expected). Anything else is a real gap.
+
+### Corrections to this plan, found by doing it
+
+1. **§5's `EGS_GET_MY_INVENTORY_REQ/ACK` and `EGS_SELECT_UNIT_INVENTORY_INFO_NOT`
+   are both the wrong packets.** `EGS_GET_MY_INVENTORY_ACK` carries no inventory
+   at all — phase 2 already found that and answers it as the last step of
+   character select — and `EGS_SELECT_UNIT_INVENTORY_INFO_NOT` is the overflow
+   packet for an inventory too large for one message, which a solo save never
+   reaches. The inventory arrives in `EGS_SELECT_UNIT_1_NOT`'s `m_mapItem`, and
+   the packet that does the work every other time is
+   `EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ`.
+
+2. **"Equip/unequip, `m_mapEquippedItem` in `KUnitInfo`" is half of it, and the
+   missing half is the one that makes gear *stick*.**
+   `CX2Unit::UnitData::SetKUnitInfo` builds `m_NowEqipItemUIDList` from
+   `m_mapEquippedItem` ([X2Unit.cpp:3252](X2Lib/X2Unit.cpp#L3252)) and
+   `ResetEqip()` then resolves those UIDs against the inventory — so an equipped
+   item has to appear **twice**, once in `KUnitInfo::m_mapEquippedItem` and once
+   inside `m_mapItem` at its `ST_E_EQUIP` slot. Send only the first and the
+   equip list points at items the inventory does not have; send only the second
+   and nothing is worn. The real server sends both as well
+   (`KInventory::GetEquippedItem` and `GetInventoryInfo`), which is what made
+   this findable rather than guessable.
+
+3. **There is no "split" packet.** §5 lists move/swap/split/stack as four
+   operations; the protocol has one, `EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ`, whose
+   four cases inside `KInventory::MoveItem` are empty-destination move, same-ID
+   quantity merge, plain swap, and relocate-the-blocker. Splitting a stack is
+   not among them — this build's client has no split UI.
+
+4. **The skill-tree relaxations §5 asks to mirror need almost no offline code.**
+   `SERV_IRUHADEV_SKILLTREE_NO_LOCK` is entirely client-side in
+   `X2UISkillTreeNew.cpp`; its server half (`UserSkillTree.cpp:1489`) sits inside
+   `CheckGetNewSkill`'s either/or test, which the offline `LearnSkills` does not
+   port at all. `SERV_IRUHADEV_SKILL_SLOT_B_FREE` needs one thing and it is data,
+   not logic: the permanent sentinel end date `2049-12-31 23:59:00` that
+   `KUserSkillTree::ExpandSkillSlotB` writes under that flag, reported in
+   `KUnitSkillData::m_wstrSkillSlotBEndDate` alongside `SSBES_PERMANENT`. Same
+   for `SERV_IRUHADEV_QUICK_SLOT_FULL_FREE`: phase 2's
+   `CX2OfflineDB::BaseSlotSize` already carried its `return 6`, so category 11
+   has been six slots wide since the schema was first seeded.
+
+5. **The client cannot be asked what the equipped gear is worth.**
+   `CX2Unit::GetEqipStat()` is the obvious source for `m_kGameStat`'s gear half
+   and it is a trap: it can only answer for `GetMyUser()->GetSelectUnit()`, and
+   `MakeUnitInfoFromRow` runs for *every* character in the list, so the second
+   slot would be handed the first slot's weapon. The right seam is one level
+   down — `g_pData->GetItemStatCalculator().CalculateItemStat( ..., pTemplet )`,
+   which is what `CX2Item::GetStat` itself calls under
+   `SERV_NEW_ITEM_SYSTEM_2013_05` ([X2Item.cpp:245](X2Lib/X2Item.cpp#L245)) and
+   which takes a templet rather than a unit.
+
+6. **A quick-slot item consumed by the ACK alone heals nothing.** Phase 4's
+   correction 6 for a fourth time:
+   `CX2UIQuickSlot::Handler_EGS_USE_QUICK_SLOT_NOT` holds the only calls to
+   `UseItemSpecialAbility` and `ApplyBuffFactorToGUUser`
+   ([X2UIQuickSlot.cpp:1032](X2Lib/X2UIQuickSlot.cpp#L1032)), so the `_NOT` is
+   the packet that does the work. Its `default:` arm is an
+   `ASSERT( !L"Can not use this item in this State" )`, so it must be sent only
+   inside a room — which is also the only place there is a `CX2Game` to apply it
+   to.
+
+7. **`EGS_SORT_CATEGORY_ITEM_ACK` does not carry slot infos.** Every other
+   inventory ACK carries `std::vector< KInventoryItemInfo >`; this one carries
+   `std::vector< UidType >`, and `CX2Inventory::UpdateCategorySlotList` takes the
+   *index* in that vector as the slot
+   ([X2Inventory.cpp:1252](X2Lib/X2Inventory.cpp#L1252)). Filling it the usual
+   way compiles and silently sorts nothing.
+
+8. **`DropTable.lua` rows with no EXP and no ED still matter.** Phase 4 skipped
+   them, correctly for phase 4, which only read EXP and ED — and keeping that
+   filter would have thrown away every row whose only reward is an item. The
+   test has to become "no EXP *and* no ED *and* no item cases".
+
+Corrections 9–12 came out of play-testing rather than reading, and 10–12 out of
+the live `Game01` stored procedures, which the user has access to and this
+snapshot does not carry in full.
+
+9. **Leaving a dungeon has to be gated on server state, not on the client's
+   tutorial flags.** `CX2StateDungeonGame` sends `EGS_LEAVE_ROOM_REQ` and then
+   waits for *two* things before it will unwind: the ACK, and an
+   `EGS_UPDATE_UNIT_INFO_NOT`. Phase 4 suppressed the second one for tutorial
+   rooms and picked `GetIsExitingTutorial()` to detect them — which is wrong in
+   the worst way, because that flag is set when the tutorial is *left*
+   ([X2StateDungeonGame.cpp:1448](X2Lib/X2StateDungeonGame.cpp#L1448)) and
+   cleared only on the way back to character select, PvP lobby or unit select.
+   So it reads true for the rest of the session and every subsequent dungeon
+   becomes inescapable — six `EGS_LEAVE_ROOM_REQ`/`ACK` pairs in the packet log
+   with no `_NOT` between them. `GetIsPlayingTutorial()` is no better; it is
+   cleared one line *before* the REQ is sent (:1445). The room is the server's
+   own object, so the offline server tracks `KOfflineRoom::m_bTutorial` when it
+   creates one and asks that instead. **The general rule: never branch offline
+   server behaviour on a client flag whose lifetime the client owns.**
+
+10. **`dbo.gup_create_unit_set_promotion` creates nothing.** The name says
+    otherwise and it is the procedure the create path calls right after
+    `gup_create_unit` ([GSGameDBThread.cpp:7723](KncWX2Server/GameServer/GSGameDBThread.cpp#L7723)),
+    but its whole body is one INSERT into `GItemPeriod` — `7, DATEADD(DD,7,…)` —
+    for the rows already at `InventoryCategory = 9 AND SlotID NOT IN (1,3,5,7,9)`.
+    It *dates* the costume; it does not grant it. The starting items come from
+    inside `gup_create_unit` itself, copied out of a table:
+
+    ```sql
+    INSERT INTO dbo.GItem (UnitUID, ItemID, InventoryCategory, SlotID, UsageType, Quantity, Endurance, Inserted, RegDate)
+    SELECT @iUnitUID, ItemID, InventoryCategory, SlotID, UsageType, Quantity, Endurance, 125, @sdtNow
+    FROM dbo.GBase_Item WITH(NOLOCK) WHERE UnitClass = @iUnitClass_
+    IF @@ERROR <> 0 OR @@ROWCOUNT <> 10   -- @iOK = -28
+    ```
+
+    Exactly ten rows per class, and all ten are positioned — a new character is
+    created with everything already worn. The earlier claim in this record that
+    "the real `gup_create_unit` inserts no items at all" was read off the copy
+    in `DataBase/`, which predates the `GBase_Item` refactor.
+
+11. **Equip slot IDs are `CX2Unit::NESI_*`, and the odd/even split is the
+    fashion layer.** ([X2Unit.h:223](X2Lib/X2Unit.h#L223))
+
+    | Slot | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+    |---|---|---|---|---|---|---|---|---|---|---|
+    | | BODY | BODY_FASHION | LEG | LEG_FASHION | HAND | HAND_FASHION | FOOT | FOOT_FASHION | WEAPON | WEAPON_FASHION |
+
+    So `GBase_Item`'s ten rows are five gear pieces at 9/1/3/5/7 and five
+    costume pieces at 10/2/4/6/8, and `set_promotion`'s `NOT IN (1,3,5,7,9)`
+    is "the costume half" — which is what makes the 7-day period a costume
+    rental rather than a limit on the gear.
+
+12. **A UseLevel the character has not reached is not a reason to move an item
+    to the bag.** The beginner set is UseLevel 2 and a new character is level 1,
+    and the first version of this shipped it into the bag on the strength of
+    `CX2Unit::ResetEqip` → `IsPossibleAddEqip` → `EqipAbility` →
+    `CanEquipAsParts( .., m_Level )` rejecting it
+    ([X2Unit.cpp:255](X2Lib/X2Unit.cpp#L255)). That chain is real, but it only
+    governs `m_NormalEqipItemUIDList` — the stat and render lists. **The
+    equipment window is drawn from inventory category 9**, so an item in an
+    equip slot shows there whether or not `ResetEqip` accepted it. Live ships
+    the same UseLevel-2 data into the same slots at level 1, so putting it in
+    the slots reproduces live exactly: visible from the start, inert until the
+    first level-up. Reasoning from one validation path to "therefore it cannot
+    go there" skipped the question of what actually draws the UI.
+
+13. **The item IDs are `dbo.GBase_Item`'s, and the two available sources
+    disagree.** Before the live table was available this record derived the
+    beginner gear from `ScriptData/ItemTemplet.xlsx`'s 2013-reform block —
+    `<class>002000` for the weapon and `+50/+140/+230/+320` for the armour,
+    whose equip positions do line up one for one (`2 = EP_WEAPON_HAND`,
+    `8 = EP_DEFENCE_BODY`, `9 = LEG`, `10 = HAND`, `11 = FOOT`). The live
+    `GBase_Item` names a different set entirely — `131641..` / `111094..`, and
+    `112700..` for Ara — and **none of those IDs appear anywhere in this tree's
+    `ItemTemplet.xlsx`**, checked by raw byte search across all 33 of its parts,
+    not just the column the earlier lookup read. Neither source is wrong; the
+    spreadsheet in this snapshot and the database the client was served by are
+    simply from different points in the game's life, and which one an install
+    resolves depends on what is packed in its `.kom`.
+
+    So the seeder tries `GBase_Item` first — it is what actually built
+    characters — falls back to the xlsx block for classes 1–5 where it exists,
+    and **logs which source each piece came from**. Both are real, citable data;
+    neither is derived, which is what keeps this inside the project's fallback
+    rule rather than outside it. If the log reports pieces as `unresolvable`,
+    that is the install's packed item table differing from live, and it is
+    visible rather than silent.
+
+    The table also settles the classes the repo could not: Chung is
+    `111114..111118` / `133125..133129`, and **classes 7, 8 and 9 all carry
+    Ara's set verbatim** — Elesis appears to have been given Ara's row and never
+    corrected, and class 9 is unreachable because `gup_create_unit` rejects any
+    class outside 1–8. Transcribed as-is rather than "fixed", with a log line
+    when a class is handed a set that is not its own.
+14. **Clearing a dungeon needs `EGS_DUNGEON_KILLALLNPC_CHECK_NOT`, not just the
+    ACK — and getting it wrong hangs the run with no error anywhere.** Found by
+    play-testing: the boss dies, the clear effect plays, and then the client
+    sits in the finished room heartbeating forever. Nothing appears as
+    `UNHANDLED`, because the client is not waiting on a packet — it is waiting on
+    a timer that was never started.
+
+    The chain: `KDungeonRoom` answers the host's check with
+    `ERM_DUNGEON_KILLALLNPC_CHECK_ACK` **and then**, when the result is true,
+    `BroadCastID( ERM_DUNGEON_KILLALLNPC_CHECK_NOT )` to every member
+    ([CenterServer/DungeonRoom.cpp:8886](KncWX2Server/CenterServer/DungeonRoom.cpp#L8886)),
+    which each GameServer forwards to its own client as
+    `EGS_DUNGEON_KILLALLNPC_CHECK_NOT`
+    ([GSUserSecurity.cpp:1722](KncWX2Server/GameServer/GSUserSecurity.cpp#L1722)).
+    Only the `_NOT` handler calls `CX2DungeonSubStage::ClearDungeonGame()`, and
+    that is what sets `m_fEndGameDelay = 7.0f` and starts the ending event
+    ([X2DungeonSubStage.cpp:1223](X2Lib/X2DungeonSubStage.cpp#L1223)). With
+    `m_fEndGameDelay` left at 0 the countdown block in `OnFrameMove` never runs
+    at all, and that countdown is the **only** thing that ever calls
+    `EndDungeonGameReq()` — so `EGS_END_GAME_REQ` is never sent and the result
+    screen never comes.
+
+    What makes this findable only by reading the flags: the client's *own* ACK
+    handler used to call `ClearDungeonGame()`, and that call is
+    `#ifndef SERV_FIX_NONE_NPC_DUNGEON_LINES`
+    ([X2StateDungeonGame.cpp:3555](X2Lib/X2StateDungeonGame.cpp#L3555)). The flag
+    **is** defined — `ServerDefine.h:2645`, reachable from `X2Lib` through
+    `X2ServerPacket.h` → `CommonPacket.h` — so that path is compiled out and the
+    2013 refactor moved the work onto the broadcast. Reading the ACK handler
+    alone shows a clear that appears to happen locally.
+
+    Two more traps in the same function, for whoever reads it next: the block at
+    `X2DungeonSubStage.cpp:607` that also starts the ending event is inside an
+    `#if 0`, so it is not a second path; and the end-game countdown gates on
+    `GetDungeonEndingEvent()->m_bEndChapter1` and re-arms itself with
+    `m_fEndGameDelay = 1.f` when it is false, which is a second, independent way
+    for the same symptom to appear.
+
+    **Phase 4's correction 6 for the fifth time.** The running score for `_NOT`
+    packets that do real work rather than merely informing: `EGS_DROP_ITEM_NOT`,
+    `EGS_USE_QUICK_SLOT_NOT`, `EGS_UPDATE_UNIT_INFO_NOT`,
+    `EGS_GET_ITEM_REALTIME_NOT`, and now `EGS_DUNGEON_KILLALLNPC_CHECK_NOT`.
+    **Treat "the ACK is enough" as the null hypothesis to disprove, not the
+    default** — for any REQ whose real-server handler is in a room or FSM class,
+    grep the CenterServer room for a `BroadCast*` on the same event before
+    calling the handler done.
+
+15. **`EGS_SKILL_USE_REQ` is fire-and-forget and correctly left unhandled.** It
+    shows up in `offline_packets.log` as `UNHANDLED` once per skill cast, which
+    looks alarming and is not: `CX2GUUser::Send_SKILL_USE_REQ` has its
+    `AddServerPacket( EGS_SKILL_USE_ACK, 60.f )` commented out
+    ([X2GUUser.cpp:33725](X2Lib/X2GUUser.cpp#L33725)), so the client never waits
+    for a reply. On the live server it feeds statistics and skill-use quest
+    counters; offline it has nothing to feed.
+
+16. **A zeroed `m_iSpiritMax` is a NaN, and a NaN is a stretched bitmap.** The
+    stamina gauge rendered as a bar spanning most of the screen with a
+    `-1.$%` tooltip. Phase 3 sent `m_iSpiritMax = 0` and `m_iSpirit = 0` as
+    placeholders, and every consumer computes `m_iSpirit / (float)m_iSpiritMax`
+    with no guard at all — `0.0f/0.0f` is NaN, `NaN * originalSize.x` is the
+    width handed to `SetSizeX`, and `StringCchPrintfW( …, L"%.1f%%", … )` renders
+    NaN as exactly `-1.$` under MSVC
+    ([X2StateMenu.cpp:3378](X2Lib/X2StateMenu.cpp#L3378)). The tooltip text was
+    the thing that identified it: a garbled float is a much better clue than a
+    misdrawn bar.
+
+    **The lesson is about zero as a placeholder, not about spirit.** Phase 3
+    zeroed every field it had no data for, which is right for a count and wrong
+    for a denominator. Worth a sweep of the other placeholder zeroes for the
+    same shape: anything the client divides by, or uses as a `%` numerator's
+    base, cannot be left at 0.
+
+    **That sweep was done** — every float-cast member denominator in `X2Lib`'s
+    gameplay code, not just the ones with `Max` in the name:
+
+    ```sh
+    grep -rnoE "/ *\( *float *\) *\(?[A-Za-z_][A-Za-z0-9_]*(->|\.)[A-Za-z0-9_]+" X2Lib/*.cpp \
+      | sed 's/^[^:]*:[0-9]*://' | sort | uniq -c | sort -rn
+    ```
+
+    It comes back clean. Besides `m_iSpiritMax` (11 sites once the long
+    `g_pData->GetMyUser()->…` spellings are counted) the only server-fed
+    denominator is `channelInfo.m_iMaxUser`, which phase 2 already sends as 100
+    ([Handlers_Login.cpp:107](X2Lib/Offline/Handlers_Login.cpp#L107));
+    `pSquareSlot->m_JoinMaxNum` is unreachable because offline never builds a
+    square slot, and the `pkItemTemplet->…Endurance` divisions read the client's
+    own item table rather than anything the offline server sends.
+
+17. **EXP is paid per kill, not at the end of the run — and paying it at the end
+    meant field EXP was never paid at all.** Phase 4 accumulated every kill into
+    `KOfflineRoom::m_iRewardEXP` and applied the total at `EGS_END_GAME_REQ` or
+    `EGS_LEAVE_ROOM_REQ`. That is fine for a dungeon and silently broken for a
+    field: **a field is never ended and never left.** The player walks out
+    through `EGS_STATE_CHANGE_FIELD_REQ`, so the accumulator was simply
+    discarded, and a character could grind a field indefinitely without gaining
+    a single point.
+
+    It presented as "the EXP bar is full but I don't level up", which is worth
+    unpacking because the two halves have different causes. The bar filled
+    because **the client adds the EXP to its own unit data as each kill
+    notification arrives** — `pMyUnitData->m_EXP += iExp` in
+    `CX2Game::ProcessExpListByNpcUnitDie`
+    ([X2Game.cpp:7498](X2Lib/X2Game.cpp#L7498)) — so the display was live and
+    local. The level never moved because the client never levels itself; only
+    the server grants a level, and ours was never asked to. The save confirmed
+    it: `level 1, exp 468`, with no `REWARD` line anywhere in the log.
+
+    The real server does it per kill. `KGSUser`'s `ERM_NPC_UNIT_DIE_NOT` handler
+    runs `SendPacket( EGS_NPC_UNIT_DIE_NOT, … )`, then
+    `m_kEXP.AddExp( SumEXP() )`, then `CheckCharLevelUp()`, on **every monster**
+    ([GSUserRoomCommon.cpp:1959](KncWX2Server/GameServer/GSUserRoomCommon.cpp#L1959)).
+    `ApplyDungeonReward` now runs from the NPC-die handler, and the two former
+    payout sites were corrected rather than merely left alone:
+    `EGS_LEAVE_ROOM_REQ` pays nothing at all now, and `EGS_END_GAME_REQ` pays
+    **only the 30% clear bonus** — paying `iAddEXP` again there would have
+    doubled every dungeon. The result screen's `m_nOldEXP` also had to become
+    `kBefore.m_iEXP - iAddEXP`, the same correction the ED line already carried,
+    or the bar animates from the finished total to itself.
+
+    **The shape to watch for: a reward model that assumes an end.** Anything
+    accumulated in `KOfflineRoom` and settled on exit is wrong for a field, and
+    the field will not complain. `m_iKillNPCNum` and `m_iRewardED` are still
+    accumulators, but both are display-only on the result screen, which a field
+    never shows.
+
+18. **`EGS_TALK_WITH_NPC_REQ` has to be answered or every village NPC throws an
+    error dialog.** Clicking any NPC sends it and registers a wait
+    ([X2TFieldNpc.cpp:2198](X2Lib/X2TFieldNpc.cpp#L2198)); with no ACK the wait
+    expires and the client raises its own "no reply from the server" popup — the
+    `E_SYSTEM_*` code seen on screen. The conversation itself is entirely
+    client-side, so the ACK was all that was missing. `KGSUser` answers
+    `NET_OK` and then runs the quest manager and title manager
+    ([GSUserGameCommon.cpp:1660](KncWX2Server/GameServer/GSUserGameCommon.cpp#L1660));
+    neither system exists offline, so neither is faked. Its only refusal,
+    `ERR_ITEM_14`, is for talking mid-trade, which one player cannot do — so the
+    answer is unconditional.
+
+19. **A level-up is silent unless `EGS_CHAR_LEVEL_UP_NOT` is sent.** Correction
+    17 made levels actually happen; this is the half that makes them *look* like
+    they happened. The client has no other route to the effect: the packet's
+    handler is what assigns the new level and both stats, refills HP and MP,
+    calls `DisplayLevelUpEffect`, and sets `CX2Unit::SetIsLevelUp( true )`
+    ([X2StateMenu.cpp:4576](X2Lib/X2StateMenu.cpp#L4576)). That flag is then read
+    in two more places — the village replays the effect off it on its next frame
+    ([X2TFieldGame.cpp:1932](X2Lib/X2TFieldGame.cpp#L1932)), and the dungeon
+    result screen keys its level-up animation off it
+    ([X2StateDungeonResult.cpp:1121](X2Lib/X2StateDungeonResult.cpp#L1121)) — so
+    one missing packet costs three separate pieces of presentation.
+
+    Sent from both places a level can be gained: the per-kill path, and
+    `EGS_END_GAME_REQ` when the 30% clear bonus is what tips it over. Unlike
+    `EGS_UPDATE_UNIT_INFO_NOT` it is safe to send from anywhere — the village,
+    the dungeon and the battlefield all dispatch it
+    (`X2StateField.cpp:1138`, `X2StateDungeonGame.cpp:1902`,
+    `X2StateBattleField.cpp:361`) and none of them touch the dungeon leave gate.
+    It carries **both** stats, base and game: the handler assigns each over the
+    unit's own and rebuilds max HP from the game one, so sending only the base
+    stat would strip the character's gear bonuses at the moment it levelled.
+
+    `ScriptData/ExpTable.xls` is the EXP curve, in the clear: three columns,
+    level / required EXP / cumulative total, 80 rows. Useful for reading a
+    level's threshold without touching the packed client tables — level 2 is 600
+    and level 50 is 38,676,300 — and it is the table the client's own
+    `GetEXPData( n ).m_nTotalExp` mirrors. Reading it needs `xlrd`; the file is
+    the old binary `.xls` format, not `.xlsx`.
+
+    Fixed in `KUnitInfo` only, and that is sufficient:
+    `SERV_DELETE_ROOM_USER_INFO_DATA` is defined in this build, so
+    `KRoomUserInfo` no longer carries the pair and the block in
+    `CX2Unit::UnitData::SetKRoomUserInfo` that used to copy it
+    ([X2Unit.cpp:3446](X2Lib/X2Unit.cpp#L3446)) is compiled out. Entering a room
+    cannot clobber what `SetKUnitInfo` put on the unit, and the dungeon room's
+    own gauge reads the unit rather than the slot
+    ([X2StateDungeonRoom.cpp:3029](X2Lib/X2StateDungeonRoom.cpp#L3029)) — the
+    first attempt at this fix set the fields on `KRoomUserInfo` too and failed
+    to compile, which is how the flag was found.
+
+
+### Packets the plan did not predict
+
+Answered, with the rules ported from `KInventory` / `KUserSkillTree`:
+
+```
+EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ/ACK   moving, swapping, equipping, stacking
+EGS_CHANGE_EQUIPPED_ITEM_IN_FIELD_NOT    redraws the village character
+EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT     redraws the in-dungeon character
+EGS_DELETE_ITEM_REQ/ACK                  discarding
+EGS_SORT_CATEGORY_ITEM_REQ/ACK           the sort button
+EGS_USE_ITEM_IN_INVENTORY_REQ/ACK        right-click use, GetCanUseInventory only
+EGS_USE_QUICK_SLOT_REQ/ACK + _NOT        the consumable bar
+EGS_BUY_ED_ITEM_REQ/ACK                  the ED shops
+EGS_SELL_ED_ITEM_REQ/ACK                 selling back
+EGS_REPAIR_ITEM_REQ/ACK                  the blacksmith
+EGS_GET_SKILL_REQ/ACK                    learning and upgrading
+EGS_RESET_SKILL_REQ/ACK                  one skill back down
+EGS_INIT_SKILL_TREE_REQ/ACK              the whole tree
+EGS_CHANGE_SKILL_SLOT_REQ/ACK            the eight equipped slots
+```
+
+The drop chain, which phase 4 listed only as `EGS_GET_ITEM_REQ`:
+
+```
+EGS_DROP_ITEM_NOT                        puts the item on the floor
+EGS_GET_ITEM_ACK                         clears the client's 60s wait
+EGS_GET_ITEM_NOT                         draws the pickup, removes the sprite
+EGS_GET_ITEM_REALTIME_NOT                the packet that adds it to the bag
+```
+
+Refused rather than left unhandled, because each arms an `AddServerPacket` wait
+and a dropped one becomes a modal network error five seconds later:
+
+```
+EGS_ENCHANT_ITEM_REQ/ACK    ERR_ENCHANT_ITEM_00
+EGS_SOCKET_ITEM_REQ/ACK     ERR_SOCKET_ITEM_00
+```
+
+Neither implemented nor refused, so they will appear as `UNHANDLED` in the
+packet log if an NPC reaches them: identify, evaluate, resolve, synthesis,
+manufacture, item exchange, seal/unseal, attribute enchant, random-item cubes,
+titles, the bank, pet inventories, the temp inventory, trade and the personal
+shop. All need server tables with no client copy, or belong to phase 7. Ten
+speculative refusals with guessed error codes would be worse than a log line
+naming exactly which packet the player reached.
+
+### What was actually built, against *Code layout to create*
+
+New, and the plan predicted one of the four:
+
+```
+X2Lib/Offline/Handlers_Inventory.cpp     predicted
+X2Lib/Offline/Handlers_Skill.cpp         the skill half needed its own file
+X2Lib/Offline/X2OfflineInventory.h/.cpp  KInventory, reduced to one character
+X2Lib/Offline/X2OfflineSkill.h/.cpp      KUserSkillTree, likewise
+```
+
+Extended:
+
+```
+X2OfflineDB           schema v4, item and skill CRUD, SaveSkillPoint
+X2OfflineDropTable    the item lottery - DropItemList, DropGroupList, AddToGroup
+X2OfflineServer       MakeGameStat, equipped items and skills in every KUnitInfo
+Handlers_Room         drops on a kill, the pickup chain, SP on level-up
+Handlers_Unit         SELECT_UNIT_1_NOT filled, default skills seeded on create
+```
+
+No client-side edits at all this phase, and no new `SERV_IRUHADEV_` flag — every
+rule this phase needed already had a client-side accessor.
+
+Schema v4 is additive (eleven `ALTER TABLE`s on `item`, one on `unit`, one on
+`unit_skill`), so a v3 save upgrades rather than being wiped. The migration and
+every new statement were dry-run against a copy of the live `els_db.sql` before
+the build was deployed.
+
+### Decisions made while implementing phase 5
+
+1. **Write-through, no flush.** Every mutation writes its row to SQLite before
+   the handler returns. The real server batches because it has thousands of
+   users and a DB round trip; here a drag is one `UPDATE` on a local file at
+   human speed, and the exit test is *every change persisted exactly* — which
+   write-through is the only shape that cannot get wrong.
+
+2. **Equippability is not ported, it is called.** `KInventory::IsAbleToEquip`
+   needs `CompareLevel` plus `CompareUnitClass`, and the latter needs the
+   class-compatibility table that `X2Lib` exposes nowhere — except inside
+   `CX2Unit::CanEquipAsParts`, which is static, is the client's own check, and
+   already contains both halves. `IsSuitableSlot` *is* ported, because it is
+   pure templet arithmetic with no client equivalent.
+
+3. **Item UIDs are SQLite row ids.** The client keys its own inventory by item
+   UID and addresses items that way in `EGS_DELETE_ITEM_REQ`, so they have to
+   survive a relog; `AUTOINCREMENT` gives that for free and keeps the save file
+   hand-readable at the same time.
+
+4. **Cash skill points are always zero and always expired.** Not a stub: it is
+   the branch `KUserSkillTree::GetNecessarySkillPoint` takes for an account with
+   no cash-skill ticket, so every cost is paid in plain SP through the studio's
+   own code path rather than a special case of ours.
+
+5. **SP per level comes from the client's Lua, not from a table of ours.**
+   `CX2SkillTree::GetCalcInitSkillPoint` already sums
+   `CalcLevelUpIncreaseSkillPoint( level )` over the levels
+   ([X2SkillTree.cpp:4044](X2Lib/X2SkillTree.cpp#L4044)), which is the same
+   function `CXSLSkillTree::GetCalcLevelUpIncreaseSkillPoint` read on the
+   server. A level-up grants the difference between two calls to it.
+
+6. **A single-skill reset does not require the scroll; a full tree reset does.**
+   The real server refuses both without the consumable.
+   `EGS_INIT_SKILL_TREE_REQ` *names* an item UID — the client only sends it when
+   the player uses that scroll — so requiring it changes nothing.
+   `EGS_RESET_SKILL_REQ` names no item, and the scroll is a cash-shop item with
+   no offline source until phase 7, so requiring it would make a feature this
+   phase is supposed to deliver impossible to use. It consumes a scroll when
+   there is one and logs which of the two happened every time.
+
+7. **Drops use the drop table's own probability, unmodified.**
+   `KDropTable::NpcDropItem` multiplies it by contribution, dungeon factor,
+   level factor and a party bonus; all four are 1.0 here, which is the same
+   simplification phase 4 already made for EXP and ED — contribution is 1.0 for
+   a solo player who did all the damage, the party bonus is 1.0 for a party of
+   one, and the other two are room state the offline server does not model.
+   Consistency with phase 4 matters more than picking a different guess.
+
+8. **ED drops as coins on the floor, and only the pickup credits it.**
+   *Reversed 2026-09-02 — the original decision was "no ED coins", on the
+   grounds that phase 4 already credits a kill's ED out of `GetNpcReward` and
+   dropping coins as well would pay twice. It does not double-pay, but it does
+   make the money invisible: `EDProperty = 100` in `DropTable.lua` means the
+   live game drops a coin on essentially every kill, and a player watching a
+   monster die and leave nothing behind reads "drops are broken" — which is
+   exactly what happened in the play-test.* The kill no longer credits ED
+   directly. Instead `PushNpcDrop` splits the reward into `(rand()%2)+2` coins
+   of `iED/iCoinNum`, records them in `KOfflineRoom::m_mapDropED`, and
+   `EGS_GET_ITEM_REQ` moves each into `m_iCollectedED` as it is picked up, with
+   `EGS_GET_ITEM_NOT`'s `m_mapGetED` filled so the client animates it. The
+   result screen then reports `m_iCollectedED`, so **ED left on the floor is
+   ED not earned** — same as live. Coin tier follows the amount (`EDCoinImage`
+   bronze / silver / gold at ≤50 / ≤150 / above).
+
+9. **Drops come out at +0 and identified.** `RandomEnchant` and
+   `ItemSealProcess` read the enchant-event and seal tables, which are server
+   data with no client copy, and `m_cItemState` is set to `IS_NORMAL` so nothing
+   needs the identify NPC that is not implemented. An invented enchant curve
+   would be exactly the band-aid the project rule names.
+
+10. **A full bag loses the drop, and says so.** The real server parks it in a
+    temp inventory with its own screen and packets; that is a subsystem, not a
+    line of code. The pickup logs `the temp inventory is not implemented
+    offline, so it is lost` rather than silently doing nothing.
+
+11. **Gear never wears out, and repair is implemented anyway.** Endurance decay
+    per stage is real behaviour and is *not* implemented — wearing gear out
+    without a working repair path would be strictly worse than neither. Repair
+    is implemented because it is exact from client data alone (the per-point
+    cost is on the templet) and because clicking Repair at the blacksmith has to
+    answer rather than time out. It will report zero cost until decay lands.
+
+12. **`m_kGameStat` is base plus gear everywhere, through one function.**
+    `MakeGameStat` loads the row's *own* inventory first, so the three places
+    that send a game stat — `KUnitInfo`, `KRoomUserInfo` and
+    `EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT` — cannot drift or pick up the wrong
+    character's weapon. Socket and enchant contributions are left out because
+    nothing offline can produce either.
+
+13. **A skill slot pointing at a level-0 skill is dropped on load.** A skill
+    reset to level 0 keeps its `unit_skill` row on purpose — the client draws
+    level 0 differently from never-learned — and the row keeps its slot column.
+    Honouring that slot would put an unusable skill on the bar.
+
+14. **An item that cannot be placed on load is kept, not deleted.** Stock
+    `KInventory::Init` relocates a wrong-position item rather than dropping it;
+    so does `CX2OfflineInventory::Load`, and when there is nowhere to relocate
+    it the row stays in the save file, out of the slot grid, with a log line.
+    The one thing that produces this is a slot-count change between builds —
+    reverting `SERV_IRUHADEV_QUICK_SLOT_FULL_FREE`, say, which `MODS.md` already
+    warns about.
+
+15. **Spirit — the stamina gauge — is not modelled, and reports full.** Nothing
+    offline consumes it, nothing regenerates it, and no dungeon is refused for
+    lack of it. Since every consumer displays only the ratio
+    `m_iSpirit / m_iSpiritMax`, reporting the two *equal* renders the full gauge
+    that "not modelled" calls for, and the value itself never reaches the
+    screen. `CX2OfflineServer::FillSpirit` sends both as `SHRT_MAX`, chosen
+    because `dbo.GSpirit.Spirit` is a `smallint` — so it is the largest spirit
+    the shipped schema can hold, and therefore cannot be smaller than any
+    `DungeonData::m_RequireSpirit` the real system could have set. That makes it
+    a bound read out of the repo rather than a number picked to look plausible,
+    and it is named `SPIRIT_FULL` rather than `MAX_SPIRIT` so it cannot be
+    mistaken for the real table value.
+
+    **To model it properly, two things are needed and both are the user's to
+    supply.** The maximum and the per-level curve live in the GameServer's
+    `SpiritTable.lua`, which defines `MAX_SPIRIT` plus `{ LEVEL, SPIRIT }` rows
+    read by `KSpiritTable::SetMaxSpirit_LUA` / `AddSpiritTable_LUA`
+    (`KncWX2Server/GameServer/SpiritTable.cpp`) — and that file **is not in this
+    tree at all**, only the C++ that loads it, so it would have to come off the
+    live server's GameServer resource directory and then be XOR-encrypted and
+    packed into `data036.kom` like every other script the client reads. The
+    creation value is `dbo.GResurrectionStoneCnt.StartSpirit`, one row, which
+    `gup_create_unit` reads into `GSpirit`. `KSpiritTable`'s constructor never
+    initialises `m_iMaxSpirit`, so there is no in-repo default to fall back on
+    and none was invented.
+
+16. **The promotional costume is permanent here, and live rents it for 7 days.**
+    `gup_create_unit_set_promotion` gives every costume piece a `GItemPeriod`
+    row of seven days (correction 10), so on live it expires. Implementing that
+    means item-period expiry — a clock, a sweep, an expiry notification and a
+    UI that shows remaining days — which is a subsystem and not in this phase.
+    A costume that silently vanished a week into a save would read as a
+    persistence bug, i.e. as the very thing this phase's exit test is checking,
+    so the divergence is deliberate and the creation log says so out loud:
+    `(permanent here; live gives it a 7-day period)`.
+
+### Operational notes, extending the earlier phases'
+
+- **Dry-run a schema migration against a copy of the live save before
+  deploying.** Thirteen `ALTER TABLE`s and eight new prepared statements went in
+  this phase; running them through Python's `sqlite3` against a copy of
+  `els_db.sql` took about a minute and would have caught a mistyped column name
+  that no C++ compiler can see. Copy the whole WAL set, as phase 2's note says.
+- **`grep -rho 'AddServerPacket( *[A-Z_0-9]*' X2Lib/*.cpp` is the phase-5
+  checklist, not just a debugging aid.** Filtering its 333 armed waits down to
+  the ones with ITEM / SKILL / INVEN / QUICK / SHOP in the name is how the
+  repair and sort packets got found before a play-test hit them, and also how
+  the list of things deliberately left unhandled got written down rather than
+  discovered.
+- **An ACK shaped like `KPacketOK` does not mean the reply is trivial.**
+  `EGS_GET_ITEM_ACK` is a bare `m_iOK`, and the pickup it acknowledges takes
+  three more packets to complete. Read who consumes the `_NOT`s before assuming
+  the ACK is the whole story.
+- **`MakeUnitInfoFromRow` runs once per character in the list, so anything it
+  loads must be keyed by that row's unit UID.** Two of this phase's near-misses
+  (correction 5, decision 12) were the same shape: a helper that reads "the
+  current character" is wrong inside a loop over all of them.
+- **Known risk, carried over rather than fixed:** `SkillPointForLevel` calls
+  into the client's Lua state from the session worker thread, as phase 3's stat
+  table and phase 4's dungeon-script reader already do. It fires on level-up,
+  when the main thread is on the results screen. If a level-up ever corrupts the
+  Lua state, this is the first place to look, and the fix is to cache the curve
+  at load rather than call per level-up.
 
 ---
 

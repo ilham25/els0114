@@ -179,16 +179,38 @@ bool CX2OfflineServer::Handler_EGS_CREATE_UNIT_REQ( KOfflineSession& kSes, const
 		return Reply( kSes, EGS_CREATE_UNIT_ACK, kAck );
 	}
 
+	// The class's starting skills. dbo.gup_create_unit's own four skill IDs
+	// (10000 / 20030 / 30000 / 40010, classes 1-4 only) predate
+	// UPGRADE_SKILL_SYSTEM_2013 and do not exist in this build's SKILL_ID enum,
+	// and that DataBase/ snapshot knows nothing of Eve, Chung, Ara or Elesis
+	// either - so it is not a usable source. The client's own default-skill map
+	// is, and it is the same one CX2UserSkillTree::SetDefaultSkill reads.
+	//
+	// Seeded before MakeUnitInfoFromRow, so the KUnitInfo it builds carries the
+	// slot assignments rather than an empty bar.
+	CX2OfflineSkill::Instance()->SeedDefaultSkills( kRow.m_nUnitUID, kRow.m_iUnitClass );
+
+	// The class's five-piece promotional costume, worn.
+	//
+	// Phase 5 first shipped without this on the strength of dbo.gup_create_unit
+	// inserting no items, which is true and is also not the whole story: the
+	// costume comes from a second call the create path makes right after it,
+	// dbo.gup_create_unit_set_promotion (GSGameDBThread.cpp:7723). That proc is
+	// not in the DataBase/ snapshot, but its item list is - twice over, in the
+	// client's own creation-screen arrays and in dbo.gup_create_promotion_unit.
+	// See CX2OfflineInventory::SeedPromotionItems.
+	CX2OfflineInventory::Instance()->SeedPromotionItems( kRow.m_nUnitUID, kRow.m_iUnitClass );
+
+	// And the beginner equipment - weapon, body, leg, hand, foot - which goes
+	// in the bag rather than the equip slots because the whole set is UseLevel 2
+	// and the character is level 1. See SeedBeginnerGear.
+	CX2OfflineInventory::Instance()->SeedBeginnerGear( kRow.m_nUnitUID, kRow.m_iUnitClass );
+
 	MakeUnitInfoFromRow( kAck.m_kUnitInfo, kRow );
 
-	// No starting gear and no starting skill. That is not an omission: the real
-	// dbo.gup_create_unit inserts no items at all, and the one skill it does
-	// insert (10000 / 20030 / 30000 / 40010, for classes 1-4 only) predates
-	// UPGRADE_SKILL_SYSTEM_2013 - those IDs do not exist in this build's
-	// CX2SkillTree::SKILL_ID enum, and that DataBase/ snapshot knows nothing of
-	// Eve, Chung, Ara or Elesis either. Seeding from it would write skill IDs
-	// the client cannot resolve. The unit_skill table is in the schema and gets
-	// populated when the skill tree itself is wired up.
+	// m_vecSkillSlot is left empty because nothing reads it: the client takes
+	// its slot assignments from m_kUnitInfo.m_UnitSkillData, which
+	// MakeUnitInfoFromRow has just filled.
 	kAck.m_vecSkillSlot.clear();
 
 	CX2OfflineLog::Server( L"CREATE   '%s' class=%d -> unitUID=%I64d",
@@ -424,6 +446,13 @@ bool CX2OfflineServer::Handler_EGS_SELECT_UNIT_REQ( KOfflineSession& kSes, const
 
 	pDB->TouchLastDate( kRow.m_nUnitUID );
 
+	// The inventory and the skill tree come up here, before the five
+	// notifications that carry them. Both are idempotent for a character that
+	// is already loaded, so every later handler can call Load() without
+	// tracking whether this ran.
+	CX2OfflineInventory::Instance()->Load( kRow.m_nUnitUID );
+	CX2OfflineSkill::Instance()->Load( kRow.m_nUnitUID );
+
 	kSes.m_nSelectedUnitUID	= kRow.m_nUnitUID;
 	kSes.m_eState			= S_FIELD_MAP;
 
@@ -496,19 +525,40 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 		kNot.m_wstrUnitLastLoginDate	= CX2OfflineDB::FormatDate( kRow.m_tLastDate );
 		kNot.m_iRealDataED				= kRow.m_iED;
 
-		pDB->LoadInventorySizes( kRow.m_nUnitUID, kNot.m_mapInventorySlotSize );
+		// The inventory (phase 5). CX2Unit::ResetInventory sizes every category
+		// from the size map and then fills it from the item map, so both halves
+		// have to be right - a missing size row collapses that category to zero
+		// slots and hides whatever is in it.
+		CX2OfflineInventory* pInven = CX2OfflineInventory::Instance();
 
-		// No items yet - the inventory is phase 5. The sizes still have to be
-		// right now, because CX2Unit::ResetInventory sizes every category from
-		// this map and anything missing collapses to zero slots.
-		kNot.m_mapItem.clear();
+		pInven->Load( kRow.m_nUnitUID );
 
+		kNot.m_mapInventorySlotSize	= pInven->GetSlotSizes();
+		pInven->GetAllItems( kNot.m_mapItem );
+
+		// Resurrection stones are an item, not a counter - the count is how
+		// many of that item the character holds. Zero until there is a way to
+		// obtain one, which is the cash shop in phase 7; the dungeon-death
+		// handler already refuses resurrection (phase 4 decision 7) and will
+		// keep agreeing with this number.
 		kNot.m_iNumResurrectionStone		= 0;
 		kNot.m_iNumAutoPaymentResStone		= 0;
 		kNot.m_wstrAutoPayResStoneLastDate	= CX2OfflineDB::FormatDate( kRow.m_tRegDate );
 
-		kNot.m_vecSkillAcquired.clear();
+		// The skill tree (phase 5). SetAcquiredSkill replaces the client's whole
+		// skill map from this vector, and nothing calls SetDefaultSkill on this
+		// path - so a class's starting skills have to be in here, which is why
+		// character creation seeds them into unit_skill.
+		CX2OfflineSkill* pSkill = CX2OfflineSkill::Instance();
+
+		pSkill->Load( kRow.m_nUnitUID );
+		pSkill->GetAcquiredSkills( kNot.m_vecSkillAcquired );
+
+		// Skill unsealing is a cash item that lifts the level cap on one skill.
+		// Nothing offline seals or unseals anything, and an empty list reads as
+		// "no skill has been unsealed", which is correct rather than a stub.
 		kNot.m_vecSkillUnsealed.clear();
+
 		kNot.m_cSkillNoteMaxPageNum			= 0;
 		kNot.m_mapSkillNote.clear();
 

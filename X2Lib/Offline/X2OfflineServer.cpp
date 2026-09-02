@@ -243,6 +243,22 @@ bool CX2OfflineServer::OnClientSend( KSession* pSession, const KEvent& kEvent )
 	return true;
 }
 
+/*static*/ void CX2OfflineServer::FillSpirit( OUT int& iSpirit, OUT int& iSpiritMax )
+{
+	// Not MAX_SPIRIT, and deliberately not named as though it were: a sentinel
+	// whose only job is to make the ratio 1.0. SHRT_MAX because dbo.GSpirit
+	// stores Spirit as `smallint`, so it is the largest spirit the shipped
+	// schema can hold - which means it cannot be smaller than any dungeon's
+	// DungeonData::m_RequireSpirit that the real system could ever have set,
+	// and the entry check therefore always passes. Reading the column type is
+	// what makes this a bound taken from the repo rather than a number picked
+	// to look plausible.
+	const int SPIRIT_FULL = SHRT_MAX;
+
+	iSpirit		= SPIRIT_FULL;
+	iSpiritMax	= SPIRIT_FULL;
+}
+
 bool CX2OfflineServer::ReplyID( KOfflineSession& kSes, unsigned short usEventID )
 {
 	if( NULL == kSes.m_pSession )
@@ -294,8 +310,7 @@ bool CX2OfflineServer::ReplyID( KOfflineSession& kSes, unsigned short usEventID 
 	}
 
 	kOut.m_iED			= 0;
-	kOut.m_iSpiritMax	= 0;
-	kOut.m_iSpirit		= 0;
+	FillSpirit( kOut.m_iSpirit, kOut.m_iSpiritMax );
 
 	kOut.m_bDeleted		= false;
 	kOut.m_wstrLastDate	= NowString();
@@ -306,11 +321,31 @@ bool CX2OfflineServer::ReplyID( KOfflineSession& kSes, unsigned short usEventID 
 	// and m_Stat otherwise - so leaving both zeroed gives the village unit a max
 	// HP of 0.
 	//
-	// m_kGameStat is the same value as m_kStat here. On the real server it is
-	// base + equipped items + sockets; offline there is no gear yet (phase 5),
-	// so the two coincide. When gear lands, m_kGameStat is the one that grows.
+	// m_kStat is the character's own stat; m_kGameStat is that plus its gear,
+	// which is what the real server sends and what CX2GUUser::InitStat prefers
+	// when its base HP is above zero. Phase 3 and 4 made the two equal because
+	// there was no gear; since phase 5 there is, so the second one is built
+	// through MakeGameStat.
 	CX2OfflineStatTable::Instance()->GetUnitStat( (int)cUnitClass, iLevel, kOut.m_kStat );
+
+	// The gear half is left to MakeUnitInfoFromRow, which knows the unit UID
+	// and can load that unit's inventory first. Callers that only have a class
+	// and a level - the create-character reply - have no gear to add anyway.
 	kOut.m_kGameStat = kOut.m_kStat;
+}
+
+/*static*/ void CX2OfflineServer::MakeGameStat( const KOfflineUnitRow& kRow, OUT KStat& kOut )
+{
+	CX2OfflineStatTable::Instance()->GetUnitStat( kRow.m_iUnitClass, kRow.m_iLevel, kOut );
+
+	// Equipped gear on top, from *this* character's inventory. The Load is what
+	// makes that true: every caller here hands in a row, and the row says which
+	// character it is, so the stat cannot silently pick up the gear of whoever
+	// happened to be loaded last.
+	CX2OfflineInventory* pInven = CX2OfflineInventory::Instance();
+
+	if( true == pInven->Load( kRow.m_nUnitUID ) )
+		pInven->AddEquippedStat( kOut );
 }
 
 
@@ -389,6 +424,7 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ:
 											return Handler_EGS_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ( kSes, kEvent );
 	case EGS_DUNGEON_SUB_STAGE_CLEAR_REQ:	return Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_REQ( kSes, kEvent );
+	case EGS_TALK_WITH_NPC_REQ:			return Handler_EGS_TALK_WITH_NPC_REQ( kSes, kEvent );
 	case EGS_DUNGEON_KILLALLNPC_CHECK_REQ:	return Handler_EGS_DUNGEON_KILLALLNPC_CHECK_REQ( kSes, kEvent );
 
 	case EGS_NPC_UNIT_CREATE_REQ:			return Handler_EGS_NPC_UNIT_CREATE_REQ( kSes, kEvent );
@@ -411,6 +447,27 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 											return Handler_EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_REQ( kSes, kEvent );
 	case EGS_START_REWARD_BOX_SELECT_REQ:	return Handler_EGS_START_REWARD_BOX_SELECT_REQ( kSes, kEvent );
 	case EGS_SELECT_REWARD_BOX_REQ:			return Handler_EGS_SELECT_REWARD_BOX_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// inventory, equipment and the ED shop - Handlers_Inventory.cpp
+	case EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ:
+											return Handler_EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ( kSes, kEvent );
+	case EGS_DELETE_ITEM_REQ:				return Handler_EGS_DELETE_ITEM_REQ( kSes, kEvent );
+	case EGS_SORT_CATEGORY_ITEM_REQ:		return Handler_EGS_SORT_CATEGORY_ITEM_REQ( kSes, kEvent );
+	case EGS_USE_ITEM_IN_INVENTORY_REQ:		return Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( kSes, kEvent );
+	case EGS_USE_QUICK_SLOT_REQ:			return Handler_EGS_USE_QUICK_SLOT_REQ( kSes, kEvent );
+	case EGS_BUY_ED_ITEM_REQ:				return Handler_EGS_BUY_ED_ITEM_REQ( kSes, kEvent );
+	case EGS_SELL_ED_ITEM_REQ:				return Handler_EGS_SELL_ED_ITEM_REQ( kSes, kEvent );
+	case EGS_REPAIR_ITEM_REQ:				return Handler_EGS_REPAIR_ITEM_REQ( kSes, kEvent );
+	case EGS_ENCHANT_ITEM_REQ:				return Handler_EGS_ENCHANT_ITEM_REQ( kSes, kEvent );
+	case EGS_SOCKET_ITEM_REQ:				return Handler_EGS_SOCKET_ITEM_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// the skill tree - Handlers_Skill.cpp
+	case EGS_GET_SKILL_REQ:					return Handler_EGS_GET_SKILL_REQ( kSes, kEvent );
+	case EGS_RESET_SKILL_REQ:				return Handler_EGS_RESET_SKILL_REQ( kSes, kEvent );
+	case EGS_INIT_SKILL_TREE_REQ:			return Handler_EGS_INIT_SKILL_TREE_REQ( kSes, kEvent );
+	case EGS_CHANGE_SKILL_SLOT_REQ:			return Handler_EGS_CHANGE_SKILL_SLOT_REQ( kSes, kEvent );
 
 	//////////////////////////////////////////////////////////////////////////
 	// answered only because the client blocks on them - Handlers_Stub.cpp
@@ -481,7 +538,6 @@ bool CX2OfflineServer::EnsureAccount( KOfflineSession& kSes, const std::wstring&
 	kOut.m_iEXP					= kRow.m_iEXP;
 	kOut.m_iED					= kRow.m_iED;
 	kOut.m_iSPoint				= kRow.m_iSP;
-	kOut.m_iSpirit				= kRow.m_iSpirit;
 	kOut.m_kLastPos.m_iMapID	= kRow.m_iLastPos;
 
 	// REMEMBER_LOGOUT_POSITION_TEST is on, so CX2StateServerSelect::
@@ -503,13 +559,67 @@ bool CX2OfflineServer::EnsureAccount( KOfflineSession& kSes, const std::wstring&
 									? CX2OfflineDB::DelAbleDate( kRow.m_tDelDate )
 									: 0LL;
 	kOut.m_trRestoreAbleDate	= 0LL;
+
+	// Cash skill points, and the date they run out. Always zero and always in
+	// the past: there is no billing offline, so every skill is paid for in
+	// plain SP - which is the branch the real server takes for an account with
+	// no cash-skill ticket, not a special case.
+	kOut.m_iCSPoint			= 0;
+	kOut.m_iMaxCSPoint		= 0;
+	kOut.m_wstrCSPointEndDate = L"2000-01-01 00:00:00";
+
+	// Gear and skills (phase 5). This runs for every unit in the character
+	// list, not just the selected one, because the character-select screen
+	// renders each slot's model from m_mapEquippedItem - a list built without
+	// it shows every character naked.
+	//
+	// Loading here is cheap for the selected character (the singletons are
+	// already on it and return immediately) and a genuine reload per other
+	// character in the list, which happens once per visit to the screen.
+	CX2OfflineInventory* pInven = CX2OfflineInventory::Instance();
+	CX2OfflineSkill*     pSkill = CX2OfflineSkill::Instance();
+
+	if( true == pInven->Load( kRow.m_nUnitUID ) )
+		pInven->GetEquippedItems( kOut.m_mapEquippedItem );
+
+	if( true == pSkill->Load( kRow.m_nUnitUID ) )
+		pSkill->FillUnitSkillData( kOut.m_UnitSkillData );
+
+	// The game stat is base plus gear, so it has to be rebuilt now that the
+	// gear is known - MakeDefaultUnitInfo only had the class and the level.
+	MakeGameStat( kRow, kOut.m_kGameStat );
+}
+
+void CX2OfflineServer::PushLevelUp( KOfflineSession& kSes, UidType nUnitUID )
+{
+	KOfflineUnitRow kRow;
+	if( false == CX2OfflineDB::Instance()->LoadUnit( nUnitUID, kRow ) )
+		return;
+
+	KEGS_CHAR_LEVEL_UP_NOT kNot;
+	kNot.m_iUnitUID	= nUnitUID;
+	kNot.m_ucLevel	= (UCHAR)kRow.m_iLevel;
+
+	// Both stats, as the real server sends them: the base one straight off the
+	// stat table for the new level, and the game one with the gear on top. The
+	// client assigns them over its own and rebuilds max HP from the game stat,
+	// so sending only one would quietly halve the character.
+	CX2OfflineStatTable::Instance()->GetUnitStat( kRow.m_iUnitClass, kRow.m_iLevel,
+												 kNot.m_kBaseStat );
+	MakeGameStat( kRow, kNot.m_kGameStat );
+
+	Reply( kSes, EGS_CHAR_LEVEL_UP_NOT, kNot );
 }
 
 /*static*/ void CX2OfflineServer::MakeGamePlayStatus( const KOfflineUnitRow& kRow,
 													 OUT KGamePlayStatus& kOut )
 {
 	KStat kStat;
-	CX2OfflineStatTable::Instance()->GetUnitStat( kRow.m_iUnitClass, kRow.m_iLevel, kStat );
+
+	// Base plus gear: a character in a village with armour on has more max HP
+	// than one without, and this is the value the HUD's health bar is sized
+	// from. Phase 3 read the base stat alone because there was no gear.
+	MakeGameStat( kRow, kStat );
 
 	// KGamePlayStatus's own constructor does NOT initialise m_iMaxHP - it is the
 	// one field it forgets - so every field here is set explicitly.

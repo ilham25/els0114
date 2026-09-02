@@ -36,6 +36,75 @@ struct sqlite3;
 struct sqlite3_stmt;
 
 //////////////////////////////////////////////////////////////////////////
+/// One row of `item` (phase 5), which is one KInventoryItemInfo split into
+/// the columns that have to be filtered on plus the scalars of KItemInfo.
+///
+/// The socket vectors are stored as comma-separated TEXT rather than as the
+/// `blob_data` KSerBuffer the v1 schema anticipated, for one reason: a save
+/// file that can be read with `sqlite3 els_db.sql "select * from item"` is
+/// debuggable and a blob is not. Nothing sorts or filters on them, so the cost
+/// of parsing on load is a handful of strtol calls per item.
+struct KOfflineItemRow
+{
+	UidType			m_nItemUID;
+	UidType			m_nUnitUID;
+	int				m_iCategory;		///< CX2Inventory::SORT_TYPE
+	int				m_iSlotID;
+	int				m_iItemID;
+	int				m_iQuantity;
+	int				m_iEndurance;
+	int				m_iEnchantLevel;
+	int				m_iSealData;
+	int				m_iUsageType;		///< CX2Item::PERIOD_TYPE, mirrored into KItemInfo::m_cUsageType
+	int				m_iItemState;		///< KItemInfo::ITEM_STATE
+	int				m_iPeriod;
+	int				m_iAttrib0;
+	int				m_iAttrib1;
+	int				m_iAttrib2;
+	std::vector<int>	m_vecSocket;
+	std::vector<int>	m_vecRandomSocket;
+
+	KOfflineItemRow()
+		: m_nItemUID( 0 )
+		, m_nUnitUID( 0 )
+		, m_iCategory( 0 )
+		, m_iSlotID( 0 )
+		, m_iItemID( 0 )
+		, m_iQuantity( 1 )
+		, m_iEndurance( 0 )
+		, m_iEnchantLevel( 0 )
+		, m_iSealData( 0 )
+		, m_iUsageType( 0 )
+		, m_iItemState( 0 )
+		, m_iPeriod( 0 )
+		, m_iAttrib0( 0 )
+		, m_iAttrib1( 0 )
+		, m_iAttrib2( 0 )
+	{
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+/// One row of `unit_skill` (phase 5). `m_iSlot` is the equipped skill slot,
+/// 0-3 for slot A and 4-7 for slot B, or -1 for a learned skill that is not
+/// equipped - the same numbering KUserSkillTree::m_aiSkillSlot uses.
+struct KOfflineSkillRow
+{
+	int				m_iSkillID;
+	int				m_iLevel;
+	int				m_iCSPoint;
+	int				m_iSlot;
+
+	KOfflineSkillRow()
+		: m_iSkillID( 0 )
+		, m_iLevel( 0 )
+		, m_iCSPoint( 0 )
+		, m_iSlot( -1 )
+	{
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
 /// One row of `unit`, in the shape the packet handlers want it.
 struct KOfflineUnitRow
 {
@@ -47,6 +116,7 @@ struct KOfflineUnitRow
 	int				m_iEXP;
 	int				m_iED;
 	int				m_iSP;
+	int				m_iCSP;				///< cash skill points; always 0 offline, see SaveSkillPoint
 	int				m_iSpirit;
 	int				m_iLastPos;
 	int				m_iLastLineIndex;
@@ -71,6 +141,7 @@ struct KOfflineUnitRow
 		, m_iEXP( 0 )
 		, m_iED( 0 )
 		, m_iSP( 0 )
+		, m_iCSP( 0 )
 		, m_iSpirit( 0 )
 		, m_iLastPos( 0 )
 		, m_iLastLineIndex( 0 )
@@ -95,7 +166,7 @@ public:
 	{
 		/// Schema revision. Bump it and add a rung to Migrate() when a later
 		/// phase needs a new table, so existing saves are not wiped.
-		SCHEMA_VERSION			= 3,
+		SCHEMA_VERSION			= 4,
 
 		/// How long after a soft delete the final delete becomes possible.
 		/// Zero: a solo save has nobody to protect a character from, so the
@@ -175,10 +246,56 @@ public:
 	/// dungeon UI draws its "cleared" marks from it too.
 	bool	AddDungeonClear( UidType nUnitUID, int iDungeonID, int iRank );
 
+	/// Skill points. Kept separate from SaveProgress because they move on their
+	/// own - a skill learned or reset changes SP without touching level or EXP.
+	bool	SaveSkillPoint( UidType nUnitUID, int iSP, int iCSP );
+
 	//////////////////////////////////////////////////////////////////////////
 	// inventory
 	bool	LoadInventorySizes( UidType nUnitUID, OUT std::map< int, int >& mapOut );
 	bool	SeedInventorySizes( UidType nUnitUID );
+
+	//////////////////////////////////////////////////////////////////////////
+	// items (phase 5)
+
+	bool	LoadItems( UidType nUnitUID, OUT std::vector< KOfflineItemRow >& vecOut );
+
+	/// Inserts and fills in kInOut.m_nItemUID with the row id SQLite assigned -
+	/// which becomes the item's UID on the wire. Item UIDs therefore survive a
+	/// relog, which the client relies on: it keys its own inventory by them and
+	/// EGS_DELETE_ITEM_REQ / EGS_GET_ITEM_REQ address items that way.
+	bool	InsertItem( IN OUT KOfflineItemRow& kInOut );
+
+	bool	MoveItemRow( UidType nItemUID, int iCategory, int iSlotID );
+	bool	SetItemQuantity( UidType nItemUID, int iQuantity );
+
+	/// Everything about an item except where it sits: endurance, enchant, seal,
+	/// sockets. Used by a pickup that stacks onto an existing row and by any
+	/// later phase that changes an item in place.
+	bool	UpdateItem( const KOfflineItemRow& kRow );
+
+	bool	DeleteItemRow( UidType nItemUID );
+
+	//////////////////////////////////////////////////////////////////////////
+	// skills (phase 5)
+
+	bool	LoadSkills( UidType nUnitUID, OUT std::vector< KOfflineSkillRow >& vecOut );
+
+	/// Upsert. Level 0 rows are kept rather than deleted: a reset skill that is
+	/// a class default or has a learned follower goes back to level 1 and one
+	/// that does not goes to level 0, and the client draws that difference
+	/// (CX2SkillTree::Handler_EGS_RESET_SKILL_ACK), so the row has to survive.
+	bool	SaveSkill( UidType nUnitUID, const KOfflineSkillRow& kRow );
+
+	/// Every skill back to "not learned" and every slot back to empty, for
+	/// EGS_INIT_SKILL_TREE_REQ. The rows go away entirely here - the whole tree
+	/// is being rebuilt from the class defaults.
+	bool	ClearSkills( UidType nUnitUID );
+
+	/// Writes just the slot column, for EGS_CHANGE_SKILL_SLOT_REQ. Takes the
+	/// slot rather than the skill so an emptied slot can be cleared without
+	/// knowing what used to be in it.
+	bool	SetSkillSlot( UidType nUnitUID, int iSlot, int iSkillID );
 
 	/// Base slot count per CX2Inventory::SORT_TYPE category. Mirrors
 	/// KInventory::GetBaseSlotSize (KncWX2Server/GameServer/Inventory.cpp),
@@ -220,9 +337,17 @@ private:
 	static void		BindText( sqlite3_stmt* pStmt, int iIndex, const std::wstring& wstr );
 	static std::wstring	ColumnText( sqlite3_stmt* pStmt, int iCol );
 	static void		ReadUnitRow( sqlite3_stmt* pStmt, OUT KOfflineUnitRow& kOut );
+	static void		ReadItemRow( sqlite3_stmt* pStmt, OUT KOfflineItemRow& kOut );
+
+	/// The socket vectors, as a comma-separated list. Empty in, empty out.
+	static std::wstring	FormatIntList( const std::vector<int>& vec );
+	static void			ParseIntList( const std::wstring& wstr, OUT std::vector<int>& vecOut );
 
 	/// the column list every unit SELECT uses, in ReadUnitRow's order
 	static const char*	UNIT_COLUMNS;
+
+	/// likewise for `item`, in ReadItemRow's order
+	static const char*	ITEM_COLUMNS;
 
 private:
 	static CX2OfflineDB*	ms_pInstance;
