@@ -70,4 +70,45 @@ bool CX2OfflineServer::Handler_EGS_MODULE_INFO_UPDATE_NOT( KOfflineSession& /*kS
 	return true;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// In-match telemetry the real server recorded and nothing offline consumes.
+// Listed here rather than left to the catch-all for the same reason as the
+// module list: every line left in the UNHANDLED bucket costs attention on the
+// next run, and none of these hangs anything - they carry no ACK the client
+// waits on.
+
+bool CX2OfflineServer::Handler_EGS_DUNGEON_PLAY_INFO_TO_SERVER_NOT( KOfflineSession& /*kSes*/, const KEvent& /*kEvent*/ )
+{
+	// Pushed once as a dungeon run ends (X2Game.cpp). The studio fed it to its
+	// statistics DB; the numbers that matter for play - scores and ranks - arrive
+	// separately in EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ, which is handled.
+	return true;
+}
+
+bool CX2OfflineServer::Handler_EGS_FRAME_AVERAGE_REQ( KOfflineSession& /*kSes*/, const KEvent& /*kEvent*/ )
+{
+	// Average framerate, for the studio's performance dashboards. Its ACK exists
+	// but the client arms no wait on it, so silence is correct.
+	return true;
+}
+
+bool CX2OfflineServer::Handler_EGS_REQUEST_GET_AUTO_PARTY_BONUS_INFO_NOT( KOfflineSession& /*kSes*/, const KEvent& /*kEvent*/ )
+{
+	// Pushed every time the local map opens (X2LocalMapUI.cpp:519) to ask which
+	// dungeons currently carry an auto-party recruitment bonus. The reply,
+	// EGS_UPDATE_AUTO_PARTY_BONUS_INFO_NOT, only decorates the hero-recruit
+	// button; no wait is armed on it, and there is no auto-party offline. Left
+	// unanswered on purpose - an empty bonus map is exactly what the client
+	// already assumes.
+	return true;
+}
+
+bool CX2OfflineServer::Handler_EGS_CLIENT_QUIT_REQ( KOfflineSession& /*kSes*/, const KEvent& /*kEvent*/ )
+{
+	// Sent as the client shuts down. Its ACK would let the server close the
+	// session cleanly; offline the process is going away regardless, and
+	// ~KSession already tells the offline server through OnSessionClose.
+	return true;
+}
+
 #endif SERV_IRUHADEV_OFFLINE

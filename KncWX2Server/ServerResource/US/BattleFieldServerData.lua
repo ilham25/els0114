@@ -28,7 +28,24 @@ g_pBattleFieldManager:SetEliteMonsterDropValue( 15 )			-----엘리트 몬스터�
 
 --- 위험도 이벤트 2013년 3월 14일 ~ 3월 28일
 -- g_pBattleFieldManager:SetDangerousValueEventRate( 1 )			----위험도 배수  -- 일반 1배(1) , 이벤트 X배(X) (기본설정)
-g_pBattleFieldManager:SetDangerousValueEventRate( 4 )			---- 20130409 적용, 공솔
+--{{ Iruha // 2026-09-02 // offline solo tuning
+-- Danger is added per kill as (monster type factor) * (this rate), and
+-- GET_MIDDLE_BOSS_MONSTER_DROP_RATE below returns 100% only when the danger
+-- value crosses a multiple of its iBossDangerousValue (800). At the live
+-- rate of 4 that is 800/4 = 200 kills for the first middle boss, which is
+-- paced for a field full of players, not for one.
+--
+-- 32 scales every tier uniformly and leaves the curve itself untouched:
+--   first middle boss   800/32 =  25 kills
+--   then one per          25 kills, five in total (up to danger 4000)
+--   cycle restarts at   4800/32 = 150 kills
+--
+-- Restore the live pacing by putting this back to 4. The studio left its
+-- own tuned-down knob in the function below as well - a commented-out
+-- iBossDangerousValue of 200 - but changing the rate here keeps the five
+-- boss tiers evenly spaced, which lowering the threshold alone does not.
+-- g_pBattleFieldManager:SetDangerousValueEventRate( 4 )			---- live US value
+g_pBattleFieldManager:SetDangerousValueEventRate( 32 )			---- 20130409 적용, 공솔
 
 
 --- 배틀필드 상수

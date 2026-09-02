@@ -11,6 +11,7 @@ CX2OfflineServer::CX2OfflineServer()
 : m_nUserUID( 0 )
 , m_iUnitSlots( CX2OfflineDB::DEFAULT_UNIT_SLOTS )
 , m_wstrLoginID( L"" )
+, m_nNextRoomUID( 1000 )
 {
 }
 
@@ -27,7 +28,7 @@ CX2OfflineServer* CX2OfflineServer::Instance()
 		ms_pInstance = new CX2OfflineServer;
 		g_pX2OfflineHook = ms_pInstance;
 
-		CX2OfflineLog::Server( L"---- offline server up (SERV_IRUHADEV_OFFLINE, phase 3) ----" );
+		CX2OfflineLog::Server( L"---- offline server up (SERV_IRUHADEV_OFFLINE, phase 4) ----" );
 
 		// els_db.sql sits next to the two logs, in the process working
 		// directory - which is the game data\ folder (X2Main mounts the .kom
@@ -53,6 +54,8 @@ void CX2OfflineServer::Release()
 	delete ms_pInstance;
 	ms_pInstance = NULL;
 
+	CX2OfflineBattleField::Release();
+	CX2OfflineDropTable::Release();
 	CX2OfflineStatTable::Release();
 	CX2OfflineDB::Release();
 	CX2OfflineLog::Close();
@@ -358,13 +361,70 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_OPTION_UPDATE_REQ:				return Handler_EGS_OPTION_UPDATE_REQ( kSes, kEvent );
 	case EGS_UPDATE_PLAY_STATUS_NOT:		return Handler_EGS_UPDATE_PLAY_STATUS_NOT( kSes, kEvent );
 	case EGS_FIELD_UNIT_SYNC_DATA_NOT:		return Handler_EGS_FIELD_UNIT_SYNC_DATA_NOT( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// rooms, the dungeon run inside one, and its result - Handlers_Room.cpp
+	case EGS_CREATE_TUTORIAL_ROOM_REQ:		return Handler_EGS_CREATE_TUTORIAL_ROOM_REQ( kSes, kEvent );
+	case EGS_CREATE_ROOM_REQ:				return Handler_EGS_CREATE_ROOM_REQ( kSes, kEvent );
+	case EGS_QUICK_START_DUNGEON_GAME_REQ:	return Handler_EGS_QUICK_START_DUNGEON_GAME_REQ( kSes, kEvent );
 	case EGS_JOIN_BATTLE_FIELD_REQ:			return Handler_EGS_JOIN_BATTLE_FIELD_REQ( kSes, kEvent );
+	case EGS_ROOM_LIST_REQ:					return Handler_EGS_ROOM_LIST_REQ( kSes, kEvent );
+	case EGS_LEAVE_ROOM_REQ:				return Handler_EGS_LEAVE_ROOM_REQ( kSes, kEvent );
+
+	case EGS_CHANGE_DUNGEON_DIFFICULTY_REQ:	return Handler_EGS_CHANGE_DUNGEON_DIFFICULTY_REQ( kSes, kEvent );
+	case EGS_CHANGE_MOTION_REQ:				return Handler_EGS_CHANGE_MOTION_REQ( kSes, kEvent );
+
+	case EGS_STATE_CHANGE_GAME_START_REQ:	return Handler_EGS_STATE_CHANGE_GAME_START_REQ( kSes, kEvent );
+	case EGS_GAME_LOADING_REQ:				return Handler_EGS_GAME_LOADING_REQ( kSes, kEvent );
+	case EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ:
+											return Handler_EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ( kSes, kEvent );
+	case EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ:
+											return Handler_EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ( kSes, kEvent );
+
+	case EGS_DUNGEON_STAGE_LOAD_REQ:		return Handler_EGS_DUNGEON_STAGE_LOAD_REQ( kSes, kEvent );
+	case EGS_DUNGEON_STAGE_LOAD_COMPLETE_REQ:
+											return Handler_EGS_DUNGEON_STAGE_LOAD_COMPLETE_REQ( kSes, kEvent );
+	case EGS_DUNGEON_SUB_STAGE_OPEN_REQ:	return Handler_EGS_DUNGEON_SUB_STAGE_OPEN_REQ( kSes, kEvent );
+	case EGS_DUNGEON_SUB_STAGE_GO_NEXT_REQ:	return Handler_EGS_DUNGEON_SUB_STAGE_GO_NEXT_REQ( kSes, kEvent );
+	case EGS_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ:
+											return Handler_EGS_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ( kSes, kEvent );
+	case EGS_DUNGEON_SUB_STAGE_CLEAR_REQ:	return Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_REQ( kSes, kEvent );
+	case EGS_DUNGEON_KILLALLNPC_CHECK_REQ:	return Handler_EGS_DUNGEON_KILLALLNPC_CHECK_REQ( kSes, kEvent );
+
+	case EGS_NPC_UNIT_CREATE_REQ:			return Handler_EGS_NPC_UNIT_CREATE_REQ( kSes, kEvent );
+	case EGS_NPC_UNIT_DIE_REQ:				return Handler_EGS_NPC_UNIT_DIE_REQ( kSes, kEvent );
+	case EGS_GET_ITEM_REQ:					return Handler_EGS_GET_ITEM_REQ( kSes, kEvent );
+	case EGS_WORLD_TRIGGER_RELOCATION_REQ:	return Handler_EGS_WORLD_TRIGGER_RELOCATION_REQ( kSes, kEvent );
+
+	case EGS_END_GAME_REQ:					return Handler_EGS_END_GAME_REQ( kSes, kEvent );
+	case EGS_STATE_CHANGE_RESULT_REQ:		return Handler_EGS_STATE_CHANGE_RESULT_REQ( kSes, kEvent );
+	case EGS_RESULT_SUCCESS_REQ:			return Handler_EGS_RESULT_SUCCESS_REQ( kSes, kEvent );
+	case EGS_LEAVE_GAME_REQ:				return Handler_EGS_LEAVE_GAME_REQ( kSes, kEvent );
+
+	case EGS_USER_UNIT_DIE_REQ:				return Handler_EGS_USER_UNIT_DIE_REQ( kSes, kEvent );
+	case EGS_USER_UNIT_DIE_COMPLETE_REQ:	return Handler_EGS_USER_UNIT_DIE_COMPLETE_REQ( kSes, kEvent );
+	case EGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ:
+											return Handler_EGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ( kSes, kEvent );
+	case EGS_STOP_DUNGEON_CONTINUE_TIME_REQ:
+											return Handler_EGS_STOP_DUNGEON_CONTINUE_TIME_REQ( kSes, kEvent );
+	case EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_REQ:
+											return Handler_EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_REQ( kSes, kEvent );
+	case EGS_START_REWARD_BOX_SELECT_REQ:	return Handler_EGS_START_REWARD_BOX_SELECT_REQ( kSes, kEvent );
+	case EGS_SELECT_REWARD_BOX_REQ:			return Handler_EGS_SELECT_REWARD_BOX_REQ( kSes, kEvent );
 
 	//////////////////////////////////////////////////////////////////////////
 	// answered only because the client blocks on them - Handlers_Stub.cpp
 	case EGS_GET_PET_LIST_REQ:				return Handler_EGS_GET_PET_LIST_REQ( kSes, kEvent );
 	case EGS_GET_RIDING_PET_LIST_REQ:		return Handler_EGS_GET_RIDING_PET_LIST_REQ( kSes, kEvent );
 	case EGS_MODULE_INFO_UPDATE_NOT:		return Handler_EGS_MODULE_INFO_UPDATE_NOT( kSes, kEvent );
+	case EGS_DUNGEON_PLAY_INFO_TO_SERVER_NOT:
+											return Handler_EGS_DUNGEON_PLAY_INFO_TO_SERVER_NOT( kSes, kEvent );
+	case EGS_UPDATE_BATTLE_FIELD_USER_POS_NOT:
+											return Handler_EGS_UPDATE_BATTLE_FIELD_USER_POS_NOT( kSes, kEvent );
+	case EGS_FRAME_AVERAGE_REQ:				return Handler_EGS_FRAME_AVERAGE_REQ( kSes, kEvent );
+	case EGS_REQUEST_GET_AUTO_PARTY_BONUS_INFO_NOT:
+											return Handler_EGS_REQUEST_GET_AUTO_PARTY_BONUS_INFO_NOT( kSes, kEvent );
+	case EGS_CLIENT_QUIT_REQ:				return Handler_EGS_CLIENT_QUIT_REQ( kSes, kEvent );
 
 	default:
 		break;

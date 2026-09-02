@@ -776,6 +776,58 @@ bool CX2OfflineDB::SaveGamePlayStatus( UidType nUnitUID, int iCurHP, int iCurMP,
 	return bOK;
 }
 
+bool CX2OfflineDB::SaveProgress( UidType nUnitUID, int iLevel, int iEXP, int iED )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"UPDATE unit SET level = ?2, exp = ?3, ed = ?4 WHERE unit_uid = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iLevel );
+	sqlite3_bind_int(   pStmt, 3, iEXP );
+	sqlite3_bind_int(   pStmt, 4, iED );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::AddDungeonClear( UidType nUnitUID, int iDungeonID, int iRank )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	// One statement: SQLite's upsert reaches back to 3.24, and this build ships
+	// 3.53. best_rank keeps the *lowest* number, because rank 1 is S and the
+	// client counts down (CX2Dungeon::RANK_TYPE).
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT INTO unit_dungeon ( unit_uid, dungeon_id, clear_count, best_rank ) "
+		"VALUES ( ?1, ?2, 1, ?3 ) "
+		"ON CONFLICT( unit_uid, dungeon_id ) DO UPDATE SET "
+		"  clear_count = clear_count + 1,"
+		"  best_rank   = CASE WHEN best_rank = 0 OR ?3 < best_rank THEN ?3 ELSE best_rank END;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iDungeonID );
+	sqlite3_bind_int(   pStmt, 3, iRank );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // inventory
 

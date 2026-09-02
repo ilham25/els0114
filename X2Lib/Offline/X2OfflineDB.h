@@ -164,6 +164,17 @@ public:
 	bool	SaveGamePlayStatus( UidType nUnitUID, int iCurHP, int iCurMP,
 								int iHyperGage, int iAbilCount );
 
+	/// Level, EXP and ED after a dungeon run (phase 4). One statement rather
+	/// than three, because the three move together and a half-written level is
+	/// the one state the client cannot recover from - its EXP bar would sit past
+	/// the end of its own level.
+	bool	SaveProgress( UidType nUnitUID, int iLevel, int iEXP, int iED );
+
+	/// Bump dbo.GUnitDungeon's clear count for a dungeon, remembering the best
+	/// rank seen. Quest progression (phase 6) reads this back; the client's own
+	/// dungeon UI draws its "cleared" marks from it too.
+	bool	AddDungeonClear( UidType nUnitUID, int iDungeonID, int iRank );
+
 	//////////////////////////////////////////////////////////////////////////
 	// inventory
 	bool	LoadInventorySizes( UidType nUnitUID, OUT std::map< int, int >& mapOut );

@@ -49,10 +49,10 @@
 //                  the client reports where it is standing, so it is what makes
 //                  "log back in where you left off" actually work.
 //
-//                EGS_JOIN_BATTLE_FIELD_REQ / _ACK
-//                  The village portal out to a field. Phase 4 owns this; for
-//                  now it is refused cleanly instead of hanging - see the
-//                  handler.
+//              EGS_JOIN_BATTLE_FIELD_REQ - the village portal out to a field -
+//              was refused here in phase 3 and now lives in Handlers_Room.cpp:
+//              in this build the fields outside a village are rooms, so
+//              reaching one is room emulation rather than field entry.
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef SERV_IRUHADEV_OFFLINE
@@ -162,6 +162,14 @@ bool CX2OfflineServer::Handler_EGS_UPDATE_PLAY_STATUS_NOT( KOfflineSession& kSes
 	if( 0 == kSes.m_nSelectedUnitUID )
 		return true;
 
+	// Placed before the early-outs below on purpose: this has to run on every
+	// tick, not only the ones where a gauge moved. This packet's fixed
+	// three-second cadence is the only regular beat a dungeon run has, and
+	// PushRemainingPlayTime rides it to keep CX2Game::m_AllowFrameCount topped up
+	// - without which the client stops reading the keyboard about seven seconds
+	// into every dungeon. See PushRemainingPlayTime for the full story.
+	PushRemainingPlayTime( kSes );
+
 	// Note this one carries a bare KGamePlayStatus, not the
 	// KGamePlayStatusContainer that EGS_SELECT_UNIT_4_NOT uses.
 	const KGamePlayStatus& kStatus = kReq.m_kGamePlayStatus;
@@ -225,37 +233,78 @@ bool CX2OfflineServer::Handler_EGS_FIELD_UNIT_SYNC_DATA_NOT( KOfflineSession& kS
 
 //////////////////////////////////////////////////////////////////////////
 
-bool CX2OfflineServer::Handler_EGS_JOIN_BATTLE_FIELD_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+bool CX2OfflineServer::Handler_EGS_UPDATE_BATTLE_FIELD_USER_POS_NOT( KOfflineSession& kSes, const KEvent& kEvent )
 {
-	KEGS_JOIN_BATTLE_FIELD_REQ kReq;
+	KEGS_UPDATE_BATTLE_FIELD_USER_POS_NOT kReq;
 	if( false == ReadReq( kEvent, kReq ) )
 		return false;
 
-	// Walking into a village portal sends this. It is NOT phase 3 work: a real
-	// ACK has to carry a KRoomInfo and a KRoomSlotInfo list, and its handler
-	// (X2State.cpp:10739) then calls ConnectRelayServer() and switches to
-	// XS_BATTLE_FIELD - that is phase 4's room emulation, in full.
+	// This was an explicit-ignore stub, on the reasoning that the real server
+	// only rebroadcast it and there is nobody to rebroadcast to. Half right: it
+	// is also the ONLY packet that reports where the character is standing in a
+	// battlefield, and the login path needs that.
 	//
-	// Left unanswered the client just hangs on the portal: the request arms
-	// AddServerPacket( EGS_JOIN_BATTLE_FIELD_ACK ) and nothing else clears it.
-	// So refuse it properly. Unlike EGS_STATE_CHANGE_FIELD_ACK, the failure path
-	// here does not re-send - Handler_EGS_JOIN_BATTLE_FIELD_ACK just returns
-	// false - so an error is safe.
+	// The client's own re-entry code is what makes it matter
+	// (X2StateServerSelect.cpp:4444-4450). On login it looks at the map it last
+	// saw and, when that is a field rather than a village, re-joins the field
+	// with the stored coordinates:
 	//
-	// ERR_BATTLEFIELD_00 is "not in a state that can move to that area", which
-	// is both true and the honest message. It is not one of the two codes the
-	// handler special-cases (ERR_BATTLEFIELD_13 / _14 print a required level or
-	// dungeon, which would be a lie), so it falls through to
-	// CX2Main::IsValidPacket's default branch: one OK dialog with that text, and
-	// the player stays in the village.
-	KEGS_JOIN_BATTLE_FIELD_ACK kAck;
-	kAck.Initialize();
-	kAck.m_iOK = NetError::ERR_BATTLEFIELD_00;
+	//     if ( VMI_BATTLE_FIELD_RUBEN_FIELD_01 <= pUnitData->m_nMapID &&
+	//          VMI_BATTLE_FIELD_END            >  pUnitData->m_nMapID )
+	//         Handler_EGS_JOIN_BATTLE_FIELD_REQ( pUnitData->m_nMapID,
+	//                                            pUnitData->m_ucLastTouchLineIndex,
+	//                                            pUnitData->m_usLastPosValue );
+	//
+	// All three come out of KUnitInfo::m_kLastPos, i.e. out of unit.last_pos,
+	// last_line_index and last_pos_value. The battlefield join already stores the
+	// field's ID in last_pos, so that branch was being taken correctly - but the
+	// line and position still held whatever the *village* last wrote, because
+	// EGS_FIELD_UNIT_SYNC_DATA_NOT is sent by CX2TFieldGame (the village) and
+	// never by a field. Re-entering therefore placed the character at a village
+	// line index inside a field, which is precisely the out-of-bounds spawn this
+	// is meant to fix.
+	//
+	// One shared pair of columns for both map kinds is the studio's design, not a
+	// shortcut: the server keeps a single KGSUser::m_kLastPos and overwrites it
+	// from whichever place the player is in. The two encodings of m_usLastPosValue
+	// differ - a village writes floatToHalf( ratio along the line )
+	// (X2StateField.cpp:1400) and a field writes sqrtf( distance ) * 100
+	// (X2BattleFieldGame.cpp:1031) - and that is safe because last_pos says which
+	// map it belongs to, so the reader always knows which one it is looking at.
+	if( 0 == kSes.m_nSelectedUnitUID )
+		return true;
 
-	CX2OfflineLog::Server( L"FIELD    refused battlefield ID=%d - phase 4 owns room emulation",
-		kReq.m_iBattleFieldID );
+	// And this is the trigger for the field's monsters, which is the whole reason
+	// it lives on this packet rather than on the join ACK. The client builds this
+	// push out of GetMyUnit()->GetLastTouchLineIndex()
+	// (X2BattleFieldGame.cpp:1014), so its arrival is proof that
+	// CX2StateBattleField exists and the player's unit is in the world - which is
+	// exactly the condition Handler_EGS_BATTLE_FIELD_NPC_LOAD_NOT branches on
+	// (X2StateBattleField.cpp:1141). Sending the monsters from the join ACK
+	// instead would race the XGM_STATE_CHANGE that creates that state.
+	PushFieldNpcs( kSes );
 
-	return Reply( kSes, EGS_JOIN_BATTLE_FIELD_ACK, kAck );
+	// ...and the field's heartbeat. This push is the closest thing a field has to
+	// a clock - it arrives as the player moves - so respawns and the middle boss
+	// ride it. A player standing perfectly still stops receiving it and the field
+	// stops refilling, which is a real limitation but a harmless one: nothing is
+	// being killed either.
+	TickField( kSes );
+
+	// KGSUser's own guard (GSUserBattleField.cpp:1032): a position for a map the
+	// player is not on is stale, and writing it would move them somewhere they
+	// have never been. Offline the current field is the room's.
+	if( false == m_kRoom.m_bActive ||
+		kReq.m_kLastPos.m_iMapID != m_kRoom.m_kInfo.m_iBattleFieldID )
+	{
+		return true;
+	}
+
+	CX2OfflineDB::Instance()->SaveLastFieldPos( kSes.m_nSelectedUnitUID,
+		(int)kReq.m_kLastPos.m_ucLastTouchLineIndex,
+		(int)kReq.m_kLastPos.m_usLastPosValue );
+
+	return true;
 }
 
 #endif SERV_IRUHADEV_OFFLINE

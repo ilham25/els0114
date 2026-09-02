@@ -528,7 +528,41 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 	{
 		KEGS_SELECT_UNIT_2_NOT kNot;
 		kNot.m_iOK = NetError::NET_OK;
-		// m_vecQuest / m_vecCompletQuest / m_mapRandomQuestList: phase 6
+		// m_vecQuest / m_mapRandomQuestList: phase 6
+
+		// ...except for one completed quest, which is not a quest-system stub
+		// but the switch that turns the dungeon menu on.
+		//
+		// The village's party dialog - which holds the dungeon button, the local
+		// map, and everything else that gets a character into a dungeon - hides
+		// itself outright unless CX2PlayGuide::GetShowDungeonMenu() is true
+		// (CX2PartyUI::UpdateNoviceGuide, X2PartyUI.cpp:1317-1326:
+		// m_pDLGPartyMenu->SetShowEnable( false, false )). That flag has exactly
+		// two live sources, both in CX2QuestManager::SetUnitQuest
+		// (X2QuestManager.cpp:596-612), and both read this vector:
+		//
+		//   quest 11005 completed  -> SetShowDungeonMenu( true )
+		//   quest 11030 completed
+		//     or level >= 10       -> SetCompleteTutorial( true ), which makes
+		//                             GetShowDungeonMenu() return true as well
+		//
+		// So an empty completed-quest list is why a fresh offline character has
+		// no way into a dungeon at all: the button is not disabled, the dialog
+		// that would draw it is never shown. Reporting 11005 is the studio's own
+		// unlock, and the narrowest one - 11030 would additionally switch the
+		// novice guide off, which is not ours to decide here.
+		//
+		// It does not fake the tutorial away. The tutorial dungeon is entered
+		// from CX2StateBeginning / CX2StateField via EGS_CREATE_TUTORIAL_ROOM_REQ
+		// and never consults this quest. Quest state itself is still phase 6;
+		// this is one row, and it is honest about being an unlock.
+		{
+			KCompleteQuestInfo kUnlock;
+			kUnlock.m_iQuestID		= CX2PlayGuide::TQI_CHASE_THIEF;	///< 11005
+			kUnlock.m_iCompleteCount= 1;
+			kUnlock.m_tCompleteDate	= (__int64)::time( NULL );
+			kNot.m_vecCompletQuest.push_back( kUnlock );
+		}
 
 		Reply( kSes, EGS_SELECT_UNIT_2_NOT, kNot );
 	}

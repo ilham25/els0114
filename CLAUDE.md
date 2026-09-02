@@ -46,6 +46,51 @@ One flag per logical change, not one per file. Use the house `#endif SERV_IRUHAD
 
 If an edit touches `KncWX2Server/Common/` (packet structs, event IDs, shared enums), it is **not** a client-only change — the servers must be rebuilt (via `X2Project_Servers_2010.sln`, or `X2Project_2003.sln` if VS2003 is installed) and the flag must be defined for both sides, or the wire format desyncs silently. See *The client/server contract* below.
 
+## Rule: server-side Lua the client needs is the user's to pack — never band-aid around it
+
+Some data only ever existed on the server: per-level stat tables, drop tables,
+field tuning. When client-side code needs one of those files, it has to be
+XOR-encrypted and packed into `data036.kom` alongside every other client script,
+and **the user does that step.** Ask, then wait.
+
+Do:
+
+1. **Name the file and stop.** Give the exact path
+   (`KncWX2Server/ServerResource/US/<name>.lua`), say it needs XOR-encrypting and
+   packing into `data036.kom`, and let the user do it.
+2. **Load it the shipped way.**
+   `g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( name )` for
+   the `.kom` container, then `GetLuaBinder()->DoMemory( ... )` for the XOR, with a
+   `DoMemoryNotEncript( ... )` fallback that logs a note when it fires. Copy the
+   shape from `X2Lib/Offline/X2OfflineStatTable.cpp`,
+   `X2OfflineDropTable.cpp` or `X2OfflineBattleField.cpp`.
+3. **Degrade visibly.** If the file is not there, turn the feature off and log
+   which file is missing and what to do about it. A feature that is off and says
+   so is debuggable; one that silently guesses is not.
+
+Do not:
+
+- **Do not write a loose copy into the game directory.** `MASS_FILE_FIRST` makes
+  `LoadDataFile` fall back to a loose file, so this *works* — and then masks a
+  failed repack, leaving nobody able to tell whether the archive is actually
+  right. Delete loose copies once the file is packed.
+- **Do not hardcode the table, invent a curve, or approximate a function** to
+  paper over a file that has not been packed yet. That is the band-aid: it looks
+  like progress, it drifts from the real data, and it hides the missing file.
+- **Do not edit the studio's `.lua` to make code simpler.** Editing that data to
+  *tune gameplay* is fine and is the right place for it (see
+  `BattleFieldServerData.lua`'s solo-play comment) — but keep the original value
+  and the restore instruction in comments, and preserve the file's UTF-8 BOM and
+  CRLF byte-for-byte.
+
+The one permitted fallback is a constant that can be **read out of the repo and
+cited**: `BattleFieldServerData.lua`'s respawn window and reward factors are
+carried in code as fallbacks with a comment naming their source, so an unpacked
+install behaves like the live server rather than like nothing. A fallback is
+honest only when it is the real number, is labelled with where it came from, and
+is announced in the log. Anything that cannot be sourced that way — a Lua
+*function*, for instance — gets no fallback at all.
+
 ## Toolchains — client is VS2010; servers build under either
 
 Historically the client and the servers were built with **different versions of Visual Studio**, because the servers didn't build under VS2010 at all. **That changed 2026-08-27**: the five servers now also build under VS2010, via a dedicated solution added by a from-scratch port (see `VS2003_to_VS2010_Port_Guide.md` for exactly what the port did and why — the process is written to be reusable on other old-toolchain codebases, not just this one). VS2010 is the toolchain actually installed in this environment and is the maintained path going forward; VS2003 remains usable for the servers only on a machine that still has it installed.

@@ -2043,6 +2043,8 @@
     <ClInclude Include="SHA1.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Offline\X2OfflineDB.h" />
+    <ClInclude Include="Offline\X2OfflineDropTable.h" />
+    <ClInclude Include="Offline\X2OfflineBattleField.h" />
     <ClInclude Include="Offline\X2OfflineLog.h" />
     <ClInclude Include="Offline\X2OfflineServer.h" />
     <ClInclude Include="Offline\X2OfflineStatTable.h" />
@@ -3120,9 +3122,12 @@
     </ClCompile>
     <ClCompile Include="Offline\Handlers_Field.cpp" />
     <ClCompile Include="Offline\Handlers_Login.cpp" />
+    <ClCompile Include="Offline\Handlers_Room.cpp" />
     <ClCompile Include="Offline\Handlers_Stub.cpp" />
     <ClCompile Include="Offline\Handlers_Unit.cpp" />
     <ClCompile Include="Offline\X2OfflineDB.cpp" />
+    <ClCompile Include="Offline\X2OfflineDropTable.cpp" />
+    <ClCompile Include="Offline\X2OfflineBattleField.cpp" />
     <ClCompile Include="Offline\X2OfflineEventName.cpp" />
     <ClCompile Include="Offline\X2OfflineLog.cpp" />
     <ClCompile Include="Offline\X2OfflineServer.cpp" />

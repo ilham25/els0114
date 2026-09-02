@@ -1636,6 +1636,412 @@ hardcoding it.
 Fresh character → tutorial dungeon runs and completes → EXP/ED/items awarded and
 persisted → returns to village → main progression quest is offered.
 
+### Exit test — PARTIALLY PASSED (2026-09-02)
+
+| Criterion | Result |
+|---|---|
+| Fresh character → tutorial dungeon | **pass** |
+| Tutorial dungeon runs (cutscene, monsters, controllable) | **pass** |
+| Normal dungeon reachable and playable | **pass** (not asked for, but it is what makes the phase useful) |
+| EXP / ED awarded and persisted | **pass** — `unit_uid=3` reached `exp=252, ed=588` across runs |
+| Returns to village | **pass** |
+| Items awarded | **not done** — deliberately deferred, see decision 6 |
+| Main progression quest offered | **not verified** — quests are phase 6; phase 4 reports exactly one completed quest and nothing else, see decision 2 |
+
+So the flow works end to end and the numbers persist, but two of the written
+criteria are outstanding, both because they belong to later phases. Recorded as
+partial rather than passed.
+
+Field ("battlefield") play came along with it, which the plan had put in no phase
+at all: monsters spawn, respawn, and escalate to a middle boss.
+
+### Corrections to this plan, found by doing it
+
+1. **§4.3 is wrong about where EXP and ED come from.** "Accept the client's
+   reported EXP, ED, drops and clear rank" — the client reports no such thing.
+   `KEGS_NPC_UNIT_DIE_REQ` carries the dead NPC's UID, who killed it and how;
+   `KEGS_MY_USER_UNIT_INFO_TO_SERVER_REQ` carries combat *scores*, not rewards.
+   EXP and ED were computed server-side per kill out of two tables and pushed back
+   down in `EGS_NPC_UNIT_DIE_NOT`'s `m_EXPList`, which is what
+   `CX2Game::ProcessExpListByNpcUnitDie` adds to the unit. So the offline server
+   has to own those tables — hence `CX2OfflineDropTable`, the second instance of
+   phase 3's "the client has no copy of this data" problem.
+
+2. **§4.1's packet list is mostly the multiplayer list.** `EGS_JOIN_ROOM_REQ/ACK`,
+   `EGS_JOIN_ROOM_NOT`, `EGS_LEAVE_ROOM_NOT` and `EGS_CHANGE_TEAM_REQ/ACK` never
+   fire for a solo player — there is nobody to join, be told about, or swap teams
+   with. What actually runs is a different set entirely; see *Packets the plan did
+   not predict*.
+
+3. **"and the game-start packet" is singular and it is a chain of ten.** Starting a
+   dungeon is `EGS_STATE_CHANGE_GAME_START_REQ/ACK` → `_NOT` → four
+   `EGS_GAME_LOADING_REQ` rounds → `EGS_GAME_LOADING_ALL_UNIT_OK_NOT` →
+   `EGS_PLAY_START_NOT` → the per-stage chain (`STAGE_LOAD`,
+   `STAGE_LOAD_COMPLETE`, `STAGE_START`, `SUB_STAGE_OPEN`, `SUB_STAGE_GO_NEXT`,
+   `SUB_STAGE_LOAD_COMPLETE`, `SUB_STAGE_START`). Miss any one `_NOT` and the
+   dungeon renders but never starts.
+
+4. **The plan's largest single miss: `CX2Game::m_AllowFrameCount`.** No packet in
+   any phase list refills it, and without a refill the client **stops reading the
+   keyboard about seven seconds into every dungeon** — silently, with no popup, no
+   log line and no packet. `CX2Game::KeyProcess` gates all input gathering on
+   `GetEnableAllKeyProcess() && m_AllowFrameCount > 0`; the counter is seeded to
+   `(int)( 85 * 5.3 )` = 450 and decremented once per `OnFrameMove`
+   ([X2Game.cpp:2741](X2Lib/X2Game.cpp#L2741)). It is a speed-hack detector, and
+   `EGS_REMAINING_PLAY_TIME_NOT` is its only refill — the real server broadcasts
+   one every `ms_fPlayTimeNotifyGap` = 5.0 s against that 5.3 s allowance
+   ([Room.cpp:551](KncWX2Server/CenterServer/Room.cpp#L551)).
+
+   This cost three wrong fixes before the cause was found, because everything
+   about it looks like something else: the character stands in `USI_WAIT` while
+   NPCs animate, the UI responds, and the client's own three-second status push
+   keeps arriving. It also explains an asymmetry that looked like two separate
+   bugs — the switch at [X2Game.cpp:2733](X2Lib/X2Game.cpp#L2733) exempts
+   `XS_TRAINING_GAME` and `XS_BATTLE_FIELD` from the decrement, which is why
+   fields became freely walkable while dungeons kept freezing.
+
+   **Generalise it:** the server's *periodic pushes* are load-bearing, not
+   telemetry. A phase that answers every request correctly can still be unplayable.
+
+5. **§4.1's "in-match traffic is P2P UDP and never reaches the offline server at
+   all, which is why trust the client costs nothing" is half wrong, in both
+   directions.** Monster creation and death (`EGS_NPC_UNIT_CREATE_REQ`,
+   `EGS_NPC_UNIT_DIE_REQ`), the world triggers, the stage chain and the results
+   all come over TCP to the server, and the server *owns* NPC UIDs — the client
+   sends `-1` and reads the real UID back out of the broadcast. Meanwhile the
+   P2P half is not free either: the client must be registered as its **own** peer
+   or `ConnectTestResult()` returns false on an empty peer map,
+   `GameLoadingReq(100)` never fires, and loading never completes. Self-as-peer is
+   the studio's own pattern (`X2SquareGame.cpp:353` does it for the village).
+
+6. **A `_NOT` broadcast is frequently the only thing that performs an action —
+   even for the host.** Hit three times in this phase: `CX2Game::CreateNPCReq`
+   only sends, and the sole live `CreateNPC` call is in
+   `Handler_EGS_NPC_UNIT_CREATE_NOT` ([X2Game.cpp:6988](X2Lib/X2Game.cpp#L6988));
+   `Handler_EGS_WORLD_TRIGGER_RELOCATION_NOT`
+   ([:14813](X2Lib/X2Game.cpp#L14813)) holds the only live
+   `CX2World::ActiveTrigger()` call, the local one being
+   `#if defined(WORLD_TOOL) || defined(X2TOOL)`. **Never assume the host already
+   did it locally** — grep for the local call and check what it is `#ifdef`'d
+   behind.
+
+7. **The static stage monster list has exactly one source, and the client's own
+   parser for it is dead code.** `SubStageData::m_NPCDataList` is filled only by
+   `CX2Dungeon::SetStageStaticNPC` from `EGS_DUNGEON_STAGE_LOAD_NOT::m_mapNPCData`.
+   The client *has* the dungeon script and a `LoadNPCData` to parse it, but the
+   call site is `#ifdef X2TOOL`. Phase 4 revives it behind the flag (gated on
+   `bIsNpcLoad`, so only the throwaway read-only dungeon parses monsters and the
+   live one cannot double-spawn) and rebuilds the packet from it.
+
+8. **§4.2 looks in the wrong place for the tutorial gate.** Not `TutorSystem.lua`
+   and not the unit data: it is `CX2Main::SetIsPlayingTutorial`, and the room
+   request is sent by `CX2StateBeginning` / `CX2StateField`, not by
+   `CX2StateServerSelect`. Phase 3's scaffold suppressed exactly that flag.
+
+9. **The dungeon *menu* is not in this plan at all, and nothing else in phase 4
+   matters without it.** The village's party dialog holds the dungeon button, the
+   local map, and every route into a dungeon, and it hides itself outright unless
+   `CX2PlayGuide::GetShowDungeonMenu()` is true
+   ([X2PartyUI.cpp:1319](X2Lib/X2PartyUI.cpp#L1319)). That flag has two sources,
+   both in `CX2QuestManager::SetUnitQuest`
+   ([X2QuestManager.cpp:596](X2Lib/X2QuestManager.cpp#L596)), and both read the
+   completed-quest vector of `EGS_SELECT_UNIT_2_NOT` — which phase 2 sends empty
+   and labels "phase 6". So an empty quest list does not merely hide quests, it
+   removes dungeons.
+
+10. **Solo dungeon entry needs no party subsystem.** An earlier reading of this
+    (recorded here because it was wrong for two rounds) said dungeon entry runs
+    through `CX2PartyManager` and therefore needed the party packets. It does not:
+    `CX2PartyUI::GameStartCurrentMember` takes its branch when
+    `DoIHaveParty()` is *false* just as readily
+    ([X2PartyUI.cpp:4984](X2Lib/X2PartyUI.cpp#L4984)), and picking a dungeon on the
+    local map with no party sends nothing at all — `CX2LocalMapUI` writes
+    `GetMyPartyData()->m_iDungeonID` locally. One packet does the whole job:
+    `EGS_QUICK_START_DUNGEON_GAME_REQ` → ACK → `EGS_PARTY_GAME_START_NOT`, whose
+    handler builds the room and sends `XGM_STATE_CHANGE -> XS_DUNGEON_GAME`
+    directly, with no room screen in between.
+
+11. **Leaving a dungeon needs two packets, not one.**
+    `CX2StateDungeonGame::OnFrameMove`
+    ([X2StateDungeonGame.cpp:894](X2Lib/X2StateDungeonGame.cpp#L894)) acts only
+    when `m_bReceive_KEGS_LEAVE_ROOM_ACK` **and**
+    `m_bReceive_KEGS_UNIT_INFO_UPDATE` are both set, and only
+    `EGS_UPDATE_UNIT_INFO_NOT` sets the second. With just the ACK, pressing Leave
+    does nothing — no error, no transition. The tutorial hides this: its ESC
+    dialog branches on `GetIsPlayingTutorial()` and only the tutorial arm sets
+    `m_bLeaveRoomAtTutorial`, which is the alternative to the second flag.
+
+12. **Field monster tables *are* shipped with the client — the note in phase 3
+    correction 4 and my own first two readings of this were wrong.** The claim was
+    that `CXSLBattleField`'s `NPC_TABLE_FILE_NAME` data never reached players and
+    would have to be recreated. It is all in `data036.kom`: 24 per-field scripts
+    (`Ruben_Field_00.lua`, …), and decrypting them turns up `AddSpawnMonsterGroup`
+    in 24 and `AddLine` in none, so they are the monster tables rather than the
+    line maps. Only `BattleFieldServerData.lua` — the tuning constants — is
+    genuinely absent, because it is server tuning and was never shipped.
+
+13. **"Boss groups" in this build means the *middle* boss.**
+    `CXSLBattleField::GetBattieFieldBossMonsterInfo` is entirely inside an `#else`
+    under `SERV_BATTLEFIELD_MIDDLE_BOSS`, which this build defines — the shipping
+    game replaced the full boss with the middle boss. Consistent with the client's
+    `BattleFieldData.lua` carrying `BATTLE_FIELD_MIDDLE_BOSS_INFO` and no
+    `BATTLE_FIELD_RISK_INFO` at all.
+
+### Packets the plan did not predict
+
+Room entry, all three routes into one single-occupant room:
+
+```
+EGS_CREATE_TUTORIAL_ROOM_REQ/ACK      the tutorial
+EGS_QUICK_START_DUNGEON_GAME_REQ/ACK  every normal dungeon, solo
+EGS_PARTY_GAME_START_NOT              what actually moves the player
+EGS_JOIN_BATTLE_FIELD_REQ/ACK         the village portal out to a field
+EGS_CREATE_ROOM_REQ/ACK               PvP lobby only in this build; implemented anyway
+```
+
+The dungeon run:
+
+```
+EGS_REMAINING_PLAY_TIME_NOT           every <=5s or input dies - correction 4
+EGS_DUNGEON_STAGE_LOAD_REQ/ACK + _NOT          _NOT carries the static monsters
+EGS_DUNGEON_STAGE_LOAD_COMPLETE_REQ/ACK + _NOT
+EGS_DUNGEON_STAGE_START_NOT
+EGS_DUNGEON_SUB_STAGE_OPEN_REQ/ACK + _NOT
+EGS_DUNGEON_SUB_STAGE_GO_NEXT_REQ/ACK + _ALL_NOT
+EGS_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ/ACK
+EGS_DUNGEON_SUB_STAGE_START_NOT
+EGS_DUNGEON_SUB_STAGE_CLEAR_REQ/ACK
+EGS_DUNGEON_KILLALLNPC_CHECK_REQ/ACK  m_bResult MUST be true - see decision 4
+EGS_NPC_UNIT_CREATE_REQ/ACK + _NOT    server owns the UIDs
+EGS_NPC_UNIT_DIE_REQ/ACK + _NOT       where EXP and ED are actually earned
+EGS_WORLD_TRIGGER_RELOCATION_REQ/ACK + _NOT
+EGS_USER_UNIT_DIE_REQ/ACK, EGS_USER_UNIT_DIE_COMPLETE_REQ
+EGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ/ACK, EGS_STOP_DUNGEON_CONTINUE_TIME_REQ/ACK
+EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ/ACK
+EGS_GET_ITEM_REQ/ACK
+EGS_CHECK_MACHINE_ID_REQ/ACK
+```
+
+Ending it:
+
+```
+EGS_END_GAME_REQ/ACK
+EGS_END_GAME_DUNGEON_RESULT_DATA_NOT
+EGS_UPDATE_UNIT_INFO_NOT              also required to LEAVE - correction 11
+EGS_END_GAME_NOT
+EGS_STATE_CHANGE_RESULT_REQ/ACK, EGS_RESULT_SUCCESS_REQ/ACK
+EGS_LEAVE_GAME_REQ/ACK, EGS_LEAVE_ROOM_REQ/ACK
+EGS_START_REWARD_BOX_SELECT_REQ/ACK, EGS_SELECT_REWARD_BOX_REQ/ACK
+```
+
+Fields:
+
+```
+EGS_BATTLE_FIELD_NPC_LOAD_NOT          the field's opening population
+EGS_NPC_UNIT_CREATE_NOT                respawn reuses the dungeon packet
+EGS_NPC_UNIT_CREATE_MIDDLE_BOSS_NOT    the middle boss
+EGS_UPDATE_BATTLE_FIELD_USER_POS_NOT   the only report of position in a field
+```
+
+Answered as explicit ignores so the packet log stays signal-only:
+`EGS_MODULE_INFO_UPDATE_NOT`, `EGS_DUNGEON_PLAY_INFO_TO_SERVER_NOT`,
+`EGS_FRAME_AVERAGE_REQ`, `EGS_CLIENT_QUIT_REQ`,
+`EGS_REQUEST_GET_AUTO_PARTY_BONUS_INFO_NOT`.
+
+Compiled out of this build and therefore unreachable, checked rather than assumed:
+`EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ` (`NOT_USE_DICE_ROLL`), and
+`EGS_SKILL_USE_REQ`'s wait (`AddServerPacket` commented out at its only sender).
+
+### What was actually built, against *Code layout to create*
+
+New, beyond the plan's list:
+
+```
+X2Lib/Offline/Handlers_Room.cpp          rooms, the dungeon run, results, fields
+X2Lib/Offline/X2OfflineDropTable.h/.cpp  NpcExpTable.lua + DropTable.lua
+X2Lib/Offline/X2OfflineBattleField.h/.cpp  BattleFieldData.lua + <Field>.lua
+                                           + BattleFieldServerData.lua
+```
+
+Client edits, all behind `SERV_IRUHADEV_OFFLINE`:
+
+```
+X2Lib/X2StateServerSelect.cpp   phase 3's tutorial scaffold removed (§4.0)
+X2Lib/X2DungeonSubStage.cpp     SubStageData::LoadNPCData revived - correction 7
+```
+
+Data the user packs into `data036.kom`, XOR-encrypted:
+
+```
+NpcExpTable.lua              per-level NPC EXP
+DropTable.lua                per-monster EXP/ED gates
+BattleFieldServerData.lua    field tuning; the only one not already shipped
+```
+
+`unit_dungeon` gained rows through `AddDungeonClear`; no schema bump was needed —
+phase 2's v3 already had the table.
+
+### Decisions made while implementing phase 4
+
+1. **The offline server owns NPC UIDs**, exactly as `KRoomMonsterManager` does
+   (counter from 1, monotonic for the life of the room). The client sends `-1`.
+   Getting this wrong the first time keyed every reward under `-1`.
+
+2. **One completed quest is reported: 11005 (`TQI_CHASE_THIEF`).** It is the
+   narrowest lever that turns the dungeon menu on (correction 9) and it is the
+   studio's own unlock. 11030 would additionally switch the novice guide off,
+   which is not phase 4's call. This is an unlock, not a quest system — quest
+   state stays phase 6, and the code says so.
+
+3. **Sub-stage clear falls back to `CT_GAME` with `NET_OK`** when the client's
+   `m_vecNextStage` cannot be read, rather than the server's `ERR_ROOM_51`. An
+   error there hangs the dungeon with no way out; continuing is recoverable.
+
+4. **`EGS_DUNGEON_KILLALLNPC_CHECK_ACK.m_bResult` is always true.** False makes
+   the client report *itself* as a hacker
+   ([X2StateDungeonGame.cpp:3530](X2Lib/X2StateDungeonGame.cpp#L3530)).
+
+5. **The 30% clear bonus is applied; the rank bonus is not.**
+   `ResultProcess.cpp:2054` is the source for the former. The rank tables are
+   server data with no client copy, and inventing multipliers would be worse than
+   omitting them visibly.
+
+6. **No item drops.** `KDropTable::NormalNpcDropItem`'s item lottery is
+   deliberately not ported: an item has to land in an inventory, and the inventory
+   does not round-trip through SQLite until phase 5. Dropping items that a relog
+   would silently eat is worse than dropping none.
+
+7. **Resurrection is refused** (`ERR_RESURRECT_00`) — no stones until phase 5.
+
+8. **`m_bGameEnd` is false when leaving a dungeon mid-run**, true only on a real
+   end. True would make `OnFrameMove` fire `StateChangeResultReq()` and race the
+   village transition with a results screen for an abandoned run.
+
+9. **The dungeon-leave fix is gated on `GetIsExitingTutorial()`** so the tutorial
+   keeps the branch it already leaves correctly through, rather than being
+   silently moved onto the other one.
+
+10. **Two separate drop-table maps, not one.** Merging `AddMonsterDropInfo` and
+    `AddBattleFieldNpcDropInfo` under one key looked right — real IDs never
+    collide, dungeons being 30000+ and battlefields 40000+ — but *both* use 0 as
+    their wildcard, and six monsters (393, 662, 665, 1115, 3003, 3005) appear
+    under both with different rewards. The battlefield rows, all `Exp = 0`, were
+    overwriting the dungeon rows and costing those monsters their EXP.
+
+11. **`Exp` in `DropTable.lua` is a gate, not an amount.** Any value above zero
+    means "this monster grants EXP", and the amount comes from
+    `NpcExpTable.lua` keyed by the monster's level. `ED` is a per-level
+    multiplier gated by an `EDProperty` percentage roll. Arithmetic is
+    `KDropTable::NormalNpcDropItem`'s verbatim.
+
+12. **Field position and village position share one pair of columns**, because the
+    server keeps one `m_kLastPos` and the client's login path reads that single
+    slot — re-joining a field when the stored map is a `VMI_BATTLE_FIELD_*` and
+    placing the player in a village otherwise
+    ([X2StateServerSelect.cpp:4444](X2Lib/X2StateServerSelect.cpp#L4444)). The two
+    encodings of `m_usLastPosValue` differ (village `floatToHalf(ratio)`, field
+    `sqrtf(dist) * 100`) and that is safe precisely because `last_pos` says which
+    map the row belongs to.
+
+13. **Field respawn and the middle boss ride the client's own pushes**, because
+    the offline server has no timer — it only runs when a packet arrives. Respawn
+    and the boss use `EGS_UPDATE_BATTLE_FIELD_USER_POS_NOT`; the frame-count
+    refill uses the three-second `EGS_UPDATE_PLAY_STATUS_NOT`. The field's
+    limitation is stated rather than hidden: stand perfectly still and the field
+    stops refilling.
+
+14. **The field's opening population is sent on the first
+    `EGS_UPDATE_BATTLE_FIELD_USER_POS_NOT`, not on the join ACK.** The client
+    builds that push from `GetMyUnit()->GetLastTouchLineIndex()`, so its arrival
+    *proves* the unit exists — which is the exact condition the client's NPC-load
+    handler branches on. Sending from the ACK races the state change.
+
+15. **Boss groups are kept by ID but excluded from respawn.** A middle boss must
+    never come back on a timer, only by earning the danger value again.
+
+16. **Middle-boss pacing is tuned in the Lua, not in code.**
+    `SetDangerousValueEventRate` 4 → 32 puts the first boss at 25 kills instead of
+    200 and scales all five tiers uniformly, leaving
+    `GET_MIDDLE_BOSS_MONSTER_DROP_RATE`'s curve untouched. The original value and
+    the restore instruction are comments in the file, so re-tuning needs no
+    rebuild. Tuning in the data keeps the emulator faithful and the knob visible.
+
+17. **Elite / attribute-enchanted monsters are omitted**, and `m_mapAttribNpcInfo`
+    goes out empty. Their stat rolls come from `AttribNpcTable.lua`, also
+    server-only; the client reads an empty map as "ordinary monster".
+
+### Operational notes, extending the earlier phases'
+
+- **There are two `KLuaManager` classes in this tree with the same method names
+  and different return types.** The server's
+  (`KncWX2Server/Common/Lua/KLuaManager.h`) returns `HRESULT`; the client's
+  (`luaLib/KLuaManager.h`) returns `bool`. Since `S_OK` is `0`, porting the
+  server's `== S_OK` idiom into client code **inverts every test** — and it
+  compiles, because `bool` converts to `int`. An inverted `if` skips a block; an
+  inverted `while( S_OK == BeginTable( i ) )` spins forever. That is exactly what
+  it did: the field's BGM kept playing while the game stopped responding, the hang
+  being on the main thread inside a Lua chunk. **When porting a server parser into
+  `X2Lib`, convert every `== S_OK` to `== true` and every `== E_FAIL` to
+  `== false`.**
+- **A `.kom` archive can be read from the outside, and it is the fastest way to
+  answer "is this data shipped?".** The file carries a plaintext XML manifest —
+  `grep -a '<File Name="' data036.kom` lists every member with its sizes. To see
+  *contents*, scan for zlib streams (`0x78` followed by `0x01/0x5E/0x9C/0xDA`),
+  decompress, then XOR-decrypt with the three rotating keys at
+  [KTDX.h:388](KTDXLIB/KTDX.h#L388). Members are compiled Lua (`\x1bLuaQ`), so
+  grep the string constants rather than expecting source. This turned "we would
+  have to recreate the field monster tables by hand" into "all 24 are already
+  here" in about ten minutes, and it should be the *first* move next time a phase
+  claims data is missing.
+- **Client-side state can usually be inspected from the offline server, without
+  touching a CP949 file.** Chasing the input freeze needed
+  `m_bCanNotInputAndPauseNPCAI`, which has no getter — but the same call that sets
+  it also calls `SetAIEnable(false)` on every NPC, and `GetAIEnabled()` is public,
+  so "every NPC has AI off" was a faithful proxy read entirely from
+  `Handlers_Field.cpp`. Reach for a proxy through existing public accessors before
+  byte-patching a Korean-encoded header. When a getter really is unavoidable, add
+  it behind the flag, keep it to one line, and delete it afterwards — three such
+  getters were added and reverted with `git checkout --` once the cause was found,
+  which is only safe because those files contained nothing else.
+- **`EGS_UPDATE_PLAY_STATUS_NOT` is the emulator's clock.** It arrives every
+  ~3.01 s in villages, dungeons and fields alike, and it is the only fixed cadence
+  a run has. Anything periodic should ride it rather than invent a timer.
+- **A modal message box is what a server-packet timeout looks like.**
+  `CX2State::UIServerTimeOutProc` pops `KTDGUIOKMsgBox` after
+  `m_fServerTimeOut` = 5.0 s. Worth knowing, but check the packet log before
+  blaming it: in the one case it was suspected, every REQ had in fact been
+  answered and the real cause was correction 4.
+- **Cross-check waits mechanically, not by reading.**
+  `grep -rho 'AddServerPacket( *[A-Z_0-9]*' X2Lib/*.cpp` gives all 333 armed
+  waits; diffing that against the ACKs the offline server sends is a few seconds
+  and finds the hangs a phase will otherwise discover one play-test at a time.
+
+### Rule: server Lua that the client needs is the user's to pack
+
+Three phases have now hit the same shape — the client is missing a data file that
+only ever existed server-side — and the handling is settled:
+
+1. **Say what is needed and stop.** Name the exact file
+   (`KncWX2Server/ServerResource/US/<name>.lua`), say it must be XOR-encrypted and
+   packed into `data036.kom`, and let the user do it. Do not write loose copies
+   into the game directory: `MASS_FILE_FIRST` means `LoadDataFile` falls back to a
+   loose file, which works and then **masks a failed repack**, so the next person
+   cannot tell whether the archive is right.
+2. **Load it the shipped way** — `LoadDataFile()` for the container, `DoMemory()`
+   for the XOR, with a `DoMemoryNotEncript()` fallback that logs a note when it
+   fires. Same shape as `X2OfflineStatTable`, `X2OfflineDropTable` and
+   `X2OfflineBattleField`.
+3. **No band-aid logic.** Do not hardcode a table, invent a curve, or approximate
+   a function to paper over a file that is not packed yet. If the data is absent,
+   the feature is off and the log says which file is missing and what to do about
+   it — the way the middle boss does, since its spawn chance is a Lua *function*
+   and no constant can stand in for it. The single exception is a value that can
+   be read out of the repo and cited as such: `BattleFieldServerData.lua`'s
+   respawn window and factors are carried as fallbacks with a comment naming their
+   source, so an unpacked install behaves like the live server instead of like
+   nothing. A fallback is honest only when it is the real number, is labelled, and
+   is announced in the log.
+
 ---
 
 # Phase 5 — Inventory, equipment, and skills

@@ -1448,6 +1448,35 @@ bool CX2DungeonSubStage::SubStageData::LoadData( KLuaManager& luaManager, bool b
 	LoadNpcData4Tool( luaManager );
 #endif
 
+//{{ Iruha : 2026-09-02 // offline mode - revive the studio's own NPC parser
+#ifdef SERV_IRUHADEV_OFFLINE
+	// LoadNPCData() is dead code in the shipping client: it is declared,
+	// defined and never called, and g_pInstanceData->m_bIsNpcLoad - the flag
+	// that threads bIsNpcLoad down to here - is initialised false and never
+	// set. That is not an oversight. Static dungeon monsters were the SERVER's
+	// to place: CXSLDungeon::GetNPCData parses this very same script server-side
+	// and ships the result in KEGS_DUNGEON_STAGE_LOAD_NOT::m_mapNPCData, which
+	// CX2Dungeon::SetStageStaticNPC then feeds into m_NPCDataList. The client
+	// has the placements in its own .kom all along and simply never reads them.
+	//
+	// Offline there is no server to parse it, so this parser is how the offline
+	// server gets the monster list - it builds m_mapNPCData from a throwaway
+	// CX2Dungeon created with bIsNpcLoad = true. Gated on that flag so the LIVE
+	// game dungeon (created with bIsNpcLoad = false) still gets its monsters
+	// only from the packet; loading them here as well would double every spawn.
+	//
+	// Only the plain NPC_GROUP table is understood, which is also the case the
+	// server's New_LoadNPCData falls back to when a sub-stage has no
+	// NPC_GROUP_RATE. A sub-stage using the newer NPC_GROUP_RATE / NPC_GROUP<N>
+	// random-group form yields an empty list here, and the offline server logs
+	// that rather than silently shipping an empty stage.
+	if( true == bIsNpcLoad )
+	{
+		LoadNPCData( luaManager );
+	}
+#endif SERV_IRUHADEV_OFFLINE
+//}}
+
 	//이 서브 스테이지에 사용할 트리거 리스트
 	LoadTrigger( luaManager );
 
