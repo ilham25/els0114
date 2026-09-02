@@ -91,6 +91,65 @@ honest only when it is the real number, is labelled with where it came from, and
 is announced in the log. Anything that cannot be sourced that way — a Lua
 *function*, for instance — gets no fallback at all.
 
+## Rule: `DataBase/` and `ScriptData/` are a stale snapshot — the live DB is the source of record
+
+The user has access to the **original SQL Server databases** (`Account`,
+`Game01`) this client was served by. Everything under `DataBase/` and
+`ScriptData/` in this tree is a *checkout from some point in the game's life*,
+and it has been proven to disagree with what actually shipped. So:
+
+**When behaviour depends on a stored procedure or a server-side data table, ask
+the user to pull it from the live DB before building on the copy in this tree.**
+Name the procedure or table, give the query, and wait — the same shape as the
+Lua-packing rule above.
+
+```sql
+-- procedure bodies
+SELECT OBJECT_NAME(object_id) AS proc_name, definition
+FROM   sys.sql_modules WHERE OBJECT_NAME(object_id) IN ( 'gup_...', … );
+
+-- when the live names may have drifted from this snapshot's
+SELECT name FROM sys.procedures WHERE name LIKE 'gup_%' ORDER BY name;
+```
+
+The two failures that produced this rule, both from character creation:
+
+- **`DataBase/`'s `dbo.gup_create_unit` predates a refactor.** The copy here
+  inserts no items; the live one copies ten positioned rows out of
+  `dbo.GBase_Item` per class and aborts with `-28` if there are not exactly ten.
+  Reading the local copy line by line produced the confident, wrong conclusion
+  that a new character starts with nothing.
+- **`ScriptData/ItemTemplet.xlsx` disagrees with the live item table.** Every
+  beginner-gear ID in `GBase_Item` (`131641..`, `111094..`, `112700..`) is
+  absent from that spreadsheet, which carries a later reform block instead.
+  Deriving IDs from the spreadsheet produced a plausible, checkable, wrong
+  answer — and *it agreed with the item names the user read off their own
+  client*, so it survived a sanity check that should have caught it.
+
+Notes that matter in practice:
+
+- **A procedure missing from `DataBase/` is not evidence it does nothing.**
+  `dbo.gup_create_unit_set_promotion` has no body anywhere in this tree; it is
+  called on every character creation.
+- **A local copy that reads consistently is still not corroboration.** Both
+  failures above came from sources that were internally coherent. Two sources
+  agreeing only counts when they are genuinely independent — the client's own
+  arrays and a stored procedure are; a spreadsheet and a pattern derived from it
+  are not.
+- **Commented-out code in a live procedure is history, and history is still
+  useful.** The dead per-class blocks in `gup_create_unit` were worthless as a
+  source of IDs and were the thing that revealed the slot *layout*
+  (`InventoryCategory 9`, odd slots real / even slots fashion). Read it for
+  structure, never for values.
+- **Transcribe, don't tidy.** The live table gives classes 7, 8 and 9 the same
+  set, which looks like an unfinished row. It goes in verbatim with a log line
+  saying so — "correcting" studio data on the way in makes the code disagree
+  with the server for a reason nobody can later reconstruct.
+- **Treat the dump as confidential.** Ask for it as plain text in the
+  conversation, not as a file written into the game tree, and keep server names,
+  linked servers and logins out of anything committed or logged — the same
+  handling the `.dsn` files get (see *Cautions*).
+
 ## Toolchains — client is VS2010; servers build under either
 
 Historically the client and the servers were built with **different versions of Visual Studio**, because the servers didn't build under VS2010 at all. **That changed 2026-08-27**: the five servers now also build under VS2010, via a dedicated solution added by a from-scratch port (see `VS2003_to_VS2010_Port_Guide.md` for exactly what the port did and why — the process is written to be reusable on other old-toolchain codebases, not just this one). VS2010 is the toolchain actually installed in this environment and is the maintained path going forward; VS2003 remains usable for the servers only on a machine that still has it installed.
