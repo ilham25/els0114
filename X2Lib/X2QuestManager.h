@@ -464,6 +464,24 @@ class CX2QuestManager
 			std::wstring					m_wstrStartScene;
 			std::wstring					m_wstrEndScene;
 			int								m_iAfterQuestID;
+//{{ Iruha : 2026-09-03 // offline mode needs the epic quest chain
+#ifdef SERV_IRUHADEV_OFFLINE
+			// The quests this one unlocks when it is handed in.
+			//
+			// The Lua key is m_iAfterQuestID and it is a TABLE, not the single int
+			// above: the server reads it into a vector
+			// (CXSLQuestManager::AddQuestTemplet_LUA, XSLQuestManager.cpp:156) and
+			// the client's own loader never reads the field at all, which is why
+			// m_iAfterQuestID sits here unused. So the chain is in the script the
+			// client already loads and only the client's parser ignores it.
+			//
+			// It matters because it is the PRIMARY way the story advances: quest
+			// 11005 '[Field] Thief Pursuit' has no prerequisite, no opening village
+			// and no opening dungeon - the only thing that can ever start it is
+			// being listed here by 11000.
+			std::vector< int >				m_vecAfterQuestID;
+#endif SERV_IRUHADEV_OFFLINE
+//}}
 #endif SERV_EPIC_QUEST
 
 			std::vector< int >										m_vecShowItemID;			// 해당 아이템을 인벤토리(은행,캐시보관함 제외)에 보유 하고 있을 경우, 해당 퀘스트를 보이게 하고, 아이템이 없으면 수행중인 퀘스트는 자동으로 포기 시킨다.

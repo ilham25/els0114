@@ -32,6 +32,8 @@
 #include "X2OfflineBattleField.h"
 #include "X2OfflineInventory.h"
 #include "X2OfflineSkill.h"
+#include "X2OfflineQuest.h"
+#include "X2OfflineTitle.h"
 
 class CX2OfflineServer : public IX2OfflineHook
 {
@@ -265,6 +267,30 @@ public:
 			m_bMiddleBossReserved = false;
 			m_iMiddleBossAlive	= 0;
 			m_dwPlayStartTick	= 0;
+		}
+	};
+
+	//////////////////////////////////////////////////////////////////////////
+	/// What a finished quest still owes the client once its ACK has gone out:
+	/// the level-up effect, the quest updates the reward triggered, and the
+	/// title work. Carried between CompleteOneQuest and AfterQuestComplete
+	/// rather than passed as five arguments, because the batch hand-in has to
+	/// stash one of these per quest and replay them after a single ACK.
+	struct KQuestAfter
+	{
+		bool	m_bValid;
+		int		m_iQuestID;
+		int		m_iOldLevel;
+		int		m_iNewLevel;
+		bool	m_bChangedJob;
+
+		KQuestAfter()
+			: m_bValid( false )
+			, m_iQuestID( 0 )
+			, m_iOldLevel( 0 )
+			, m_iNewLevel( 0 )
+			, m_bChangedJob( false )
+		{
 		}
 	};
 
@@ -593,9 +619,106 @@ private:
 	bool Handler_EGS_INIT_SKILL_TREE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_CHANGE_SKILL_SLOT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 
+	/// Sent by the client every time a skill is fired in a dungeon. Nothing but
+	/// SQT_SKILL_USE listens to it, and it expects no reply at all.
+	bool Handler_EGS_SKILL_USE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
 	/// First unequipped item of this ID in the bag, or 0. Used to spend a
 	/// consumable the request did not name.
 	static UidType FindItemByID( int iItemID );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Quest.cpp - phase 6
+
+	bool Handler_EGS_NEW_QUEST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_UPDATE_QUEST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_QUEST_COMPLETE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_ALL_COMPLETED_QUEST_COMPLETE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GIVE_UP_QUEST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GATHER_GIVE_UP_QUEST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_EQUIP_TITLE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	/// Make sure the quest and title state belongs to the character this
+	/// session has selected, and hand back its row. Returns false when there is
+	/// no selected character - every quest handler is a no-op then.
+	bool LoadQuestState( KOfflineSession& kSes, OUT KOfflineUnitRow& kRow );
+
+	/// One quest's completion: the checks, the reward, the class change, and
+	/// the ACK payload. Shared by EGS_QUEST_COMPLETE_REQ and by the batch
+	/// EGS_ALL_COMPLETED_QUEST_COMPLETE_REQ, which is literally a vector of the
+	/// same request.
+	///
+	/// It does NOT send anything except through the ACK it fills in. What the
+	/// completion sets off is left in m_kQuestAfter for AfterQuestComplete, so
+	/// the caller can put the ACK on the wire first - see the comment there.
+	int  CompleteOneQuest( KOfflineSession& kSes, const KEGS_QUEST_COMPLETE_REQ& kReq,
+						   OUT KEGS_QUEST_COMPLETE_ACK& kAck );
+
+	/// Everything a finished quest sets off, played out after its ACK has gone.
+	void AfterQuestComplete( KOfflineSession& kSes );
+
+	/// One EGS_NEW_QUEST_NOT per epic quest the game just handed the player.
+	/// A story quest is never asked for - see CX2OfflineQuest::CheckAutoOpen -
+	/// so this is the only thing that puts one on screen.
+	void PushNewQuest( KOfflineSession& kSes, const std::vector< KQuestInstance >& vecOpened );
+
+	/// Open whatever epic quests this place or this progress unlocks, announce
+	/// them, and let them tick their own "you are already here" steps.
+	void QuestAutoOpen( KOfflineSession& kSes, int ePlace, int iPlaceID,
+						const KOfflineUnitRow& kRow );
+
+	/// EGS_UPDATE_QUEST_NOT, or nothing at all when the vector is empty. The
+	/// client redraws its quest UI from this and prints the progress line over
+	/// the character's head, so an empty send would be a visible no-op.
+	void PushQuestUpdate( KOfflineSession& kSes, const std::vector< KQuestInstance >& vecChanged );
+
+	/// EGS_NEW_MISSION_NOT / EGS_UPDATE_MISSION_NOT / EGS_REWARD_TITLE_NOT, each
+	/// only when it has something to say.
+	void PushMissionUpdate( KOfflineSession& kSes,
+							const std::vector< KMissionInstance >& vecNew,
+							const std::vector< KMissionInstance >& vecChanged,
+							const std::vector< KTitleInfo >& vecNewTitle );
+
+	//////////////////////////////////////////////////////////////////////////
+	// The game events quests and title missions listen to. Each is called from
+	// the handler that already owns that moment - the talk handler, the kill
+	// handler, the result handler - and does the whole of the quest side:
+	// advance, persist, notify.
+
+	void QuestOnTalkNPC( KOfflineSession& kSes, int iNPCID );
+	void QuestOnNpcDie( KOfflineSession& kSes, int iNpcID );
+	void QuestOnDungeonClear( KOfflineSession& kSes, char cRank, int iPlayTime, int iDamage );
+	void QuestOnEnterVillage( KOfflineSession& kSes, int iMapID );
+	void QuestOnEnterField( KOfflineSession& kSes, int iBattleFieldID );
+	void QuestOnEnterDungeon( KOfflineSession& kSes );
+	void QuestOnFindNPC( KOfflineSession& kSes, const std::vector< int >& vecNpcID );
+	void QuestOnLevelUp( KOfflineSession& kSes );
+
+	/// A quest instance has just come into existence, from any of the four
+	/// routes that can create one. Ticks whatever is already true about where
+	/// the character is standing and what level it is.
+	///
+	/// This is the fix for "the next quest says go to Elder, I am IN Elder, and
+	/// nothing happens": the step's trigger fired before the step existed. The
+	/// real server re-runs exactly these checks off the back of the accept it
+	/// just made (GSUserGameCommon.cpp:1608-1649), which is why a live client
+	/// never sees it.
+	void QuestCheckHereAndNow( KOfflineSession& kSes, const KOfflineUnitRow& kRow,
+							   OUT std::vector< KQuestInstance >& vecChanged );
+
+	/// One call per skill point spent, and one per request for the skills that
+	/// went from unlearned to learned.
+	void QuestOnUseSkillPoint( KOfflineSession& kSes, int iSkillID, int iCount );
+	void QuestOnLearnNewSkill( KOfflineSession& kSes, const std::vector< int >& vecSkillID );
+
+	/// An item consumed from the bag or a quick slot.
+	void QuestOnUseItem( KOfflineSession& kSes, int iItemID );
+
+	/// The bag changed, so an item-collection step may have become satisfiable.
+	/// The quest half needs no work - the client counts the bag itself and the
+	/// completion check does the same - but a title mission with a collection
+	/// step has to be noticed and paid out, and nothing else notices.
+	void QuestOnInventoryChanged( KOfflineSession& kSes );
 
 	//////////////////////////////////////////////////////////////////////////
 	// Handlers_Stub.cpp - answered because the client blocks on them, nothing more
@@ -619,6 +742,8 @@ private:
 
 	KOfflineRoom								m_kRoom;			///< the one room; see KOfflineRoom
 	UidType										m_nNextRoomUID;
+
+	KQuestAfter									m_kQuestAfter;		///< see KQuestAfter
 };
 
 //////////////////////////////////////////////////////////////////////////

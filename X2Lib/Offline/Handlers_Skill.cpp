@@ -28,6 +28,7 @@
 
 #include "X2OfflineInventory.h"
 #include "X2OfflineSkill.h"
+#include "X2OfflineQuest.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -74,7 +75,140 @@ bool CX2OfflineServer::Handler_EGS_GET_SKILL_REQ( KOfflineSession& kSes, const K
 	kAck.m_iRemainSP	= iSPLeft;
 	kAck.m_iRemainCSP	= 0;
 
-	return Reply( kSes, EGS_GET_SKILL_ACK, kAck );
+	Reply( kSes, EGS_GET_SKILL_ACK, kAck );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Phase 6, round 6: the quest steps that ask the player to open the skill
+	// tree and spend a point.
+	//
+	// This was the whole of the reported bug. Learning a skill worked, the SP
+	// came off, the tree persisted - and the quest step never moved, because
+	// nothing told the quest engine. On live it is ticked from
+	// DBE_INSERT_SKILL_ACK, the *database reply* handler
+	// (GSUserGameCommon.cpp:4639), which is a long way from anything
+	// quest-shaped and easy to miss when porting the packet rather than the
+	// feature.
+	//
+	// Two separate types come off one request, counted differently:
+	//
+	//  * USE_SKILL_POINT counts POINTS. One skill taken from level 1 to 3 is
+	//    two points, and the server calls its handler once per level in a loop.
+	//  * LEARN_NEW_SKILL counts SKILLS, and only ones that were not known
+	//    before. The client works that list out itself and sends it in the
+	//    request as m_vecNowLearnSkill (X2SkillTree.cpp:3879), so it is used
+	//    verbatim rather than recomputed here - same as the server does
+	//    (GSUserGameCommon.cpp:4569).
+	{
+		std::map< int, KGetSkillInfo >::const_iterator mitS;
+		for( mitS = kAck.m_mapSkillList.begin(); mitS != kAck.m_mapSkillList.end(); ++mitS )
+		{
+			const int iGained = mitS->second.m_iSkillLevel - mitS->second.m_iBeforeSkillLevel;
+
+			if( iGained > 0 )
+				QuestOnUseSkillPoint( kSes, mitS->first, iGained );
+		}
+
+		QuestOnLearnNewSkill( kSes, kReq.m_vecNowLearnSkill );
+	}
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+/// The dungeons a skill-use quest step is allowed to count in.
+///
+/// The server excludes four categories - tutorial, Henir, Ruben and the
+/// training camp - via CXSLDungeon predicates its own handler calls
+/// (GSUserGameCommon.cpp:8846). Transcribed here against the CLIENT's DI_*
+/// enum, which is the right target and is not the same list: most of the
+/// entries CXSLDungeon names are commented out of X2Lib/X2Dungeon.h, so those
+/// dungeons cannot be entered from this build at all and need no case.
+///
+/// Every name below was checked to be a live enumerator, not merely present in
+/// the file - the first attempt at this used grep and matched six commented-out
+/// lines, which the compiler then rejected one by one.
+static bool IsSkillUseCountedDungeon( int iDungeonID )
+{
+	switch( iDungeonID )
+	{
+	// CXSLDungeon::IsTutorialDungeon. Only these two of its fourteen entries
+	// survive in this client. The room's own m_bTutorial flag is checked by the
+	// caller as well and is the more reliable of the two.
+	case CX2Dungeon::DI_TUTORIAL_ELSWORD:
+	case CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
+
+	// CXSLDungeon::IsHenirDungeon. The other five Henir spaces are commented
+	// out here exactly as they are in the client's own IsHenirDungeon.
+	case CX2Dungeon::DI_ELDER_HENIR_SPACE:
+
+	// CXSLDungeon::IsRubenDungeon, less DI_RUBEN_SECRET_HELL, which this client
+	// has no enumerator for. The two entries the server itself keeps commented
+	// out are left out for the same reason it leaves them out.
+	case CX2Dungeon::DI_EL_FOREST_WEST_NORMAL:
+	case CX2Dungeon::DI_EL_FOREST_NORTH_NORMAL:
+	case CX2Dungeon::DI_EL_FOREST_GATE_NORMAL:
+	case CX2Dungeon::DI_EL_FOREST_HELL_NORMAL:
+	case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
+	case CX2Dungeon::DI_MONSTER_TEST_NORMAL:
+	case CX2Dungeon::DI_RUBEN_SECRET_COMMON:
+	case CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL:
+	case CX2Dungeon::DI_RUBEN_RUIN_OF_ELF_NORMAL:
+	case CX2Dungeon::DI_RUBEN_SWAMP_NORMAL:
+		return false;
+
+	default:
+		break;
+	}
+
+	// CXSLDungeon::IsTCDungeon - the training camp, one contiguous range from
+	// DI_TRAINING_FREE (39000) to DI_TRAINING_RAVEN_6. This client stops its
+	// enum at DI_TRAINING_RAVEN_0 (39400), so the upper bound is spelled as
+	// that plus six rather than as a bare 39406: the server's enum runs
+	// RAVEN_0..RAVEN_6 with no explicit values (XSLDungeon.h), and writing the
+	// arithmetic out keeps the derivation visible.
+	if( iDungeonID >= (int)CX2Dungeon::DI_TRAINING_FREE &&
+		iDungeonID <= (int)CX2Dungeon::DI_TRAINING_RAVEN_0 + 6 )
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool CX2OfflineServer::Handler_EGS_SKILL_USE_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_SKILL_USE_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	// No ACK exists for this one and the client arms no wait on it - it is a
+	// fire-and-forget notification that only SQT_SKILL_USE listens to. Handled
+	// rather than dropped so the log stops calling it an unknown packet, which
+	// matters more than it sounds: it arrives on every skill cast, so an
+	// unhandled line for it drowns out everything else in a dungeon run.
+	if( -1 == kReq.m_iSkillID )
+		return true;
+
+	// Dungeons only, and not the ones the feature is switched off in.
+	if( false == m_kRoom.m_bActive || 0 == m_kRoom.m_kInfo.m_iDungeonID )
+		return true;
+
+	if( true == m_kRoom.m_bTutorial )
+		return true;
+
+	if( false == IsSkillUseCountedDungeon( m_kRoom.m_kInfo.m_iDungeonID ) )
+		return true;
+
+	KOfflineUnitRow kRow;
+	if( false == LoadQuestState( kSes, kRow ) )
+		return true;
+
+	std::vector< KQuestInstance > vecChanged;
+	CX2OfflineQuest::Instance()->OnUseSkill( kReq.m_iSkillID, kRow, vecChanged );
+	PushQuestUpdate( kSes, vecChanged );
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////

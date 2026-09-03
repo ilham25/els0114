@@ -11,7 +11,7 @@ CX2OfflineDB* CX2OfflineDB::ms_pInstance = NULL;
 /*static*/ const char* CX2OfflineDB::UNIT_COLUMNS =
 	"unit_uid, user_uid, unit_class, nickname, level, exp, ed, sp, spirit, "
 	"last_pos, last_line_index, last_pos_value, cur_hp, cur_mp, hyper_gage, abil_count, "
-	"reg_date, del_date, last_date, csp";
+	"reg_date, del_date, last_date, csp, title_id";
 
 /*static*/ const char* CX2OfflineDB::ITEM_COLUMNS =
 	"item_uid, unit_uid, category, slot, item_id, count, "
@@ -138,6 +138,71 @@ namespace
 
 		"ALTER TABLE unit ADD COLUMN csp INTEGER NOT NULL DEFAULT 0;"
 		"ALTER TABLE unit_skill ADD COLUMN csp INTEGER NOT NULL DEFAULT 0;"
+		;
+
+	// v5 (phase 6): quest progress, completed quests, title missions and owned
+	// titles, plus the worn title on `unit`.
+	//
+	// `unit_quest` already exists from v1 and is used unchanged as the header
+	// row - one line per quest in progress. Its `progress` BLOB stays empty:
+	// the sub-quest counters go in `unit_subquest` instead, one row each, so a
+	// stuck quest can be read straight out of the save file with a SELECT
+	// rather than being a blob nobody can inspect.
+	//
+	// Sub-quest *order* is deliberately not a column. The wire format is
+	// positional - KQuestInstance::m_vecSubQuestInstance[i] must line up with
+	// the templet's m_vecSubQuest[i] - so the order is rebuilt from the templet
+	// on every load. Storing it as well would give two sources of truth for the
+	// same thing, and the templet is the one the client agrees with.
+	const char* const SCHEMA_V5 =
+		"CREATE TABLE IF NOT EXISTS unit_subquest ("
+		"  unit_uid   INTEGER NOT NULL,"
+		"  quest_id   INTEGER NOT NULL,"
+		"  sub_id     INTEGER NOT NULL,"
+		"  clear_data INTEGER NOT NULL DEFAULT 0,"
+		"  success    INTEGER NOT NULL DEFAULT 0,"
+		"  PRIMARY KEY( unit_uid, quest_id, sub_id ) );"
+
+		"CREATE TABLE IF NOT EXISTS unit_quest_complete ("
+		"  unit_uid       INTEGER NOT NULL,"
+		"  quest_id       INTEGER NOT NULL,"
+		"  complete_count INTEGER NOT NULL DEFAULT 1,"
+		"  complete_date  INTEGER NOT NULL DEFAULT 0,"
+		"  PRIMARY KEY( unit_uid, quest_id ) );"
+
+		"CREATE TABLE IF NOT EXISTS unit_mission ("
+		"  unit_uid   INTEGER NOT NULL,"
+		"  mission_id INTEGER NOT NULL,"
+		"  PRIMARY KEY( unit_uid, mission_id ) );"
+
+		"CREATE TABLE IF NOT EXISTS unit_submission ("
+		"  unit_uid   INTEGER NOT NULL,"
+		"  mission_id INTEGER NOT NULL,"
+		"  sub_id     INTEGER NOT NULL,"
+		"  clear_data INTEGER NOT NULL DEFAULT 0,"
+		"  success    INTEGER NOT NULL DEFAULT 0,"
+		"  PRIMARY KEY( unit_uid, mission_id, sub_id ) );"
+
+		// end_date 0 means permanent - KTitleInfo::m_bInfinity.
+		"CREATE TABLE IF NOT EXISTS unit_title ("
+		"  unit_uid INTEGER NOT NULL,"
+		"  title_id INTEGER NOT NULL,"
+		"  end_date INTEGER NOT NULL DEFAULT 0,"
+		"  PRIMARY KEY( unit_uid, title_id ) );"
+
+		"ALTER TABLE unit ADD COLUMN title_id INTEGER NOT NULL DEFAULT 0;"
+		;
+
+	// v6 (phase 6): the two columns a cleared dungeon needs on the wire but
+	// v1's `unit_dungeon` never had.
+	//
+	// KDungeonClearInfo carries a best score and a clear *date* as well as the
+	// rank, and the local-map UI draws all three. The rows were being written
+	// since phase 4 and read by nobody; now that they are sent, an empty date
+	// string would reach the client's date parsing.
+	const char* const SCHEMA_V6 =
+		"ALTER TABLE unit_dungeon ADD COLUMN max_score  INTEGER NOT NULL DEFAULT 0;"
+		"ALTER TABLE unit_dungeon ADD COLUMN clear_date INTEGER NOT NULL DEFAULT 0;"
 		;
 }
 
@@ -267,6 +332,7 @@ sqlite3_stmt* CX2OfflineDB::Prepare( const char* szSQL )
 	kOut.m_tDelDate		= (__int64)sqlite3_column_int64( pStmt, 17 );
 	kOut.m_tLastDate	= (__int64)sqlite3_column_int64( pStmt, 18 );
 	kOut.m_iCSP			= sqlite3_column_int( pStmt, 19 );
+	kOut.m_iTitleID		= sqlite3_column_int( pStmt, 20 );
 }
 
 /*static*/ void CX2OfflineDB::ReadItemRow( sqlite3_stmt* pStmt, OUT KOfflineItemRow& kOut )
@@ -470,6 +536,24 @@ bool CX2OfflineDB::Migrate()
 		if( false == Exec( "COMMIT;" ) )		return false;
 
 		CX2OfflineLog::Server( L"DB       schema upgraded to v4 (item detail, skill points)" );
+	}
+
+	if( iFrom < 5 )
+	{
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( SCHEMA_V5 ) )		{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v5 (quests, titles, missions)" );
+	}
+
+	if( iFrom < 6 )
+	{
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( SCHEMA_V6 ) )		{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v6 (dungeon clear score and date)" );
 	}
 
 	char szSetVersion[64];
@@ -742,7 +826,9 @@ bool CX2OfflineDB::FinalDeleteUnit( UidType nUnitUID )
 	// key back to unit (they are written by later phases and indexed by hand),
 	// so clear them explicitly rather than leaning on ON DELETE CASCADE.
 	static const char* const szTables[] =
-		{ "inventory_size", "item", "unit_skill", "unit_quest", "unit_dungeon" };
+		{ "inventory_size", "item", "unit_skill", "unit_quest", "unit_dungeon",
+		  "unit_subquest", "unit_quest_complete", "unit_mission", "unit_submission",
+		  "unit_title" };
 
 	if( false == Exec( "BEGIN;" ) )
 		return false;
@@ -907,22 +993,58 @@ bool CX2OfflineDB::AddDungeonClear( UidType nUnitUID, int iDungeonID, int iRank 
 	// 3.53. best_rank keeps the *lowest* number, because rank 1 is S and the
 	// client counts down (CX2Dungeon::RANK_TYPE).
 	sqlite3_stmt* pStmt = Prepare(
-		"INSERT INTO unit_dungeon ( unit_uid, dungeon_id, clear_count, best_rank ) "
-		"VALUES ( ?1, ?2, 1, ?3 ) "
+		"INSERT INTO unit_dungeon ( unit_uid, dungeon_id, clear_count, best_rank, clear_date ) "
+		"VALUES ( ?1, ?2, 1, ?3, ?4 ) "
 		"ON CONFLICT( unit_uid, dungeon_id ) DO UPDATE SET "
 		"  clear_count = clear_count + 1,"
-		"  best_rank   = CASE WHEN best_rank = 0 OR ?3 < best_rank THEN ?3 ELSE best_rank END;" );
+		"  best_rank   = CASE WHEN best_rank = 0 OR ?3 < best_rank THEN ?3 ELSE best_rank END,"
+		"  clear_date  = ?4;" );
 	if( NULL == pStmt )
 		return false;
 
 	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
 	sqlite3_bind_int(   pStmt, 2, iDungeonID );
 	sqlite3_bind_int(   pStmt, 3, iRank );
+	sqlite3_bind_int64( pStmt, 4, NowEpoch() );
 
 	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
 
 	sqlite3_finalize( pStmt );
 	return bOK;
+}
+
+bool CX2OfflineDB::LoadDungeonClears( UidType nUnitUID,
+									  OUT std::vector< KOfflineDungeonClearRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT dungeon_id, clear_count, best_rank, max_score, clear_date "
+		"FROM unit_dungeon WHERE unit_uid = ?1 ORDER BY dungeon_id;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		KOfflineDungeonClearRow kRow;
+		kRow.m_iDungeonID	= sqlite3_column_int( pStmt, 0 );
+		kRow.m_iClearCount	= sqlite3_column_int( pStmt, 1 );
+		kRow.m_iBestRank	= sqlite3_column_int( pStmt, 2 );
+		kRow.m_iMaxScore	= sqlite3_column_int( pStmt, 3 );
+		kRow.m_tClearDate	= (__int64)sqlite3_column_int64( pStmt, 4 );
+
+		vecOut.push_back( kRow );
+	}
+
+	sqlite3_finalize( pStmt );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1392,6 +1514,477 @@ bool CX2OfflineDB::SaveSkillPoint( UidType nUnitUID, int iSP, int iCSP )
 	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
 	sqlite3_bind_int(   pStmt, 2, iSP );
 	sqlite3_bind_int(   pStmt, 3, iCSP );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// quests
+
+bool CX2OfflineDB::LoadQuests( UidType nUnitUID, OUT std::vector< KOfflineQuestRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	// Headers first, then every sub-quest row in one pass, matched back by
+	// quest ID. Two statements rather than a join because the caller has to
+	// see a quest that has somehow lost its sub-quest rows - that is a broken
+	// save worth logging, and a join would silently hide it.
+	{
+		sqlite3_stmt* pStmt = Prepare(
+			"SELECT quest_id FROM unit_quest WHERE unit_uid = ?1 ORDER BY quest_id;" );
+		if( NULL == pStmt )
+			return false;
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+		while( SQLITE_ROW == sqlite3_step( pStmt ) )
+		{
+			KOfflineQuestRow kRow;
+			kRow.m_iQuestID = sqlite3_column_int( pStmt, 0 );
+			vecOut.push_back( kRow );
+		}
+
+		sqlite3_finalize( pStmt );
+	}
+
+	if( true == vecOut.empty() )
+		return true;
+
+	{
+		sqlite3_stmt* pStmt = Prepare(
+			"SELECT quest_id, sub_id, clear_data, success FROM unit_subquest "
+			"WHERE unit_uid = ?1;" );
+		if( NULL == pStmt )
+			return false;
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+		while( SQLITE_ROW == sqlite3_step( pStmt ) )
+		{
+			const int iQuestID = sqlite3_column_int( pStmt, 0 );
+
+			KOfflineSubQuestRow kSub;
+			kSub.m_iSubID		= sqlite3_column_int( pStmt, 1 );
+			kSub.m_iClearData	= sqlite3_column_int( pStmt, 2 );
+			kSub.m_bSuccess		= ( 0 != sqlite3_column_int( pStmt, 3 ) );
+
+			for( size_t i = 0; i < vecOut.size(); ++i )
+			{
+				if( vecOut[i].m_iQuestID == iQuestID )
+				{
+					vecOut[i].m_vecSub.push_back( kSub );
+					break;
+				}
+			}
+		}
+
+		sqlite3_finalize( pStmt );
+	}
+
+	return true;
+}
+
+bool CX2OfflineDB::SaveQuest( UidType nUnitUID, const KOfflineQuestRow& kRow )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	{
+		sqlite3_stmt* pStmt = Prepare(
+			"INSERT OR REPLACE INTO unit_quest( unit_uid, quest_id, state ) VALUES( ?1, ?2, 0 );" );
+		if( NULL == pStmt )
+			return false;
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+		sqlite3_bind_int(   pStmt, 2, kRow.m_iQuestID );
+
+		bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+		sqlite3_finalize( pStmt );
+
+		if( false == bOK )
+		{
+			LogError( L"save quest header" );
+			return false;
+		}
+	}
+
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT OR REPLACE INTO unit_subquest( unit_uid, quest_id, sub_id, clear_data, success ) "
+		"VALUES( ?1, ?2, ?3, ?4, ?5 );" );
+	if( NULL == pStmt )
+		return false;
+
+	bool bOK = true;
+
+	for( size_t i = 0; i < kRow.m_vecSub.size(); ++i )
+	{
+		sqlite3_reset( pStmt );
+		sqlite3_clear_bindings( pStmt );
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+		sqlite3_bind_int(   pStmt, 2, kRow.m_iQuestID );
+		sqlite3_bind_int(   pStmt, 3, kRow.m_vecSub[i].m_iSubID );
+		sqlite3_bind_int(   pStmt, 4, kRow.m_vecSub[i].m_iClearData );
+		sqlite3_bind_int(   pStmt, 5, kRow.m_vecSub[i].m_bSuccess ? 1 : 0 );
+
+		if( SQLITE_DONE != sqlite3_step( pStmt ) )
+		{
+			LogError( L"save sub-quest" );
+			bOK = false;
+		}
+	}
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::DeleteQuest( UidType nUnitUID, int iQuestID )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	const char* const aszSQL[2] =
+	{
+		"DELETE FROM unit_subquest WHERE unit_uid = ?1 AND quest_id = ?2;",
+		"DELETE FROM unit_quest    WHERE unit_uid = ?1 AND quest_id = ?2;",
+	};
+
+	bool bOK = true;
+
+	for( int i = 0; i < 2; ++i )
+	{
+		sqlite3_stmt* pStmt = Prepare( aszSQL[i] );
+		if( NULL == pStmt )
+			return false;
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+		sqlite3_bind_int(   pStmt, 2, iQuestID );
+
+		if( SQLITE_DONE != sqlite3_step( pStmt ) )
+			bOK = false;
+
+		sqlite3_finalize( pStmt );
+	}
+
+	return bOK;
+}
+
+bool CX2OfflineDB::LoadCompleteQuests( UidType nUnitUID, OUT std::vector< KOfflineCompleteQuestRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT quest_id, complete_count, complete_date FROM unit_quest_complete "
+		"WHERE unit_uid = ?1 ORDER BY quest_id;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		KOfflineCompleteQuestRow kRow;
+		kRow.m_iQuestID	= sqlite3_column_int( pStmt, 0 );
+		kRow.m_iCount	= sqlite3_column_int( pStmt, 1 );
+		kRow.m_tDate	= (__int64)sqlite3_column_int64( pStmt, 2 );
+
+		vecOut.push_back( kRow );
+	}
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+
+bool CX2OfflineDB::SaveCompleteQuest( UidType nUnitUID, const KOfflineCompleteQuestRow& kRow )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT OR REPLACE INTO unit_quest_complete"
+		"( unit_uid, quest_id, complete_count, complete_date ) VALUES( ?1, ?2, ?3, ?4 );" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, kRow.m_iQuestID );
+	sqlite3_bind_int(   pStmt, 3, kRow.m_iCount );
+	sqlite3_bind_int64( pStmt, 4, (sqlite3_int64)kRow.m_tDate );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"save completed quest" );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::SaveUnitClass( UidType nUnitUID, int iUnitClass )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare( "UPDATE unit SET unit_class = ?2 WHERE unit_uid = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iUnitClass );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"save unit class" );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// title missions and titles
+
+bool CX2OfflineDB::LoadMissions( UidType nUnitUID, OUT std::vector< KOfflineMissionRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	{
+		sqlite3_stmt* pStmt = Prepare(
+			"SELECT mission_id FROM unit_mission WHERE unit_uid = ?1 ORDER BY mission_id;" );
+		if( NULL == pStmt )
+			return false;
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+		while( SQLITE_ROW == sqlite3_step( pStmt ) )
+		{
+			KOfflineMissionRow kRow;
+			kRow.m_iMissionID = sqlite3_column_int( pStmt, 0 );
+			vecOut.push_back( kRow );
+		}
+
+		sqlite3_finalize( pStmt );
+	}
+
+	if( true == vecOut.empty() )
+		return true;
+
+	{
+		sqlite3_stmt* pStmt = Prepare(
+			"SELECT mission_id, sub_id, clear_data, success FROM unit_submission "
+			"WHERE unit_uid = ?1;" );
+		if( NULL == pStmt )
+			return false;
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+		while( SQLITE_ROW == sqlite3_step( pStmt ) )
+		{
+			const int iMissionID = sqlite3_column_int( pStmt, 0 );
+
+			KOfflineSubQuestRow kSub;
+			kSub.m_iSubID		= sqlite3_column_int( pStmt, 1 );
+			kSub.m_iClearData	= sqlite3_column_int( pStmt, 2 );
+			kSub.m_bSuccess		= ( 0 != sqlite3_column_int( pStmt, 3 ) );
+
+			for( size_t i = 0; i < vecOut.size(); ++i )
+			{
+				if( vecOut[i].m_iMissionID == iMissionID )
+				{
+					vecOut[i].m_vecSub.push_back( kSub );
+					break;
+				}
+			}
+		}
+
+		sqlite3_finalize( pStmt );
+	}
+
+	return true;
+}
+
+bool CX2OfflineDB::SaveMission( UidType nUnitUID, const KOfflineMissionRow& kRow )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	{
+		sqlite3_stmt* pStmt = Prepare(
+			"INSERT OR REPLACE INTO unit_mission( unit_uid, mission_id ) VALUES( ?1, ?2 );" );
+		if( NULL == pStmt )
+			return false;
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+		sqlite3_bind_int(   pStmt, 2, kRow.m_iMissionID );
+
+		bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+		sqlite3_finalize( pStmt );
+
+		if( false == bOK )
+		{
+			LogError( L"save mission header" );
+			return false;
+		}
+	}
+
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT OR REPLACE INTO unit_submission( unit_uid, mission_id, sub_id, clear_data, success ) "
+		"VALUES( ?1, ?2, ?3, ?4, ?5 );" );
+	if( NULL == pStmt )
+		return false;
+
+	bool bOK = true;
+
+	for( size_t i = 0; i < kRow.m_vecSub.size(); ++i )
+	{
+		sqlite3_reset( pStmt );
+		sqlite3_clear_bindings( pStmt );
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+		sqlite3_bind_int(   pStmt, 2, kRow.m_iMissionID );
+		sqlite3_bind_int(   pStmt, 3, kRow.m_vecSub[i].m_iSubID );
+		sqlite3_bind_int(   pStmt, 4, kRow.m_vecSub[i].m_iClearData );
+		sqlite3_bind_int(   pStmt, 5, kRow.m_vecSub[i].m_bSuccess ? 1 : 0 );
+
+		if( SQLITE_DONE != sqlite3_step( pStmt ) )
+		{
+			LogError( L"save sub-mission" );
+			bOK = false;
+		}
+	}
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::DeleteMission( UidType nUnitUID, int iMissionID )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	const char* const aszSQL[2] =
+	{
+		"DELETE FROM unit_submission WHERE unit_uid = ?1 AND mission_id = ?2;",
+		"DELETE FROM unit_mission    WHERE unit_uid = ?1 AND mission_id = ?2;",
+	};
+
+	bool bOK = true;
+
+	for( int i = 0; i < 2; ++i )
+	{
+		sqlite3_stmt* pStmt = Prepare( aszSQL[i] );
+		if( NULL == pStmt )
+			return false;
+
+		sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+		sqlite3_bind_int(   pStmt, 2, iMissionID );
+
+		if( SQLITE_DONE != sqlite3_step( pStmt ) )
+			bOK = false;
+
+		sqlite3_finalize( pStmt );
+	}
+
+	return bOK;
+}
+
+bool CX2OfflineDB::LoadTitles( UidType nUnitUID, OUT std::vector< KOfflineTitleRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT title_id, end_date FROM unit_title WHERE unit_uid = ?1 ORDER BY title_id;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		KOfflineTitleRow kRow;
+		kRow.m_iTitleID	= sqlite3_column_int( pStmt, 0 );
+		kRow.m_tEndDate	= (__int64)sqlite3_column_int64( pStmt, 1 );
+
+		vecOut.push_back( kRow );
+	}
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+
+bool CX2OfflineDB::SaveTitle( UidType nUnitUID, const KOfflineTitleRow& kRow )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT OR REPLACE INTO unit_title( unit_uid, title_id, end_date ) VALUES( ?1, ?2, ?3 );" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, kRow.m_iTitleID );
+	sqlite3_bind_int64( pStmt, 3, (sqlite3_int64)kRow.m_tEndDate );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"save title" );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::SaveEquippedTitle( UidType nUnitUID, int iTitleID )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare( "UPDATE unit SET title_id = ?2 WHERE unit_uid = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iTitleID );
 
 	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
 

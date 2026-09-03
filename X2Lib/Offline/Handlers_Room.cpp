@@ -555,6 +555,17 @@ void CX2OfflineServer::PushFieldNpcs( KOfflineSession& kSes )
 	// the follow-up Handler_EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ() call right
 	// beneath it is commented out in this build (X2StateBattleField.cpp:286), so
 	// the client never answers. Fire and forget is correct.
+
+	// Phase 6: SQT_FIND_NPC in a field. A field's monsters arrive through this
+	// packet rather than through EGS_NPC_UNIT_CREATE_REQ, so the hook in that
+	// handler never sees them.
+	{
+		std::vector< int > vecNpcID;
+		for( size_t i = 0; i < vecNpc.size(); ++i )
+			vecNpcID.push_back( vecNpc[i].m_NPCID );
+
+		QuestOnFindNPC( kSes, vecNpcID );
+	}
 }
 
 void CX2OfflineServer::PushRemainingPlayTime( KOfflineSession& kSes )
@@ -1040,7 +1051,14 @@ bool CX2OfflineServer::Handler_EGS_GAME_LOADING_REQ( KOfflineSession& kSes, cons
 	CX2OfflineLog::Server( L"GAME     loading complete, play start (dungeonID=%d)",
 		m_kRoom.m_kInfo.m_iDungeonID );
 
-	return Reply( kSes, EGS_PLAY_START_NOT, kStart );
+	Reply( kSes, EGS_PLAY_START_NOT, kStart );
+
+	// Phase 6: SQT_VISIT_DUNGEON. The server does this on exactly this packet,
+	// one line after sending it (GSUserRoomCommon.cpp:1426-1432) - the dungeon
+	// counts as visited when play starts, not when the room was made.
+	QuestOnEnterDungeon( kSes );
+
+	return true;
 }
 
 bool CX2OfflineServer::Handler_EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ( KOfflineSession& kSes, const KEvent& kEvent )
@@ -1070,7 +1088,16 @@ bool CX2OfflineServer::Handler_EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ( KOfflineS
 	KEGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_ACK kAck;
 	kAck.m_iOK = NetError::NET_OK;
 
-	return Reply( kSes, EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_ACK, kAck );
+	Reply( kSes, EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_ACK, kAck );
+
+	// Phase 6: SQT_VISIT_FIELD. This is the field's equivalent of
+	// EGS_FIELD_LOADING_COMPLETE_REQ in a village - the moment the player can
+	// actually move in it, which is when the server counts it as visited
+	// (KUserQuestManager::Handler_OnEnterTheBattleField).
+	if( true == m_kRoom.m_bActive && 0 != m_kRoom.m_kInfo.m_iBattleFieldID )
+		QuestOnEnterField( kSes, m_kRoom.m_kInfo.m_iBattleFieldID );
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1309,7 +1336,24 @@ bool CX2OfflineServer::Handler_EGS_DUNGEON_STAGE_LOAD_REQ( KOfflineSession& kSes
 			kReq.m_iStageID );
 	}
 
-	return Reply( kSes, EGS_DUNGEON_STAGE_LOAD_NOT, kNot );
+	Reply( kSes, EGS_DUNGEON_STAGE_LOAD_NOT, kNot );
+
+	// Phase 6: SQT_FIND_NPC in a dungeon. A stage's static monsters arrive in
+	// this packet, not through EGS_NPC_UNIT_CREATE_REQ, so the hook on that
+	// handler covers only the ones a script spawns mid-stage.
+	{
+		std::vector< int > vecNpcID;
+
+		for( mit = kNot.m_mapNPCData.begin(); mit != kNot.m_mapNPCData.end(); ++mit )
+		{
+			for( size_t i = 0; i < mit->second.m_NPCList.size(); ++i )
+				vecNpcID.push_back( mit->second.m_NPCList[i].m_NPCID );
+		}
+
+		QuestOnFindNPC( kSes, vecNpcID );
+	}
+
+	return true;
 }
 
 bool CX2OfflineServer::Handler_EGS_DUNGEON_STAGE_LOAD_COMPLETE_REQ( KOfflineSession& kSes, const KEvent& kEvent )
@@ -1504,8 +1548,7 @@ bool CX2OfflineServer::Handler_EGS_TALK_WITH_NPC_REQ( KOfflineSession& kSes, con
 	// KGSUser answers NET_OK and then runs two side effects - the quest
 	// manager's talk handler and the title manager's OnTalkWithNpc
 	// ([GSUserGameCommon.cpp:1660](KncWX2Server/GameServer/GSUserGameCommon.cpp#L1660)).
-	// Neither system exists offline yet, so neither is faked here; when quests
-	// land, this is where accepting one from an NPC hangs off.
+	// Both of those are phase 6, and QuestOnTalkNPC below is where they land.
 	//
 	// Its only refusal is ERR_ITEM_14, for talking while a trade or personal
 	// shop is open. Neither can happen with one player, so the answer is
@@ -1516,7 +1559,14 @@ bool CX2OfflineServer::Handler_EGS_TALK_WITH_NPC_REQ( KOfflineSession& kSes, con
 
 	CX2OfflineLog::Server( L"GAME     talked to NPC %d", kReq.m_iNPCID );
 
-	return Reply( kSes, EGS_TALK_WITH_NPC_ACK, kAck );
+	Reply( kSes, EGS_TALK_WITH_NPC_ACK, kAck );
+
+	// The ACK first, then the quest side, matching the server's order at
+	// GSUserGameCommon.cpp:1657-1663: the client's wait is cleared before any
+	// EGS_UPDATE_QUEST_NOT the conversation produces reaches its UI.
+	QuestOnTalkNPC( kSes, kReq.m_iNPCID );
+
+	return true;
 }
 
 bool CX2OfflineServer::Handler_EGS_DUNGEON_KILLALLNPC_CHECK_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
@@ -1623,7 +1673,20 @@ bool CX2OfflineServer::Handler_EGS_NPC_UNIT_CREATE_REQ( KOfflineSession& kSes, c
 		kNot.m_vecNPCUnitAck.front().m_kNPCUnitReq.m_UID,
 		kNot.m_vecNPCUnitAck.back().m_kNPCUnitReq.m_UID );
 
-	return Reply( kSes, EGS_NPC_UNIT_CREATE_NOT, kNot );
+	Reply( kSes, EGS_NPC_UNIT_CREATE_NOT, kNot );
+
+	// Phase 6: SQT_FIND_NPC completes on *seeing* an NPC, so the spawn is the
+	// event, not the kill. GSUserRoomCommon.cpp:1810 does the same off the back
+	// of this broadcast.
+	{
+		std::vector< int > vecNpcID;
+		for( size_t i = 0; i < kNot.m_vecNPCUnitAck.size(); ++i )
+			vecNpcID.push_back( kNot.m_vecNPCUnitAck[i].m_kNPCUnitReq.m_NPCID );
+
+		QuestOnFindNPC( kSes, vecNpcID );
+	}
+
+	return true;
 }
 
 bool CX2OfflineServer::Handler_EGS_NPC_UNIT_DIE_REQ( KOfflineSession& kSes, const KEvent& kEvent )
@@ -1746,6 +1809,10 @@ bool CX2OfflineServer::Handler_EGS_NPC_UNIT_DIE_REQ( KOfflineSession& kSes, cons
 				// result screen a moment later anyway.
 				if( 0 != m_kRoom.m_kInfo.m_iBattleFieldID )
 					PushUnitInfoUpdate( kSes, m_kRoom.m_nUnitUID );
+
+				// Phase 6: SQT_CHAR_LEVEL_UP, and the title missions a level
+				// opens.
+				QuestOnLevelUp( kSes );
 			}
 		}
 
@@ -1753,6 +1820,12 @@ bool CX2OfflineServer::Handler_EGS_NPC_UNIT_DIE_REQ( KOfflineSession& kSes, cons
 		// left both out - items because there was no inventory to hold them,
 		// ED because it was credited invisibly instead.
 		PushNpcDrop( kSes, iNpcID, iED, kReq.m_DiePos );
+
+		// Phase 6: hunt sub-quests and hunt sub-missions. Only a real kill
+		// counts, which is why this is inside the reward branch rather than
+		// beside the field bookkeeping below - the server charges the kill to
+		// the quest from the same ERM_NPC_UNIT_DIE_NOT that pays the EXP.
+		QuestOnNpcDie( kSes, iNpcID );
 	}
 
 	// Field bookkeeping: free the cap slot, queue the respawn, add the danger and
@@ -1842,6 +1915,27 @@ void CX2OfflineServer::PushNpcDrop( KOfflineSession& kSes, int iNpcID, int iED,
 
 	std::vector<int> vecItemID;
 	CX2OfflineDropTable::Instance()->GetNpcItemDrop( iKey, bBattleField, iNpcID, vecItemID );
+
+	// Phase 6: the quest items an active collection quest asks for. These do not
+	// come out of the drop table at all - on live they are rolled per user from
+	// the quests that user is carrying (KRoomUser::GetQuestDropItemInDungeon),
+	// which is why a monster that drops nothing for one player drops a quest
+	// item for another. Appended to the same list so they scatter from the same
+	// corpse and are picked up by the same code.
+	{
+		KOfflineUnitRow kQuestRow;
+		if( true == LoadQuestState( kSes, kQuestRow ) )
+		{
+			std::vector<int> vecQuestItem;
+
+			CX2OfflineQuest::Instance()->GetQuestItemDrops(
+				m_kRoom.m_kInfo.m_iDungeonID, m_kRoom.m_kInfo.m_DifficultyLevel,
+				m_kRoom.m_kInfo.m_iBattleFieldID, iNpcID, kQuestRow, vecQuestItem );
+
+			for( size_t i = 0; i < vecQuestItem.size(); ++i )
+				vecItemID.push_back( vecQuestItem[i] );
+		}
+	}
 
 	KEGS_DROP_ITEM_NOT kNot;
 	kNot.m_CreatePos = kDiePos;
@@ -2053,6 +2147,13 @@ bool CX2OfflineServer::Handler_EGS_GET_ITEM_REQ( KOfflineSession& kSes, const KE
 	CX2OfflineLog::Server( L"DROP     picked up item %d (dropUID=%d)",
 		iItemID, kReq.m_iDropItemUID );
 
+	// Phase 6: the bag just changed, which is the only way an item-collection
+	// step ever becomes satisfied. The quest side needs nothing - the client
+	// recounts its own inventory to draw the step, and the completion check
+	// counts ours - but a title mission with a collection step has no other
+	// moment at which anything would notice it is done.
+	QuestOnInventoryChanged( kSes );
+
 	return true;
 }
 
@@ -2198,12 +2299,42 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 	// this packet ever sets. Without it a level earned on the last hit of a run
 	// appears silently.
 	if( iNewLevel > kBefore.m_iLevel )
+	{
 		PushLevelUp( kSes, m_kRoom.m_nUnitUID );
+		QuestOnLevelUp( kSes );
+	}
 
 	if( true == bWin && 0 != m_kRoom.m_kInfo.m_iDungeonID )
 	{
+		// The difficulty is part of the key, not a separate column. The client
+		// unlocks against `m_iDungeonID + m_cDifficulty`
+		// (X2StateDungeonGame.cpp:3006), and CX2DungeonManager::IsActiveDungeon
+		// looks a prerequisite up by that same number - so storing the base ID
+		// alone would credit the wrong dungeon on anything above the lowest
+		// difficulty. Phase 4 wrote the base ID; it only ever agreed because
+		// every run so far has been on difficulty 0.
 		CX2OfflineDB::Instance()->AddDungeonClear( m_kRoom.m_nUnitUID,
-			m_kRoom.m_kInfo.m_iDungeonID, 0 );
+			m_kRoom.m_kInfo.m_iDungeonID + (int)m_kRoom.m_kInfo.m_DifficultyLevel, 0 );
+
+		// Phase 6: clear-count, clear-time, rank and damage sub-quests, and the
+		// same four title-mission types.
+		//
+		// The rank passed is RT_NONE, because the offline server does not
+		// compute one - the thresholds are server-side Lua this project does not
+		// reproduce, which is the same reason the result screen's rank bonus is
+		// left out (see the clear-bonus comment above). The consequence is
+		// visible and one-directional: a sub-quest that asks for rank D or
+		// better will not tick. Passing an invented rank would tick it, which is
+		// worse - it would hand out a reward the run did not earn.
+		//
+		// The play time is the same figure the result screen shows, and the
+		// damage is the hit count the client reported for itself.
+		const int iPlayTime = ( 0 != m_kRoom.m_dwPlayStartTick )
+								? (int)( ( ::GetTickCount() - m_kRoom.m_dwPlayStartTick ) / 1000 )
+								: 0;
+
+		QuestOnDungeonClear( kSes, (char)CX2DungeonRoom::RT_NONE, iPlayTime,
+							 m_kRoom.m_kPlayResult.m_nDamageCount );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -2228,7 +2359,28 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 
 	KDungeonUnitResultInfo kUnitResult;
 	kUnitResult.m_UnitUID			= m_kRoom.m_nUnitUID;
-	kUnitResult.m_bIsDie			= ( m_kRoom.m_kPlayResult.m_fHP <= 0.0f );
+	// THIS FLAG DECIDES WHETHER THE DUNGEON COUNTS AS CLEARED, and reading it
+	// off the play result alone was wrong.
+	//
+	// EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ - the packet that carries the play
+	// result - arrives AFTER this one. Measured, not guessed: the client sent
+	// EGS_END_GAME_REQ at 20:39:57.425 and its play result at 20:39:57.438, so
+	// m_kPlayResult is still Clear()ed here and m_fHP is 0. That made every
+	// successful run report the player as dead.
+	//
+	// And the client acts on it: CX2StateDungeonGame::Handler_EGS_END_GAME_
+	// DUNGEON_RESULT_DATA_NOT only calls AddClearDungeon when
+	// m_bIsWin && false == bDieMyUnit (X2StateDungeonGame.cpp:3005-3015). With
+	// m_bIsDie true it silently skipped the clear, so CX2Unit::m_mapDungeonClear
+	// stayed empty and CX2DungeonManager::IsActiveDungeon kept every dungeon
+	// gated on this one locked - which is exactly the reported symptom, the
+	// second Ruben dungeon still locked after Banthus was beaten.
+	//
+	// So the play result is only believed when it actually arrived. Without one
+	// there is no evidence of a death, and a run that reached EGS_END_GAME_REQ
+	// with a win is evidence of the opposite.
+	kUnitResult.m_bIsDie			= ( true == m_kRoom.m_bHavePlayResult &&
+										m_kRoom.m_kPlayResult.m_fHP <= 0.0f );
 	kUnitResult.m_nTotalScore		= m_kRoom.m_kPlayResult.m_TotalScore;
 	kUnitResult.m_nComboScore		= m_kRoom.m_kPlayResult.m_ComboScore;
 	kUnitResult.m_nTechnicalScore	= m_kRoom.m_kPlayResult.m_TechScore;

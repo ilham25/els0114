@@ -230,7 +230,30 @@ bool CX2OfflineServer::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( KOfflineSession& k
 
 	CX2OfflineLog::Server( L"ITEM     used item %d from the bag", kRow.m_iItemID );
 
-	return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+	Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+
+	// Phase 6: TMCT_USE_ITEM title missions, and the collection steps the item
+	// leaving the bag may have just broken or completed.
+	{
+		KOfflineUnitRow kUnitRow;
+		if( true == LoadQuestState( kSes, kUnitRow ) )
+		{
+			std::vector< KMissionInstance >	vecNewMission;
+			std::vector< KMissionInstance >	vecMissionChanged;
+			std::vector< KTitleInfo >		vecNewTitle;
+
+			CX2OfflineTitle::Instance()->OnUseItem( kRow.m_iItemID, kUnitRow,
+													vecMissionChanged, vecNewTitle );
+
+			PushMissionUpdate( kSes, vecNewMission, vecMissionChanged, vecNewTitle );
+		}
+	}
+
+	// And the SQT_ITEM_USE quest steps - a different system from the title
+	// missions above, listening to the same moment.
+	QuestOnUseItem( kSes, kRow.m_iItemID );
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -263,6 +286,11 @@ bool CX2OfflineServer::Handler_EGS_USE_QUICK_SLOT_REQ( KOfflineSession& kSes, co
 
 	CX2OfflineLog::Server( L"ITEM     quick slot %d used item %d",
 		(int)kReq.m_sSlotID, kRow.m_iItemID );
+
+	// The server counts a quick-slot use towards SQT_ITEM_USE exactly as it
+	// counts one from the bag - two call sites, one handler
+	// (GSUserInventory.cpp:1308 and :4558).
+	QuestOnUseItem( kSes, kRow.m_iItemID );
 
 	// The _NOT is what actually applies the item - the ACK only updates the bag
 	// and restarts the cooldown. CX2UIQuickSlot::Handler_EGS_USE_QUICK_SLOT_NOT
@@ -388,7 +416,15 @@ bool CX2OfflineServer::Handler_EGS_BUY_ED_ITEM_REQ( KOfflineSession& kSes, const
 	CX2OfflineLog::Server( L"SHOP     bought %u kind(s) of item for %d ED, %d ED left",
 		(unsigned int)kReq.m_mapItem.size(), iTotalED, kUnit.m_iED );
 
-	return Reply( kSes, EGS_BUY_ED_ITEM_ACK, kAck );
+	Reply( kSes, EGS_BUY_ED_ITEM_ACK, kAck );
+
+	// Phase 6: a collection quest can be satisfied by buying the item, and a
+	// title mission with a collection step has no other moment at which it is
+	// noticed. The quest half needs nothing - both the client and the completion
+	// check count the bag directly.
+	QuestOnInventoryChanged( kSes );
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////

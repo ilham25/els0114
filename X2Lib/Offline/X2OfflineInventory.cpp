@@ -482,6 +482,94 @@ int CX2OfflineInventory::GetItemID( UidType nItemUID ) const
 	return pRow->m_iItemID;
 }
 
+int CX2OfflineInventory::CountItemByID( int iItemID, bool bExcludeEquipped ) const
+{
+	int iCount = 0;
+
+	std::map< UidType, KOfflineItemRow >::const_iterator mit;
+	for( mit = m_mapItem.begin(); mit != m_mapItem.end(); ++mit )
+	{
+		const KOfflineItemRow& kRow = mit->second;
+
+		if( kRow.m_iItemID != iItemID )
+			continue;
+
+		// The same four exclusions CX2Inventory::GetNumItemByTID makes, in the
+		// same order: worn gear, the quick-slot bar, the private bank and the
+		// shared bank. The banks are not implemented offline and no row can
+		// currently land in one, but leaving them out of the sum keeps this
+		// function's answer identical to the client's under any later phase
+		// that does implement them.
+		if( true == bExcludeEquipped &&
+			( CX2Inventory::ST_E_EQUIP == kRow.m_iCategory ||
+			  CX2Inventory::ST_E_QUICK_SLOT == kRow.m_iCategory ) )
+		{
+			continue;
+		}
+
+		if( CX2Inventory::ST_BANK == kRow.m_iCategory ||
+			CX2Inventory::ST_SHARE_BANK == kRow.m_iCategory )
+		{
+			continue;
+		}
+
+		iCount += kRow.m_iQuantity;
+	}
+
+	return iCount;
+}
+
+int CX2OfflineInventory::ConsumeByID( int iItemID, int iQuantity,
+									  OUT std::vector< KInventoryItemInfo >& vecChanged )
+{
+	if( iQuantity <= 0 )
+		return 0;
+
+	int iLeft = iQuantity;
+
+	// Collected first, so the UIDs come out in insertion order and a partial
+	// stack picked up early is the one that goes. DeleteItem mutates m_mapItem,
+	// so the candidate list cannot be built by iterating it as we delete.
+	std::vector< UidType > vecCandidate;
+
+	std::map< UidType, KOfflineItemRow >::const_iterator mit;
+	for( mit = m_mapItem.begin(); mit != m_mapItem.end(); ++mit )
+	{
+		const KOfflineItemRow& kRow = mit->second;
+
+		if( kRow.m_iItemID != iItemID )
+			continue;
+
+		if( CX2Inventory::ST_E_EQUIP == kRow.m_iCategory ||
+			CX2Inventory::ST_E_QUICK_SLOT == kRow.m_iCategory ||
+			CX2Inventory::ST_BANK == kRow.m_iCategory ||
+			CX2Inventory::ST_SHARE_BANK == kRow.m_iCategory )
+		{
+			continue;
+		}
+
+		vecCandidate.push_back( kRow.m_nItemUID );
+	}
+
+	for( size_t i = 0; i < vecCandidate.size() && iLeft > 0; ++i )
+	{
+		const KOfflineItemRow* pRow = FindRow( vecCandidate[i] );
+		if( NULL == pRow )
+			continue;
+
+		const int iTake = ( pRow->m_iQuantity < iLeft ) ? pRow->m_iQuantity : iLeft;
+
+		KInventoryItemInfo kChanged;
+		if( false == DeleteItem( vecCandidate[i], iTake, kChanged ) )
+			continue;
+
+		vecChanged.push_back( kChanged );
+		iLeft -= iTake;
+	}
+
+	return iQuantity - iLeft;
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 void CX2OfflineInventory::MakeItemInfo( const KOfflineItemRow& kRow,

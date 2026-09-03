@@ -105,6 +105,119 @@ struct KOfflineSkillRow
 };
 
 //////////////////////////////////////////////////////////////////////////
+/// One sub-quest's progress (phase 6). `m_iClearData` is the byte counter the
+/// wire calls KSubQuestInstance::m_ucClearData - a kill count, a collect count,
+/// or 0/1 for the "did it happen" types - and `m_bSuccess` is the same struct's
+/// flag. The pair is stored rather than recomputed because for a hunt quest
+/// there is nothing to recompute it from: the monsters are already dead.
+///
+/// Missions (the title system) use the identical shape, so the same row type
+/// serves both tables. KSubMissionInstance's counter is a short rather than a
+/// byte; an int holds either.
+struct KOfflineSubQuestRow
+{
+	int				m_iSubID;
+	int				m_iClearData;
+	bool			m_bSuccess;
+
+	KOfflineSubQuestRow()
+		: m_iSubID( 0 )
+		, m_iClearData( 0 )
+		, m_bSuccess( false )
+	{
+	}
+};
+
+/// One in-progress quest and its sub-quests. The sub-quest *order* is not
+/// stored: it is rebuilt from the templet's own m_vecSubQuest on load, because
+/// the wire format is positional - KQuestInstance::m_vecSubQuestInstance[i]
+/// must line up with QuestTemplet::m_vecSubQuest[i], which is how every server
+/// handler indexes it (UserQuestManager.cpp:1446 and everywhere near it).
+struct KOfflineQuestRow
+{
+	int				m_iQuestID;
+	std::vector< KOfflineSubQuestRow >	m_vecSub;
+
+	KOfflineQuestRow()
+		: m_iQuestID( 0 )
+	{
+	}
+};
+
+/// One finished quest - dbo.GUnitQuestComplete, and KCompleteQuestInfo on the
+/// wire. The count matters because a repeatable quest can be finished more than
+/// once, and the date because a daily one may not be re-taken before 6am.
+struct KOfflineCompleteQuestRow
+{
+	int				m_iQuestID;
+	int				m_iCount;
+	__int64			m_tDate;
+
+	KOfflineCompleteQuestRow()
+		: m_iQuestID( 0 )
+		, m_iCount( 0 )
+		, m_tDate( 0 )
+	{
+	}
+};
+
+/// One owned title. m_tEndDate 0 means permanent, which is what KTitleInfo
+/// calls m_bInfinity; nothing offline issues a rented title, but the column is
+/// there so one can be without a migration.
+struct KOfflineTitleRow
+{
+	int				m_iTitleID;
+	__int64			m_tEndDate;
+
+	KOfflineTitleRow()
+		: m_iTitleID( 0 )
+		, m_tEndDate( 0 )
+	{
+	}
+};
+
+/// One in-progress title mission. Same shape as KOfflineQuestRow, and for the
+/// same positional reason.
+struct KOfflineMissionRow
+{
+	int				m_iMissionID;
+	std::vector< KOfflineSubQuestRow >	m_vecSub;
+
+	KOfflineMissionRow()
+		: m_iMissionID( 0 )
+	{
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+/// One cleared dungeon - dbo.GUnitDungeon, and KDungeonClearInfo on the wire.
+///
+/// `m_iDungeonID` is the dungeon ID with its difficulty already added, which is
+/// how the client keys it: CX2StateDungeonGame computes
+/// `m_iDungeonID + m_cDifficulty` and calls that the real dungeon ID
+/// ([X2StateDungeonGame.cpp:3006](X2Lib/X2StateDungeonGame.cpp#L3006)), and
+/// CX2DungeonManager::IsActiveDungeon looks a prerequisite up by the same
+/// number. Storing the base ID alone would unlock the wrong thing the moment a
+/// dungeon is played on anything but the lowest difficulty.
+struct KOfflineDungeonClearRow
+{
+	int				m_iDungeonID;
+	int				m_iClearCount;
+	int				m_iBestRank;		///< lowest number seen; 1 is S, 0 is "none"
+	int				m_iMaxScore;
+	__int64			m_tClearDate;
+
+	KOfflineDungeonClearRow()
+		: m_iDungeonID( 0 )
+		, m_iClearCount( 0 )
+		, m_iBestRank( 0 )
+		, m_iMaxScore( 0 )
+		, m_tClearDate( 0 )
+	{
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
 /// One row of `unit`, in the shape the packet handlers want it.
 struct KOfflineUnitRow
 {
@@ -125,6 +238,7 @@ struct KOfflineUnitRow
 	int				m_iCurMP;
 	int				m_iHyperGage;
 	int				m_iAbilCount;		///< WSP / cannonballs / force, per unit type
+	int				m_iTitleID;			///< the worn title, KUnitInfo::m_iTitleID; 0 = none
 	__int64			m_tRegDate;
 	__int64			m_tDelDate;
 	__int64			m_tLastDate;
@@ -150,6 +264,7 @@ struct KOfflineUnitRow
 		, m_iCurMP( 0 )
 		, m_iHyperGage( 0 )
 		, m_iAbilCount( 0 )
+		, m_iTitleID( 0 )
 		, m_tRegDate( 0 )
 		, m_tDelDate( 0 )
 		, m_tLastDate( 0 )
@@ -166,7 +281,7 @@ public:
 	{
 		/// Schema revision. Bump it and add a rung to Migrate() when a later
 		/// phase needs a new table, so existing saves are not wiped.
-		SCHEMA_VERSION			= 4,
+		SCHEMA_VERSION			= 6,
 
 		/// How long after a soft delete the final delete becomes possible.
 		/// Zero: a solo save has nobody to protect a character from, so the
@@ -246,6 +361,15 @@ public:
 	/// dungeon UI draws its "cleared" marks from it too.
 	bool	AddDungeonClear( UidType nUnitUID, int iDungeonID, int iRank );
 
+	/// Every dungeon this character has cleared.
+	///
+	/// Not a convenience: without it `KUnitInfo::m_mapDungeonClear` goes out
+	/// empty, `CX2Unit::IsClearDungeon` answers false for everything, and
+	/// `CX2DungeonManager::IsActiveDungeon` locks every dungeon that names a
+	/// prerequisite - permanently, across every login.
+	bool	LoadDungeonClears( UidType nUnitUID,
+							   OUT std::vector< KOfflineDungeonClearRow >& vecOut );
+
 	/// Skill points. Kept separate from SaveProgress because they move on their
 	/// own - a skill learned or reset changes SP without touching level or EXP.
 	bool	SaveSkillPoint( UidType nUnitUID, int iSP, int iCSP );
@@ -296,6 +420,38 @@ public:
 	/// slot rather than the skill so an emptied slot can be cleared without
 	/// knowing what used to be in it.
 	bool	SetSkillSlot( UidType nUnitUID, int iSlot, int iSkillID );
+
+	//////////////////////////////////////////////////////////////////////////
+	// quests (phase 6)
+
+	bool	LoadQuests( UidType nUnitUID, OUT std::vector< KOfflineQuestRow >& vecOut );
+
+	/// Upsert of one quest and every sub-quest it carries. Whole-quest rather
+	/// than per-sub-quest because an event can advance two sub-quests of the
+	/// same quest at once and the pair has to land together - a counter written
+	/// without its success flag is a quest that can never be handed in.
+	bool	SaveQuest( UidType nUnitUID, const KOfflineQuestRow& kRow );
+
+	/// Give up, or finish. Removes the header and every sub-quest row.
+	bool	DeleteQuest( UidType nUnitUID, int iQuestID );
+
+	bool	LoadCompleteQuests( UidType nUnitUID, OUT std::vector< KOfflineCompleteQuestRow >& vecOut );
+	bool	SaveCompleteQuest( UidType nUnitUID, const KOfflineCompleteQuestRow& kRow );
+
+	/// Job advancement. The only thing that ever changes a character's class
+	/// after creation is a QT_CHANGE_JOB quest's reward.
+	bool	SaveUnitClass( UidType nUnitUID, int iUnitClass );
+
+	//////////////////////////////////////////////////////////////////////////
+	// titles and their missions (phase 6)
+
+	bool	LoadMissions( UidType nUnitUID, OUT std::vector< KOfflineMissionRow >& vecOut );
+	bool	SaveMission( UidType nUnitUID, const KOfflineMissionRow& kRow );
+	bool	DeleteMission( UidType nUnitUID, int iMissionID );
+
+	bool	LoadTitles( UidType nUnitUID, OUT std::vector< KOfflineTitleRow >& vecOut );
+	bool	SaveTitle( UidType nUnitUID, const KOfflineTitleRow& kRow );
+	bool	SaveEquippedTitle( UidType nUnitUID, int iTitleID );
 
 	/// Base slot count per CX2Inventory::SORT_TYPE category. Mirrors
 	/// KInventory::GetBaseSlotSize (KncWX2Server/GameServer/Inventory.cpp),

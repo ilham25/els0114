@@ -578,10 +578,53 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 	{
 		KEGS_SELECT_UNIT_2_NOT kNot;
 		kNot.m_iOK = NetError::NET_OK;
-		// m_vecQuest / m_mapRandomQuestList: phase 6
 
-		// ...except for one completed quest, which is not a quest-system stub
-		// but the switch that turns the dungeon menu on.
+		// The quests in progress and the quests finished (phase 6).
+		// CX2QuestManager::SetUnitQuest replaces the client's whole quest state
+		// from these two vectors, so anything missing here is a quest the
+		// player simply does not have any more.
+		CX2OfflineQuest* pQuest = CX2OfflineQuest::Instance();
+
+		pQuest->Load( kRow.m_nUnitUID );
+
+		// Open anything the character has become eligible for while it was
+		// logged out - or, for a character that has never been logged in since
+		// phase 6, the whole chain up to where it actually stands. The server
+		// does this inside SetUnitQuest itself, right after the DB rows land
+		// (UserQuestManager.cpp:358-365), which is *before* _2_NOT is built - so
+		// a quest opened here arrives as part of the list rather than as a
+		// separate EGS_NEW_QUEST_NOT, and needs no packet of its own.
+		{
+			std::vector< KQuestInstance > vecOpened;
+
+			// The after-quest list of everything already finished, then the
+			// prerequisite sweep - the same two the server runs, in the same
+			// order (UserQuestManager.cpp:358 then :365). The first is the
+			// recovery path that matters: if a chain link was ever missed, this
+			// is what hands it over on the next login.
+			std::vector< KCompleteQuestInfo > vecDone;
+			pQuest->GetCompleteQuests( vecDone );
+
+			for( size_t d = 0; d < vecDone.size(); ++d )
+			{
+				pQuest->CheckAutoOpen( CX2OfflineQuest::AOP_AFTER_QUEST,
+									   vecDone[d].m_iQuestID, kRow, vecOpened );
+			}
+
+			pQuest->CheckAutoOpen( CX2OfflineQuest::AOP_BEFORE_QUEST, 0, kRow, vecOpened );
+		}
+
+		pQuest->GetQuestInstances( kNot.m_vecQuest );
+		pQuest->GetCompleteQuests( kNot.m_vecCompletQuest );
+
+		// The daily random-quest rotation. Empty offline: the list is picked by
+		// the GameServer from a table it reseeds every night, and there is no
+		// such table here (see CX2OfflineQuest::Accept, which allows a random
+		// quest rather than pretending to know today's).
+		kNot.m_mapRandomQuestList.clear();
+
+		// ...plus one completed quest, which is not a quest-system stub but the
+		// switch that turns the dungeon menu on.
 		//
 		// The village's party dialog - which holds the dungeon button, the local
 		// map, and everything else that gets a character into a dungeon - hides
@@ -602,17 +645,29 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 		// unlock, and the narrowest one - 11030 would additionally switch the
 		// novice guide off, which is not ours to decide here.
 		//
-		// It does not fake the tutorial away. The tutorial dungeon is entered
-		// from CX2StateBeginning / CX2StateField via EGS_CREATE_TUTORIAL_ROOM_REQ
-		// and never consults this quest. Quest state itself is still phase 6;
-		// this is one row, and it is honest about being an unlock.
-		{
-			KCompleteQuestInfo kUnlock;
-			kUnlock.m_iQuestID		= CX2PlayGuide::TQI_CHASE_THIEF;	///< 11005
-			kUnlock.m_iCompleteCount= 1;
-			kUnlock.m_tCompleteDate	= (__int64)::time( NULL );
-			kNot.m_vecCompletQuest.push_back( kUnlock );
-		}
+		// REMOVED IN PHASE 6, and the reason matters more than the code did.
+		//
+		// Phase 2 had no quest system, so it reported quest 11005 - Chase the
+		// Thief - as completed, purely to make CX2QuestManager::SetUnitQuest
+		// call SetShowDungeonMenu( true ) and stop the village's party dialog
+		// from hiding the dungeon button (X2QuestManager.cpp:601). It was
+		// honest about being an unlock and it worked.
+		//
+		// With phase 6 it is actively harmful. 11005 is the *second story
+		// quest*, the one Lowe gives on arriving in Ruben, and telling the
+		// client it is already finished means Lowe has nothing to offer, its
+		// start scene - the automatic conversation the player expects - never
+		// plays, and every quest chained behind 11005 is stuck: the client
+		// believes it is done while the save file says it is not. That is the
+		// "half working" the first phase-6 play-test reported.
+		//
+		// The button is now earned the way the real game grants it, by actually
+		// completing 11005. Nothing is faked, and the two sides agree.
+		//
+		// Kept as a comment rather than deleted because the failure it papered
+		// over is real: if a character somehow ends up unable to reach 11005,
+		// the dungeon button disappears with no error, and this is the line
+		// that explains why.
 
 		Reply( kSes, EGS_SELECT_UNIT_2_NOT, kNot );
 	}
@@ -622,6 +677,26 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 	{
 		KEGS_SELECT_UNIT_3_NOT kNot;
 		kNot.m_iOK				= NetError::NET_OK;
+
+		// Title missions in progress and titles owned (phase 6).
+		// CX2TitleManager::UpdateMission and TakeTitle rebuild the title screen
+		// from these two.
+		CX2OfflineTitle* pTitle = CX2OfflineTitle::Instance();
+
+		pTitle->Load( kRow.m_nUnitUID );
+
+		// New missions are opened here rather than only on entering a village,
+		// because a character that has never been logged in since phase 6 has
+		// no mission rows at all and would otherwise show an empty title screen
+		// until it walked somewhere.
+		std::vector< KMissionInstance > vecNewMission;
+		pTitle->CheckNewMission( kRow, vecNewMission );
+
+		pTitle->GetMissionInstances( kNot.m_vecMission );
+		pTitle->GetTitles( kNot.m_vecTitle );
+
+		// Pets are phase 7. Reported as none owned and none summoned, which is
+		// true rather than a stub.
 		kNot.m_iSummonedPetUID	= 0;
 
 		Reply( kSes, EGS_SELECT_UNIT_3_NOT, kNot );

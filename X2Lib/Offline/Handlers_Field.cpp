@@ -128,7 +128,25 @@ bool CX2OfflineServer::Handler_EGS_FIELD_LOADING_COMPLETE_REQ( KOfflineSession& 
 			(int)kReq.m_ucLastTouchLineIndex, (int)kReq.m_usLastPosValue );
 	}
 
-	return Reply( kSes, EGS_FIELD_LOADING_COMPLETE_ACK, kAck );
+	Reply( kSes, EGS_FIELD_LOADING_COMPLETE_ACK, kAck );
+
+	// Phase 6: standing in a village finishes a SQT_VISIT_VILLAGE step, and it
+	// is also where a character that levelled elsewhere is told which title
+	// missions it has grown into. Done here rather than at
+	// EGS_STATE_CHANGE_FIELD_REQ because the client is only ready to draw a
+	// quest update once the world is loaded, and the village is only *entered*
+	// at that point - the state-change request is issued from character select,
+	// before the map even exists.
+	//
+	// kReq carries no map ID, so the village is read back off the row that
+	// EGS_STATE_CHANGE_FIELD_REQ just wrote a moment ago.
+	{
+		KOfflineUnitRow kRow;
+		if( true == CX2OfflineDB::Instance()->LoadUnit( kSes.m_nSelectedUnitUID, kRow ) )
+			QuestOnEnterVillage( kSes, kRow.m_iLastPos );
+	}
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////

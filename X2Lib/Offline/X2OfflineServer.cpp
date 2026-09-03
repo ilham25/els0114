@@ -463,11 +463,23 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_SOCKET_ITEM_REQ:				return Handler_EGS_SOCKET_ITEM_REQ( kSes, kEvent );
 
 	//////////////////////////////////////////////////////////////////////////
+	// quests, and the titles their missions award - Handlers_Quest.cpp
+	case EGS_NEW_QUEST_REQ:					return Handler_EGS_NEW_QUEST_REQ( kSes, kEvent );
+	case EGS_UPDATE_QUEST_REQ:				return Handler_EGS_UPDATE_QUEST_REQ( kSes, kEvent );
+	case EGS_QUEST_COMPLETE_REQ:			return Handler_EGS_QUEST_COMPLETE_REQ( kSes, kEvent );
+	case EGS_ALL_COMPLETED_QUEST_COMPLETE_REQ:
+											return Handler_EGS_ALL_COMPLETED_QUEST_COMPLETE_REQ( kSes, kEvent );
+	case EGS_GIVE_UP_QUEST_REQ:				return Handler_EGS_GIVE_UP_QUEST_REQ( kSes, kEvent );
+	case EGS_GATHER_GIVE_UP_QUEST_REQ:		return Handler_EGS_GATHER_GIVE_UP_QUEST_REQ( kSes, kEvent );
+	case EGS_EQUIP_TITLE_REQ:				return Handler_EGS_EQUIP_TITLE_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
 	// the skill tree - Handlers_Skill.cpp
 	case EGS_GET_SKILL_REQ:					return Handler_EGS_GET_SKILL_REQ( kSes, kEvent );
 	case EGS_RESET_SKILL_REQ:				return Handler_EGS_RESET_SKILL_REQ( kSes, kEvent );
 	case EGS_INIT_SKILL_TREE_REQ:			return Handler_EGS_INIT_SKILL_TREE_REQ( kSes, kEvent );
 	case EGS_CHANGE_SKILL_SLOT_REQ:			return Handler_EGS_CHANGE_SKILL_SLOT_REQ( kSes, kEvent );
+	case EGS_SKILL_USE_REQ:					return Handler_EGS_SKILL_USE_REQ( kSes, kEvent );
 
 	//////////////////////////////////////////////////////////////////////////
 	// answered only because the client blocks on them - Handlers_Stub.cpp
@@ -567,6 +579,42 @@ bool CX2OfflineServer::EnsureAccount( KOfflineSession& kSes, const std::wstring&
 	kOut.m_iCSPoint			= 0;
 	kOut.m_iMaxCSPoint		= 0;
 	kOut.m_wstrCSPointEndDate = L"2000-01-01 00:00:00";
+
+	// The worn title (phase 6). This travels on the unit rather than in the
+	// title packet, so it has to be here or a title survives a relog in the
+	// list and vanishes off the character.
+	kOut.m_iTitleID			= kRow.m_iTitleID;
+
+	// WHICH DUNGEONS ARE UNLOCKED (phase 6). Written since phase 4 and read by
+	// nobody until now, which is why every dungeon gated on another one stayed
+	// locked forever.
+	//
+	// CX2Unit::Reset copies this map into the unit (X2Unit.cpp:208),
+	// CX2Unit::IsClearDungeon answers from it, and
+	// CX2DungeonManager::IsActiveDungeon refuses any dungeon whose
+	// m_RequireDungeonID is not in it. So an empty map is not "no history", it
+	// is "nothing past the first dungeon is playable" - the reported symptom of
+	// Ruben's second dungeon still being locked after Banthus was beaten.
+	{
+		std::vector< KOfflineDungeonClearRow > vecClear;
+		CX2OfflineDB::Instance()->LoadDungeonClears( kRow.m_nUnitUID, vecClear );
+
+		for( size_t i = 0; i < vecClear.size(); ++i )
+		{
+			KDungeonClearInfo kInfo;
+			kInfo.m_iDungeonID		= vecClear[i].m_iDungeonID;
+			kInfo.m_iMaxScore		= vecClear[i].m_iMaxScore;
+			kInfo.m_cMaxTotalRank	= (char)vecClear[i].m_iBestRank;
+			kInfo.m_wstrClearTime	= CX2OfflineDB::FormatDate( vecClear[i].m_tClearDate );
+
+			// m_bNew drives the "!" badge on the local map. False on a load:
+			// these are dungeons the player has already seen the result screen
+			// for, and the client sets the flag itself for one it clears now.
+			kInfo.m_bNew			= false;
+
+			kOut.m_mapDungeonClear[ kInfo.m_iDungeonID ] = kInfo;
+		}
+	}
 
 	// Gear and skills (phase 5). This runs for every unit in the character
 	// list, not just the selected one, because the character-select screen

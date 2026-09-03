@@ -4,6 +4,12 @@
 #ifdef SERV_EPIC_QUEST
 #include ".\X2UIQuestNew.h"
 
+//{{ Iruha : 2026-09-04 // HUD portrait after a quest job change
+#ifdef SERV_IRUHADEV_JOBCHANGE_PORTRAIT
+#include "X2GageManager.h"
+#endif SERV_IRUHADEV_JOBCHANGE_PORTRAIT
+//}}
+
 CX2UIQuestNew::CX2UIQuestNew( CKTDXStage* pNowStage, const WCHAR* pFileName )
 : CX2ItemSlotManager( pNowStage, pFileName ),
 m_iQuestPerPage(0),
@@ -1506,6 +1512,37 @@ bool CX2UIQuestNew::Handler_EGS_QUEST_COMPLETE_ACK( HWND hWnd, UINT uMsg, WPARAM
 
 				CX2State* pState = (CX2State*) g_pMain->GetNowState();
 				pState->ResetUnitViewerInFieldSquare( g_pData->GetMyUser()->GetSelectUnit()->GetUID(), g_pData->GetMyUser()->GetSelectUnit()->GetClass() );
+				//{{ Iruha : 2026-09-04 // HUD portrait after a quest job change
+#ifdef SERV_IRUHADEV_JOBCHANGE_PORTRAIT
+				// ResetUnitViewerInFieldSquare above rebuilds the 3D square unit; the
+				// top-left gage portrait is a separate thing and nothing here touched
+				// it, so it kept drawing the old class until the gage was rebuilt -
+				// which only happens on a state change, i.e. re-selecting the
+				// character. This is a gap in the shipped client, not in the server:
+				// the GameServer sends only EGS_QUEST_COMPLETE_ACK for a quest-driven
+				// class change (UserQuestManager.cpp:5038-5142), and every OTHER
+				// class-change path in the client refreshes the portrait itself -
+				// EGS_CHANGE_MY_UNIT_INFO_NOT (X2State.cpp:12958), the admin change
+				// (:5083), and the jumping character (:13174), whose comment there is
+				// literally "refresh the character portrait".
+				//
+				// GetMyGageData() is the probe, not GetInstance() on its own:
+				// CX2GageManager::SetCharacterImage dereferences m_ptrMyGageSet with
+				// no null check, unlike almost every neighbour in that same header,
+				// and there is no gage at all in some states.
+				if( NULL != CX2GageManager::GetInstance() &&
+					NULL != CX2GageManager::GetInstance()->GetMyGageData() )
+				{
+					const CX2Unit::UNIT_CLASS eNewClass =
+						g_pData->GetMyUser()->GetSelectUnit()->GetClass();
+				
+					CX2GageManager::GetInstance()->SetCharacterImage( eNewClass );
+#ifdef FIX_CHUNG_GAGE_UI_UPDATE_BUG
+					CX2GageManager::GetInstance()->ResetGageUIEtc( eNewClass );
+#endif // FIX_CHUNG_GAGE_UI_UPDATE_BUG
+				}
+#endif SERV_IRUHADEV_JOBCHANGE_PORTRAIT
+//}}
 			}
 			 //도움말 입력
 			{
@@ -2002,6 +2039,37 @@ bool CX2UIQuestNew::Handler_EGS_ALL_COMPLETED_QUEST_COMPLETE_ACK( HWND hWnd, UIN
 
 					CX2State* pState = (CX2State*) g_pMain->GetNowState();
 					pState->ResetUnitViewerInFieldSquare( g_pData->GetMyUser()->GetSelectUnit()->GetUID(), g_pData->GetMyUser()->GetSelectUnit()->GetClass() );
+					//{{ Iruha : 2026-09-04 // HUD portrait after a quest job change
+#ifdef SERV_IRUHADEV_JOBCHANGE_PORTRAIT
+					// ResetUnitViewerInFieldSquare above rebuilds the 3D square unit; the
+					// top-left gage portrait is a separate thing and nothing here touched
+					// it, so it kept drawing the old class until the gage was rebuilt -
+					// which only happens on a state change, i.e. re-selecting the
+					// character. This is a gap in the shipped client, not in the server:
+					// the GameServer sends only EGS_QUEST_COMPLETE_ACK for a quest-driven
+					// class change (UserQuestManager.cpp:5038-5142), and every OTHER
+					// class-change path in the client refreshes the portrait itself -
+					// EGS_CHANGE_MY_UNIT_INFO_NOT (X2State.cpp:12958), the admin change
+					// (:5083), and the jumping character (:13174), whose comment there is
+					// literally "refresh the character portrait".
+					//
+					// GetMyGageData() is the probe, not GetInstance() on its own:
+					// CX2GageManager::SetCharacterImage dereferences m_ptrMyGageSet with
+					// no null check, unlike almost every neighbour in that same header,
+					// and there is no gage at all in some states.
+					if( NULL != CX2GageManager::GetInstance() &&
+						NULL != CX2GageManager::GetInstance()->GetMyGageData() )
+					{
+						const CX2Unit::UNIT_CLASS eNewClass =
+							g_pData->GetMyUser()->GetSelectUnit()->GetClass();
+					
+						CX2GageManager::GetInstance()->SetCharacterImage( eNewClass );
+#ifdef FIX_CHUNG_GAGE_UI_UPDATE_BUG
+						CX2GageManager::GetInstance()->ResetGageUIEtc( eNewClass );
+#endif // FIX_CHUNG_GAGE_UI_UPDATE_BUG
+					}
+#endif SERV_IRUHADEV_JOBCHANGE_PORTRAIT
+//}}
 				}
 			}
 				return true;

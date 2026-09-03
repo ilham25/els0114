@@ -2732,6 +2732,792 @@ the build was deployed.
 Play from level 1 through several story quests and at least one class change,
 with progression intact across restarts.
 
+### Exit test — PASSED (2026-09-04)
+
+**Status: phase 6 complete.** The story chain plays through, quests accept /
+progress / complete / reward, titles and missions arrive, and a job advancement
+really does change the class and survive a restart. Two loose ends are
+deliberately deferred to the last phase rather than held against this one; they
+are named at the bottom.
+
+Everything below is in the deployed `X2_offline.exe`; the play-test was the
+user's, as every phase's has been (phase 1's operational note: the client runs
+at a higher integrity level than the agent's shell and cannot be driven
+programmatically). The save was backed up first as `els_db.sql.bak-pre-phase6`
+plus its `-wal` and `-shm`, and again as `-pre-v6` and `-pre-grant` at the two
+later points where the schema or the data changed.
+
+What to expect in `offline_server.log`:
+
+| Step | Expect |
+|---|---|
+| Launch | `DB schema upgraded to v5 (quests, titles, missions)`, once; then `v6` on the next build |
+| Select a character | `QUEST loaded for unitUID=...: N in progress, M completed`, then `TITLE loaded ...` and usually `TITLE N new mission(s) opened` |
+| Take a quest from an NPC | `QUEST accepted <id> '<title>' (N sub-quest(s), from NPC <n>)` |
+| Talk to the NPC it names | `QUEST <id> sub <s> NPC_TALK done (NPC <n>)` |
+| Kill something it counts | `QUEST <id> sub <s> NPC_HUNT 3/10 (NPC <n>)` |
+| A collection quest | `QUEST <id> sub <s> quest item <item> drops (2/5 held, rate ...)` per drop |
+| Walk into the village it names | `QUEST <id> sub <s> VISIT_VILLAGE done (map ...)` |
+| Clear the dungeon it names | `QUEST <id> sub <s> dungeon clear type 8 -> 1, done=1` |
+| Spend a skill point | `QUEST <id> sub <s> USE_SKILL_POINT skill <n> -> 1/1, done=1` |
+| Hand it in | `QUEST complete <id> took 5/5 x item ...`, `gave ...`, then `QUEST completed <id> '<title>': +N exp, +N ED, lv a -> b` |
+| A job-advancement quest | `QUEST complete <id> CLASS CHANGE unitUID=... 3 -> 13`, then `SKILL seeded N default skill(s) for class 13` |
+| A finished title mission | `TITLE mission <id> '<name>' complete -> title <id> awarded` |
+| Wear a title | `TITLE unitUID=... wears title <id>` |
+| Restart, reselect | the same `QUEST loaded ...` counts, the same class, the same titles |
+
+`grep UNHANDLED offline_packets.log` should now show **nothing**:
+`EGS_SKILL_USE_REQ`, the one entry phase 5 left there (its correction 15), is
+handled as of correction 17.
+
+#### What the play-test actually took: seven rounds
+
+Worth recording as a shape, not as a list of bugs. Every single failure was
+silent — nothing errored, nothing appeared in a log, and in five of the seven
+the symptom surfaced in a different system from the cause. The phase was
+finished in one build; it took six more to be *correct*, and the diagnostics
+added along the way did more work than the fixes.
+
+| # | Reported as | Actually was | Written up |
+|---|---|---|---|
+| 1 | no quest at all after the tutorial | only player-initiated accept existed; the four epic auto-open sweeps were missing entirely | corr. 12 |
+| 2 | "half working", and the quest completed instantly | the instant completion was *correct* studio behaviour; the real gap was chain continuation, invisible because `CheckAutoOpen` was silent | corr. 13 |
+| 3 | Lowe should speak automatically | my own phase-2 placeholder — a faked "11005 completed" in `_2_NOT` — was telling the client the second story quest was already done | decision 11, reversed |
+| 4 | Thief Pursuit never starts | the client never parses `m_iAfterQuestID`; the chain field the story runs on was being dropped at load | corr. 14 |
+| 5 | 2nd Ruben dungeon stays locked | two independent causes: the result packet claimed the player died, and `m_mapDungeonClear` was never populated | corr. 15 |
+| 6 | must leave and re-enter a village for its quest step to tick | the step's trigger fired before the step existed — and again one level down, through sub-quest group staging | corr. 16 |
+| 7 | press K, spend SP, quest does not complete | the whole feature-use family of clear types had no driver; they are ticked from each feature's own packet handler, not from anything quest-shaped | corr. 17 |
+| 8 | class changes but the top-left portrait does not | a gap in the **shipped client**, not in the emulation — the quest path refreshes the 3D model and not the gage | corr. 18 |
+
+Two of those are worth separating from the rest, because they are not emulation
+bugs at all and the reflex in both cases was to go looking for a packet I had
+failed to send:
+
+- **#4** was a *client* parser gap: the field is in the script the client
+  already loads, and only the client's loader ignores it.
+- **#8** was a *client* UI gap: the GameServer sends only
+  `EGS_QUEST_COMPLETE_ACK` for a quest-driven class change, and four other
+  class-change paths in the client refresh the portrait while the quest path
+  does not.
+
+Both are fixed behind flags in `Always.h` (`SERV_IRUHADEV_OFFLINE` and
+`SERV_IRUHADEV_JOBCHANGE_PORTRAIT`), which is the point of the flag rule: the
+local changes to studio code are one `#undef` away from being reverted.
+
+#### What the census says about the remaining gaps
+
+The one-shot census that goes into the log on first quest load now reports, per
+sub-quest clear type, how many *reachable* steps use it and — when nothing
+offline can advance it — one sentence saying why. Measured against the shipped
+US script (1395 quest templets, all 1395 visible through the `ADD_SERVER_GROUP`
+filter, client group 1):
+
+```
+driven                              not driven offline
+  1 NPC_TALK                109        9 PVP_PLAY                 4
+  2 NPC_HUNT                417       10 PVP_WIN                  7
+  3 ITEM_COLLECTION         123       11 PVP_KILL                 5
+  4 QUEST_ITEM_COLLECTION   693       13 ITEM_ENCHANT             1
+  5 DUNGEON_TIME             37       14 ITEM_SOCKET              1
+  6 DUNGEON_RANK             88       15 ITEM_ATTRIB              1
+  7 DUNGEON_DAMAGE           14       16 ITEM_RESOLVE             1
+  8 DUNGEON_CLEAR_COUNT      78       28 PVP_PLAY_ARRANGE         1
+ 18 USE_SKILL_POINT           1       32 SUITABLE_LEVEL_CLEAR     1
+ 24 VISIT_VILLAGE            50                                ----
+ 25 VISIT_FIELD              51                                  22
+ 26 VISIT_DUNGEON           205
+ 27 FIND_NPC                 47
+                          -----
+                           1913
+```
+
+**22 reachable steps out of 1935 cannot be advanced offline, and 17 of the 22
+are PvP.** Nothing load-bearing for a story playthrough is unreachable.
+
+Two things the census settled that guesswork would not have:
+
+- **`clearType=18` — spend a skill point — has exactly one reachable step in
+  the entire script**, and it is the one the user hit. The single most annoying
+  bug of the phase was a one-of-a-kind piece of data.
+- **Types 22, 23 and 36 do not appear at all.** Item use, skill use and
+  learn-new-skill were all wired in correction 17 and have nothing to do. That
+  work was speculative and produced nothing; the census is what makes that
+  visible instead of leaving three drivers of unknown value in the tree.
+
+#### Deferred to the last phase, by agreement
+
+- **The formal exit test from level 1 has not been run end to end.** What was
+  tested is the same ground by a different route: the story chain from the
+  tutorial through Ruben on a fresh character, and the class change on a level
+  50 one, with restarts in between. A clean level-1-to-job-change run is worth
+  doing once more before the project is called finished.
+- **`auto-open by the after-quest list of 12005: 1 candidate(s), 0 opened` /
+  `refused with error 1074`, on every login.** The only recurring refusal left
+  in the log. Almost certainly legitimate — a quest the character genuinely
+  cannot take — but "almost certainly" is exactly the phrasing that produced
+  rounds 1 through 5, so it gets checked rather than assumed.
+
+### Corrections to this plan, found while implementing it
+
+1. **`XS_CLASS_CHANGE` and `X2StateClassChange.cpp` are dead code, exactly like
+   `X2StateBeginning.cpp`.** The phase text above points at them; nothing
+   reaches them. `X2StateClassChange.cpp` sends and receives no packets at all,
+   and every `SendGameMessage( XGM_STATE_CHANGE, XS_CLASS_CHANGE, ... )` in the
+   tree is commented out ([X2UIQuestNew.cpp:1503](X2Lib/X2UIQuestNew.cpp#L1503),
+   `:1616`, `X2UIQuestReceive.cpp:898`, `:980`). A class change is *entirely* a
+   quest reward: the client reads the new class off `EGS_QUEST_COMPLETE_ACK`'s
+   `m_kUpdateUnitInfo.m_kUnitInfo`, resets the skill-tree UI and shows
+   `GetClassChangePopup()`. There is no class-change state and no class-change
+   packet to implement.
+
+2. **`EGS_UPDATE_QUEST_REQ` is dead on both sides.**
+   `CX2State::Handler_EGS_UPDATE_QUEST_REQ`
+   ([X2State.cpp:4235](X2Lib/X2State.cpp#L4235)) has no callers anywhere in
+   `X2Lib`, and the GameServer has no handler for the packet either. It is
+   answered anyway - it costs eight lines, and an unanswered REQ arms a wait -
+   but it will never appear in the log.
+
+3. **The client's quest templet has no `m_mapAcceptRewardItem`.** The server's
+   does, and pays an item just for accepting a quest
+   ([UserQuestManager.cpp:686](KncWX2Server/GameServer/UserQuestManager.cpp#L686)).
+   `CX2QuestManager::AddQuestTemplet_LUA` never reads such a field, so there is
+   nothing offline to read the list from and `EGS_NEW_QUEST_NOT`'s
+   `m_vecUpdatedInventorySlot` goes out empty. A genuine divergence from live,
+   not a decision - the data is not in the client's copy of the script.
+
+4. **`EXCEPTION_EPIC_QUEST_TEMPLET` is off**, so epic quests (`m_eQuestType >=
+   5`) do load on the client. It is commented out at `ServerDefine.h:370`; had
+   it been on, `AddQuestTemplet_LUA` would return before storing them and the
+   epic chain would have no templets at all.
+
+5. **A sub-quest instance vector is POSITIONAL, and nothing enforces it.**
+   `KQuestInstance::m_vecSubQuestInstance[i]` describes
+   `QuestTemplet::m_vecSubQuest[i]`; every server handler indexes it that way
+   and so does `CX2QuestManager::SetKQuestInstance`. Nothing in the struct says
+   so, and a vector built in SQLite row order rather than templet order would
+   look right in the save file and advance the wrong steps. `CX2OfflineQuest`
+   therefore rebuilds it from the templet on every load and stores no ordering
+   of its own.
+
+6. **A mission's ID and the ID of the title it awards are the same number**, and
+   the real server relies on that rather than on `MissionTemplet::m_iTitleID`:
+   `CheckNewMission` looks a *mission* up in the *title* map to decide whether
+   it is already done
+   ([UserTitleManager.cpp:325](KncWX2Server/GameServer/UserTitleManager.cpp#L325)),
+   and `CheckCompleteMission` logs an error if the two ever disagree (`:1335`).
+
+7. **`Reward::m_wstrName` and `Reward::m_iBuff` are dead fields.** The quest
+   templet carries a reward title name and a reward buff; `grep` finds no reader
+   for either in `X2Lib` or `KncWX2Server`. Quests do not award titles.
+
+8. **Editing a header that lives inside the precompiled header does not rebuild
+   the PCH.** Adding the accessor to `X2Lib/X2TitleManager.h` produced
+   `error C2039: 'GetMapTitleMission' : is not a member of 'CX2TitleManager'`
+   from a translation unit that had just included it - and a
+   `#ifndef ... #error` probe inserted next to the accessor did *not* fire,
+   which is what identified the cause: the whole region came from a stale
+   `US_SERVICE\X2Lib.pch`. Deleting the `.pch` does not help either (msbuild
+   still thinks it is up to date, and every file then fails with C1083).
+   **`touch X2Lib/stdafx.cpp` and rebuild.**
+
+9. **The story chain is not offered by anyone — the server hands it out, and
+   phase 6's first build did not.** Found by the first play-test: the tutorial
+   finished, the character walked into Ruben, and no quest appeared. Only
+   *player-initiated* accept was implemented (`EGS_NEW_QUEST_REQ`, sent when the
+   player clicks a quest on an NPC), and an epic quest is never clicked. The
+   GameServer accepts on the player's behalf from four places, all in
+   `KUserQuestManager`:
+
+   | Trigger | Function | Condition it reads |
+   |---|---|---|
+   | Enter a village | `CheckEpicQuest_SuccessStateChange` (`:5970`) | `m_Condition.m_setEnableVillage` |
+   | Enter a dungeon | `CheckEpicQuest_EnterDungeon` (`:7363`) | `m_setEnableDungeon` |
+   | Enter a field | `CheckEpicQuest_EnterBattleField` (`:7428`) | `m_setEnableBattleField` |
+   | Login, and after every completion | `CheckEpicQuest_NewQuestByBeforeQuest` (`:6034`, called from `SetUnitQuest:365` and `DBE_QUEST_COMPLETE_ACK:5175`) | `m_Condition.m_vecBeforeQuestID` all complete |
+
+   All four call `Handler_EGS_NEW_QUEST_REQ` with `IsAfterQuest = true`, i.e.
+   they skip the start-NPC check, and with `m_iTalkNPCID = NUI_NONE`. The two
+   prebuilt lists they walk (`m_vecEpicQuestTemplet`,
+   `m_vecExistBeforeEpicQuestTemplet`, built at
+   [XSLQuestManager.cpp:336-404](KncWX2Server/Common/X2Data/XSLQuestManager.cpp#L336))
+   are only filters over the templet map, so `CX2OfflineQuest::CheckAutoOpen`
+   applies them inline over the client's own `GetMapQuestTemplet()`.
+
+   Two asymmetries in the original are transcribed rather than tidied: a quest
+   with an **empty** before-list is deliberately not opened by the
+   prerequisite sweep (`:6068` — it is the first link of a chain and belongs to
+   a place), and the village sweep does **not** check `m_iPlayLevel` or an empty
+   sub-quest list while the dungeon and field sweeps do (compare `:5978` with
+   `:7375`).
+
+   The login sweep runs inside `PushSelectUnitNotifications` *before*
+   `EGS_SELECT_UNIT_2_NOT` is built, which is where the server does it too — so
+   a quest opened at login arrives as part of the list and needs no packet of
+   its own. The other three push one `EGS_NEW_QUEST_NOT` each.
+
+10. **`ADD_SERVER_GROUP` can hide every quest in the game, silently.** It is on
+    (`Always.h:1707`), and `CX2QuestManager::GetQuestTemplet` returns NULL for
+    any quest whose `m_iServerGroupID` is neither -1 nor
+    `g_pInstanceData->GetServerGroupID()`
+    ([X2QuestManager.cpp:831](X2Lib/X2QuestManager.cpp#L831)). The offline login
+    reports server group 1 and nothing offline sets the client's own idea of it,
+    so the two can disagree — and if they do, quests vanish from this code *and*
+    from the client's own NPC lists, with no error anywhere.
+
+    **Checked and ruled out.** `CX2OfflineQuest::LogTempletCensus` was added to
+    tell this apart from correction 9 in one run, and it reported
+    `1395 templet(s) loaded, 1395 visible through the server-group filter
+    (client group=1)`. Nothing is hidden: every quest in the script carries
+    `m_iServerGroupID` -1 or 1. The census stays in the build anyway - it is one
+    line per process, and it converts the single most confusing possible failure
+    into a fact.
+
+    The same line established the shape of the auto-open surface, which is worth
+    recording because it is much smaller than expected: of 229 epic quests, only
+    **8 open in a village, 2 in a dungeon and none in a field**. Every other link
+    of the chain opens on a finished prerequisite, so
+    `CheckAutoOpen( AOP_BEFORE_QUEST )` after each completion is not a corner
+    case - it is the main mechanism.
+
+    **This is the shape phase 5's exit test kept producing** (six rounds, and
+    "not one produced an error"): the failure is something that never happened,
+    and the only way to see it is a line that says it did not.
+
+11. **A quest that completes the instant it is given is the studio's own
+    behaviour, not a bug.** The first play-test after correction 9 reported it:
+    quest 11000 'Suspicious Movements' opened on entering the tutorial dungeon
+    and completed on arriving in Ruben, 56 milliseconds after its step ticked.
+    The packet log shows the `EGS_QUEST_COMPLETE_REQ` coming *from the client* -
+    `SERV_ENTER_FIELD_QUEST_CLEAR` makes it hand in visit-a-village quests by
+    itself (`CX2State::CompleteQuestToVisitVillageList`,
+    [X2State.cpp:11498](X2Lib/X2State.cpp#L11498), and the batch request built at
+    [X2QuestManager.cpp:4769](X2Lib/X2QuestManager.cpp#L4769)). 11000's only
+    sub-quest *is* "visit Ruben", and the player was walking into Ruben. Nothing
+    to fix.
+
+12. **Silence is not an acceptable answer from a sweep that found candidates.**
+    After correction 9 the auto-open worked and the chain still did not
+    continue, and the logs could not say why: `CheckAutoOpen` was quiet by
+    design, so "no epic quest names this place", "the sweep never ran" and
+    "eleven matched and all were refused on level" all looked identical. It now
+    writes one summary line whenever it had at least one candidate - how many it
+    considered, how many opened, and a tally of the refusal codes - and stays
+    quiet only when nothing matched at all.
+
+    Two more diagnostics went in with it, both answering questions that
+    otherwise produce no packet and therefore no trace:
+    `CountWaitingOn( iQuestID )` logs, after every hand-in, how many quests in
+    the whole script list it as a prerequisite (a zero says the chain does not
+    continue automatically and the next step must be clicked on an NPC); and the
+    talk handler logs what the client's own quest manager says that NPC offers,
+    which is the only way to see an NPC that offers nothing.
+
+    The census additionally dumps the whole early chain - the four IDs the
+    client itself names in `CX2PlayGuide::TUTORIAL_QUEST_ID` - with each quest's
+    type, level gates, prerequisites, opening village and dungeon, start scene
+    and every sub-quest's clear type. Read out of the client's loaded templets,
+    deliberately, and **not** out of `ScriptData/QuestTable.xls`: that
+    spreadsheet is in the tree and would be easier, and it is exactly the stale
+    snapshot the *`DataBase/` and `ScriptData/`* rule was written about.
+
+13. **The automatic NPC conversation is a quest's start scene, not a separate
+    system.** The player reported that on the real client Lowe speaks to them
+    immediately after the tutorial, with the NPC portrait dialogue. That is
+    `CX2UIQuestNew::Handler_EGS_NEW_QUEST_NOT` calling
+    `g_pData->GetEventScene()->PlayEventScene( pQuestTemplet->m_wstrStartScene )`
+    ([X2UIQuestNew.cpp:1823](X2Lib/X2UIQuestNew.cpp#L1823)) - so the missing
+    conversation is not a missing dialogue feature, it is a missing
+    `EGS_NEW_QUEST_NOT`. Worth writing down because the symptom points at the
+    scene system and the cause is entirely in quest granting.
+
+14. **The story chain lives in `m_iAfterQuestID`, and the stock client does not
+    read it.** This is the finding that made phase 6 actually work, and it took
+    three play-tests to reach because every earlier guess was about the wrong
+    mechanism.
+
+    The census dump settled it in one run. Printing the four quests the client
+    itself names as the tutorial chain
+    (`CX2PlayGuide::TUTORIAL_QUEST_ID`) gave:
+
+    ```
+    CHAIN 11000 'Suspicious Movements': before=[-] village=[20000] dungeon=[39600..39605]
+    CHAIN 11005 '[Field] Thief Pursuit': before=[-] village=[-]     dungeon=[-]
+    CHAIN 11010 '[Dungeon] Protect the El': before=[-] village=[-]  dungeon=[30000]
+    CHAIN 11030 '[Dungeon] William the Prankster': before=[-] village=[-] dungeon=[-]
+    ```
+
+    **11005 has no prerequisite, no opening village and no opening dungeon.**
+    Neither the place sweeps nor the prerequisite sweep from correction 9 can
+    ever start it, and the same is true of 11030. The only remaining mechanism
+    is `KUserQuestManager::CheckEpicQuest_NewQuestByAfterQuest` (`:6102`), which
+    opens the quests listed in the *finished* quest's `m_vecAfterQuestID`.
+
+    And that field is the trap. The Lua key is `m_iAfterQuestID` and it holds a
+    **table**; the server parses it into a vector
+    ([XSLQuestManager.cpp:156](KncWX2Server/Common/X2Data/XSLQuestManager.cpp#L156)),
+    while the client declares a bare `int m_iAfterQuestID` on its own
+    `QuestTemplet` and **never reads the key at all** - the member is dead
+    weight. So the chain was in the script the client had already loaded, and
+    only the client's parser was throwing it away.
+
+    Fixed by transcribing the server's loader into
+    `CX2QuestManager::AddQuestTemplet_LUA` behind `SERV_IRUHADEV_OFFLINE`, into
+    a new `std::vector< int > m_vecAfterQuestID`, and adding `AOP_AFTER_QUEST`
+    to `CheckAutoOpen`. Nothing needed repacking: this is the one case where
+    data that looked server-only turned out to be sitting in the client's own
+    `.kom` already.
+
+    Three details transcribed rather than reinvented:
+
+    - The after-quest sweep does **not** filter on `QT_EPIC`. The place sweeps
+      walk the server's epic-only prebuilt lists; this one opens whatever the
+      finished quest names, and with `bForce` - which a completion always passes
+      - it skips the type check entirely (`:6136-6152`).
+    - It runs **before** the prerequisite sweep on completion, and at login it
+      runs once per already-completed quest before the prerequisite sweep
+      (`SetUnitQuest:358` then `:365`). The login pass is the recovery path: a
+      chain link missed for any reason is handed over on the next login rather
+      than being lost for good.
+    - `> 0` guards each entry, which is what skips the padding zeroes the tables
+      are written with.
+
+    **What this run also confirmed about correction 11.** With the fake 11005
+    completion gone, Lowe's conversation appeared - that is 11005's
+    `m_wstrStartScene` (`'11005_01'`) playing, exactly as correction 13
+    predicted. The quest itself still did not start, because the after-quest
+    link was missing; the guide arrow to Lake Noah appeared anyway, because the
+    play guide is driven client-side and does not wait for a quest instance. Two
+    independent systems producing one symptom, which is why the log mattered
+    more than the screen.
+
+15. **A cleared dungeon unlocks nothing, twice over.** Reported after the chain
+    started working: Banthus dies, the next quest points at Ruben's second
+    dungeon, and that dungeon is still locked. Two independent causes, one
+    symptom - and the save file proved the clear itself was fine
+    (`unit_dungeon` held `(16, 30000, 1, 0)`).
+
+    **(a) The result packet said the player died.** `KDungeonUnitResultInfo::
+    m_bIsDie` was computed as `m_kPlayResult.m_fHP <= 0.0f`, and
+    `m_kPlayResult` is filled by `EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ` - which
+    **arrives after** the result is sent. Measured in the packet log, not
+    guessed: `EGS_END_GAME_REQ` at `20:39:57.425`, the play result at
+    `20:39:57.438`. So the struct was still `Clear()`ed, `m_fHP` was 0, and
+    every successful run reported a death.
+
+    That flag is load-bearing on the client:
+    `CX2StateDungeonGame::Handler_EGS_END_GAME_DUNGEON_RESULT_DATA_NOT` records
+    the clear only when `m_bIsWin && false == bDieMyUnit`
+    ([X2StateDungeonGame.cpp:3005](X2Lib/X2StateDungeonGame.cpp#L3005)) - so
+    the client silently skipped `AddClearDungeon`, `CX2Unit::m_mapDungeonClear`
+    stayed empty, and `CX2DungeonManager::IsActiveDungeon` refused every
+    dungeon gated on this one. The fix is to believe the play result only when
+    one actually arrived: absent it there is no evidence of a death, and a run
+    that reached `EGS_END_GAME_REQ` with a win is evidence of the opposite.
+
+    **(b) `KUnitInfo::m_mapDungeonClear` was never populated.** Clears have been
+    written to `unit_dungeon` since phase 4 and read by nobody. Even with (a)
+    fixed the client only knows about dungeons cleared *this session*, so a
+    relog re-locks everything - which the exit test ("progression intact across
+    restarts") would have caught even if the play-test had not.
+    `MakeUnitInfoFromRow` now fills the map from the table.
+
+    **(c) The difficulty belongs in the key.** The client unlocks against
+    `m_iDungeonID + m_cDifficulty` and looks prerequisites up by that same
+    number; phase 4 stored the base ID alone. It only ever agreed because every
+    run so far has been on difficulty 0. Now stored the way the client reads it.
+
+    Schema v6 adds `max_score` and `clear_date` to `unit_dungeon`:
+    `KDungeonClearInfo` carries both and the local-map UI draws them, and an
+    empty clear-time string would have reached the client's date parsing.
+
+    The pattern is phase 5's again, for the third time in this phase: **nothing
+    errored.** A boolean was wrong, the client quietly declined to record
+    something, and the consequence surfaced two systems away as a locked door.
+
+16. **A step whose trigger already fired never fires again.** Reported as: the
+    previous quest completes, the next one wants a village or field you are
+    *already standing in*, and it sits unticked until you walk out and back in.
+
+    The visit check existed, and ran in two places: `Handler_EGS_NEW_QUEST_REQ`
+    (the player clicked a quest on an NPC) and `QuestAutoOpen` (a sweep opened
+    an epic quest). The second one only ever checked **the place that triggered
+    the sweep**. That is fine for the three place sweeps, whose trigger *is* a
+    place - and wrong for the two that carry the story. `AOP_AFTER_QUEST` and
+    `AOP_BEFORE_QUEST` open a quest wherever the player happened to hand the
+    last one in, and got no visit check at all.
+
+    The real server has none of this trouble because it re-runs the check off
+    the back of every accept, against wherever the character actually is
+    ([GSUserGameCommon.cpp:1608-1649](KncWX2Server/GameServer/GSUserGameCommon.cpp#L1608)).
+    Both paths now call one `QuestCheckHereAndNow`, which asks the same
+    dungeon / field / village question every other handler in the file asks.
+
+    **The second half was group staging, and it is the part that would have
+    come back.** A quest's sub-quests are grouped, and `CheckBeforeGroup`
+    refuses a step while any earlier group is outstanding. So "talk to Lowe,
+    then go to Elder" refuses the Elder step on the first pass; finishing the
+    talk is what makes it eligible, and by then the visit has already happened.
+    Same bug, one level down, and not fixed by checking on accept. So
+    `QuestCheckHereAndNow` runs three passes rather than one - bounded, not
+    `while( changed )` - and is also called after an NPC talk and after a
+    hand-in, the two events that finish a group. The same shape as
+    `CX2OfflineTitle::ReCheckPassive`, for the same reason.
+
+17. **The feature-use sub-quests were never wired at all.** Reported as: the
+    quest says press K and spend a skill point, you spend one, nothing happens.
+
+    `SQT_USE_SKILL_POINT` is ticked on live from `DBE_INSERT_SKILL_ACK` - the
+    *database reply* handler, three levels of nesting in
+    ([GSUserGameCommon.cpp:4639](KncWX2Server/GameServer/GSUserGameCommon.cpp#L4639)).
+    Offline there is no DB round trip, so that handler does not exist, and the
+    port of `EGS_GET_SKILL_REQ` carried the feature without the quest tick that
+    was buried inside it. That is the general shape of this whole group: each
+    one lives in the packet handler for its own feature, none of them look like
+    quest code, and a port that goes feature by feature loses all of them.
+
+    Wired this round, with the driver each one actually has:
+
+    | Type | Driver | Note |
+    |---|---|---|
+    | `SQT_USE_SKILL_POINT` (18) | `EGS_GET_SKILL_REQ` | once per **point**, so 1→3 on one skill counts twice |
+    | `SQT_LEARN_NEW_SKILL` (36) | `EGS_GET_SKILL_REQ` | once per **skill**, from the request's own `m_vecNowLearnSkill` |
+    | `SQT_SKILL_USE` (23) | **new** `EGS_SKILL_USE_REQ` handler | the client was already sending it; nothing was listening |
+    | `SQT_ITEM_USE` (22) | `EGS_USE_ITEM_IN_INVENTORY_REQ`, `EGS_USE_QUICK_SLOT_REQ` | two call sites on live too |
+    | `SQT_DUNGEON_DAMAGE` (7) | dungeon clear | `m_iDungeonDamage` is a **ceiling**, not a floor |
+
+    Two of these read almost identically and mean the opposite thing, in the
+    same server file a hundred lines apart: an empty `m_setSkillID` means "any
+    skill" for `SQT_SKILL_USE` and "can never complete" for
+    `SQT_LEARN_NEW_SKILL`. Neither is safe to infer from the other.
+
+    **What is deliberately still not driven, and why.** A census line now
+    reports, per clear type, how many reachable steps use it and - when nothing
+    can advance it - one sentence saying what is missing. The reasons are not
+    all "not implemented yet":
+
+    - `SQT_ITEM_ENCHANT`, `SQT_ITEM_SOCKET` - both features are *refused*
+      offline with the item left intact, because the success-rate and
+      socket-option tables are server data with no client copy. A driver would
+      be dead code.
+    - `SQT_ITEM_ATTRIB` - the attribute system is compiled out of this build.
+    - `SQT_SUITABLE_LEVEL_DUNGEON_CLEAR` - "was this cleared at an appropriate
+      level" arrives at the GameServer *already decided*, as
+      `m_mapSuitableLevelInfo` on the room server's end-of-game packet. Nothing
+      in the client sends or receives that field. "Am I inside the dungeon's
+      level band" is a different rule that would agree sometimes and drift the
+      rest of the time.
+    - `SQT_ITEM_EQUIP_DUNGEON_CLEAR` - **the shipped server's own check is
+      unreachable code.** It looks the quest up in `mapOngoingQuest` and then
+      dereferences the iterator on the `== end()` branch
+      ([UserQuestManager.cpp:2234](KncWX2Server/GameServer/UserQuestManager.cpp#L2234)).
+      There is no working behaviour to copy.
+    - `SQT_FEED_PET`, `SQT_USER_DIE`, `SQT_HYPER_MODE_USE`, `SQT_PVP_TAG_COUNT` -
+      **the shipped GameServer never ticks these either.** `XSLQuestManager`
+      parses the first two with empty case bodies and a pair of TODO comments
+      ([XSLQuestManager.cpp:1206](KncWX2Server/Common/X2Data/XSLQuestManager.cpp#L1206))
+      and nothing anywhere moves them. "Implement the missing driver" is the
+      wrong instinct: there is nothing to port.
+    - every PvP type - there is no PvP offline.
+
+    Worth stating plainly because it changes what the census means: a type in
+    that list is not a TODO. Four of them are notes about the original game.
+
+    Two incidental repairs made on the way through:
+
+    - **`X2OfflineQuest.cpp` contained a literal NUL byte.** A `L'\0'` in the
+      census formatter had been written as `L'` + an actual 0x00 + `'`. MSVC
+      accepted it, so it built and ran; `file` called the .cpp `data`, `grep`
+      called it a binary, and `sed` rendered the byte as a space - which is how
+      an anchored patch came to look correct and match nothing.
+    - **A symbol present in a header is not a declaration.** The skill-use
+      dungeon exclusions were transcribed from `CXSLDungeon`'s predicates and
+      checked with `grep -c` against `X2Lib/X2Dungeon.h`; every name "existed".
+      Six of them were **commented out** of the client's enum, and the compiler
+      rejected them one at a time. This client's `DUNGEON_ID` is a much shorter
+      list than the server's - one Henir space rather than six, one tutorial
+      rather than fourteen - so a dungeon the server excludes may simply not be
+      enterable here. Check for `\bNAME\b\s*=` on a line that is not commented,
+      not for the name.
+
+18. **The HUD portrait after a quest job change — a gap in the shipped client,
+    not in the emulation.** Reported as: the class really does change and
+    everything says so, but the character image top-left keeps showing the old
+    class until the character is re-selected.
+
+    Worth writing down mainly for how it was decided, because the reflex was to
+    go looking for a packet I had failed to send. The GameServer sends **only**
+    `EGS_QUEST_COMPLETE_ACK` for a quest-driven class change - `SetUnitClass` /
+    `ResetStat` and then the same ACK every other completion gets
+    ([UserQuestManager.cpp:5038-5142](KncWX2Server/GameServer/UserQuestManager.cpp#L5038)).
+    There is no second notification to have missed. The whole class-change UI is
+    client-side, off that one ACK.
+
+    And that client code is incomplete.
+    `CX2UIQuestNew::Handler_EGS_QUEST_COMPLETE_ACK` resets the skill tree, shows
+    the popup, and calls `ResetUnitViewerInFieldSquare` - which rebuilds the 3D
+    square unit and nothing else
+    ([X2State.cpp](X2Lib/X2State.cpp), `ResetUnitViewerInFieldSquare`). The
+    top-left portrait is a different thing entirely: it belongs to
+    `CX2MyGageUI`, whose class is cached in `m_eOwnerGameUnitClass` and only set
+    by `CreateMyGageUI` / `SetCharacterImage`. The gage is created per state -
+    `InitMyGageWhenMovingToVillage` - which is exactly why re-selecting the
+    character fixed it.
+
+    Every *other* class-change path in the client does refresh it:
+
+    | Path | Refreshes the portrait |
+    |---|---|
+    | `EGS_CHANGE_MY_UNIT_INFO_NOT` ([X2State.cpp:12958](X2Lib/X2State.cpp#L12958)) | yes |
+    | admin change, `EGS_ADMIN_CHANGE_UNIT_CLASS_ACK` (:5083) | yes |
+    | jumping character, `EGS_JUMPING_CHARACTER_ACK` (:13174) | yes - the comment there is literally "refresh the character portrait" |
+    | cash item, `EGS_CHANGE_JOB_CASH_ITEM_NOT` (:8388) | yes, in `XS_BATTLE_FIELD` |
+    | **quest completion** | **no** |
+
+    So the fix is a client change behind `SERV_IRUHADEV_JOBCHANGE_PORTRAIT`
+    (`Always.h`), applied at **both** live completion handlers -
+    `Handler_EGS_QUEST_COMPLETE_ACK` and
+    `Handler_EGS_ALL_COMPLETED_QUEST_COMPLETE_ACK`, which carry the same
+    `QT_CHANGE_JOB` block and the same omission. The third copy of that block is
+    inside `#else SERV_DAILY_QUEST` and does not compile; it was left alone.
+
+    The guard is `GetMyGageData()`, not `GetInstance()` alone:
+    `CX2GageManager::SetCharacterImage` dereferences `m_ptrMyGageSet` with no
+    null check, unlike nearly every neighbour in that header, and there is no
+    gage at all in some states.
+
+    Two process notes:
+
+    - **`m_ucClearData`-style substring counting bites in patch anchors too.**
+      The first attempt located the two call sites by counting
+      `b"\t\t\t\t" + call`, which reported three - because four tabs is a prefix
+      of the five-tab site. Anchor a byte patch on `\n` + the indentation, never
+      on the indentation alone.
+    - `X2UIQuestNew.cpp` is CP949. Verified after the edit: `file` still reports
+      `ISO-8859 text` and `git diff --stat` shows 68 insertions and 0 deletions.
+
+    **The test jig this was found with, and why it is gone.** Walking a level-1
+    character to a job-advancement quest takes hours, so the class change was
+    tested with a temporary skip: a marker file `offline_grant.txt` next to the
+    executable, read at character login, granting either the character's next
+    `QT_CHANGE_JOB` quest or a named quest ID with every step already satisfied.
+
+    It had to live **inside the client**, which is the part worth remembering.
+    The quest script is in `data036.kom`, so nothing outside a running client
+    knows which quest advances which class; writing rows into `unit_quest` from
+    a SQL script would have meant taking the IDs from
+    `ScriptData/QuestTable.xls`, the stale snapshot that has already produced
+    two confidently wrong answers in this project. Reading the templets from the
+    process that already has them loaded was the only source that could not be
+    wrong.
+
+    Removed once the test passed - implementations, declarations and the login
+    hook - so nothing in the shipped path reads a marker file or can grant a
+    quest that was never earned. If it is needed again, it was four pieces:
+    `SubQuestTargetCount`, `LogJobChangeQuests`, `FindJobChangeQuest` and
+    `ForceGrantComplete` on `CX2OfflineQuest`, plus a block in
+    `Handlers_Unit.cpp` immediately before `GetQuestInstances` fills
+    `EGS_SELECT_UNIT_2_NOT`. Two details that were not obvious and would have to
+    be rediscovered: a collection step cannot be forced with a flag because the
+    bag *is* the state on both sides, so the items have to actually be inserted;
+    and the grant has to run before the packet is built, or the quest does not
+    appear until the next login.
+
+### Packets the plan did not predict
+
+Answered, with the rules ported from `KUserQuestManager` / `KUserTitleManager`:
+
+```
+EGS_NEW_QUEST_REQ/ACK + _NOT             accepting, and the quest it hands back
+EGS_QUEST_COMPLETE_REQ/ACK               handing in, the reward, the class change
+EGS_ALL_COMPLETED_QUEST_COMPLETE_REQ/ACK the "hand in everything" button
+EGS_GIVE_UP_QUEST_REQ + ACK              abandoning one
+EGS_GATHER_GIVE_UP_QUEST_REQ             abandoning several
+EGS_UPDATE_QUEST_REQ/ACK                 dead on both sides; answered anyway
+EGS_UPDATE_QUEST_NOT                     every progress change
+EGS_EQUIP_TITLE_REQ/ACK                  wearing a title
+EGS_NEW_MISSION_NOT                      a title mission opening
+EGS_UPDATE_MISSION_NOT                   its progress
+EGS_REWARD_TITLE_NOT                     the title it pays
+```
+
+Deliberately not implemented, and they will show as `UNHANDLED` if reached:
+`EGS_ADMIN_QUEST_COMPLETE_REQ` (admin cheat), `EGS_CHANGE_RANDOM_QUEST_NOT` and
+`EGS_EVENT_QUEST_INFO_NOT` (both are *pushes* the offline server would have to
+originate, and both need a live event schedule it does not have), and
+`EGS_TITLE_EXPIRATION_NOT` (nothing offline issues a rented title).
+
+### What was actually built, against *Code layout to create*
+
+New, and the plan predicted one of the three:
+
+```
+X2Lib/Offline/Handlers_Quest.cpp         predicted
+X2Lib/Offline/X2OfflineQuest.h/.cpp      KUserQuestManager, reduced to one character
+X2Lib/Offline/X2OfflineTitle.h/.cpp      KUserTitleManager, likewise
+```
+
+Extended:
+
+```
+X2OfflineDB          schema v5, quest / sub-quest / completed-quest CRUD,
+                     missions, titles, SaveUnitClass, SaveEquippedTitle
+X2OfflineInventory   CountItemByID and ConsumeByID - the bag is the state for
+                     every collection sub-quest, on both sides
+X2OfflineServer      m_iTitleID in KUnitInfo, and the event bridges the other
+                     handler files call
+Handlers_Unit        _2_NOT from unit_quest, _3_NOT from unit_mission/unit_title
+Handlers_Room        talk, kill, spawn, dungeon-clear, level-up and pickup hooks,
+                     plus quest-item drops inside PushNpcDrop
+Handlers_Field       the village-entry hook
+Handlers_Inventory   the use-item and buy hooks
+```
+
+One client-side edit, behind the existing `SERV_IRUHADEV_OFFLINE`: a read-only
+`GetMapTitleMission()` accessor on `CX2TitleManager`. `GetMissionInfo` can only
+answer for an ID that is already known, and deciding *which missions a character
+has become eligible for* means walking the whole templet map.
+
+Schema v5 is additive (five new tables, one `ALTER TABLE` on `unit`) and v6 adds
+two more columns to `unit_dungeon`, so a v4 save upgrades rather than being wiped. The migration and all eighteen new
+statements were dry-run against a copy of the live `els_db.sql` before the build
+was deployed, including the `UNIT_COLUMNS` select and the final-delete sweep
+over all ten child tables.
+
+### Decisions made while implementing phase 6
+
+1. **The completion ACK goes out before anything the completion sets off.** The
+   client holds an `AddServerPacket` wait on `EGS_QUEST_COMPLETE_ACK`, and its
+   `_NOT` handlers run against a character it has not been told about yet - so
+   the level-up effect, the quest updates and the title work are stashed in
+   `KQuestAfter` and replayed by `AfterQuestComplete` once the ACK is on the
+   wire. The batch hand-in stashes one per quest and replays them all after its
+   single ACK. This is the shape the live pair of servers ends up with, where
+   the reward is paid in a DB reply handler that sends the ACK first.
+
+2. **Collected items are handed in BEFORE the room check, and rolled back if the
+   reward will not fit.** Checking for room first refuses a perfectly valid
+   completion whenever the bag is full - which is exactly when a quest that
+   takes ten items and gives one is most likely to be handed in. The real server
+   has no such problem because `KInventory::DeleteAndInsert` does both halves in
+   one call. Putting the items back cannot fail: the slots they came out of are
+   still free.
+
+3. **A collection sub-quest has no counter at all - the bag is the state.** That
+   is not a simplification, it is what the client does:
+   `CX2QuestManager::SubQuestInst::IsComplete`
+   ([X2QuestManager.cpp:2716](X2Lib/X2QuestManager.cpp#L2716)) answers
+   `SQT_ITEM_COLLECTION` by calling `GetNumItemByTID` on its own inventory.
+   `CX2OfflineInventory::CountItemByID` mirrors that call's exclusions exactly -
+   worn gear, the quick-slot bar and both banks do not count - so the two can
+   never disagree about a quest the player is holding items for.
+
+4. **Quest items are rolled per active quest, not out of the drop table.** On
+   live they come from `KRoomUser::GetQuestDropItemInDungeon`, which is why the
+   same monster drops a quest item for one player and nothing for another. The
+   four live multipliers (comeback user, Gaia server, two events) are all 1.0
+   here - the same simplification phases 4 and 5 made for EXP, ED and the
+   ordinary drop table - and the roll stops once the bag holds enough.
+
+5. **A dungeon's rank is reported as `RT_NONE`, so rank sub-quests do not tick.**
+   The offline server does not compute a rank: the thresholds are server-side
+   Lua this project does not reproduce, which is the same reason phase 4 left
+   the result screen's rank bonus out. The divergence is one-directional and
+   visible - a sub-quest asking for rank D or better simply will not complete -
+   whereas passing an invented rank would hand out a reward the run did not
+   earn.
+
+6. **Timed-event quests and daily random quests are allowed rather than
+   refused.** Both are gated on live against a table the GameServer reseeds (the
+   event schedule, and the day's random rotation); neither table exists offline
+   and neither can be derived from client data. Refusing them would make every
+   event quest permanently untakeable, which is a bigger divergence than
+   allowing one, and each is logged by name when it is allowed through.
+
+7. **`Reward::m_iSP` is paid as skill points.** The live server routes it to
+   `AddAPoint` under `SERV_PVP_NEW_SYSTEM`, which is an arena point; that system
+   does not exist offline and PvP is out of scope, so it is paid as SP - the
+   meaning the field has in the client's own `Reward` struct and in the pre-PvP
+   server code.
+
+8. **A class change seeds the *whole* default skill list for the new class.**
+   The live path under `SERV_UPGRADE_SKILL_SYSTEM_2013` grants only the two
+   defaults the advancement unlocks, read out of `GetUnitClassDefaultSkill`.
+   `SeedDefaultSkills` grants the class's whole list, which is the same set: the
+   base skills are shared down the class tree, and re-upserting one at level 1
+   is a no-op for anything already learned higher.
+
+9. **A quest whose templet is missing is left on disk, not deleted.** The row
+   stays in `unit_quest`, out of the in-memory map, with a log line naming it -
+   so a build that has the templet again picks the quest back up. Deleting it
+   would destroy a save to tidy up an in-memory structure.
+
+10. **A quest with no sub-quest groups is treated as a flat checklist.** The
+    real server returns false from `CheckCompleteSubQuest_BeforGroup` when it
+    cannot find a group, which is safe for it because every shipped quest is
+    grouped. Offline the same script is read, so the case should not arise;
+    treating it as "no staging" rather than "never advances" means a quest that
+    somehow lacks groups is playable instead of permanently stuck, and the log
+    says which one it was.
+
+11. **The quest-11005 dungeon-menu unlock from phase 2 is REMOVED.**
+    *This reverses the decision this entry originally recorded, which was to
+    keep it behind a guard. The guard made it worse, not better.*
+
+    Phase 2 reported quest 11005 as completed in `EGS_SELECT_UNIT_2_NOT`, purely
+    so `CX2QuestManager::SetUnitQuest` would call `SetShowDungeonMenu( true )`
+    and stop the village party dialog from hiding the dungeon button
+    ([X2QuestManager.cpp:601](X2Lib/X2QuestManager.cpp#L601)). With no quest
+    system that was honest and it worked.
+
+    With phase 6 it is actively harmful, and the guard aimed it at exactly the
+    wrong character. **11005 is the second story quest** - `TQI_CHASE_THIEF` in
+    the client's own `CX2PlayGuide::TUTORIAL_QUEST_ID`, the one Lowe gives on
+    arriving in Ruben - so telling the client it is already finished means Lowe
+    has nothing to offer, its `m_wstrStartScene` (the automatic conversation the
+    player expects) never plays, and every quest chained behind 11005 is stuck
+    with the client believing it is done while the save says it is not. The
+    guard fired precisely when the real completion count was zero, i.e. for the
+    new character whose story it then broke.
+
+    The button is now earned the way the real game grants it. Nothing is faked,
+    and the two sides agree about where the player is in the story.
+
+12. **Titles get the full mission engine rather than an empty `_3_NOT`.** The
+    phase bullet asks only that titles and missions reach
+    `EGS_SELECT_UNIT_3_NOT`, and persistence alone would satisfy it literally -
+    but a title system that can never award a title leaves that packet
+    permanently empty, which is indistinguishable from the phase-2 stub. The
+    mission loop is the quest loop with different field names, so it rides on
+    the same events. What is *not* modelled, because each needs a subsystem that
+    does not exist offline: every PvP clear type, pet feeding, party-size
+    conditions, resurrection-stone counts and "die a certain way". Missions
+    using those are still tracked and still shown; they simply never advance.
+
+13. **`CheckCompletable` returns `ERR_QUEST_12` where the server falls through
+    with `NET_OK`.** The real handler's epic-quest level check is a bare
+    `goto error_proc` that leaves the error at `NET_OK`, so the client is told
+    "OK" and given nothing - a hang rather than a message. `ERR_QUEST_12` is the
+    level-too-low code the accept path uses and puts a readable reason on
+    screen. This is the one place phase 6 deliberately does not transcribe the
+    server.
+
+### Operational notes, extending the earlier phases'
+
+- **`touch X2Lib/stdafx.cpp` after editing any header inside the PCH.** See
+  correction 8 - the failure looks like the edit did not happen, and a `#error`
+  probe placed next to the edit does not fire either, because the probe is in
+  the stale region too.
+- **`grep -rn "SendPacket( EGS_" X2Lib/*.cpp` filtered to QUEST / TITLE /
+  MISSION is the phase-6 checklist**, the same way `AddServerPacket` was phase
+  5's. It is what found `EGS_GATHER_GIVE_UP_QUEST_REQ` and
+  `EGS_ALL_COMPLETED_QUEST_COMPLETE_REQ` before a play-test hit them, and what
+  established that `EGS_UPDATE_QUEST_REQ` has no sender at all.
+- **Three quest UIs dispatch the same packets and only one is built.**
+  `CX2UIQuestNew`, `CX2UIQuestReceive` and `CX2UIQuest` are all wired into
+  `CX2UIManager::UIServerEventProc`; which one exists decides who handles
+  `EGS_NEW_QUEST_NOT`. It does not matter for correctness - all three drive the
+  same `CX2QuestManager` - but reading the wrong one wastes time.
+
 ---
 
 # Phase 7 — Cash shop and social stubs

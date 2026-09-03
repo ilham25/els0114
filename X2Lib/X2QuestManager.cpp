@@ -130,6 +130,31 @@ bool CX2QuestManager::AddQuestTemplet_LUA()
 	LUA_GET_VALUE(		luaManager, L"m_wstrEpisodeGroupTitle",		pQuestTemplet->m_wstrEpisodeGroupTitle,	L"" );
 	LUA_GET_VALUE(		luaManager, L"m_wstrStartScene",			pQuestTemplet->m_wstrStartScene,		L"" );
 	LUA_GET_VALUE(		luaManager, L"m_wstrEndScene",				pQuestTemplet->m_wstrEndScene,			L"" );	
+//{{ Iruha : 2026-09-03 // offline mode needs the epic quest chain
+#ifdef SERV_IRUHADEV_OFFLINE
+	// m_iAfterQuestID is a TABLE in the script, and the stock client never
+	// reads it - the member of that name on QuestTemplet is a leftover int that
+	// nothing fills in. The server parses the same key into a vector
+	// (CXSLQuestManager::AddQuestTemplet_LUA, XSLQuestManager.cpp:156) and uses
+	// it to hand out the next link of the story when one is completed.
+	//
+	// Transcribed from that loader, including the `> 0` guard which is what
+	// skips the padding zeroes the tables are written with.
+	if( luaManager.BeginTable( L"m_iAfterQuestID" ) == true )
+	{
+		int index	= 1;
+		int buf		= -1;
+		while( luaManager.GetValue( index, buf ) == true )
+		{
+			if( buf > 0 )
+				pQuestTemplet->m_vecAfterQuestID.push_back( buf );
+			index++;
+		}
+
+		luaManager.EndTable();
+	}
+#endif SERV_IRUHADEV_OFFLINE
+//}}
 	LUA_GET_VALUE(		luaManager, L"m_iNextVillageID",			pQuestTemplet->m_iNextVillageID,		0 );//특정 퀘스트 완료 시 다음 마을로 이동에 대한 가이드 추가
 	// 등록
 	if( 0 != pQuestTemplet->m_iEpisodeGroupID && false == pQuestTemplet->m_wstrEpisodeGroupTitle.empty() )

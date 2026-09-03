@@ -2501,3 +2501,14 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 #elif defined( CLIENT_COUNTRY_PH )
 #	include "OnlyGlobal/Always_PH.h"
 #endif
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-04
+// Description: Refresh the top-left gage portrait when a quest changes the
+//              character's class. The quest path resets the 3D square unit
+//              but never the gage, so the HUD keeps drawing the old class
+//              until the gage is rebuilt on a state change. Every other
+//              class-change path in the client already refreshes it.
+#define SERV_IRUHADEV_JOBCHANGE_PORTRAIT
+//////////////////////////////////////////////////////////////////////////

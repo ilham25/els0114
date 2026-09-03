@@ -335,6 +335,17 @@ public:
     const CX2TitleManager::MissionTemplet* GetMissionInfo( int iMissionID );
     const CX2TitleManager::SubMissionTemplet* GetSubMissionInfo( int iSubMissionID );
 
+//{{ Iruha : 2026-09-03 // offline mode needs to walk every mission templet
+#ifdef SERV_IRUHADEV_OFFLINE
+    // CX2OfflineTitle has to ask "which missions has this character become
+    // eligible for?", which the GameServer answers by walking its whole
+    // mission list (KUserTitleManager::CheckNewMission). GetMissionInfo can
+    // only answer for an ID that is already known, so the map itself has to
+    // be reachable. Read-only, and compiled out with the offline build.
+    const std::map< int, MissionTemplet >& GetMapTitleMission() const { return m_mapTitleMission; }
+#endif SERV_IRUHADEV_OFFLINE
+//}}
+
     void TakeTitle(std::vector<KTitleInfo> vecTitleInfo);
     bool UpdateTitle(KTitleInfo ktitleInfo, int iState);
     bool UpdateTitle(int iTitleId, int iState, bool bInfinity = true);

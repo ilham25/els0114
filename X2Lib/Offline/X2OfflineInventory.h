@@ -76,6 +76,20 @@ public:
 	bool	GetItemRow( UidType nItemUID, OUT KOfflineItemRow& kOut ) const;
 	int		GetItemID( UidType nItemUID ) const;
 
+	/// How many of an item the character holds, summing stacks.
+	/// CX2Inventory::GetNumItemByTID (X2Inventory.cpp:390) with the same
+	/// exclusions, because the client answers "is this collection quest done?"
+	/// with that exact call and the two must never disagree: with
+	/// bExcludeEquipped, a worn item, a quick-slotted one and anything in a
+	/// bank do not count.
+	int		CountItemByID( int iItemID, bool bExcludeEquipped ) const;
+
+	/// Take iQuantity of an item away, oldest row first, for a quest handing in
+	/// what it asked the player to collect. Returns how many it actually
+	/// removed, which is short only when the bag did not hold enough.
+	int		ConsumeByID( int iItemID, int iQuantity,
+						 OUT std::vector< KInventoryItemInfo >& vecChanged );
+
 	/// The equipped-gear stat total, added onto the base stat to make
 	/// KUnitInfo::m_kGameStat.
 	///
