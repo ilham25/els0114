@@ -1,9 +1,9 @@
 #pragma once
-//{{ kimhc // 2010.6.7 // °Å·¡°¡ ºÒ°¡´ÉÇÑ °­È­±Ç Ãß°¡
+//{{ kimhc // 2010.6.7 // ï¿½Å·ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ß°ï¿½
 #ifdef	NO_TRADE_ATTACH_ITEM
 #include <boost/array.hpp>
 #endif	NO_TRADE_ATTACH_ITEM
-//}} kimhc // 2010.6.7 // °Å·¡°¡ ºÒ°¡´ÉÇÑ °­È­±Ç Ãß°¡
+//}} kimhc // 2010.6.7 // ï¿½Å·ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ß°ï¿½
 
 #ifdef _SERVICE_
 	#ifdef _OPEN_TEST_
@@ -19,7 +19,7 @@
 	#endif
 #endif
 
-#define LIMIT_MAX_LEVEL					65 //¸¸·¾ Á¦ÇÑ	// ÇØ¿ÜÆÀ »ç¿ë ¾ÈÇÔ
+#define LIMIT_MAX_LEVEL					65 //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½	// ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 #ifdef INT_WIDE_BAR
 #define MAX_NOTICE_NUM					1
@@ -54,10 +54,10 @@
 #define MAX_PVP_ROOM_USER_NUM			8
 #define MAX_DUNGEON_ROOM_USER_NUM		4
 #ifdef CLIENT_COUNTRY_EU
-#define MAX_ROOM_CHAT_STR_LEN			80		// pvp room, dungeon room chatting UI °ü·Ã
+#define MAX_ROOM_CHAT_STR_LEN			80		// pvp room, dungeon room chatting UI ï¿½ï¿½ï¿½ï¿½
 #else //#ifdef CLIENT_COUNTRY_EU
-#define MAX_ROOM_CHAT_STR_LEN			70		// pvp room, dungeon room chatting UI °ü·Ã
-#endif //#define MAX_ROOM_CHAT_STR_LEN			70		// pvp room, dungeon room chatting UI °ü·Ã
+#define MAX_ROOM_CHAT_STR_LEN			70		// pvp room, dungeon room chatting UI ï¿½ï¿½ï¿½ï¿½
+#endif //#define MAX_ROOM_CHAT_STR_LEN			70		// pvp room, dungeon room chatting UI ï¿½ï¿½ï¿½ï¿½
 #define INVENTORY_ITEM_IMAGE_SIZE_X		66
 #define INVENTORY_ITEM_IMAGE_SIZE_Y		66
 
@@ -77,7 +77,7 @@
 #define SPECIAL_MAGIC_STONE_ITEM_ID 109955
 
 // #ifdef SERV_SOCKET_NEW
-// //{{ oasis907 : ±è»óÀ± [2010.4.20] // 
+// //{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.4.20] // 
 // #define HARMONY_MAGIC_STONE_ITEM_ID 132110
 // #define MYSTERY_MAGIC_STONE_ITEM_ID 132111
 // #define SHINE_MAGIC_STONE_ITEM_ID 132112
@@ -86,7 +86,7 @@
 // #define HIT_MAGIC_STONE_ITEM_ID 132115
 // //}}
 // 
-// //{{ oasis907 : ±è»óÀ± [2010.4.29] //
+// //{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.4.29] //
 // 
 // #define SINGLE_FIXED_OPTION_STONE_ITEM_ID_START 132193
 // 
@@ -124,20 +124,20 @@
 #define CASH_SHOP_SUB_SPECIAL_SLOT_NUM 5
 
 #ifdef	SERV_REFORM_INVENTORY_TEST
-	#define MY_INVENTORY_SHOW_MAX_SLOT_NUM 224		/// ÀÎº¥Åä¸® ÇÑ Ä«Å×°í¸®º° ÃÖ´ë ½½·Ô °³¼ö
-	#define MY_INVENTORY_SHOW_SLOT_NUM_PER_PAGE 56	/// ÀÎº¥Åä¸® ÇÑ ÆäÀÌÁö´ç ÃÖ´ë ½½·Ô °³¼ö
+	#define MY_INVENTORY_SHOW_MAX_SLOT_NUM 224		/// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#define MY_INVENTORY_SHOW_SLOT_NUM_PER_PAGE 56	/// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-	#define MY_INVENTORY_MAX_SLOT_HEIGHT 7			/// ÇÑ ÆäÀÌÁö´ç ÃÖ´ë ½½·Ô ÁÙ ¼ö
-	#define MY_INVENTORY_MAX_SLOT_WIDTH 8			/// ÇÑ ¶óÀÎ´ç ÃÖ´ë ½½·Ô °³¼ö
+	#define MY_INVENTORY_MAX_SLOT_HEIGHT 7			/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
+	#define MY_INVENTORY_MAX_SLOT_WIDTH 8			/// ï¿½ï¿½ ï¿½ï¿½ï¿½Î´ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 #ifdef SERV_REFORM_INVENTORY_INT
-	#define MY_INVENTORY_SPECIAL_MAX_SLOT_WIDTH 7	/// Æ¯¼ö Ä«Å×°í¸® ÃÖ´ë ½½·Ô ÁÙ ¼ö
+	#define MY_INVENTORY_SPECIAL_MAX_SLOT_WIDTH 7	/// Æ¯ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
 #else // SERV_REFORM_INVENTORY_INT
-	#define MY_INVENTORY_SPECIAL_MAX_SLOT_WIDTH 8	/// Æ¯¼ö Ä«Å×°í¸® ÃÖ´ë ½½·Ô ÁÙ ¼ö
+	#define MY_INVENTORY_SPECIAL_MAX_SLOT_WIDTH 8	/// Æ¯ï¿½ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
 #endif // SERV_REFORM_INVENTORY_INT
 
-	#define MY_INVENTORY_AVARTA_MAX_SLOT_WIDTH 28	/// ¾Æ¹ÙÅ¸ Ä«Å×°í¸® ÃÖ´ë ½½·Ô ÁÙ ¼ö
-	#define MY_INVENTORY_PC_BANG_MAX_SLOT_WIDTH 3	/// ÇÇ½Ã¹æ Ä«Å×°í¸® ÃÖ´ë ½½·Ô ÁÙ ¼ö
+	#define MY_INVENTORY_AVARTA_MAX_SLOT_WIDTH 28	/// ï¿½Æ¹ï¿½Å¸ Ä«ï¿½×°ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
+	#define MY_INVENTORY_PC_BANG_MAX_SLOT_WIDTH 3	/// ï¿½Ç½Ã¹ï¿½ Ä«ï¿½×°ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
 #else	SERV_REFORM_INVENTORY_TEST
 	#define MY_INVENTORY_SHOW_MAX_SLOT_NUM 32
 #endif	SERV_REFORM_INVENTORY_TEST
@@ -159,38 +159,38 @@
 #define DASH_CAMERA_NORMAL_TRACKING_START_TIME 1.1f
 #define DASH_CAMERA_TRACKING_TIME		1.7f
 
-#define MAGIC_ENCHANT_LEVEL_LIMIT		10	// °­È­º¸Á¶Á¦¸¦ »ç¿ëÇÒ ¼ö ÀÖ´Â °­È­·¹º§ Á¦ÇÑ
+#define MAGIC_ENCHANT_LEVEL_LIMIT		10	// ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-#define MAX_QUEST_INDICATOR_NUM			4	// Äù½ºÆ® °¡ÀÌµå °³¼ö
-#define MAX_DUNGEON_INDICATOR_NUM		1	// ´øÀü °¡¸®Å°´Â Äù½ºÆ® °¡ÀÌµå °³¼ö
+#define MAX_QUEST_INDICATOR_NUM			4	// ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
+#define MAX_DUNGEON_INDICATOR_NUM		1	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
 
-//{{ kimhc // 2010.4.12 // ºñ¹Ð´øÀü ÀÛ¾÷(ÀÏÀÏÄù½ºÆ® ½Ã½ºÅÛ)
+//{{ kimhc // 2010.4.12 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ã½ï¿½ï¿½ï¿½)
 #ifdef SERV_SECRET_HELL
 #ifdef CLIENT_COUNTRY_US
-const int HOUR_TO_REFRESH_DAILY_QUEST = 0;	// ÀÏÀÏ Äù½ºÆ®°¡ °»½Å µÇ´Â ½Ã°£(0 AM)
+const int HOUR_TO_REFRESH_DAILY_QUEST = 0;	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½Ã°ï¿½(0 AM)
 #else // CLIENT_COUNTRY_US
-const int HOUR_TO_REFRESH_DAILY_QUEST = 6;	// ÀÏÀÏ Äù½ºÆ®°¡ °»½Å µÇ´Â ½Ã°£(6 AM)
+const int HOUR_TO_REFRESH_DAILY_QUEST = 6;	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½Ã°ï¿½(6 AM)
 #endif // CLIENT_COUNTRY_US
 #endif SERV_SECRET_HELL
-//}} kimhc // 2010.4.12 // ºñ¹Ð´øÀü ÀÛ¾÷(ÀÏÀÏÄù½ºÆ® ½Ã½ºÅÛ)
+//}} kimhc // 2010.4.12 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ã½ï¿½ï¿½ï¿½)
 
-//{{ kimhc // 2011-08-08 // Åõ´Ï ·£µå Ã¤³Î¸µ ÀÌº¥Æ®
+//{{ kimhc // 2011-08-08 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½Î¸ï¿½ ï¿½Ìºï¿½Æ®
 #ifdef	SERV_TOONILAND_CHANNELING_EVENT
-const int TOONILAND_CHANNELING_EVENT_TITLE = 10710; // Ç÷¸ÍÀÇ ²ö
+const int TOONILAND_CHANNELING_EVENT_TITLE = 10710; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 #endif	SERV_TOONILAND_CHANNELING_EVENT
-//}} kimhc // 2011-08-08 // Åõ´Ï ·£µå Ã¤³Î¸µ ÀÌº¥Æ®
+//}} kimhc // 2011-08-08 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½Î¸ï¿½ ï¿½Ìºï¿½Æ®
 
 #ifdef GRACE_OF_EL
-const int GRACE_OF_EL_TITLE = 10765;		/// ¿¤ÀÇ °¡È£ ÄªÈ£
+const int GRACE_OF_EL_TITLE = 10765;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£ ÄªÈ£
 #endif
 
 #ifdef SERV_EVENT_MONEY
-//Ãµ»çÀÇ ±êÅÐ ¾ÆÀÌÅÛID
+//Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID
 
-	#ifdef SERV_FIELD_LAUNCHING_EVENT			/// ÇÊµå ·±Äª ÀÌº¥Æ® - ÇÊµå ±â³ä ÁÖÈ­
+	#ifdef SERV_FIELD_LAUNCHING_EVENT			/// ï¿½Êµï¿½ ï¿½ï¿½Äª ï¿½Ìºï¿½Æ® - ï¿½Êµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½È­
 			const int ANGELS_FEATHER_ITEM_ID	=	135292;
 	#else  SERV_FIELD_LAUNCHING_EVENT
-		#ifdef SERV_THE_PREVIOUS_FIELD_EVENT	/// ÇÊµå Àü¾ß ÀÌº¥Æ® - Æø¹ßÇÑ ¿¤ÀÇ ÈçÀû
+		#ifdef SERV_THE_PREVIOUS_FIELD_EVENT	/// ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			const int ANGELS_FEATHER_ITEM_ID	=	135246;
 		#else  SERV_THE_PREVIOUS_FIELD_EVENT
 			const int ANGELS_FEATHER_ITEM_ID	=	135183;
@@ -199,16 +199,16 @@ const int GRACE_OF_EL_TITLE = 10765;		/// ¿¤ÀÇ °¡È£ ÄªÈ£
 
 #endif //SERV_EVENT_MONEY
 
-// ¼ÒÁö±Ý¾× ÇÑµµ
+// ï¿½ï¿½ï¿½ï¿½ï¿½Ý¾ï¿½ ï¿½Ñµï¿½
 static const int MAX_ED_FOR_PLAYER	= 2000000000;
 static const int MAX_ED_FOR_LETTER  = 500000000;
 #ifdef SERV_COUNTRY_JP
-static const int MAX_ED_FOR_TRADE	= 500000000;	// ÀÓ±Ô¼ö ÀÏº» º¯°æ ±¹³» 700000000
+static const int MAX_ED_FOR_TRADE	= 500000000;	// ï¿½Ó±Ô¼ï¿½ ï¿½Ïºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 700000000
 #else //SERV_COUNTRY_JP
 static const int MAX_ED_FOR_TRADE	= 700000000; //500000000;
 #endif //SERV_COUNTRY_JP
 
-static const int MAX_ENCHANT_LEVEL							= 20;			// °­È­ ÃÖ°í ·¹º§Àº ÇöÀç 20±îÁö
+static const int MAX_ENCHANT_LEVEL							= 20;			// ï¿½ï¿½È­ ï¿½Ö°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 20ï¿½ï¿½ï¿½ï¿½
 static const float ENCHANT_STAT_SCALE[] =
 {
 	1.f, 
@@ -218,23 +218,23 @@ static const float ENCHANT_STAT_SCALE[] =
 		4.75f, 5.25f, 5.75f, 6.75f, 8.75f,
 };
 
-static const int ENCHANT_WEAPON_EFFECT_LEVEL_0				= 5;			// ±âº» °­È­ ÀÌÆåÆ®
-static const int ENCHANT_WEAPON_EFFECT_LEVEL_1 				= 7;			// Áß±Þ °­È­ ÀÌÆåÆ®
-static const int ENCHANT_WEAPON_EFFECT_LEVEL_2 				= 11;			// »ó±Þ °­È­ ÀÌÆåÆ® ( 14¿¡¼­ 11·Î Á¶Á¤ )
+static const int ENCHANT_WEAPON_EFFECT_LEVEL_0				= 5;			// ï¿½âº» ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½Æ®
+static const int ENCHANT_WEAPON_EFFECT_LEVEL_1 				= 7;			// ï¿½ß±ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½Æ®
+static const int ENCHANT_WEAPON_EFFECT_LEVEL_2 				= 11;			// ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½Æ® ( 14ï¿½ï¿½ï¿½ï¿½ 11ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
 
 
 #ifdef NEW_SKILL_TREE
-	static const int EQUIPPED_SKILL_SLOT_COUNT = 4;		// ÀåÂø ½ºÅ³ ½½·Ô °³¼ö
+	static const int EQUIPPED_SKILL_SLOT_COUNT = 4;		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif NEW_SKILL_TREE
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
-	static const int MAX_LIMITED_SKILL_LEVEL = 30;		// ÃÖ´ë ½ºÅ³ ·¹º§
-	static const int MAX_UPGRADE_SKILL_LEVEL = 20;		// ÃÖ´ë ½ºÅ³ °­È­ ·¹º§
-	static const int OPEN_SKILL_TREE_LEVEL[] =			// ½ºÅ³Ã¢ ³» ½ºÅ³ ¶óÀÎ ¿ÀÇÂ ¿ä±¸ ·¹º§
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	static const int MAX_LIMITED_SKILL_LEVEL = 30;		// ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	static const int MAX_UPGRADE_SKILL_LEVEL = 20;		// ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½
+	static const int OPEN_SKILL_TREE_LEVEL[] =			// ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ä±¸ ï¿½ï¿½ï¿½ï¿½
 	{
-		0,	5,	10,	15,	20,			/// ±âº» ÀüÁ÷
-		0,	25,	30,	35,	40,			/// 1Â÷ ÀüÁ÷
-		0,	45,	50,	55,	60,	65,		/// 2Â÷ ÀüÁ÷
+		0,	5,	10,	15,	20,			/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½
+		0,	25,	30,	35,	40,			/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		0,	45,	50,	55,	60,	65,		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	};
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
@@ -243,43 +243,43 @@ static const int ENCHANT_WEAPON_EFFECT_LEVEL_2 				= 11;			// »ó±Þ °­È­ ÀÌÆåÆ® (
 
 
 //////////////////////////////////////////////////////////////////////////
-// Æ¯¼öÇÑ ITEM ID
+// Æ¯ï¿½ï¿½ï¿½ï¿½ ITEM ID
 
-// ºÀÀÎÀÇ ÀÎÀå(°¡Äª)
-static const int ITEM_FOR_SEAL_NORMAL						= 214370;	// »Ç·çÀÇ ¹ßµµÀå
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½Äª)
+static const int ITEM_FOR_SEAL_NORMAL						= 214370;	// ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ßµï¿½ï¿½ï¿½
 static const int ITEM_FOR_SEAL_RARE							= 214380;	
 static const int ITEM_FOR_SEAL_ELITE						= 214390;	
 static const int ITEM_FOR_SEAL_UNIQUE						= 214400;	
 
 #ifdef SERV_RURIEL_EVENT_ITEM
-static const int ITEM_FOR_SEAL_NORMAL_EVENT_RURIEL					= 83000290; // ·ç¸®¿¤ÀÇ »Ç·çÀÇ ¹ß µµÀå(ÇÏ¾á»ö)
-static const int ITEM_FOR_SEAL_RARE_EVENT_RURIEL					= 83000291; // ·ç¸®¿¤ÀÇ »Ç·çÀÇ ¹ß µµÀå(³ë¶õ»ö)
-static const int ITEM_FOR_SEAL_ELITE_EVENT_RURIEL					= 83000292; // ·ç¸®¿¤ÀÇ »Ç·çÀÇ ¹ß µµÀå(º¸¶ó»ö)
-static const int ITEM_FOR_SEAL_UNIQUE_EVENT_RURIEL					= 83000293; // ·ç¸®¿¤ÀÇ »Ç·çÀÇ ¹ß µµÀå(È²±Ý»ö)
+static const int ITEM_FOR_SEAL_NORMAL_EVENT_RURIEL					= 83000290; // ï¿½ç¸®ï¿½ï¿½ï¿½ï¿½ ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Ï¾ï¿½ï¿½)
+static const int ITEM_FOR_SEAL_RARE_EVENT_RURIEL					= 83000291; // ï¿½ç¸®ï¿½ï¿½ï¿½ï¿½ ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½)
+static const int ITEM_FOR_SEAL_ELITE_EVENT_RURIEL					= 83000292; // ï¿½ç¸®ï¿½ï¿½ï¿½ï¿½ ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½)
+static const int ITEM_FOR_SEAL_UNIQUE_EVENT_RURIEL					= 83000293; // ï¿½ç¸®ï¿½ï¿½ï¿½ï¿½ ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(È²ï¿½Ý»ï¿½)
 #endif //SERV_RURIEL_EVENT_ITEM
 
 #ifdef SERV_ARIEL_EVENT_ITEM
-static const int ITEM_FOR_SEAL_NORMAL_EVENT_ARIEL					= 82214370; // ¾Æ¸®¿¤ÀÇ »Ç·çÀÇ ¹ß µµÀå(ÇÏ¾á»ö)
-static const int ITEM_FOR_SEAL_RARE_EVENT_ARIEL						= 82214380; // ¾Æ¸®¿¤ÀÇ »Ç·çÀÇ ¹ß µµÀå(³ë¶õ»ö)
-static const int ITEM_FOR_SEAL_ELITE_EVENT_ARIEL					= 82214390; // ¾Æ¸®¿¤ÀÇ »Ç·çÀÇ ¹ß µµÀå(º¸¶ó»ö)
-static const int ITEM_FOR_SEAL_UNIQUE_EVENT_ARIEL					= 82214400; // ¾Æ¸®¿¤ÀÇ »Ç·çÀÇ ¹ß µµÀå(È²±Ý»ö)
+static const int ITEM_FOR_SEAL_NORMAL_EVENT_ARIEL					= 82214370; // ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Ï¾ï¿½ï¿½)
+static const int ITEM_FOR_SEAL_RARE_EVENT_ARIEL						= 82214380; // ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½)
+static const int ITEM_FOR_SEAL_ELITE_EVENT_ARIEL					= 82214390; // ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½)
+static const int ITEM_FOR_SEAL_UNIQUE_EVENT_ARIEL					= 82214400; // ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(È²ï¿½Ý»ï¿½)
 #endif //SERV_ARIEL_EVENT_ITEM
 
 #ifdef SERV_COUNTRY_JP
-// SERV_COBO_SEAL_ITEM_EVENT ±¹³» Normal : 160372 , Elite : 160373
-static const int ITEM_FOR_SEAL_NORMAL_EVENT						= 70001900; // »Ç·çÀÇ ¹ß µµÀå(ÇÏ¾á»ö)
-static const int ITEM_FOR_SEAL_RARE_EVENT						= 70001901; // »Ç·çÀÇ ¹ß µµÀå(³ë¶õ»ö)
-static const int ITEM_FOR_SEAL_ELITE_EVENT						= 70001902; // »Ç·çÀÇ ¹ß µµÀå(º¸¶ó»ö)
-static const int ITEM_FOR_SEAL_UNIQUE_EVENT						= 70001903; // »Ç·çÀÇ ¹ß µµÀå(È²±Ý»ö)
+// SERV_COBO_SEAL_ITEM_EVENT ï¿½ï¿½ï¿½ï¿½ Normal : 160372 , Elite : 160373
+static const int ITEM_FOR_SEAL_NORMAL_EVENT						= 70001900; // ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Ï¾ï¿½ï¿½)
+static const int ITEM_FOR_SEAL_RARE_EVENT						= 70001901; // ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½)
+static const int ITEM_FOR_SEAL_ELITE_EVENT						= 70001902; // ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½)
+static const int ITEM_FOR_SEAL_UNIQUE_EVENT						= 70001903; // ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(È²ï¿½Ý»ï¿½)
 #else //SERV_COUNTRY_TWHK
-static const int ITEM_FOR_SEAL_NORMAL_EVENT					= 160372;	// »Ç·çÀÇ ¹ßµµÀå ÀÌº¥Æ®¿ë(³ë¸»)
-static const int ITEM_FOR_SEAL_ELITE_EVENT					= 160373;	// »Ç·çÀÇ ¹ßµµÀå ÀÌº¥Æ®¿ë(¿¤¸®Æ®)
+static const int ITEM_FOR_SEAL_NORMAL_EVENT					= 160372;	// ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ßµï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½(ï¿½ë¸»)
+static const int ITEM_FOR_SEAL_ELITE_EVENT					= 160373;	// ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ßµï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Æ®)
 #ifdef CHILDRENS_DAY_EVENT_ITEM
-static const int ITEM_FOR_SEAL_UNIQUE_EVENT					= 160794;	// »Ç·çÀÇ ¹ßµµÀå ÀÌº¥Æ®¿ë(À¯´ÏÅ©) ¾î¸°ÀÌ³¯
+static const int ITEM_FOR_SEAL_UNIQUE_EVENT					= 160794;	// ï¿½Ç·ï¿½ï¿½ï¿½ ï¿½ßµï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½Å©) ï¿½î¸°ï¿½Ì³ï¿½
 #endif //CHILDRENS_DAY_EVENT_ITEM
 #endif //SERV_COUNTRY_TWHK
 
-// ÀÎº¥Åä¸® È®Àå Ä³½Ã¾ÆÀÌÅÛ
+// ï¿½Îºï¿½ï¿½ä¸® È®ï¿½ï¿½ Ä³ï¿½Ã¾ï¿½ï¿½ï¿½ï¿½ï¿½
 static const int INVENTORY_SLOT_ADD_ITEM					= 200750;
 
 #ifdef SERV_REFORM_INVENTORY_INT_CASH_ITEM
@@ -291,7 +291,7 @@ static const int INVENTORY_SLOT_ADD_ITEM_QUEST				= 200755;
 static const int INVENTORY_SLOT_ADD_ITEM_SPECIAL			= 200756;
 #endif // SERV_REFORM_INVENTORY_INT_CASH_ITEM
 
-// ÀÌº¥Åä¸® È®Àå ÀÌº¥Æ® ¾ÆÀÌÅÛ SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
+// ï¿½Ìºï¿½ï¿½ä¸® È®ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
 static const int INVENTORY_SLOT_ADD_ITEM_EQUIP_EVENT			= 60002281;
 static const int INVENTORY_SLOT_ADD_ITEM_ACCESSORY_EVENT		= 60002282;
 static const int INVENTORY_SLOT_ADD_ITEM_QUICK_SLOT_EVENT		= 60002283;
@@ -299,14 +299,14 @@ static const int INVENTORY_SLOT_ADD_ITEM_MATERIAL_EVENT			= 60002284;
 static const int INVENTORY_SLOT_ADD_ITEM_QUEST_EVENT			= 60002285;
 static const int INVENTORY_SLOT_ADD_ITEM_SPECIAL_EVENT			= 60002286;
 
-// ÀÎº¥Åä¸® ½ºÅ©·Ñ È®Àå ±â´É
+// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½Å©ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef SERV_REFORM_INVENTORY_TEST
 static const int INVENTORY_SLOT_MAX_NUM							= 56;
 #else
 static const int INVENTORY_SLOT_MAX_NUM							= 32;
 #endif SERV_REFORM_INVENTORY_TEST
 
-// °³ÀÎ ÀºÇà È¸¿ø±Ç
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½
 static const int SILVER_MEMBERSHIP_CARD						= 213460;
 static const int GOLD_MEMBERSHIP_CARD						= 213470;
 static const int EMERALD_MEMBERSHIP_CARD					= 213480;
@@ -314,41 +314,41 @@ static const int DIAMOND_MEMBERSHIP_CARD					= 213490;
 static const int PLATINUM_MEMBERSHIP_CARD					= 213500;
 static const int COBO_CREDIT_CARD							= 213610;
 
-// ±âº» °­È­¼® item id
+// ï¿½âº» ï¿½ï¿½È­ï¿½ï¿½ item id
 static const int NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID		= 109950;
 static const int NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID 		= 109965;
 
 //static const int SPECIAL_WEAPON_ENCHANT_STONE_ITEM_ID		= 109960;		// obsolete!!
 //static const int SPECIAL_DEFENSE_ENCHANT_STONE_ITEM_ID	= 109970;
 
-// ·¹º§ ÀÖ´Â °­È­¼® Item ID
+// ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½È­ï¿½ï¿½ Item ID
 static const int NEW_WEAPON_ENCHANT_STONE_ITEM_ID[]			= { 130077, 130078, 130079, 130080, 130081, 130082, 130083, 130084, 130085 };
 static const int NEW_DEFENCE_ENCHANT_STONE_ITEM_ID[]		= { 130086, 130087, 130088, 130089, 130090, 130091, 130092, 130093, 130094 };
 
 
 #ifdef SERV_EVENT_CHARACTER_SLOT_EXPAND_ITEM
-static const int CHARACTER_SLOT_EXPAND_ITEM1				= 60000410;		// ÀÎº¥Åä¸® »ç¿ë ÀÌº¥Æ®¿ë Ä³¸¯ÅÍ ½½·Ô È®Àå±Ç1
-static const int CHARACTER_SLOT_EXPAND_ITEM2				= 60000825;		// ÀÎº¥Åä¸® »ç¿ë ÀÌº¥Æ®¿ë Ä³¸¯ÅÍ ½½·Ô È®Àå±Ç2
-static const int CHARACTER_SLOT_EXPAND_ITEM3				= 60001965;		// ÀÎº¥Åä¸® »ç¿ë ÀÌº¥Æ®¿ë Ä³¸¯ÅÍ ½½·Ô È®Àå±Ç3
+static const int CHARACTER_SLOT_EXPAND_ITEM1				= 60000410;		// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½1
+static const int CHARACTER_SLOT_EXPAND_ITEM2				= 60000825;		// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½2
+static const int CHARACTER_SLOT_EXPAND_ITEM3				= 60001965;		// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½3
 #endif SERV_EVENT_CHARACTER_SLOT_EXPAND_ITEM
 #ifdef SERV_EVENT_INIT_SKILL_TREE_ITEM
-static const int INIT_SKILL_TREE_ITEM						= 60001727;		// ¸Á°¢ÀÇ µå¸µÅ©
+static const int INIT_SKILL_TREE_ITEM						= 60001727;		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½å¸µÅ©
 #endif SERV_EVENT_INIT_SKILL_TREE_ITEM
 #ifdef SERV_EVENT_RESET_A_SKILL_ITEM
-static const int RESET_A_SKILL_ITEM							= 60001726;		// ¸Á°¢ÀÇ ¾Ë¾à
+static const int RESET_A_SKILL_ITEM							= 60001726;		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½
 #endif SERV_EVENT_RESET_A_SKILL_ITEM
 #ifdef SERV_EVENT_RURIEL_RESET_SKILL_ITEM
-static const int RURIEL_RESET_A_SKILL_ITEM					= 67006453;		// ·ç¸®¿¤ÀÇ ¼±ÅÃ ½ºÅ³ ÃÊ±âÈ­ ¸Þ´Þ
-static const int RURIEL_RESET_SKILL_ITEM					= 67006454;		// ·ç¸®¿¤ÀÇ ½ºÅ³ ÃÊ±âÈ­ ¸Þ´Þ
-static const int RURIEL_RESET_A_SKILL_EVENT_ITEM			= 67006451;		// ·ç¸®¿¤ÀÇ ¸Á°¢ÀÇ ¾Ë¾à(½ºÅ³ 1°³ µÇµ¹¸®±â ¾ÆÀÌÅÛ)
+static const int RURIEL_RESET_A_SKILL_ITEM					= 67006453;		// ï¿½ç¸®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½Þ´ï¿½
+static const int RURIEL_RESET_SKILL_ITEM					= 67006454;		// ï¿½ç¸®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½Þ´ï¿½
+static const int RURIEL_RESET_A_SKILL_EVENT_ITEM			= 67006451;		// ï¿½ç¸®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½(ï¿½ï¿½Å³ 1ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
 #endif SERV_EVENT_RURIEL_RESET_SKILL_ITEM
 #ifdef SERV_BATTLEFIELD_COOKIE_PIECE
-static const int RID_BATTLEFIELD_COOKIE						= 85002461;		// ÇÊµå ÄíÅ° Á¶°¢
-static const int RID_BATTLEFIELD_GOLD_COOKIE				= 85002463;		// ÇÊµå È²±Ý ÄíÅ° Á¶°¢
+static const int RID_BATTLEFIELD_COOKIE						= 85002461;		// ï¿½Êµï¿½ ï¿½ï¿½Å° ï¿½ï¿½ï¿½ï¿½
+static const int RID_BATTLEFIELD_GOLD_COOKIE				= 85002463;		// ï¿½Êµï¿½ È²ï¿½ï¿½ ï¿½ï¿½Å° ï¿½ï¿½ï¿½ï¿½
 #endif SERV_BATTLEFIELD_COOKIE_PIECE
 
 #ifdef SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
-static const int ONE_THIRD_MINI_ATTRACTION_ITEM				= 140000110;	// 1/3 È®·üÀÇ ¹Ì´Ï °¡¿­±â Á¶°¢»ó
+static const int ONE_THIRD_MINI_ATTRACTION_ITEM				= 140000110;	// 1/3 È®ï¿½ï¿½ï¿½ï¿½ ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif //SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
@@ -359,39 +359,39 @@ static const int INVITE_WEDDING_LETTER_ITEM_ID = 269716;
 static const int RESERVED_WEDDING_LETTER_ITEM_ID = 269715;
 static const int COUPLE_NICKNAME_CHANGE_ITEM_ID = 269718;
 
-//ITEMID_RESERVED_WEDDING_HALL¹è¿­ Á¢±Ù ÇÏ±â À§ÇØ »ç¿ë
+//ITEMID_RESERVED_WEDDING_HALLï¿½è¿­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 enum RESERVED_WEDDING_HALL_VILLAGE
 {
 	RWHV_RUBEN = 0,
 	RWHV_SANDER,
 };
-// ¿ÀÇöºó
-// ¿¹½ÄÀå Ãß°¡µÇ¸é ¿¹½ÄÀå ½æ³×ÀÏ ÄÑ°í ²ô´Â ºÎºÐ ¼öÁ¤ÇØÁà¾ß ÇÔ.
-// iWeddingThumbnailNumEnd º¯¼ö¸íÀ¸·Î °Ë»öÇÏ¸é µÊ.
-// ´ÙÀÌ¾ó·Î±× ±¸Á¶ º¯°æÇÏ·Á¸é ½Ã°£ÀÌ ¿À·¡ °É·Á¼­ ÀÌºÎºÐÀº ÇÏµåÄÚµùÀ¸·Î À¯ÁöÇÔ.
-static const int ITEM_ID_RESERVED_WEDDING_HALL[] = { 269712/*·çº¥*/, 269713/*»÷´õ*/ };
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½.
+// iWeddingThumbnailNumEnd ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½.
+// ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É·ï¿½ï¿½ï¿½ ï¿½ÌºÎºï¿½ï¿½ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+static const int ITEM_ID_RESERVED_WEDDING_HALL[] = { 269712/*ï¿½çº¥*/, 269713/*ï¿½ï¿½ï¿½ï¿½*/ };
 static const int ITEM_ID_WEDDING_CASH_ITEM[] = { 269719, 269720 };
 #endif // ADDED_RELATIONSHIP_SYSTEM	
 
 
-// ¾Ç¼¼»ç¸® ¾ÆÀÌÅÛ( attach_normal ) Áß¿¡ alpha object·Î ·»´õ¸µ µÇ¾ß ÇÏ´Â ¾ÆÀÌÅÛ ¿¹¿Ü Ã³¸®, ³ªÁß¿¡´Â ½ºÅ©¸³Æ®·Î »©±â~
+// ï¿½Ç¼ï¿½ï¿½ç¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½( attach_normal ) ï¿½ß¿ï¿½ alpha objectï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½, ï¿½ï¿½ï¿½ß¿ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½~
 static const int ALPHA_BLEND_ACCESSARY_ITEM_ID[] = {
 	202300, 129915, 203730, 205980, 207450, 130533, 219790, 219860, 220070, 131848, 132763, 132766, 132797, 132800, 234140,
 	234150, 234160, 234170, 234180, 235100, 235110, 238120, 244600, 244610, 244620, 244630, 81196,	81386,	81450,	81451, 81452,
 	81453,	81454,	81455,	251690, 251700, 251710, 259100, 259110, 
-	88340,	88348,	88356,	88364,	88372,	88380,	88388, // MK2 °í±Û
-	88509,	88517,	88525,	88533,	88541,	88549,	88557,  // MKB °í±Û
-	88565,	88573,	88581,	88589,	88597,	88605,	88613,	// MK2 °í±Û (±â°£Á¦)
+	88340,	88348,	88356,	88364,	88372,	88380,	88388, // MK2 ï¿½ï¿½ï¿½ï¿½
+	88509,	88517,	88525,	88533,	88541,	88549,	88557,  // MKB ï¿½ï¿½ï¿½ï¿½
+	88565,	88573,	88581,	88589,	88597,	88605,	88613,	// MK2 ï¿½ï¿½ï¿½ï¿½ (ï¿½â°£ï¿½ï¿½)
 	60004931, 60004932, 60004933, 70000110, 65000971, 65000972, 65000973, 65000974, 65001005, 70005631, 
 	67004890, 67004891, 67004892, 67004893, 67004894, 67004895, 67004901, 67004902, 67004903, 67004904, 
 	67004905, 67004906, 250000517, 250000527, 250000537, 250000547, 250000557, 250000567, 83000120,
 	85001856, 85001857, 85001858, 85001859, 82205980, 67005966, 67005967, 60007563, 60007564,
 	};
 static const int DEST_ALPHA_BLEND_ACCESSARY_ITEM_ID[]			= { 130390, 130391, 130392, 130393, 130394, 133387, 87007, 87017, 87027, 87037, 87047, 87057, 180000, 81911, 81914, 81931, 182545, 182546, 182547, 182548, 250000517, 250000527, 250000537, 250000547, 250000557, 250000567, };	
-// ¾Ö´Ï¸ÞÀÌ¼Ç ¾ø´Â Àåºñ¸¸ °¡´É, ¾Ö´Ï¸ÞÀÌ¼Ç ÀÖ´Â Àåºñ´Â ÄÚµå¿¡ ÇÏµå ÄÚµù
+// ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµå¿¡ ï¿½Ïµï¿½ ï¿½Úµï¿½
 static const int ALPHA_BLEND_REAL_COLOR_ACCESSARY_ITEM_ID[]		= { 209050, 30037, 225190, 133123, 234190, 234200, 234210, 234220,
 	234230, 180300, 135185, 256030, 256040, 30181,
-	67000037, 70000127, 70005628, 67003530, 67003540, 85001856, 85001857, 85001858, 85001859};	 // ¾Ö´Ï¸ÞÀÌ¼Ç ¾ø´Â Àåºñ¸¸ °¡´É, ¾Ö´Ï¸ÞÀÌ¼Ç ÀÖ´Â Àåºñ´Â ÄÚµå¿¡ ÇÏµå ÄÚµù
+	67000037, 70000127, 70005628, 67003530, 67003540, 85001856, 85001857, 85001858, 85001859};	 // ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµå¿¡ ï¿½Ïµï¿½ ï¿½Úµï¿½
 static const int ALL_ALPHA_ACCESSARY_ITEM_ID[]					= { 131835, 131837, 131839, 131841, 131843, 132807, 133343, 133344,
 	133345, 133346,  226870, 226880, 226890, 226900, 226910, 132878, 227650, 180058, 239350, 239360, 239370, 239380, 243310, 243320,
 	160474, 160481, 160490, 160491, 181489, 181490, 256090, 256100, 81862, 81863, 81864, 81865, 81866, 81867, 81868, 135335, 266080,
@@ -408,7 +408,7 @@ static const int ALPHA_REAL_COLOR_CULL_NONE_ACCESSARY_ITEM_ID[]	= { 88621,	88629
 
 
 
-// °­È­ ÀÌÆåÆ® Á¾·ù¸¦ ±¸ºÐÇÏ±â À§ÇÑ item id
+// ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ item id
 const int ITEM_ID_ENCHANT_TYPE1[] = { 129635, 129645, 129655, 129665, 129675, };
 const int ITEM_ID_ENCHANT_TYPE2[] = { 200950, 201000, 201050, 201100, 201150, 201200, 201280, 201290, 201300, 129997, 129998, 129999, 130000, };
 const int ITEM_ID_ENCHANT_TYPE3_GOLD[]		= { 81170, 81933, 81941, 87200, 87210, 87220, 87230, 87240, 130550, 130551,130552, 130553, 130554, 131695, 131701, 131707, 131713, 131719 };
@@ -418,27 +418,27 @@ const int ITEM_ID_ENCHANT_TYPE3_YELLOW[]	= { 130681, 130682, 130683, 130684, 130
 const int ITEM_ID_ENCHANT_TYPE3_RED[]		= { 130696, 130697, 130698, 130699, 130700, 130701, 130702, 130703, 130704, 130705, 130706, 130707, 130708, 130709, 130710, 130754, 130755, 130756, 130757, 130758, 130759, 130760, 130761, 130762, 130763, 130764, 130765, 130766, 130767, 130768, };
 const int ITEM_ID_ENCHANT_TYPE3_PINK[]		= { 220830, 220890, 220950, 221010, 221070, 221130, 221190, 221250, 221310, 221370, };
 
-// kimhc // 2010-01-12 // ¿Ü°û¼± ¾ø¾Ù UT_ATTACH_ANIM ¾Ç¼¼»ç¸®
+// kimhc // 2010-01-12 // ï¿½Ü°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UT_ATTACH_ANIM ï¿½Ç¼ï¿½ï¿½ç¸®
 const int REAL_COLOR_ATTACH_ANIM_ACCESSARY_ITEM_ID[] = { 131465, 131650, 132181, 88396, 88397, 88398, 88399, 88400, 88401 };
 
-// JHKang / 2012.8.29 / ¾ËÆÄ °ª Ã³¸®ÇÒ UT_ATTACH_ANIM ¾Ç¼¼»ç¸®, CARTOON
+// JHKang / 2012.8.29 / ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ UT_ATTACH_ANIM ï¿½Ç¼ï¿½ï¿½ç¸®, CARTOON
 const int ALPHA_BLEND_ATTACH_ANIM_ACCESSARY_ITEM_ID[] = { 81722, 81723, 81724, 81725, 81726, 81727, 81765, 81766, 81767, 81768, 81769, 81770, 259140, 259150, };
 
-// JHKang / 2012.12.16 / UT_ATTACH_ANIM ¾Ç¼¼»ç¸®, ¾Æ¶ó ²¿¸® Ã³¸®ÇÏ±â À§ÇØ »ý¼º, Alpha, Real_color, SrcAlpha, DestAlpha, zEnable, ZWriteEnable, ¼³Á¤ ÇÊ¿ä, ÇØ°á ¹æ¹ý ÇÊ¿ä
+// JHKang / 2012.12.16 / UT_ATTACH_ANIM ï¿½Ç¼ï¿½ï¿½ç¸®, ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, Alpha, Real_color, SrcAlpha, DestAlpha, zEnable, ZWriteEnable, ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½, ï¿½Ø°ï¿½ ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
 const int REAL_COLOR_ALPHA_BLEND_ATTACH_ANIM_ACCESSARY_ITEM_ID[] = { 41580, };
 
-// ¿Ü°û¼± ¾ø´Â Ä«Å÷Ã³¸®ÇÒ ¾Ç¼¼¼­¸®
+// ï¿½Ü°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½
 const int CARTOON_ACCESSARY_ITEM_ID[] = { 220790, 81630, 81631, 81632, 81633, 81634, 81635, 181495, 181496,
 											60004555, 67002191, 67002192, 67002193, 67002194, 67002195, 67002190, 67002196, 67002197, 67002198, 67002199, 67002200, 67002201, 131650, 132181, };
 
-//  m_UseType = USE_TYPE["UT_ATTACH_ANIM"] Å¸ÀÔÀÇ ¾×¼¼¼­¸®¿¡ SKIN_MESH ¸¦ ºÙÀÌ´Â ¾×¼¼¼­¸®
+//  m_UseType = USE_TYPE["UT_ATTACH_ANIM"] Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SKIN_MESH ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½
 const int ATTACHED_SKIN_MESH_FOR_ATTACH_ANIM[] = 
 		{	
 			88402,	88403,	88404,	88405,	88406,	88407, 
-			88334,	88342,	88350,	88358,	88366,	88374,	88382,			// MK2 ¹«±â
-			88447,	88455,	88463,	88471,	88479,	88487,	88495,			// MK2 ¹«±â PC¹æ
-			88053,	88511,	88519,	88527,	88535,	88543,	88551,			// MKB ¹«±â
-			88622,	88630,	88638,	88646,	88654,	88662,	88670,	88678,	// »ì¹ÙÅä¸£ º¥Åõ½º ½Ç·Ð À®
+			88334,	88342,	88350,	88358,	88366,	88374,	88382,			// MK2 ï¿½ï¿½ï¿½ï¿½
+			88447,	88455,	88463,	88471,	88479,	88487,	88495,			// MK2 ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½
+			88053,	88511,	88519,	88527,	88535,	88543,	88551,			// MKB ï¿½ï¿½ï¿½ï¿½
+			88622,	88630,	88638,	88646,	88654,	88662,	88670,	88678,	// ï¿½ï¿½ï¿½ï¿½ä¸£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç·ï¿½ ï¿½ï¿½
 			60005674, 60005680
 		};
 
@@ -446,7 +446,7 @@ const int ATTACHED_SKIN_MESH_FOR_ATTACH_ANIM[] =
 
 #define AVATAR_EMOTION_NUM 5
 
-// ºò¹ð ¼¼Æ®
+// ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®
 const int ITEM_ID_ET_EMOTION_AVATAR_ELSWORD1[]		= { 1009, 1010, };
 const int ITEM_ID_ET_EMOTION_AVATAR_ARME1[]			= { 1011, 1012, };
 const int ITEM_ID_ET_EMOTION_AVATAR_LIRE1[]			= { 1013, 1014, };
@@ -454,7 +454,7 @@ const int ITEM_ID_ET_EMOTION_AVATAR_RAVEN1[]		= { 1015, 1016, };
 const int ITEM_ID_ET_EMOTION_AVATAR_EVE1[]			= { 1017, 1018, };
 const int ITEM_ID_ET_EMOTION_AVATAR_CHUNG1[]		= { 1019, 1020, };
 
-// ÇÑº¹ ¼¼Æ®	( 1474 ~ 1479 - 2012³â ÀÎ±Ã¹«¿¹¶û ), ( 2382 ~ 2388 - 2013³â °è»ç³â )
+// ï¿½Ñºï¿½ ï¿½ï¿½Æ®	( 1474 ~ 1479 - 2012ï¿½ï¿½ ï¿½Î±Ã¹ï¿½ï¿½ï¿½ï¿½ï¿½ ), ( 2382 ~ 2388 - 2013ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
 const int ITEM_ID_ET_EMOTION_AVATAR_ELSWORD2[]		= { 1474, 2382, 10000920 };
 const int ITEM_ID_ET_EMOTION_AVATAR_ARME2[]			= { 1475, 2383, 10000921 };
 const int ITEM_ID_ET_EMOTION_AVATAR_LIRE2[]			= { 1476, 2384, 10000922 };
@@ -465,7 +465,7 @@ const int ITEM_ID_ET_EMOTION_AVATAR_CHUNG2[]		= { 1479, 2387, 10000925 };
 const int ITEM_ID_ET_EMOTION_AVATAR_ARA2[]			= { 2388, 10000926 };
 #endif ADD_ARA_EMOTION
 
-// ¿¡ÀÌÇÎÅ© Çã½¬
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å© ï¿½ã½¬
 const int ITEM_ID_ET_EMOTION_AVATAR_ELSWORD3[]		= { 1545, };
 const int ITEM_ID_ET_EMOTION_AVATAR_ARME3[]			= { 1546, };
 const int ITEM_ID_ET_EMOTION_AVATAR_LIRE3[]			= { 1547, };
@@ -473,7 +473,7 @@ const int ITEM_ID_ET_EMOTION_AVATAR_RAVEN3[]		= { 1548, };
 const int ITEM_ID_ET_EMOTION_AVATAR_EVE3[]			= { 1549, };
 const int ITEM_ID_ET_EMOTION_AVATAR_CHUNG3[]		= { 1550, };
 
-// ¿¡ÀÌÇÎÅ© Ãµ»ç
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å© Ãµï¿½ï¿½
 const int ITEM_ID_ET_EMOTION_AVATAR_ELSWORD4[]		= { 1882, };
 const int ITEM_ID_ET_EMOTION_AVATAR_ARME4[]			= { 1883, };
 const int ITEM_ID_ET_EMOTION_AVATAR_LIRE4[]			= { 1884, };
@@ -481,7 +481,7 @@ const int ITEM_ID_ET_EMOTION_AVATAR_RAVEN4[]		= { 1885, };
 const int ITEM_ID_ET_EMOTION_AVATAR_EVE4[]			= { 1886, };
 const int ITEM_ID_ET_EMOTION_AVATAR_CHUNG4[]		= { 1887, };
 
-// Å©·¹¿ëÆË
+// Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 const int ITEM_ID_ET_EMOTION_AVATAR_ELSWORD5[]		= { 2694, };
 const int ITEM_ID_ET_EMOTION_AVATAR_ARME5[]			= { 2695, };
 const int ITEM_ID_ET_EMOTION_AVATAR_LIRE5[]			= { 2696, };
@@ -492,25 +492,25 @@ const int ITEM_ID_ET_EMOTION_AVATAR_ARA5[]			= { 2700, };
 #endif
 
 
-// Áö±Ûº» Àû¿ë Item ID
-const int ITEM_ID_JIGGLE_TYPE1[] = { 130646, 130647, 130648, 130649, 130650, 131263, 132207, 132208, 132209, 132210, 132211, 81176, 180154, 81939,// (¸ÁÅä)
+// ï¿½ï¿½ï¿½Ûºï¿½ ï¿½ï¿½ï¿½ï¿½ Item ID
+const int ITEM_ID_JIGGLE_TYPE1[] = { 130646, 130647, 130648, 130649, 130650, 131263, 132207, 132208, 132209, 132210, 132211, 81176, 180154, 81939,// (ï¿½ï¿½ï¿½ï¿½)
 									268640,	268641, 
-									81947, // ¿¤ ¼ö»ö´ë Àå±³ Á¦º¹ ¸ÁÅä (¿¤¸®½Ã½º)
-									183241, // ºÓÀº ±â»ç ¸ÁÅä
-									183247, // ºÓÀº ±â»ç ¸ÁÅä(30ÀÏ)
-									85003473, // ¾Æ¸®¿¤ÀÇ ¸¶Á·ÀÇ ÇÒ·ÎÀ© ¸ÁÅä
+									81947, // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½å±³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½)
+									183241, // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+									183247, // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(30ï¿½ï¿½)
+									85003473, // ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 };
 
 
 
-//{{ kimhc // 2009-10-28 // Æ¯Á¤ ¾ÆÀÌÅÛ ÀåÂø ½Ã ÁöÁ¤µÈ ºÎÀ§°¡ ·»´õ¸µ µÇÁö ¾Êµµ·Ï ÇÏ´Â ±â´É
+//{{ kimhc // 2009-10-28 // Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
 #ifdef	NOT_RENDERING_OTHER_EQUIP_POS
-// Çì¾î, ¾Ç¼¼¾ó±¼(Áß), ¾Ç¼¼¾ó±¼(ÇÏ) ¸¦ ¾È³ª¿À°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅÛ
+// ï¿½ï¿½ï¿½, ï¿½Ç¼ï¿½ï¿½ï¿½(ï¿½ï¿½), ï¿½Ç¼ï¿½ï¿½ï¿½(ï¿½ï¿½) ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 static const int ITEM_ID_NOT_RENDERING_HAIR_FACE2_FACE3[] = { 131192, 216400, 216410, 131845, 131851, 131852, 131853, 131854, 132845,
 	132847, 227640, 182544, 60004225, 60004226, 60004227, 60004228, 60004229, 60004230, 60004231, 60004232, 60004233, 60004234, 60004235,
 	60004236, 60004237, 60004238, 60004239, 80001862, 65000344, 65000345, 65001009, 65001010 , 65001011, 65001012, 65001013, 85001851,
 	85001852, 70000148, 70000149, 130000165, 130000166, 130000167, 130000168, 130000169, 85003471, 85003472, 85003474, 85003475, 70007280, };
-// Çì¾î ¸¦ ¾È³ª¿À°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅÛ
+// ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 static const int ITEM_ID_NOT_RENDERING_HAIR[] = { 131471, 131353, 233220, 240640, 180187, 242420, 242430, 242440, 242450, 243340,
 	182500, 182501, 182502, 182503, 182504, 182505, 182506, 182558, 183198, 183199, 183200, 183201, 183202, 183203, 183204, 271150, 271152, 183244, 183246, 242454, 242455, 242456,
 	64000047, 64000050, 60005040, 60005041, 60005042, 60005043, 60005044, 60005045, 200000013, 200000014, 200000015, 200000016, 200000017, 200000018,
@@ -521,7 +521,7 @@ static const int ITEM_ID_NOT_RENDERING_HAIR[] = { 131471, 131353, 233220, 240640
 	80002300, 80002301, 80002302, 80002303, 80002304, 80002305, 80002306, 80002310, 80002311, 80002312, 80002313, 80002314, 80002315,
 	67006390, 67006391, 67006392, 67006393, 67006394, 67006395, 67006396,
 	};
-// 2012.12.02 darkstarbt_Á¶¼º¿í // ÇÑ¹ú ¾Æ¹ÙÅ¸ ÀÎµ¥ »óÀÇ¶û ÇÏÀÇ°¡ ºñ¾î ÀÖ¾î¼­ ±âÁ¸ ÀÔ°í ÀÖ´Â ¾Æ¹ÙÅ¸ µéÀÌ ³ª¿Í¾ß ÇÏ´Â °æ¿ì
+// 2012.12.02 darkstarbt_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½Ñ¹ï¿½ ï¿½Æ¹ï¿½Å¸ ï¿½Îµï¿½ ï¿½ï¿½ï¿½Ç¶ï¿½ ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö¾î¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô°ï¿½ ï¿½Ö´ï¿½ ï¿½Æ¹ï¿½Å¸ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¾ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
 static const int ITEM_ID_ONE_PIECE_AVATAR_RENDERING_BODY[] = { 153000086,153000087,153000088,153000089,153000090,153000091,153000092,153000093,
 };
 
@@ -538,7 +538,7 @@ static const int ITEM_ID_ONE_PIECE_AVATAR_NOT_RENDERING_FACE1[] = { 237290, 2373
 	240590, 240600, 244200, 244210, 244220, 244230, 244240, 244250, 244260, 244270, 244280, 244290, 244300, 244310, 262900, 262910,
 	262920, 262930, 262940, 262950, 262960, 262970, 262980, 262990, 263000, 263010, 263020, 263030, 182558, };
 static const int ITEM_ID_ONE_PIECE_AVATAR_NOT_RENDERING_FACE_FACE2_FACE3[] = { 180303, 180304, 180305, 180306, 180307, 180308, 182561, };
-// ÇÑ¹ú ¾Æ¹ÙÅ¸ ¿Ü¿¡ Çì¾î¿Í ¸ðµç ¾Ç¼¼¼­¸®¸¦ ¾È³ª¿À°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅÛ
+// ï¿½Ñ¹ï¿½ ï¿½Æ¹ï¿½Å¸ ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 static const int ITEM_ID_ONE_PIECE_AVATAR_NOT_RENDERING_HAIR_AND_ALL_ACCESSORY[] = { 183206, 183207, 183208, 183209, 183210, 183211, 183212, 183213,
 	67006490, 67006491, 67006492, 67006493, 67006494, 67006495, 67006496, 67006497, 
 	153000117,153000118,153000119,153000120,153000121,153000122,153000123,153000124,
@@ -571,7 +571,7 @@ static const int ITEM_ID_WEDDING_CLOTHES[] = { 183206, 183207, 183208, 183209, 1
 #endif //ADDED_RELATIONSHIP_SYSTEM
 
 #ifdef BUY_ONLY_ARA_ITEM
-//¾Æ¶ó¸¸ »ì ¼ö ÀÖ´Â ¾ÆÀÌÅÛ¿¡ ´ëÇÑ ¿¹¿ÜÃ³¸®
+//ï¿½Æ¶ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 static const int ITEM_ID_BUY_ONLY_ARA_ITEM[] = { 261590, 261600, 261610, 261620, 500790, 500800 };
 #endif //BUY_ONLY_ARA_ITEM
 
@@ -590,7 +590,7 @@ inline bool IsWeddingClothesItem( int iItemID_ )
 }
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
-inline bool IsAttachedSkinMeshForAttachAnim( int iItemID )	// m_UseType = USE_TYPE["UT_ATTACH_ANIM"] Å¸ÀÔÀÇ ¾×¼¼¼­¸®¿¡ SKIN_MESH ¸¦ ºÙÀÌ´Â ¾ÆÀÌÅÛÀÎ°¡?
+inline bool IsAttachedSkinMeshForAttachAnim( int iItemID )	// m_UseType = USE_TYPE["UT_ATTACH_ANIM"] Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SKIN_MESH ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 {
 	int iArraySize = ARRAY_SIZE( ATTACHED_SKIN_MESH_FOR_ATTACH_ANIM );
 
@@ -603,7 +603,7 @@ inline bool IsAttachedSkinMeshForAttachAnim( int iItemID )	// m_UseType = USE_TY
 	return false;
 }
 
-inline bool IsNoRenderHairFace2Face3Equip( int iItemID )	// Çì¾î, ¾Ç¼¼¾ó±¼(Áß), ¾Ç¼¼¾ó±¼(ÇÏ) ¸¦ ¾È³ª¿À°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅÛ ÀÎ°¡?
+inline bool IsNoRenderHairFace2Face3Equip( int iItemID )	// ï¿½ï¿½ï¿½, ï¿½Ç¼ï¿½ï¿½ï¿½(ï¿½ï¿½), ï¿½Ç¼ï¿½ï¿½ï¿½(ï¿½ï¿½) ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_NOT_RENDERING_HAIR_FACE2_FACE3 );
 	
@@ -616,7 +616,7 @@ inline bool IsNoRenderHairFace2Face3Equip( int iItemID )	// Çì¾î, ¾Ç¼¼¾ó±¼(Áß), 
 	return false;	
 }
 
-inline bool IsNoRenderHair( int iItemID )	// Çì¾î¸¸ ¾È³ª¿À°Ô ÇÏ´Â ¾ÆÀÌÅÛ ÀÎ°¡?
+inline bool IsNoRenderHair( int iItemID )	// ï¿½ï¿½î¸¸ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_NOT_RENDERING_HAIR );
 
@@ -629,7 +629,7 @@ inline bool IsNoRenderHair( int iItemID )	// Çì¾î¸¸ ¾È³ª¿À°Ô ÇÏ´Â ¾ÆÀÌÅÛ ÀÎ°¡?
 	return false;	
 }
 #ifdef ONE_PIECE_AVATAR
-inline bool IsOnePieceAvatar( int iItemID )	// ÇÑ¹ú º¹Àå ÀÎ°¡?
+inline bool IsOnePieceAvatar( int iItemID )	// ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_ONE_PIECE_AVATAR );
 
@@ -640,7 +640,7 @@ inline bool IsOnePieceAvatar( int iItemID )	// ÇÑ¹ú º¹Àå ÀÎ°¡?
 	}
 	return false;	
 }
-inline bool IsOnePieceAvatarNotRenderFace1( int iItemID )	// ¾Ç¼¼¾ó±¼(»ó)À» ²ô´Â ÇÑ¹ú º¹Àå ÀÎ°¡?
+inline bool IsOnePieceAvatarNotRenderFace1( int iItemID )	// ï¿½Ç¼ï¿½ï¿½ï¿½(ï¿½ï¿½)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_ONE_PIECE_AVATAR_NOT_RENDERING_FACE1 );
 
@@ -651,7 +651,7 @@ inline bool IsOnePieceAvatarNotRenderFace1( int iItemID )	// ¾Ç¼¼¾ó±¼(»ó)À» ²ô´Â
 	}
 	return false;	
 }
-inline bool IsOnePieceAvatarNotRenderFace( int iItemID )	// ±âº» ¾ó±¼À» ²ô´Â ÇÑ¹ú º¹Àå ÀÎ°¡?
+inline bool IsOnePieceAvatarNotRenderFace( int iItemID )	// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_ONE_PIECE_AVATAR_NOT_RENDERING_FACE_FACE2_FACE3 );
 
@@ -662,7 +662,7 @@ inline bool IsOnePieceAvatarNotRenderFace( int iItemID )	// ±âº» ¾ó±¼À» ²ô´Â ÇÑ¹
 	}
 	return false;	
 }
-inline bool IsOnePieceAvatarNotRenderHairAndAllAccessory( int iItemID )	// Çì¾î¿Í ¸ðµç ¾Ç¼¼¼­¸®¸¦ ²ô´Â ÇÑ¹ú º¹Àå ÀÎ°¡?
+inline bool IsOnePieceAvatarNotRenderHairAndAllAccessory( int iItemID )	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_ONE_PIECE_AVATAR_NOT_RENDERING_HAIR_AND_ALL_ACCESSORY );
 
@@ -674,7 +674,7 @@ inline bool IsOnePieceAvatarNotRenderHairAndAllAccessory( int iItemID )	// Çì¾î¿
 	return false;	
 }
 #ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
-inline bool IsOnePieceAvatarRenderHair( int iItemID ) // ±âÁ¸ Çì¾î º¸ÀÌ´Â ÇÑ ¹ú ¾Æ¹ÙÅ¸
+inline bool IsOnePieceAvatarRenderHair( int iItemID ) // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Æ¹ï¿½Å¸
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_ONE_PIECE_AVATAR_RENDERING_HAIR );
 
@@ -697,7 +697,7 @@ inline bool IsOnePieceAvatarWithNotRenderHairItem( int iItemID ) //
 	}
 	return false;	
 }
-// 2012.12.02 darkstarbt_Á¶¼º¿í // ÇÑ¹ú ¾Æ¹ÙÅ¸ ÀÎµ¥ »óÀÇ¶û ÇÏÀÇ°¡ ºñ¾î ÀÖ¾î¼­ ±âÁ¸ ÀÔ°í ÀÖ´Â ¾Æ¹ÙÅ¸ µéÀÌ ³ª¿Í¾ß ÇÏ´Â °æ¿ì
+// 2012.12.02 darkstarbt_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½Ñ¹ï¿½ ï¿½Æ¹ï¿½Å¸ ï¿½Îµï¿½ ï¿½ï¿½ï¿½Ç¶ï¿½ ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö¾î¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô°ï¿½ ï¿½Ö´ï¿½ ï¿½Æ¹ï¿½Å¸ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¾ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
 inline bool IsOnePieceAvatarWithRenderBodyItem( int iItemID ) // 
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_ONE_PIECE_AVATAR_RENDERING_BODY );
@@ -713,7 +713,7 @@ inline bool IsOnePieceAvatarWithRenderBodyItem( int iItemID ) //
 #endif SERV_NEW_ONE_PIECE_AVATAR_SLOT
 #endif ONE_PIECE_AVATAR
 #ifdef FACE_OFF_MONSTER_HEAD_TEST
-inline bool IsNoRenderHairFaceFace2Face3Equip( int iItemID ) // Çì¾î, ±âº»¾ó±¼, ¾Ç¼¼¾ó±¼(Áß), ¾Ç¼¼¾ó±¼(ÇÏ) ¸¦ ¾È³ª¿À°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅÛ ÀÎ°¡?
+inline bool IsNoRenderHairFaceFace2Face3Equip( int iItemID ) // ï¿½ï¿½ï¿½, ï¿½âº»ï¿½ï¿½, ï¿½Ç¼ï¿½ï¿½ï¿½(ï¿½ï¿½), ï¿½Ç¼ï¿½ï¿½ï¿½(ï¿½ï¿½) ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_NOT_RENDERING_HAIR_FACE_FACE2_FACE3 );
 
@@ -725,7 +725,7 @@ inline bool IsNoRenderHairFaceFace2Face3Equip( int iItemID ) // Çì¾î, ±âº»¾ó±¼, 
 
 	return false;	
 }
-inline bool IsNoRenderHandEquip( int iItemID ) // Àå°©À» ¾È³ª¿À°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅÛ ÀÎ°¡?
+inline bool IsNoRenderHandEquip( int iItemID ) // ï¿½å°©ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {
 	int iArraySize = ARRAY_SIZE( ITEM_ID_NOT_RENDERING_HAND );
 
@@ -739,7 +739,7 @@ inline bool IsNoRenderHandEquip( int iItemID ) // Àå°©À» ¾È³ª¿À°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅ
 }
 #endif FACE_OFF_MONSTER_HEAD_TEST
 #ifdef NOT_RENDERING_NASOD_HAND_POS
-inline bool IsNoRenderNasodHandPos( int iItemID) // ³ª¼Òµå ÇÚµå À§Ä¡¿¡ ¾È³ª¿À°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅÛ ÀÎ°¡?
+inline bool IsNoRenderNasodHandPos( int iItemID) // ï¿½ï¿½ï¿½Òµï¿½ ï¿½Úµï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {	
 	int iArraySize = ARRAY_SIZE( ITEM_ID_NOT_RENDERING_NASOD_HAND_POS );
 
@@ -751,7 +751,7 @@ inline bool IsNoRenderNasodHandPos( int iItemID) // ³ª¼Òµå ÇÚµå À§Ä¡¿¡ ¾È³ª¿À°Ô 
 
 	return false;	
 }
-inline bool IsNoRenderNasodArmPos( int iItemID) // ³ª¼Òµå ÇÚµå À§Ä¡¿¡ ¾È³ª¿À°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅÛ ÀÎ°¡?
+inline bool IsNoRenderNasodArmPos( int iItemID) // ï¿½ï¿½ï¿½Òµï¿½ ï¿½Úµï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {	
 	int iArraySize = ARRAY_SIZE( ITEM_ID_NOT_RENDERING_NASOD_ARM_POS );
 
@@ -765,7 +765,7 @@ inline bool IsNoRenderNasodArmPos( int iItemID) // ³ª¼Òµå ÇÚµå À§Ä¡¿¡ ¾È³ª¿À°Ô Ç
 } 
 #endif NOT_RENDERING_NASOD_HAND_POS 
 #ifdef NOT_RENDERING_NASOD_HAND
-inline bool IsNoRenderNasodHand( int iItemID) // ³ª¼Òµå ÇÚµå ³ª¿ÀÁö ¾Ê°Ô ÇØ¾ßÇÏ´Â ¾ÆÀÌÅÛ ÀÎ°¡?
+inline bool IsNoRenderNasodHand( int iItemID) // ï¿½ï¿½ï¿½Òµï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
 {	
 	int iArraySize = ARRAY_SIZE( ITEM_ID_NOT_RENDERING_NASOD_HAND );
 
@@ -780,8 +780,8 @@ inline bool IsNoRenderNasodHand( int iItemID) // ³ª¼Òµå ÇÚµå ³ª¿ÀÁö ¾Ê°Ô ÇØ¾ßÇÏ´
 #endif NOT_RENDERING_NASOD_HAND
 
 #ifdef BUY_ONLY_ARA_ITEM
-//¾Æ¶ó¸¸ »ì ¼ö ÀÖ´Â ¾ÆÀÌÅÛ¿¡ ´ëÇÑ ¿¹¿ÜÃ³¸®
-inline bool IsCanByeOnlyAraItem( int iItemID ) // ¾Æ¶ó¸¸ »ì ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÎ°¡?
+//ï¿½Æ¶ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
+inline bool IsCanByeOnlyAraItem( int iItemID ) // ï¿½Æ¶ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
 {	
 	int iArraySize = ARRAY_SIZE( ITEM_ID_BUY_ONLY_ARA_ITEM );
 
@@ -797,7 +797,7 @@ inline bool IsCanByeOnlyAraItem( int iItemID ) // ¾Æ¶ó¸¸ »ì ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÎ°¡?
 
 
 #endif	NOT_RENDERING_OTHER_EQUIP_POS
-//}} kimhc // 2009-10-28 // Æ¯Á¤ ¾ÆÀÌÅÛ ÀåÂø ½Ã ÁöÁ¤µÈ ºÎÀ§°¡ ·»´õ¸µ µÇÁö ¾Êµµ·Ï ÇÏ´Â ±â´É
+//}} kimhc // 2009-10-28 // Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
 
 //{{ kimhc // 2010.6.8 
 #ifdef	HACKING_TEST
@@ -828,26 +828,26 @@ inline bool GetValueFromLua( KLuaManager* pLuaManger, char* pszName, KProtectedT
 #endif	HACKING_TEST
 //}} kimhc // 2010.6.8 
 
-static const int SKILL_SLOT_CHANGE_ITEM_ID			= 200880;		// ½ºÅ³ ½½·Ô Ã¼ÀÎÁö °¡´ÉÇÏ°Ô ÇÏ´Â ¾ÆÀÌÅÛ (±â°£Á¦)
+static const int SKILL_SLOT_CHANGE_ITEM_ID			= 200880;		// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½â°£ï¿½ï¿½)
 
-//{{ 2011. 11. 30	ÃÖÀ°»ç	ÆÐÅ°Áö »óÇ° Ãß°¡
+//{{ 2011. 11. 30	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½Ç° ï¿½ß°ï¿½
 //#ifdef SERV_ADD_PACKAGE_PRODUCT
-static const int SKILL_POINT_5_USE_INVEN_ITEM_ID		= 241780;		// ÀÎº¥Åä¸®¿¡¼­ Å¬¸¯ÇØ¼­ »ç¿ëÇÏ´Â ±×³ë½Ã½º Ãàº¹
-static const int SKILL_POINT_5_USE_INVEN_ITEM_ID_7_DAY	= 268562;		// ÀÎº¥Åä¸®¿¡¼­ Å¬¸¯ÇØ¼­ »ç¿ëÇÏ´Â ±×³ë½Ã½º Ãàº¹( 7ÀÏ )
-static const int SKILL_POINT_10_USE_INVEN_ITEM_ID		= 241790;		// ÀÎº¥Åä¸®¿¡¼­ Å¬¸¯ÇØ¼­ »ç¿ëÇÏ´Â ±×³ë½Ã½º Ãàº¹
+static const int SKILL_POINT_5_USE_INVEN_ITEM_ID		= 241780;		// ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹
+static const int SKILL_POINT_5_USE_INVEN_ITEM_ID_7_DAY	= 268562;		// ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹( 7ï¿½ï¿½ )
+static const int SKILL_POINT_10_USE_INVEN_ITEM_ID		= 241790;		// ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹
 //#endif SERV_ADD_PACKAGE_PRODUCT
 //}}
 
 
-// ±×³ë½Ã½º Ãàº¹, ¸Þ½ÃÁö ¹Ú½º Àû¿ë ¾ÈµÇ´Â °Íµé Ãß°¡ Àû¿ë
+// ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹, ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½Íµï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½
 static const int SKILL_POINT_5_USE_INVEN_ITEM_ID_15_DAY = 127180;
 static const int SKILL_POINT_5_USE_INVEN_ITEM_ID_30_DAY = 127190;
 static const int SKILL_POINT_5_USE_INVEN_ITEM_ID_60_DAY = 127200;
 
 static const int SKILL_POINT_10_USE_INVEN_ITEM_ID_30_DAY = 261660;
-// ±×³ë½Ã½º Ãàº¹, ¸Þ½ÃÁö ¹Ú½º Àû¿ë ¾ÈµÇ´Â °Íµé Ãß°¡ Àû¿ë
+// ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹, ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½Íµï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ±×³ë½Ã½º ¾ÆÀÌÅÛ µî·Ï
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 static const int SKILL_POINT_30_USE_INVEN_ITEM_ID_15_DAY	= 271076;
 static const int SKILL_POINT_60_USE_INVEN_ITEM_ID_15_DAY	= 271077;
 static const int SKILL_POINT_30_USE_INVEN_ITEM_ID_30_DAY	= 271078;
@@ -857,19 +857,19 @@ static const int SKILL_POINT_60_USE_INVEN_ITEM_ID_30_DAY	= 271079;
 
 
 
-static const int INIT_SKILL_TREE_ITEM_ID			= 203800;		// ½ºÅ³ ÀüÃ¼ ÃÊ±âÈ­
-static const int INIT_SKILL_TREE_EVENT_ITEM_ID		= 130633;		// ½ºÅ³ ÀüÃ¼ ÃÊ±âÈ­ ÀÌº¥Æ® ¾ÆÀÌÅÛ
+static const int INIT_SKILL_TREE_ITEM_ID			= 203800;		// ï¿½ï¿½Å³ ï¿½ï¿½Ã¼ ï¿½Ê±ï¿½È­
+static const int INIT_SKILL_TREE_EVENT_ITEM_ID		= 130633;		// ï¿½ï¿½Å³ ï¿½ï¿½Ã¼ ï¿½Ê±ï¿½È­ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 
-static const int INIT_SKILL_TREE_EVENT_ITEM_REMAINING_ONE_DAY_FROM_QUEST_ID	  = 135416;		// 2013 ½ºÅ³ °³Æí ´ëºñ, ½ºÅ³ ÀüÃ¼ ÃÊ±âÈ­ 1ÀÏ±Ç ÀÌº¥Æ® ¾ÆÀÌÅÛ, Äù½ºÆ® º¸»óÀ¸·Î ¹ÞÀ½
-static const int INIT_SKILL_TREE_EVENT_ITEM_REMAINING_THREE_DAY_FROM_QUEST_ID = 135417;		// 2013 ½ºÅ³ °³Æí ´ëºñ, ½ºÅ³ ÀüÃ¼ ÃÊ±âÈ­ 3ÀÏ±Ç ÀÌº¥Æ® ¾ÆÀÌÅÛ, Äù½ºÆ® º¸»óÀ¸·Î ¹ÞÀ½
+static const int INIT_SKILL_TREE_EVENT_ITEM_REMAINING_ONE_DAY_FROM_QUEST_ID	  = 135416;		// 2013 ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½Ã¼ ï¿½Ê±ï¿½È­ 1ï¿½Ï±ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int INIT_SKILL_TREE_EVENT_ITEM_REMAINING_THREE_DAY_FROM_QUEST_ID = 135417;		// 2013 ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½Ã¼ ï¿½Ê±ï¿½È­ 3ï¿½Ï±ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-static const int RESET_A_SKILL_ITEM_ID				= 200730;		// ½ºÅ³ 1°³ µÇµ¹¸®±â ¾ÆÀÌÅÛ
-static const int RESET_A_SKILL_ITEM_NOT_TRADE_ID	= 135433;		// [ÄÚº¸] ¸Á°¢ÀÇ ¾Ë¾à
+static const int RESET_A_SKILL_ITEM_ID				= 200730;		// ï¿½ï¿½Å³ 1ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int RESET_A_SKILL_ITEM_NOT_TRADE_ID	= 135433;		// [ï¿½Úºï¿½] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½
 
-static const int RESET_A_SKILL_EVENT_ITEM_ID		= 130808;		// ½ºÅ³ 1°³ µÇµ¹¸®±â ¾ÆÀÌÅÛ
+static const int RESET_A_SKILL_EVENT_ITEM_ID		= 130808;		// ï¿½ï¿½Å³ 1ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-static const int RESET_A_SKILL_EVENT_ITEM_ID_BY_JP	= 67003592;		// ¸Á°¢ÀÇ ¾Ë¾à(½ºÅ³ 1°³ µÇµ¹¸®±â ¾ÆÀÌÅÛ)
+static const int RESET_A_SKILL_EVENT_ITEM_ID_BY_JP	= 67003592;		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½(ï¿½ï¿½Å³ 1ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 
 #ifdef SERV_SKILL_5_POINT_7_DAY_EU
@@ -877,50 +877,50 @@ static const int EVENT_SKILL_5_POINT_7_DAY	= 90000690;
 #endif SERV_SKILL_5_POINT_7_DAY_EU
 
 #ifdef SERV_CN_GNOSIS
-static const int EVENT_SKILL_POINT_10_USE_INVEN_7_DAY	= 80001150;	//(Áß±¹) ÀÌº¥Æ®¿ë ±×³ë½Ã½ºÀÇ Ãàº¹ ( 10 SP, 7ÀÏ±Ç) // 2012.05.24 lygan_Á¶¼º¿í
-static const int EVENT_SKILL_POINT_5_USE_INVEN_1_DAY	= 80001327;	//(Áß±¹) ÀÌº¥Æ®¿ë ±×³ë½Ã½ºÀÇ Ãàº¹ ( 5 SP, 1ÀÏ±Ç) // 2012.06.25 lygan_Á¶¼º¿í
+static const int EVENT_SKILL_POINT_10_USE_INVEN_7_DAY	= 80001150;	//(ï¿½ß±ï¿½) ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½àº¹ ( 10 SP, 7ï¿½Ï±ï¿½) // 2012.05.24 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int EVENT_SKILL_POINT_5_USE_INVEN_1_DAY	= 80001327;	//(ï¿½ß±ï¿½) ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½àº¹ ( 5 SP, 1ï¿½Ï±ï¿½) // 2012.06.25 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-static const int EVENT_SKILL_POINT_5_USE_INVEN_7_DAY		= 80001355;	//(Áß±¹) ÀÌº¥Æ®¿ë ±×³ë½Ã½ºÀÇ Ãàº¹ ( 5 SP, 7ÀÏ±Ç) // 2012.07.02 lygan_Á¶¼º¿í
-static const int EVENT_SKILL_POINT_5_USE_INVEN_7_DAY_TYPE2	= 80001372;	//(Áß±¹) ÀÌº¥Æ®¿ë ±×³ë½Ã½ºÀÇ Ãàº¹ ( 5 SP, 7ÀÏ±Ç) // 2012.07.02 lygan_Á¶¼º¿í // ÀÌ°Ç ¸®¾ó µé¾î°¡¸é Àý´ë »èÁ¦ ÇÏÁö ¾Ê´Â ¾ÆÀÌÅÛ
-static const int EVENT_SKILL_POINT_10_USE_INVEN_15_DAY		= 80001367;	//(Áß±¹) ÀÌº¥Æ®¿ë ±×³ë½Ã½ºÀÇ Ãàº¹ ( 10 SP, 15ÀÏ±Ç) // 2012.07.02 lygan_Á¶¼º¿í
+static const int EVENT_SKILL_POINT_5_USE_INVEN_7_DAY		= 80001355;	//(ï¿½ß±ï¿½) ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½àº¹ ( 5 SP, 7ï¿½Ï±ï¿½) // 2012.07.02 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int EVENT_SKILL_POINT_5_USE_INVEN_7_DAY_TYPE2	= 80001372;	//(ï¿½ß±ï¿½) ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½àº¹ ( 5 SP, 7ï¿½Ï±ï¿½) // 2012.07.02 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½î°¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int EVENT_SKILL_POINT_10_USE_INVEN_15_DAY		= 80001367;	//(ï¿½ß±ï¿½) ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½àº¹ ( 10 SP, 15ï¿½Ï±ï¿½) // 2012.07.02 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif SERV_CN_GNOSIS
 
 #ifdef SERV_US_GNOSIS
 static const int EVENT_SKILL_POINT_5_USE_INVEN_15_DAY	= 90000747;
 #endif SERV_US_GNOSIS
 #ifdef SERV_COUNTRY_JP
-static const int INIT_SKILL_TREE_EVENT_ITEM_ID_JP	= 65000430;		// ½ºÅ³ ÀüÃ¼ ÃÊ±âÈ­ ÀÌº¥Æ® ¾ÆÀÌÅÛ ±¹³» 130633
+static const int INIT_SKILL_TREE_EVENT_ITEM_ID_JP	= 65000430;		// ï¿½ï¿½Å³ ï¿½ï¿½Ã¼ ï¿½Ê±ï¿½È­ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 130633
 #endif //SERV_COUNTRY_JP
 
 #ifdef SERV_QUEST_SKILL_RESET
-static const int RESET_A_SKILL_QUEST_ITEM_ID		= 141000000;	// ½ºÅ³ 1°³ µÇµ¹¸®±â ¾ÆÀÌÅÛ
+static const int RESET_A_SKILL_QUEST_ITEM_ID		= 141000000;	// ï¿½ï¿½Å³ 1ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif SERV_QUEST_SKILL_RESET
 
 #ifdef SERV_2ND_CLASS_SKILL_RESET
-static const int RESET_A_SKILL_2ND_CLASS_CHANGE_EVENT_ITEM_ID		= 141000036;	// ½ºÅ³ 1°³ µÇµ¹¸®±â ¾ÆÀÌÅÛ
+static const int RESET_A_SKILL_2ND_CLASS_CHANGE_EVENT_ITEM_ID		= 141000036;	// ï¿½ï¿½Å³ 1ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif SERV_2ND_CLASS_SKILL_RESET
 
 
 
 #ifdef GUILD_SKILL
-static const int INIT_GUILD_SKILL_TREE_ITEM_ID		= 110858;		// ±æµå ½ºÅ³ ÀüÃ¼ ÃÊ±âÈ­
-static const int RESET_A_GUILD_SKILL_ITEM_ID		= 110857;		// ±æµå ½ºÅ³ 1°³ µÇµ¹¸®±â ¾ÆÀÌÅÛ
+static const int INIT_GUILD_SKILL_TREE_ITEM_ID		= 110858;		// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½Ã¼ ï¿½Ê±ï¿½È­
+static const int RESET_A_GUILD_SKILL_ITEM_ID		= 110857;		// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ 1ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-static const int GUILD_CASH_SKILL_ITEM_ID			= 110859;		// ±æµå ½ºÅ³ ±â°£Á¦ + 5
+static const int GUILD_CASH_SKILL_ITEM_ID			= 110859;		// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½â°£ï¿½ï¿½ + 5
 
 #endif GUILD_SKILL
 
-static const int WARP_ITEM_RUBEN_ITEM_ID					= 109995;		// ÀÌµ¿ Æ¼ÄÏµé
+static const int WARP_ITEM_RUBEN_ITEM_ID					= 109995;		// ï¿½Ìµï¿½ Æ¼ï¿½Ïµï¿½
 static const int WARP_ITEM_ELDER_ITEM_ID					= 109996;
 static const int WARP_ITEM_BESMA_ITEM_ID					= 109997;
 static const int WARP_ITEM_ALTERA_ITEM_ID					= 109998;
 static const int WARP_ITEM_PEITA_DUNGEON_GATE_ITEM_ID		= 110832;
 static const int WARP_ITEM_VELDER_ITEM_ID					= 110847; 
-static const int WARP_ITEM_FREE_ITEM_ID						= 215660;		// ÀÌµ¿Æ¼ÄÏ ÀÚÀ¯ ÀÌ¿ë±Ç (215660)
-static const int WARP_ITEM_ED_CONSUMPTION_ITEM_ID			= 112323;		// ED¼Ò¸ð ÀÌµ¿Æ¼ÄÏ ÀÌ¿ë±Ç (215660)
+static const int WARP_ITEM_FREE_ITEM_ID						= 215660;		// ï¿½Ìµï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½ (215660)
+static const int WARP_ITEM_ED_CONSUMPTION_ITEM_ID			= 112323;		// EDï¿½Ò¸ï¿½ ï¿½Ìµï¿½Æ¼ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½ (215660)
 
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
-static const int UNLIMITED_SECOND_CHANGE_JOB_ITEM_ID		= 153000168;	// 2Â÷ÀüÁ÷ ¹«Á¦ÇÑ º¯°æ±Ç
+static const int UNLIMITED_SECOND_CHANGE_JOB_ITEM_ID		= 153000168;	// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
 
 static const int SKILL_NOTE_ITEM_ID							= 99600;
@@ -929,59 +929,59 @@ static const int CASH_SKILL_NOTE_ITEM_ID					= 221600;
 #ifdef SPECIAL_USE_ITEM
 static const int NO_CUBE_OPEN_ITEM_ID[]						= { 77200, 78460, 78470, 78480, 78490, 78500, 78510, 65000360,}; 
 #else
-static const int SPIRIT_POTION_ITEM_ID						= 77200;	// ±Ù¼º Æ÷¼Ç
+static const int SPIRIT_POTION_ITEM_ID						= 77200;	// ï¿½Ù¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif SPECIAL_USE_ITEM
 
 #ifdef VARIOUS_RANDOM_CUBE_UI_NEW
-static const int MEMO_RANDOM_CUBE_ITEM_ID					= 132817;	// º¸¹° Ã£±â ÂÊÁö
-static const int CAPSULE_RANDOM_CUBE_ITEM_ID				= 133340;	// ½Å³â ¿î¼¼ Ä¸½¶
-static const int TREE_DAY_CUBE_ITEM_ID						= 131859;	// oasis907 : ±è»óÀ± [2011.3.29] // ½Ä¸ñÀÏ Å¥ºê ¾ÆÀÌÅÛ
+static const int MEMO_RANDOM_CUBE_ITEM_ID					= 132817;	// ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int CAPSULE_RANDOM_CUBE_ITEM_ID				= 133340;	// ï¿½Å³ï¿½ ï¿½î¼¼ Ä¸ï¿½ï¿½
+static const int TREE_DAY_CUBE_ITEM_ID						= 131859;	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.3.29] // ï¿½Ä¸ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef NEW_HENIR_TEST
-static const int NEW_HENIR_TIMESPACE_PIECE					= 61205;	 // ½Ã°ø°£ÀÇ Á¶°¢ 
-static const int NEW_HENIR_CUBE_ITEM_ID						= 61206;	// Á¤ÁöµÈ ½Ã°£ÀÇ °áÁ¤
+static const int NEW_HENIR_TIMESPACE_PIECE					= 61205;	 // ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
+static const int NEW_HENIR_CUBE_ITEM_ID						= 61206;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif NEW_HENIR_TEST
 #endif VARIOUS_RANDOM_CUBE_UI_NEW
 
 #ifdef SERV_EXPAND_QUICK_SLOT
 #if defined(SERV_COUNTRY_TWHK) || defined(SERV_COUNTRY_JP)
-static const int EXPAND_QUICK_SLOT_ITEM_ID					= 70002820;	// Äü½½·Ô È®Àå±Ç(´ë¸¸, ÀÏº»)
+static const int EXPAND_QUICK_SLOT_ITEM_ID					= 70002820;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½(ï¿½ë¸¸, ï¿½Ïºï¿½)
 #else
 static const int EXPAND_QUICK_SLOT_ITEM_ID					= 244560;
 #endif SERV_COUNTRY_TWHK
 #endif SERV_EXPAND_QUICK_SLOT
 #ifdef SKILL_PLUS_ITEM_USE_POPUP
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-static const int SKILL_PLUS_ITEM_ID_JP						= 67000382;	// ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹(2ÀÏ) ±¹³» 133131
-static const int SKILL_POINT_10_30DAY_USE_INVEN_JP			= 67005710;	// ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹ 10sp 30ÀÏ
-static const int SKILL_POINT_10_15DAY_USE_INVEN_JP			= 70007020; // ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹(10P 15ÀÏ±Ç)
-static const int SKILL_POINT_5_7DAY_USE_INVEN_JP			= 70007030; // ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹(5P 7ÀÏ±Ç)
+static const int SKILL_PLUS_ITEM_ID_JP						= 67000382;	// ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹(2ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ 133131
+static const int SKILL_POINT_10_30DAY_USE_INVEN_JP			= 67005710;	// ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ 10sp 30ï¿½ï¿½
+static const int SKILL_POINT_10_15DAY_USE_INVEN_JP			= 70007020; // ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹(10P 15ï¿½Ï±ï¿½)
+static const int SKILL_POINT_5_7DAY_USE_INVEN_JP			= 70007030; // ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹(5P 7ï¿½Ï±ï¿½)
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-static const int SKILL_PLUS_ITEM_ID							= 133131;   // ±×³ë½Ã½º Ãàº¹
+static const int SKILL_PLUS_ITEM_ID							= 133131;   // ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹
 
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
-static const int SKILL_POINT_30_7DAY_USE_INVEN				= 60003758; // ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹ 30SP 7ÀÏ
-static const int SKILL_POINT_60_7DAY_USE_INVEN				= 60003759; // ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹ 60SP 7ÀÏ
-static const int SKILL_POINT_60_15DAY_USE_INVEN				= 60004280; // ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹ 60SP 15ÀÏ
-static const int SKILL_POINT_60_30DAY_USE_INVEN				= 60005011;	// ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹ 60SP 30ÀÏ
+static const int SKILL_POINT_30_7DAY_USE_INVEN				= 60003758; // ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ 30SP 7ï¿½ï¿½
+static const int SKILL_POINT_60_7DAY_USE_INVEN				= 60003759; // ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ 60SP 7ï¿½ï¿½
+static const int SKILL_POINT_60_15DAY_USE_INVEN				= 60004280; // ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ 60SP 15ï¿½ï¿½
+static const int SKILL_POINT_60_30DAY_USE_INVEN				= 60005011;	// ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ 60SP 30ï¿½ï¿½
 #endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 #ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
-static const int SKILL_POINT_130_1DAY_USE_INVEN				= 67006450; // ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹ 130sp 1ÀÏ
+static const int SKILL_POINT_130_1DAY_USE_INVEN				= 67006450; // ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ 130sp 1ï¿½ï¿½
 #endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 #ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
-static const int SKILL_POINT_30_1DAY_USE_INVEN				= 67006500; // ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹ 30sp 1ÀÏ
-static const int SKILL_POINT_60_1DAY_USE_INVEN				= 67006501; // ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹ 60sp 1ÀÏ
+static const int SKILL_POINT_30_1DAY_USE_INVEN				= 67006500; // ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ 30sp 1ï¿½ï¿½
+static const int SKILL_POINT_60_1DAY_USE_INVEN				= 67006501; // ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ 60sp 1ï¿½ï¿½
 #endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
-static const int SKILL_POINT_60_7DAY_USE_INVEN_2			= 60008007;	// ÀÌº¥Æ®¿ë ±×³ë½Ã½º Ãàº¹ 60SP 7ÀÏ
+static const int SKILL_POINT_60_7DAY_USE_INVEN_2			= 60008007;	// ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ 60SP 7ï¿½ï¿½
 #endif SKILL_PLUS_ITEM_USE_POPUP
 
-//{{ Çã»óÇü : [2009/7/14] //	³ª¼Òµå ¸Þ°¡Æù °ü·Ã »ó¼ö
+//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/7/14] //	ï¿½ï¿½ï¿½Òµï¿½ ï¿½Þ°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef NASOD_SCOPE
 
 static const int NASOD_SCOPE_ITEM_ID				= 212350;
 static const int NASOD_SCOPE_HIGH_ITEM_ID			= 212360;
 
 #endif
-//}} Çã»óÇü : [2009/7/14] //
+//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/7/14] //
 
 
 
@@ -990,10 +990,10 @@ static const int NASOD_SCOPE_HIGH_ITEM_ID			= 212360;
 	60000700, 60000701, 60000702, 60000703, 60000704, 60000705, 60000706, 60000707, 60000708, 60001619, 64000000, 64000001, 64000002, 64000100, 64000101, 64000102, 64000103, 64000104, 
 	60004960, 60004970, 64000105, 64000106, 64000107, 60006151, 60007370, 65000031, 70005100, 
 	85001530, 85001531, 85002440, 85002450, 140000110, 70007250, 70007252, 84001844, 70007307, 70007306, 67006284, 67006310, 210000226,
-	90000076, 90000595, 90001060, 90001594, 90001900, 90001970, 85003722, }; // ¾óÀ½ Á¶°¢»óµé
-	static const int GOLD_ATTRACTION_ITEM_ID[]			= { 135115, 85003720 }; // °ñµå ¾óÀ½ Á¶°¢»ó
+	90000076, 90000595, 90001060, 90001594, 90001900, 90001970, 85003722, }; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int GOLD_ATTRACTION_ITEM_ID[]			= { 135115, 85003720 }; // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_SERV_MINI_RANDOM_CUBE_REWARD
-	static const int MINI_ATTRACTION_ITEM_ID[]			= { 160656, 268544 }; // ¹Ì´Ï ¾óÀ½ Á¶°¢»ó
+	static const int MINI_ATTRACTION_ITEM_ID[]			= { 160656, 268544 }; // ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif SERV_SERV_MINI_RANDOM_CUBE_REWARD
 #ifdef SERV_ALL_IN_ONE_RANDOM_CUBE_REWARD
 	static const int ALL_IN_ONE_ATTRACTION_ITEM_ID = 160772;
@@ -1006,9 +1006,9 @@ static const int NASOD_SCOPE_HIGH_ITEM_ID			= 212360;
 #ifdef SERV_HALLOWEEN_ICE_HEATER
 	static const int HALLOWEEN_ATTRACTION_ITEM_ID[] = { 85003498, 85003500 };
 #endif //SERV_HALLOWEEN_ICE_HEATER
-	static const int ATTRACTION_BONUS_ITEM_ID = 91610;		// ¾óÀ½Á¶°¢
+	static const int ATTRACTION_BONUS_ITEM_ID = 91610;		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	static const int ATTACH_ITEM_ITEM_ID[]				= { 130147, 130148, 130149, 130150, 130151, 130152, 130543, 130544, 132495, 132496, 132497, 132498, 132499, 132500, 127150, 127160, 127170,	135076, 135427, 135428,
-	84000065, 84000003, 85000016, 85002325, 60005987, 85002326, 85002101, 60007250, 60007260, 60007270, 60007280, 60007290, 60007300, 90002373, 152000278, }; // ¿ìÅ¬¸¯ÇØ¼­ ´Ù¸¥ ¾ÆÀÌÅÛ¿¡ ºÙÀÌ´Â ¾ÆÀÌÅÛµé. ³ªÁß¿¡´Â ½ºÅ©¸³Æ®·Î »©ÀÚ
+	84000065, 84000003, 85000016, 85002325, 60005987, 85002326, 85002101, 60007250, 60007260, 60007270, 60007280, 60007290, 60007300, 90002373, 152000278, }; // ï¿½ï¿½Å¬ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ûµï¿½. ï¿½ï¿½ï¿½ß¿ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	static const int ENCHANT_COUPON_ITEM_ID[]			= { -1, -1, -1, -1, -1, 130147, 130148, 130149, 130150, 130151, 130152, 127150, 127160, 127170, };
 	static const int DEFENCE_ENCHANT_COUPON_ITEM_ID[]	= { -1, -1, -1, -1, -1, 130543, 130544, 85002325, };
 
@@ -1016,33 +1016,33 @@ static const int NASOD_SCOPE_HIGH_ITEM_ID			= 212360;
 	static const int INT_ENCHANT_COUPON_ITEM_ID[]	= { 84000065, 84000003, 60004196, 60004197, 60004198, 85000016, 85002325, 60005987, 85002326, 85002101, 60007250, 60007260, 60007270, 60007280, 60007290, 60007300, 85002325, 90002373};
 #endif //INT_ENCHANT_COUPON_ITEM
 
-//{{ kimhc // 2010.6.7 // °Å·¡°¡ ºÒ°¡´ÉÇÑ °­È­±Ç Ãß°¡
+//{{ kimhc // 2010.6.7 // ï¿½Å·ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ß°ï¿½
 
-#ifdef ADDED_ENCHANT_COUPON_HAVE_LEVEL_LIMIT						// ±èÁ¾ÈÆ / 13-07-03 / ·¹º§ Á¦ÇÑÀ» °¡Áø °­È­ÀÇ ºÎÀû
+#ifdef ADDED_ENCHANT_COUPON_HAVE_LEVEL_LIMIT						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 13-07-03 / ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	static const int HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_ID[]	= { 135427, 135428, };
 	static const int HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_LIMIT_LEVEL[] = { 0, 30, 40, -1, };
-	// ¾Æ·¡ 0 ~ 1¹ø ¹è¿­ = À­ ¹è¿­ 0¹øÀÇ ·¹º§ Á¦ÇÑ 
-	// ( Ex. 130543 ¾ÆÀÌÅÛ ID ´Â 1 ~ 30 ÀÇ ·¹º§ Á¦ÇÑ, 130544 ´Â 31 ~ 40 
+	// ï¿½Æ·ï¿½ 0 ~ 1ï¿½ï¿½ ï¿½è¿­ = ï¿½ï¿½ ï¿½è¿­ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
+	// ( Ex. 130543 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ID ï¿½ï¿½ 1 ~ 30 ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, 130544 ï¿½ï¿½ 31 ~ 40 
 
 	static const int HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_ENCHANT_VALUE[]	= { 10, 10 };
-	// ÀÎÃ¦Æ® °è¼ö
+	// ï¿½ï¿½Ã¦Æ® ï¿½ï¿½ï¿½
 
-#endif // ±èÁ¾ÈÆ / 13-07-03 / ·¹º§ Á¦ÇÑÀ» °¡Áø °­È­ÀÇ ºÎÀû
+#endif // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 13-07-03 / ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 #ifdef	NO_TRADE_ATTACH_ITEM
 	static boost::array<int, 38> ENCHANT_COUPON_ITEM_TO_NOT_TRADE_ID = { -1, -1, -1, -1, -1,  132495, 132496, 132497, 132498, 132499, 132500, 127150, 127160, 127170, 135076, 60004196, 60004197, 60004198, 85000016, 85002325, 60005987, 85002326, 85002101, 60007250, 60007260, 60007270, 60007280, 60007290, 60007300,
 	85002810, 85002820, 85002830, 85002840, 85002850, 85002860, 84000065, 84000003, 152000278 };
 #endif	NO_TRADE_ATTACH_ITEM
-//}} kimhc // 2010.6.7 // °Å·¡°¡ ºÒ°¡´ÉÇÑ °­È­±Ç Ãß°¡
+//}} kimhc // 2010.6.7 // ï¿½Å·ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ß°ï¿½
 #endif
 
-#ifdef SERV_ATTRIBUTE_CHARM // oasis907 : ±è»óÀ± [2011.1.5] // ¼Ó¼º °­È­ ºÎÀû 
+#ifdef SERV_ATTRIBUTE_CHARM // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.1.5] // ï¿½Ó¼ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ 
 	static const int ATTRIBUTE_CHARM_COUPON_ITEM_ID[]	= {133365, 133366, 133367, 133368, 133369, 133370, 133371, 133372, 133373, 133374, 133375, 133376, 133377, 133378, 133379, };
 #endif SERV_ATTRIBUTE_CHARM
 
 static const int NICKNAME_CHANGE_CARD_ITEM_ID		= 209660;
 
-// ÄªÈ£ ¾ÆÀÌÅÛ Áßº¹»ç¿ë ºÒ°¡Ã³¸®
+// ÄªÈ£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½Ã³ï¿½ï¿½
 static const int TITLE_ITEM[]	= { 130063, 	130158, 	130255, 	130506, 	130591, 	130723, 	213170, 	131131, 	131135,		131151, 	132697, 	111086,
 									160037, 	132795, 	60002740,	60002741,	60003471,	160228, 	60004107,	60004108, 	60004109,	60004135,	60004147,	60004343,
 									60004440, 	60004490, 	60004550,	60004750,	200000011,	60004882,	80001482,	80001483,	80001496,	60005217,
@@ -1052,30 +1052,30 @@ static const int TITLE_ID[]		= { 80,			10140,		10160,		10210,		10230,		10260,  	
 									5320,		5330,		5340,		5350,		100000,		5360,		50080,		50081,		50082,		5380,
 									100100,		100110,		100120,		100130,		100140,		100150,		100160,     35220 };
 
-//#define °¨Á¤¼® 110000
-//#define º¹±¸¼® 110001
+//#define ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 110000
+//#define ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 110001
 
 
 
-//{{ Çã»óÇü : [2009/9/8] //	±æµåÃ¢¼³ ¹× °ü¸®¿¡ »ç¿ëµÇ´Â ¾ÆÀÌÅÛ
+//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/9/8] //	ï¿½ï¿½ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef GUILD_MANAGEMENT
-static const int GUILD_CREATE_ITEM_ID		= 110845;	// ±æµå Ã¢´Ü ¾ÆÀÌÅÛ
-static const int GUILD_EXPANSION_ITEM_ID	= 110846;	// ±æµå ÀÎ¿ø È®Àå ¾ÆÀÌÅÛ
-static const int GUILD_QUEST_ID				= 7630;		// ÀÓ½Ã(¾Æ¸®¿¤ÀÇ ºÎ¸§ lv.1Äù½ºÆ®)
-static const int EGG_ITEM_ID				= 70000;	// ´Þ°¿ ¾ÆÀÌÅÛ ID(X2GameÀÇ UseItemSpecialAbility¿¡¼­ »ç¿ë)
+static const int GUILD_CREATE_ITEM_ID		= 110845;	// ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int GUILD_EXPANSION_ITEM_ID	= 110846;	// ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int GUILD_QUEST_ID				= 7630;		// ï¿½Ó½ï¿½(ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¸ï¿½ lv.1ï¿½ï¿½ï¿½ï¿½Æ®)
+static const int EGG_ITEM_ID				= 70000;	// ï¿½Þ°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ID(X2Gameï¿½ï¿½ UseItemSpecialAbilityï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½)
 
 #endif	//	GUILD_MANAGEMENT
-//}} Çã»óÇü : [2009/9/8] //	±æµåÃ¢¼³ ¹× °ü¸®¿¡ »ç¿ëµÇ´Â ¾ÆÀÌÅÛ
+//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/9/8] //	ï¿½ï¿½ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 #ifdef SERV_GUILD_CHANGE_NAME
 static const int CHANGE_GUILD_NAME_ITEM_ID = 248400;
 #endif SERV_GUILD_CHANGE_NAME
 
-//{{ kimhc // 2009-10-21 // PaymentTypeÀÌ ÀÚµ¿°áÁ¦¸é '¿ø' ÀÌ¶ó´Â ±Û¾¾·Î ºÙ¿©ÁÖ±â
+//{{ kimhc // 2009-10-21 // PaymentTypeï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 'ï¿½ï¿½' ï¿½Ì¶ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ï¿½Ö±ï¿½
 #ifdef	AUTO_PAYMENT
-static const int AUTO_PAYMENT_TYPE			= 13002; // ÀÚµ¿°áÁ¦ PAYMENT_TYPE
+static const int AUTO_PAYMENT_TYPE			= 13002; // ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ PAYMENT_TYPE
 #endif	AUTO_PAYMENT
-//}} kimhc // 2009-10-21 // PaymentTypeÀÌ ÀÚµ¿°áÁ¦¸é '¿ø' ÀÌ¶ó´Â ±Û¾¾·Î ºÙ¿©ÁÖ±â
+//}} kimhc // 2009-10-21 // PaymentTypeï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 'ï¿½ï¿½' ï¿½Ì¶ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ï¿½Ö±ï¿½
 
 
 
@@ -1083,167 +1083,167 @@ static const int BRONZE_ED_ITEM_ID		= 127000;
 static const int SILVER_ED_ITEM_ID		= 127010;		
 static const int GOLD_ED_ITEM_ID		= 127020;	
 
-static const int POSTBOX_ED_ITEM_ID		= 127040;	// ¿ìÆíÇÔ¿¡ »ç¿ëÇÏ´Â ED, °ÔÀÓÁß¿¡ µå·ÓµÇÁö´Â ¾ÊÀ½
+static const int POSTBOX_ED_ITEM_ID		= 127040;	// ï¿½ï¿½ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ED, ï¿½ï¿½ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-#ifdef SERV_EVENT_DAILY_GIFT_BOX	// mauntain : ±èÅÂÈ¯ [2012.06.11] ¸ÅÀÏ¸ÅÀÏ ¼±¹° »óÀÚ ItemID
+#ifdef SERV_EVENT_DAILY_GIFT_BOX	// mauntain : ï¿½ï¿½ï¿½ï¿½È¯ [2012.06.11] ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ItemID
 static const int DAILY_GIFT_BOX_ITEM[]	= { 251760, 251770 };
 #endif SERV_EVENT_DAILY_GIFT_BOX
 
 
 
 
-//#pragma NOTE( "ÀüÁ÷ Ä³½Ã¾ÆÀÌÅÛ °ü·Ã ÀÛ¾÷ ¿©±â¿¡ ÇØÁà¾ß ÇÕ´Ï´Ù. »ç¿ëÇÏ´Â °÷ ¸ðµÎ °Ë»öÇØ¼­ Ãß°¡ÇØÁÖ¾î¾ß ÇÕ´Ï´Ù." )
-static const int CLASS_CHANGE_ELSWORD_KNIGHT_ITEM_ID   	= 214410;	/// ¼Òµå ³ªÀÌÆ®ÀÇ Áõ¸í
-static const int CLASS_CHANGE_MAGIC_KNIGHT_ITEM_ID     	= 214420;	/// ¸ÅÁ÷ ³ªÀÌÆ®ÀÇ Áõ¸í
+//#pragma NOTE( "ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½Ã¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ ï¿½ï¿½ï¿½â¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ø¼ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½ ï¿½Õ´Ï´ï¿½." )
+static const int CLASS_CHANGE_ELSWORD_KNIGHT_ITEM_ID   	= 214410;	/// ï¿½Òµï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_MAGIC_KNIGHT_ITEM_ID     	= 214420;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef ELSWORD_SHEATH_KNIGHT
-static const int CLASS_CHANGE_SHEATH_KNIGHT_ITEM_ID     = 242310;	/// ½Ã½º ³ªÀÌÆ®ÀÇ Áõ¸í
+static const int CLASS_CHANGE_SHEATH_KNIGHT_ITEM_ID     = 242310;	/// ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif ELSWORD_SHEATH_KNIGHT
-static const int CLASS_CHANGE_COMBAT_RANGER_ITEM_ID    	= 214450;	/// ÄÄ¹î ·¹ÀÎÀúÀÇ ¿µÈ¥
-static const int CLASS_CHANGE_SNIPING_RANGER_ITEM_ID   	= 214460;	/// ½º³ªÀÌÇÎ ·¹ÀÎÀúÀÇ ¿µÈ¥
+static const int CLASS_CHANGE_COMBAT_RANGER_ITEM_ID    	= 214450;	/// ï¿½Ä¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¥
+static const int CLASS_CHANGE_SNIPING_RANGER_ITEM_ID   	= 214460;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¥
 #ifdef SERV_TRAPPING_RANGER_TEST
-static const int CLASS_CHANGE_TRAPPING_RANGER_ITEM_ID	= 242330;	/// Æ®·¡ÇÎ ·¹ÀÎÀúÀÇ ¿µÈ¥
+static const int CLASS_CHANGE_TRAPPING_RANGER_ITEM_ID	= 242330;	/// Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¥
 #endif
-static const int CLASS_CHANGE_HIGH_MAGICIAN_ITEM_ID    	= 214430;	/// ÇÏÀÌ ¸ÅÁö¼ÇÀÇ ¸Þ¸ð¶óÀÌÁî
-static const int CLASS_CHANGE_DARK_MAGICIAN_ITEM_ID    	= 214440;	/// ´ÙÅ© ¸ÅÁö¼ÇÀÇ ¸Þ¸ð¶óÀÌÁî
+static const int CLASS_CHANGE_HIGH_MAGICIAN_ITEM_ID    	= 214430;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_DARK_MAGICIAN_ITEM_ID    	= 214440;	/// ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
-static const int CLASS_CHANGE_BATTLE_MAGICIAN_ITEM_ID  	= 242320;	/// ¹èÆ² ¸ÅÁö¼ÇÀÇ ¸Þ¸ð¶óÀÌÁî
+static const int CLASS_CHANGE_BATTLE_MAGICIAN_ITEM_ID  	= 242320;	/// ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif
-static const int CLASS_CHANGE_SOUL_TAKER_ITEM_ID       	= 214470;	/// ¼Òµå Å×ÀÌÄ¿ÀÇ °è½Ã
-static const int CLASS_CHANGE_OVER_TAKER_ITEM_ID       	= 214480;	/// ¿À¹ö Å×ÀÌÄ¿ÀÇ °è½Ã
+static const int CLASS_CHANGE_SOUL_TAKER_ITEM_ID       	= 214470;	/// ï¿½Òµï¿½ ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_OVER_TAKER_ITEM_ID       	= 214480;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½
 #ifdef RAVEN_WEAPON_TAKER
-static const int CLASS_CHANGE_WEAPON_TAKER_ITEM_ID  	= 242340;	/// ¿þÆù Å×ÀÌÄ¿ÀÇ °è½Ã
+static const int CLASS_CHANGE_WEAPON_TAKER_ITEM_ID  	= 242340;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½
 #endif RAVEN_WEAPON_TAKER
-static const int CLASS_CHANGE_EXOTIC_GEAR_ITEM_ID      	= 214490;	/// ÄÚµå ¿¢Á¶Æ½ÀÇ ¸Þ¸ð¸®
-static const int CLASS_CHANGE_ARCHITECTURE_ITEM_ID     	= 214500;	/// ÄÚµå ¾ÆÅ°ÅØÃ³ÀÇ ¸Þ¸ð¸®
+static const int CLASS_CHANGE_EXOTIC_GEAR_ITEM_ID      	= 214490;	/// ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ ï¿½Þ¸ï¿½
+static const int CLASS_CHANGE_ARCHITECTURE_ITEM_ID     	= 214500;	/// ï¿½Úµï¿½ ï¿½ï¿½Å°ï¿½ï¿½Ã³ï¿½ï¿½ ï¿½Þ¸ï¿½
 #ifdef EVE_ELECTRA
-static const int CLASS_CHANGE_ELECTRA_ITEM_ID			= 242350;	/// ÄÚµå ÀÏ·ºÆ®¶óÀÇ ¸Þ¸ð¸®
+static const int CLASS_CHANGE_ELECTRA_ITEM_ID			= 242350;	/// ï¿½Úµï¿½ ï¿½Ï·ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½
 #endif EVE_ELECTRA
 
-static const int CLASS_CHANGE_LORD_NIGHT_ITEM_ID		= 216420;	/// ·Îµå ³ªÀÌÆ® ÀÓ¸íÀå
-static const int CLASS_CHANGE_RUNE_SLAYER_ITEM_ID		= 216430;	/// ·é ½½·¹ÀÌ¾î Â¡Ç¥
-static const int CLASS_CHANGE_WIND_SNEAKER_ITEM_ID		= 217850;	/// À©µå ½º´ÏÄ¿ÀÇ °ÝÅõ ±³º»
-static const int CLASS_CHANGE_GRAND_ARCHER_ITEM_ID		= 217860;	/// ±×·£µå ¾ÆÃ³ÀÇ ±Ã¼ú ±³º»
+static const int CLASS_CHANGE_LORD_NIGHT_ITEM_ID		= 216420;	/// ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ó¸ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_RUNE_SLAYER_ITEM_ID		= 216430;	/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ Â¡Ç¥
+static const int CLASS_CHANGE_WIND_SNEAKER_ITEM_ID		= 217850;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_GRAND_ARCHER_ITEM_ID		= 217860;	/// ï¿½×·ï¿½ï¿½ï¿½ ï¿½ï¿½Ã³ï¿½ï¿½ ï¿½Ã¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-static const int CLASS_CHANGE_ELEMENTAL_MASTER_ITEM_ID	= 217920;	/// ¿¤¸®¸àÅ» ¸¶½ºÅÍÀÇ ºñ¾à
-static const int CLASS_CHANGE_VOID_PRINCESS_ITEM_ID		= 217930;	/// ³×¸Þ½Ã½º ºí·¹ÀÌµå
+static const int CLASS_CHANGE_ELEMENTAL_MASTER_ITEM_ID	= 217920;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_VOID_PRINCESS_ITEM_ID		= 217930;	/// ï¿½×¸Þ½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½
 
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-static const int CLASS_CHANGE_BLADE_MASTER_ITEM_ID		= 217950;	/// ºí·¹ÀÌµå ¸¶½ºÅÍÀÇ ºñÀü
-static const int CLASS_CHANGE_RECKLESS_FIST_ITEM_ID		= 217960;	/// ·¹Å©¸®½º ÇÇ½ºÆ®ÀÇ ÇÙ
+static const int CLASS_CHANGE_BLADE_MASTER_ITEM_ID		= 217950;	/// ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_RECKLESS_FIST_ITEM_ID		= 217960;	/// ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ ï¿½Ç½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½
 #endif
 
-//{{ kimhc // 2010.1.22 // ÀÌºê 2Â÷ ÀüÁ÷¾ÆÀÌÅÛ
+//{{ kimhc // 2010.1.22 // ï¿½Ìºï¿½ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef EVE_SECOND_CLASS_CHANGE
-static const int CLASS_CHANGE_NEMESIS_ITEM_ID	= 217970;			/// ³×¸Þ½Ã½º ºí·¹ÀÌµå
-static const int CLASS_CHANGE_EMPRESS_ITEM_ID	= 217980;			/// ¿¥ÇÁ·¹½º Æ¼¾Æ¶ó
+static const int CLASS_CHANGE_NEMESIS_ITEM_ID	= 217970;			/// ï¿½×¸Þ½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½
+static const int CLASS_CHANGE_EMPRESS_ITEM_ID	= 217980;			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¼ï¿½Æ¶ï¿½
 #endif EVE_SECOND_CLASS_CHANGE
-//}} kimhc // 2010.1.22 // ÀÌºê 2Â÷ ÀüÁ÷¾ÆÀÌÅÛ
+//}} kimhc // 2010.1.22 // ï¿½Ìºï¿½ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-//{{ kimhc // 2011.1.3 // Ã» 1Â÷ ÀüÁ÷
+//{{ kimhc // 2011.1.3 // Ã» 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef	CHUNG_FIRST_CLASS_CHANGE
-static const int CLASS_CHANGE_FURY_GUARDIAN_ID		= 229460;		/// Ç»¸® °¡µð¾ðÀÇ °áÀÇ
-static const int CLASS_CHANGE_SHOOTER_GUARDIAN_ID	= 229470;		/// ½´ÅÍ °¡µð¾ðÀÇ °áÀÇ
+static const int CLASS_CHANGE_FURY_GUARDIAN_ID		= 229460;		/// Ç»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_SHOOTER_GUARDIAN_ID	= 229470;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif	CHUNG_FIRST_CLASS_CHANGE
-//}} kimhc // 2011.1.3 // Ã» 1Â÷ ÀüÁ÷
+//}} kimhc // 2011.1.3 // Ã» 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 #ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
-static const int CLASS_CHANGE_SHELLING_GUARDIAN_ID	= 242360;		// ½©¸µ °¡µð¾ðÀÇ °áÀÇ
+static const int CLASS_CHANGE_SHELLING_GUARDIAN_ID	= 242360;		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
 
-//{{ JHKang / °­Á¤ÈÆ / 2011.6.13 / Ã» 2Â÷ ÀüÁ÷
+//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011.6.13 / Ã» 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-static const int CLASS_CHANGE_IRON_PALADIN_ID	= 235120;			/// ¼öÈ£ÀÚÀÇ Çü»ó
-static const int CLASS_CHANGE_DEADLY_CHASER_ID	= 235130;			/// ÃßÀûÀÚÀÇ Çü»ó
+static const int CLASS_CHANGE_IRON_PALADIN_ID	= 235120;			/// ï¿½ï¿½È£ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_DEADLY_CHASER_ID	= 235130;			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif
 
 #ifdef SERV_ELSWORD_INFINITY_SWORD
-static const int CLASS_CHANGE_INFINITY_SWORD_ID	= 252640;			/// ¿¤¼Òµå 2Â÷
+static const int CLASS_CHANGE_INFINITY_SWORD_ID	= 252640;			/// ï¿½ï¿½ï¿½Òµï¿½ 2ï¿½ï¿½
 #endif
 #ifdef SERV_ARME_DIMENSION_WITCH
-static const int CLASS_CHANGE_DIMENSION_WITCH_ID	= 252650;		/// ¾ÆÀÌ»þ 2Â÷
+static const int CLASS_CHANGE_DIMENSION_WITCH_ID	= 252650;		/// ï¿½ï¿½ï¿½Ì»ï¿½ 2ï¿½ï¿½
 #endif
 #ifdef SERV_RENA_NIGHT_WATCHER
-static const int CLASS_CHANGE_NIGHT_WATCHER_ID		= 252660;		/// ·¹³ª 2Â÷
+static const int CLASS_CHANGE_NIGHT_WATCHER_ID		= 252660;		/// ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½
 #endif
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-static const int CLASS_CHANGE_VETERAN_COMMANDER_ID	= 252670;		/// ·¹ÀÌºì 2Â÷
+static const int CLASS_CHANGE_VETERAN_COMMANDER_ID	= 252670;		/// ï¿½ï¿½ï¿½Ìºï¿½ 2ï¿½ï¿½
 #endif
 #ifdef SERV_EVE_BATTLE_SERAPH
-static const int CLASS_CHANGE_BATTLE_SERAPH_ID		= 252680;		/// ÀÌºê 2Â÷ ÄÚµå ¹èÆ² ¼¼¶óÇÁ
+static const int CLASS_CHANGE_BATTLE_SERAPH_ID		= 252680;		/// ï¿½Ìºï¿½ 2ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif
 #ifdef SERV_CHUNG_TACTICAL_TROOPER
-static const int CLASS_CHANGE_TACTICAL_TROOPER_ID	= 252690;		/// Ã» 2Â÷
+static const int CLASS_CHANGE_TACTICAL_TROOPER_ID	= 252690;		/// Ã» 2ï¿½ï¿½
 #endif
 
 #ifdef ARA_CHANGE_CLASS_FIRST
-static const int CLASS_CHANGE_LITTLE_HSIEN_ID		= 264380;		/// ¾Æ¶ó ¼Ò¼± ÀüÁ÷ ¾ÆÀÌÅÛ
-static const int CLASS_CHANGE_SAKRA_DEVANAM_ID		= 264390;		/// ¾Æ¶ó Á¦¼®Ãµ ÀüÁ÷ ¾ÆÀÌÅÛ
+static const int CLASS_CHANGE_LITTLE_HSIEN_ID		= 264380;		/// ï¿½Æ¶ï¿½ ï¿½Ò¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_SAKRA_DEVANAM_ID		= 264390;		/// ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½Ãµ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif //ARA_CHANGE_CLASS_FIRST
 
 #ifdef NEW_CHARACTER_EL
-static const int CLASS_CHANGE_SABER_KNIGHT_ID		= 264391;		/// ¼¼ÀÌ¹ö ³ªÀÌÆ®ÀÇ °¢¿À
-static const int CLASS_CHANGE_PYRO_KNIGHT_ID		= 264392;		/// ÆÄÀÌ·Î ³ªÀÌÆ®ÀÇ °¢¿À
+static const int CLASS_CHANGE_SABER_KNIGHT_ID		= 264391;		/// ï¿½ï¿½ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_PYRO_KNIGHT_ID		= 264392;		/// ï¿½ï¿½ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif // NEW_CHARACTER_EL
 
-#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
-/// ¾ÆÀÌÅÛ ¾ÆÀÌµð ¹ß±ÞµÇ¸é ¼³Á¤ ÇÊ¿ä
-static const int CLASS_CHANGE_LITTLE_DEVIL_ID		= 264393;		/// ¾Æ¶ó ¼Ò¸¶ ÀüÁ÷ ¾ÆÀÌÅÛ
-static const int CLASS_CHANGE_YAMA_RAJA_ID				= 264394;		/// ¾Æ¶ó ¸í¿Õ ÀüÁ÷ ¾ÆÀÌÅÛ
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
+/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ß±ÞµÇ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
+static const int CLASS_CHANGE_LITTLE_DEVIL_ID		= 264393;		/// ï¿½Æ¶ï¿½ ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int CLASS_CHANGE_YAMA_RAJA_ID				= 264394;		/// ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
-//#pragma NOTE( "ÀüÁ÷ º¯°æ Ä³½Ã ¾ÆÀÌÅÛ °ü·Ã ÀÛ¾÷Àº ¿©±â¿¡ ÇØÁà¾ß ÇÕ´Ï´Ù. »ç¿ëÇÏ´Â °÷ ¸ðµÎ °Ë»öÇØ¼­ Ãß°¡ÇØÁÖ¾î¾ß ÇÕ´Ï´Ù." )
+//#pragma NOTE( "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ø¼ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½ ï¿½Õ´Ï´ï¿½." )
 #ifdef UNIT_CLASS_CHANGE_ITEM
 
-#pragma region 1Â÷ ÀüÁ÷
-	static const int UNIT_CLASS_CHANGE_SWORD_KNIGHT_ITEM_ID		= 241950;	/// ¿¤¼Òµå ¼Òµå ³ªÀÌÆ®
-	static const int UNIT_CLASS_CHANGE_MAGIC_KNIGHT_ITEM_ID    	= 241960;	/// ¿¤¼Òµå ¸ÅÁ÷ ³ªÀÌÆ®
-	static const int UNIT_CLASS_CHANGE_SHEATH_KNIGHT_ITEM_ID	= 241970;	/// ¿¤¼Òµå ½Ã¾² ³ªÀÌÆ®
-	static const int UNIT_CLASS_CHANGE_HIGH_MAGICIAN_ITEM_ID    = 241980;	/// ¾ÆÀÌ»þ ÇÏÀÌ ¸ÅÁö¼Ç
-	static const int UNIT_CLASS_CHANGE_DARK_MAGICIAN_ITEM_ID    = 241990;	/// ¾ÆÀÌ»þ ´ÙÅ© ¸ÅÁö¼Ç
-	static const int UNIT_CLASS_CHANGE_BATTLE_MAGICIAN_ITEM_ID	= 242000;	/// ¾ÆÀÌ»þ ¹èÆ² ¸ÅÁö¼Ç
-	static const int UNIT_CLASS_CHANGE_COMBAT_RANGER_ITEM_ID	= 242010;	/// ·¹³ª ÄÄ¹î ·¹ÀÎÀú
-	static const int UNIT_CLASS_CHANGE_SNIPING_RANGER_ITEM_ID	= 242020;	/// ·¹³ª ½º³ªÀÌÇÎ ·¹ÀÎÀú
-	static const int UNIT_CLASS_CHANGE_TRAPPING_RANGER_ITEM_ID	= 242030;	/// ·¹³ª Æ®·¡ÇÎ ·¹ÀÎÀú
-	static const int UNIT_CLASS_CHANGE_SOUL_TAKER_ITEM_ID       = 242040;	/// ·¹ÀÌºì ¼Ò¿ï Å×ÀÌÄ¿
-	static const int UNIT_CLASS_CHANGE_OVER_TAKER_ITEM_ID       = 242050;	/// ·¹ÀÌºì ¿À¹ö Å×ÀÌÄ¿
-	static const int UNIT_CLASS_CHANGE_WEAPON_TAKER_ITEM_ID		= 242060;	/// ·¹ÀÌºì ¿þÆù Å×ÀÌÄ¿
-	static const int UNIT_CLASS_CHANGE_EXOTIC_GEAR_ITEM_ID      = 242070;	/// ÀÌºê ÄÚµå ¿¢Á¶Æ½
-	static const int UNIT_CLASS_CHANGE_ARCHITECTURE_ITEM_ID     = 242080;	/// ÀÌºê ÄÚµå ¾ÆÅ°ÅØÃÄ
-	static const int UNIT_CLASS_CHANGE_ELECTRA_ITEM_ID			= 242090;	/// ÀÌºê ÄÚµå ÀÏ·ºÆ®¶ó
-	static const int UNIT_CLASS_CHANGE_FURY_GUARDIAN_ID			= 242100;	/// Ã» Ç»¸® °¡µð¾ð
-	static const int UNIT_CLASS_CHANGE_SHOOTING_GUARDIAN_ID		= 242110;	/// Ã» ½´ÆÃ °¡µð¾ð
-	static const int UNIT_CLASS_CHANGE_SHELLING_GUARDIAN_ID		= 242120;	/// Ã» ½©¸µ °¡µð¾ð
-	static const int UNIT_CLASS_CHANGE_SABER_KNIGHT_ID			= 252754;	/// ¿¤¸®½Ã½º ¼¼ÀÌ¹ö ³ªÀÌÆ®
-	static const int UNIT_CLASS_CHANGE_PYRO_KNIGHT_ID			= 252755;	/// ¿¤¸®½Ã½º ÆÄÀÌ·Î ³ªÀÌÆ®
-#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
-	/// ¾ÆÀÌÅÛ ¹ß±Þ µÇ¸é ¼³Á¤ ÇÊ¿ä
-	static const int UNIT_CLASS_CHANGE_LITTLE_HSIEN_ID			= 252757;	/// ¾Æ¶ó ¼Ò¼±
-	static const int UNIT_CLASS_CHANGE_LITTLE_DEVIL_ID			= 252756;	/// ¾Æ¶ó ¼Ò¸¶
+#pragma region 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_SWORD_KNIGHT_ITEM_ID		= 241950;	/// ï¿½ï¿½ï¿½Òµï¿½ ï¿½Òµï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	static const int UNIT_CLASS_CHANGE_MAGIC_KNIGHT_ITEM_ID    	= 241960;	/// ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	static const int UNIT_CLASS_CHANGE_SHEATH_KNIGHT_ITEM_ID	= 241970;	/// ï¿½ï¿½ï¿½Òµï¿½ ï¿½Ã¾ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	static const int UNIT_CLASS_CHANGE_HIGH_MAGICIAN_ITEM_ID    = 241980;	/// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_DARK_MAGICIAN_ITEM_ID    = 241990;	/// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_BATTLE_MAGICIAN_ITEM_ID	= 242000;	/// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_COMBAT_RANGER_ITEM_ID	= 242010;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_SNIPING_RANGER_ITEM_ID	= 242020;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_TRAPPING_RANGER_ITEM_ID	= 242030;	/// ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_SOUL_TAKER_ITEM_ID       = 242040;	/// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½Ò¿ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¿
+	static const int UNIT_CLASS_CHANGE_OVER_TAKER_ITEM_ID       = 242050;	/// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¿
+	static const int UNIT_CLASS_CHANGE_WEAPON_TAKER_ITEM_ID		= 242060;	/// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¿
+	static const int UNIT_CLASS_CHANGE_EXOTIC_GEAR_ITEM_ID      = 242070;	/// ï¿½Ìºï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½Æ½
+	static const int UNIT_CLASS_CHANGE_ARCHITECTURE_ITEM_ID     = 242080;	/// ï¿½Ìºï¿½ ï¿½Úµï¿½ ï¿½ï¿½Å°ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_ELECTRA_ITEM_ID			= 242090;	/// ï¿½Ìºï¿½ ï¿½Úµï¿½ ï¿½Ï·ï¿½Æ®ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_FURY_GUARDIAN_ID			= 242100;	/// Ã» Ç»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_SHOOTING_GUARDIAN_ID		= 242110;	/// Ã» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_SHELLING_GUARDIAN_ID		= 242120;	/// Ã» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_SABER_KNIGHT_ID			= 252754;	/// ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	static const int UNIT_CLASS_CHANGE_PYRO_KNIGHT_ID			= 252755;	/// ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
+	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß±ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
+	static const int UNIT_CLASS_CHANGE_LITTLE_HSIEN_ID			= 252757;	/// ï¿½Æ¶ï¿½ ï¿½Ò¼ï¿½
+	static const int UNIT_CLASS_CHANGE_LITTLE_DEVIL_ID			= 252756;	/// ï¿½Æ¶ï¿½ ï¿½Ò¸ï¿½
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 #pragma endregion
 
-#pragma region 2Â÷ ÀüÁ÷
-	static const int UNIT_CLASS_CHANGE_LORD_KNIGHT_ITEM_ID			= 242130;	/// ¿¤¼Òµå ·Îµå ³ªÀÌÆ®
-	static const int UNIT_CLASS_CHANGE_RUNE_SLAYER_ITEM_ID			= 242140;	/// ¿¤¼Òµå ·é ½½·¹ÀÌ¾î
-	static const int UNIT_CLASS_CHANGE_INFINITY_SWORD_ITEM_ID		= 242150;	/// ¿¤¼Òµå ÀÎÇÇ´ÏÆ¼ ½º¿öµå
-	static const int UNIT_CLASS_CHANGE_VOID_PRINCESS_ITEM_ID		= 242160;	/// ¾ÆÀÌ»þ º¸ÀÌµå ÇÁ¸°¼¼½º
-	static const int UNIT_CLASS_CHANGE_ELEMENTAL_MASTER_ITEM_ID		= 242170;	/// ¾ÆÀÌ»þ ¿¤¸®¸àÅ» ¸¶½ºÅÍ
-	static const int UNIT_CLASS_CHANGE_DIMENSION_WITCH_ITEM_ID		= 242180;	/// ¾ÆÀÌ»þ µð¸à¼Ç À§Ä¡
-	static const int UNIT_CLASS_CHANGE_WIND_SNEAKER_ITEM_ID			= 242190;	/// ·¹³ª À©µå ½º´ÏÄ¿
-	static const int UNIT_CLASS_CHANGE_GRAND_ARCHER_ITEM_ID			= 242200;	/// ·¹³ª ±×·£µå ¾ÆÃ³
-	static const int UNIT_CLASS_CHANGE_NIGHT_WATCHER_ITEM_ID		= 242210;	/// ·¹³ª ³ªÀÌÆ® ¿ÍÃÄ
-	static const int UNIT_CLASS_CHANGE_BLADE_MASTER_ITEM_ID			= 242220;	/// ·¹ÀÌºì ºí·¹ÀÌµå ¸¶½ºÅÍ
-	static const int UNIT_CLASS_CHANGE_RECKLESS_FIST_ITEM_ID		= 242230;	/// ·¹ÀÌºì ·¹Å©¸®½º ÇÇ½ºÆ®
-	static const int UNIT_CLASS_CHANGE_VETERAN_COMMANDER_ITEM_ID	= 242240;	/// ·¹ÀÌºì º£ÅÍ¶û ÄÚ¸Ç´õ
-	static const int UNIT_CLASS_CHANGE_NEMESIS_ITEM_ID				= 242250;	/// ÀÌºê ÄÚµå ³×¸Þ½Ã½º
-	static const int UNIT_CLASS_CHANGE_EMPRESS_ITEM_ID				= 242260;	/// ÀÌºê ÄÚµå ¿¥ÇÁ·¹½º
-	static const int UNIT_CLASS_CHANGE_BATTLE_SERAPH_ITEM_ID		= 242270;	/// ÀÌºê ÄÚµå ¹èÆ² ¼¼¶óÇÁ
-	static const int UNIT_CLASS_CHANGE_IRON_PALADIN_ID				= 242280;	/// Ã» ¾ÆÀÌ¾ð ÆÈ¶óµò
-	static const int UNIT_CLASS_CHANGE_DEADLY_CHASER_ID				= 242290;	/// Ã» µ¥µé¸® Ã¼ÀÌ¼­
-	static const int UNIT_CLASS_CHANGE_TACTICAL_TROOPER_ID			= 242300;	/// Ã» ÅÃÆ½ÄÃ Æ®·çÆÛ
-#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
-	static const int UNIT_CLASS_CHANGE_SAKRA_DEVANAM_ID				= 252751;	/// ¾Æ¶ó Á¦Ãµ
-	static const int UNIT_CLASS_CHANGE_YAMA_RAJA_ID						= 252752;	/// ¾Æ¶ó ¸í¿Õ
+#pragma region 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_LORD_KNIGHT_ITEM_ID			= 242130;	/// ï¿½ï¿½ï¿½Òµï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	static const int UNIT_CLASS_CHANGE_RUNE_SLAYER_ITEM_ID			= 242140;	/// ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½
+	static const int UNIT_CLASS_CHANGE_INFINITY_SWORD_ITEM_ID		= 242150;	/// ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ï¿½Ç´ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_VOID_PRINCESS_ITEM_ID		= 242160;	/// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_ELEMENTAL_MASTER_ITEM_ID		= 242170;	/// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_DIMENSION_WITCH_ITEM_ID		= 242180;	/// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
+	static const int UNIT_CLASS_CHANGE_WIND_SNEAKER_ITEM_ID			= 242190;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¿
+	static const int UNIT_CLASS_CHANGE_GRAND_ARCHER_ITEM_ID			= 242200;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ï¿½ ï¿½ï¿½Ã³
+	static const int UNIT_CLASS_CHANGE_NIGHT_WATCHER_ITEM_ID		= 242210;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_BLADE_MASTER_ITEM_ID			= 242220;	/// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_RECKLESS_FIST_ITEM_ID		= 242230;	/// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ ï¿½Ç½ï¿½Æ®
+	static const int UNIT_CLASS_CHANGE_VETERAN_COMMANDER_ITEM_ID	= 242240;	/// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½Í¶ï¿½ ï¿½Ú¸Ç´ï¿½
+	static const int UNIT_CLASS_CHANGE_NEMESIS_ITEM_ID				= 242250;	/// ï¿½Ìºï¿½ ï¿½Úµï¿½ ï¿½×¸Þ½Ã½ï¿½
+	static const int UNIT_CLASS_CHANGE_EMPRESS_ITEM_ID				= 242260;	/// ï¿½Ìºï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_BATTLE_SERAPH_ITEM_ID		= 242270;	/// ï¿½Ìºï¿½ ï¿½Úµï¿½ ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_IRON_PALADIN_ID				= 242280;	/// Ã» ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½È¶ï¿½ï¿½
+	static const int UNIT_CLASS_CHANGE_DEADLY_CHASER_ID				= 242290;	/// Ã» ï¿½ï¿½ï¿½é¸® Ã¼ï¿½Ì¼ï¿½
+	static const int UNIT_CLASS_CHANGE_TACTICAL_TROOPER_ID			= 242300;	/// Ã» ï¿½ï¿½Æ½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
+	static const int UNIT_CLASS_CHANGE_SAKRA_DEVANAM_ID				= 252751;	/// ï¿½Æ¶ï¿½ ï¿½ï¿½Ãµ
+	static const int UNIT_CLASS_CHANGE_YAMA_RAJA_ID						= 252752;	/// ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 #pragma endregion
 
@@ -1251,10 +1251,10 @@ static const int CLASS_CHANGE_YAMA_RAJA_ID				= 264394;		/// ¾Æ¶ó ¸í¿Õ ÀüÁ÷ ¾ÆÀÌ
 
 
 
-static const int MAX_PARTY_FEVER = 4000;// ¹èÆ² ÇÊµå·Î °³Æí µÇ¸é¼­ ÃÖ´ë ÇÇ¹ö ¼öÄ¡´Â 2000
+static const int MAX_PARTY_FEVER = 4000;// ï¿½ï¿½Æ² ï¿½Êµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸é¼­ ï¿½Ö´ï¿½ ï¿½Ç¹ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ 2000
 
 
-static const float MAX_PLAY_TIME	= 19999.0f;		// ´øÀü³»¿¡¼­ ÃÖ´ë·Î ÇÃ·¹ÀÌ ÇÒ ¼ö ÀÖ´Â ½Ã°£
+static const float MAX_PLAY_TIME	= 19999.0f;		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Ã°ï¿½
 
 
 
@@ -1270,62 +1270,62 @@ static const int SURVIVAL_PVP_PLAY_TIME[]		= { 200, 500, 800, 1100 };
 
 
 #ifdef DUNGEON_ITEM
-// ºñ¾à·ù
-static const int DUNGEON_ITEM1_1 = 77280;	// °ÅÀÎÀÇ ºñ¾à
-static const int DUNGEON_ITEM1_2 = 77290;	// ½ºÇÁ¸°ÅÍÀÇ ºñ¾à
-static const int DUNGEON_ITEM1_3 = 77300;	// ¼ÒÀÎÀÇ ºñ¾à
-static const int DUNGEON_ITEM1_4 = 77320;	// °¢¼º ºñ¾à
+// ï¿½ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM1_1 = 77280;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM1_2 = 77290;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM1_3 = 77300;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM1_4 = 77320;	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 
-// Á¤·É¼ÒÈ¯·ù
-static const int DUNGEON_ITEM2_1 = 77330;	// ¿À¸®¿¡µåÀÇ ºÐ³ë
-static const int DUNGEON_ITEM2_2 = 77340;	// µå¶óÀÌ¾îµåÀÇ ºÐ³ë
-static const int DUNGEON_ITEM2_3 = 77350;	// ¶ó¿ïÀÇ ºÐ³ë
-static const int DUNGEON_ITEM2_4 = 77360;	// ÀÏ¸®ÇÇ¾ÆÀÇ ¼Õ±æ
+// ï¿½ï¿½ï¿½É¼ï¿½È¯ï¿½ï¿½
+static const int DUNGEON_ITEM2_1 = 77330;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð³ï¿½
+static const int DUNGEON_ITEM2_2 = 77340;	// ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ï¿½ ï¿½Ð³ï¿½
+static const int DUNGEON_ITEM2_3 = 77350;	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð³ï¿½
+static const int DUNGEON_ITEM2_4 = 77360;	// ï¿½Ï¸ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½Õ±ï¿½
 
-// ¹®Àå·ù
-static const int DUNGEON_ITEM3_1 = 77370;	// ¿ë¸ÍÀÇ ¹®Àå
-static const int DUNGEON_ITEM3_2 = 77380;	// ¸¶·ÂÀÇ ¹®Àå
-static const int DUNGEON_ITEM3_3 = 77390;	// ¼öÈ£ÀÇ ¹®Àå
-static const int DUNGEON_ITEM3_4 = 77400;	// ¸¶¹ý¼öÈ£ÀÇ ¹®Àå
-static const int DUNGEON_ITEM3_5 = 77410;	// ºÒ°¡Ä§ÀÇ ¹®Àå
+// ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM3_1 = 77370;	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM3_2 = 77380;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM3_3 = 77390;	// ï¿½ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM3_4 = 77400;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM3_5 = 77410;	// ï¿½Ò°ï¿½Ä§ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-// ¾Æ±º¸ó½ºÅÍ ¼ÒÈ¯
-static const int DUNGEON_ITEM4_1 = 131857;  // ¸ó½ºÅÍ ¼ÒÈ¯
+// ï¿½Æ±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+static const int DUNGEON_ITEM4_1 = 131857;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 #ifdef CLIENT_COUNTRY_EU
-static const int DUNGEON_ITEM4_2 = 78300;  // ¸ó½ºÅÍ ¼ÒÈ¯
-static const int DUNGEON_ITEM4_3 = 78305;  // ¸ó½ºÅÍ ¼ÒÈ¯
-static const int DUNGEON_ITEM4_4 = 78310;  // ¸ó½ºÅÍ ¼ÒÈ¯
-static const int DUNGEON_ITEM4_5 = 78315;  // ¸ó½ºÅÍ ¼ÒÈ¯
-static const int DUNGEON_ITEM4_6 = 78320;  // ¸ó½ºÅÍ ¼ÒÈ¯
+static const int DUNGEON_ITEM4_2 = 78300;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+static const int DUNGEON_ITEM4_3 = 78305;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+static const int DUNGEON_ITEM4_4 = 78310;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+static const int DUNGEON_ITEM4_5 = 78315;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+static const int DUNGEON_ITEM4_6 = 78320;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 #else //CLIENT_COUNTRY_EU
-static const int DUNGEON_ITEM4_2 = 135176/*78300*/;  // ¸ó½ºÅÍ ¼ÒÈ¯
-static const int DUNGEON_ITEM4_3 = 135177/*78305*/;  // ¸ó½ºÅÍ ¼ÒÈ¯
-static const int DUNGEON_ITEM4_4 = 135178/*78310*/;  // ¸ó½ºÅÍ ¼ÒÈ¯
-static const int DUNGEON_ITEM4_5 = 135179/*78315*/;  // ¸ó½ºÅÍ ¼ÒÈ¯
-static const int DUNGEON_ITEM4_6 = 135180/*78320*/;  // ¸ó½ºÅÍ ¼ÒÈ¯
+static const int DUNGEON_ITEM4_2 = 135176/*78300*/;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+static const int DUNGEON_ITEM4_3 = 135177/*78305*/;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+static const int DUNGEON_ITEM4_4 = 135178/*78310*/;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+static const int DUNGEON_ITEM4_5 = 135179/*78315*/;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+static const int DUNGEON_ITEM4_6 = 135180/*78320*/;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 #endif //CLIENT_COUNTRY_EU
-#ifdef ADD_VELDER_ACADEMY_EVENT_MONSTER		/// º§´õ ¾ÆÄ«µ¥¹Ì ½ÅÇÐ±â ÀÌº¥Æ®
-static const int DUNGEON_ITEM5_1 = 78835;	/// ±³Àå ¼±»ý´Ô ÇÏ°Å½º
-static const int DUNGEON_ITEM5_2 = 78836;	/// ÇÐ»ýÁÖÀÓ ¼±»ý´Ô ¾Ö¹Ì¸®Æ®
-static const int DUNGEON_ITEM5_3 = 78837;	/// À×±Û¸®½¬ Æ¼Ã³ ¸®Ä¡¾Ó
-static const int DUNGEON_ITEM5_4 = 78838;	/// ¼öÇÐ ¼±»ý´Ô ¿¡ÄÚ
-static const int DUNGEON_ITEM5_5 = 78839;	/// ±¹¾î ¼±»ý´Ô È£ÇÁ¸¸
+#ifdef ADD_VELDER_ACADEMY_EVENT_MONSTER		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä«ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð±ï¿½ ï¿½Ìºï¿½Æ®
+static const int DUNGEON_ITEM5_1 = 78835;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°Å½ï¿½
+static const int DUNGEON_ITEM5_2 = 78836;	/// ï¿½Ð»ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹Ì¸ï¿½Æ®
+static const int DUNGEON_ITEM5_3 = 78837;	/// ï¿½×±Û¸ï¿½ï¿½ï¿½ Æ¼Ã³ ï¿½ï¿½Ä¡ï¿½ï¿½
+static const int DUNGEON_ITEM5_4 = 78838;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int DUNGEON_ITEM5_5 = 78839;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½ï¿½
 #endif ADD_VELDER_ACADEMY_EVENT_MONSTER
 
-const int DUNGEON_ITEM_LIST1[] = { DUNGEON_ITEM1_1, DUNGEON_ITEM1_2, DUNGEON_ITEM1_3, DUNGEON_ITEM1_4, };	// ºñ¾à
-const int DUNGEON_ITEM_LIST2[] = { DUNGEON_ITEM2_1, DUNGEON_ITEM2_2, DUNGEON_ITEM2_3, DUNGEON_ITEM2_4, };	// Á¤·É¼ÒÈ¯
-const int DUNGEON_ITEM_LIST3[] = { DUNGEON_ITEM3_1, DUNGEON_ITEM3_2, DUNGEON_ITEM3_3, DUNGEON_ITEM3_4, DUNGEON_ITEM3_5, };	// ¹®Àå
-const int DUNGEON_ITEM_LIST4[] = { DUNGEON_ITEM4_1, DUNGEON_ITEM4_2, DUNGEON_ITEM4_3, DUNGEON_ITEM4_4, DUNGEON_ITEM4_5, DUNGEON_ITEM4_6, }; // ¸ó½ºÅÍ ¼ÒÈ¯
+const int DUNGEON_ITEM_LIST1[] = { DUNGEON_ITEM1_1, DUNGEON_ITEM1_2, DUNGEON_ITEM1_3, DUNGEON_ITEM1_4, };	// ï¿½ï¿½ï¿½
+const int DUNGEON_ITEM_LIST2[] = { DUNGEON_ITEM2_1, DUNGEON_ITEM2_2, DUNGEON_ITEM2_3, DUNGEON_ITEM2_4, };	// ï¿½ï¿½ï¿½É¼ï¿½È¯
+const int DUNGEON_ITEM_LIST3[] = { DUNGEON_ITEM3_1, DUNGEON_ITEM3_2, DUNGEON_ITEM3_3, DUNGEON_ITEM3_4, DUNGEON_ITEM3_5, };	// ï¿½ï¿½ï¿½ï¿½
+const int DUNGEON_ITEM_LIST4[] = { DUNGEON_ITEM4_1, DUNGEON_ITEM4_2, DUNGEON_ITEM4_3, DUNGEON_ITEM4_4, DUNGEON_ITEM4_5, DUNGEON_ITEM4_6, }; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 #endif
 
 #ifdef RIDING_SYSTEM
-//Å» °Í »ý¼º ¾ÆÀÌÅÛ
+//Å» ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 static const int RIDING_PET_ITEM_ID[] = { 550000, 550010, 550020, 550001, 550011, 550021, 550030, 550040, 550003, 550013, 550023,
 										  67006329, 67006330, 67006331, 67006703, 67006704, 67006705, 67006706, 67006707, 67006712, 67006714,
 										  67006720, 67006721, 67006722, 60008021, 84002150, 84002160, 84002170 };
 #endif //RIDING_SYSTEM
 
-// Æê»ý¼º ¾ÆÀÌÅÛ 
+// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
 static const int PET_ITEM_ID[] =	{ 500000, 500010, 500020, 500050, 500060, 500070, 500100, 500110, 500140, 500150, 500160, 500170,
 									  500180, 500230, 500240, 500250, 500260, 500310, 500320, 500330, 500340, 500510, 500520, 500530,
 									  500540, 500550, 500600, 500610, 500620, 500660, 500670, 500700, 500710, 500730, 500750, 500790,
@@ -1352,7 +1352,7 @@ static const int NON_REFUNDABLE_CASH_ITEM_ID[] = { 213610,213460,213470,213480,2
 #endif CASH_ITEM_REFUND
 
 #ifdef PET_DROP_ITEM_PICKUP
-//Æê ¾ÆÀÌÅÛ ÁÝ±â ±â´É È°¼ºÈ­ ¾ÆÀÌÅÛ
+//ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ý±ï¿½ ï¿½ï¿½ï¿½ È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 static const int ACTIVATION_DROP_ITEM_PICKUP_SKILL = 500720;
 #endif //PET_DROP_ITEM_PICKUP
 
@@ -1361,16 +1361,16 @@ static const int HALLOWEEN_TRANSFORM_POSION = 90002300;
 #endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 
 
-//ºñ¾à, ¿µ¾à ¾ÆÀÌÅÛ ID
+//ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ID
 #ifdef BUFF_TEMPLET_SYSTEM
-static const int PROTECTION_OF_NUT_ITEM_ID		= 78520;	//´©Æ®ÀÇ °¡È£		- ºñ¾à	
-static const int PROTECTION_OF_PUTA_ITEM_ID		= 78530;	//ÇÁÅ¸ÀÇ °¡È£		- ºñ¾à	
-static const int PROTECTION_OF_LAHELL_ITEM_ID	= 78540;	//¶óÇïÀÇ °¡È£		- ºñ¾à	
-static const int PROTECTION_OF_JAKIELL_ITEM_ID	= 78550;	//ÀÚÅ°¿¤ÀÇ °¡È£		- ºñ¾à	
-static const int BELSSING_OF_SERAPHIM_ITEM_ID	= 78560;	//¼¼¶óÇËÀÇ Ãàº¹		- ¿µ¾à	
-static const int BELSSING_OF_GEV_ITEM_ID		= 78570;	//°ÔºêÀÇ Ãàº¹		- ¿µ¾à	
-static const int BELSSING_OF_AMON_ITEM_ID		= 78580;	//¾Æ¸óÀÇ Ãàº¹		- ¿µ¾à	
-static const int BELSSING_OF_CRONOS_ITEM_ID		= 78590;	//Å©·Î³ë½ºÀÇ Ãàº¹	- ¿µ¾à
+static const int PROTECTION_OF_NUT_ITEM_ID		= 78520;	//ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½È£		- ï¿½ï¿½ï¿½	
+static const int PROTECTION_OF_PUTA_ITEM_ID		= 78530;	//ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½È£		- ï¿½ï¿½ï¿½	
+static const int PROTECTION_OF_LAHELL_ITEM_ID	= 78540;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£		- ï¿½ï¿½ï¿½	
+static const int PROTECTION_OF_JAKIELL_ITEM_ID	= 78550;	//ï¿½ï¿½Å°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£		- ï¿½ï¿½ï¿½	
+static const int BELSSING_OF_SERAPHIM_ITEM_ID	= 78560;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àº¹		- ï¿½ï¿½ï¿½ï¿½	
+static const int BELSSING_OF_GEV_ITEM_ID		= 78570;	//ï¿½Ôºï¿½ï¿½ï¿½ ï¿½àº¹		- ï¿½ï¿½ï¿½ï¿½	
+static const int BELSSING_OF_AMON_ITEM_ID		= 78580;	//ï¿½Æ¸ï¿½ï¿½ï¿½ ï¿½àº¹		- ï¿½ï¿½ï¿½ï¿½	
+static const int BELSSING_OF_CRONOS_ITEM_ID		= 78590;	//Å©ï¿½Î³ë½ºï¿½ï¿½ ï¿½àº¹	- ï¿½ï¿½ï¿½ï¿½
 #endif BUFF_TEMPLET_SYSTEM
 
 //----------------------------------------------------------------------------------//
@@ -1381,40 +1381,40 @@ static const int PET_CHEER_SKILL_GM_ITEM_ID				= 80001821;
 #endif //PET_ITEM_GM
 
 #ifdef SERV_VIP_SYSTEM
-static const int VIP_WARP_ITEM_FREE_ITEM_ID					= 80000117;		// VIP ÀÌµ¿Æ¼ÄÏ ÀÚÀ¯ ÀÌ¿ë±Ç (80000117)
+static const int VIP_WARP_ITEM_FREE_ITEM_ID					= 80000117;		// VIP ï¿½Ìµï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½ (80000117)
 #endif //SERV_VIP_SYSTEM
 #ifdef SERV_VIP_SYSTEM
 static const int EVENT_NASOD_SCOPE_ITEM_ID				= 80000119;
 static const int EVENT_NASOD_SCOPE_HIGH_ITEM_ID			= 80000120;
 #endif //SERV_VIP_SYSTEM
 #ifdef EVENT_GUILD_ITEM
-static const int EVENT_GUILD_CASH_SKILL_ITEM_ID			= 80001181;		// Áß±¹ Àü¿ë ÀÌº¥Æ®¿ë ¾Æ¸®¿¤ÀÇ ±×³ë½Ã½º ´ëÃàº¹ 15ÀÏ 5GSP // 2012.06.05 lygan_Á¶¼º¿í
-static const int EVENT_RESET_A_GUILD_SKILL_ITEM_ID		= 80001182;		// Áß±¹ Àü¿ë ÀÌº¥Æ®¿ë ¾Æ¸®¿¤ÀÇ ±×³ë½Ã½º ´ëÃàº¹ 15ÀÏ 5GSP // 2012.06.05 lygan_Á¶¼º¿í
-static const int EVENT_GUILD_EXPANSION_ITEM_ID	= 80001183;	// Áß±¹ Àü¿ë ÀÌº¥Æ®¿ë ±æµå ÀÎ¿ø È®Àå±Ç // 2012.06.04 lygan_Á¶¼º¿í
+static const int EVENT_GUILD_CASH_SKILL_ITEM_ID			= 80001181;		// ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½àº¹ 15ï¿½ï¿½ 5GSP // 2012.06.05 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int EVENT_RESET_A_GUILD_SKILL_ITEM_ID		= 80001182;		// ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½àº¹ 15ï¿½ï¿½ 5GSP // 2012.06.05 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int EVENT_GUILD_EXPANSION_ITEM_ID	= 80001183;	// ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ È®ï¿½ï¿½ï¿½ // 2012.06.04 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif //EVENT_GUILD_ITEM
 #ifdef SERV_READY_TO_SOSUN_EVENT
 static const int EVENT_READY_TO_SOSUN_ITEM_ID			= 60007092;
 #endif SERV_READY_TO_SOSUN_EVENT
 
 #ifdef SERV_EVENT_GUILD_SKILL_GLOBAL
-static const int EVENT_GUILD_SKILL_5_POINT_15_DAY_JP	= 67005930;		// JP, ±æµå ½ºÅ³ ±â°£Á¦ + 5, °Å·¡ºÒ°¡, 15ÀÏ
+static const int EVENT_GUILD_SKILL_5_POINT_15_DAY_JP	= 67005930;		// JP, ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½â°£ï¿½ï¿½ + 5, ï¿½Å·ï¿½ï¿½Ò°ï¿½, 15ï¿½ï¿½
 #endif //SERV_EVENT_GUILD_SKILL_GLOBAL
 
 #ifdef HYPER_MODE_EFFECT_ADD_BY_ITEM
-// Èæ·æ ÄªÈ£, °¢¼º½Ã Æ¯¼ö ÀÌÆåÆ® ³ª¿È
+// ï¿½ï¿½ï¿½ ÄªÈ£, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 static const int HYPER_EFFECT_ITEM_DARK_DRAGON = 60003795;
 #endif HYPER_MODE_EFFECT_ADD_BY_ITEM
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 #ifdef SERV_COUNTRY_TWHK
-static const int SHARING_BANK_OPEN_CASH_ITEM_ID				= 60003460;	// ÀºÇà °øÀ¯ È°¼ºÈ­ ¾ÆÀÌÅÛ(´ë¸¸)
+static const int SHARING_BANK_OPEN_CASH_ITEM_ID				= 60003460;	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ë¸¸)
 #else
-static const int SHARING_BANK_OPEN_CASH_ITEM_ID				= 65000701;	// ÀºÇà °øÀ¯ È°¼ºÈ­ ¾ÆÀÌÅÛ
+static const int SHARING_BANK_OPEN_CASH_ITEM_ID				= 65000701;	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif SERV_COUNTRY_TWHK
 #endif
 
-//{{ 2011.10.24 ÀÌÁöÇå : °ñµå Æ¼ÄÏ ÀÛ¾÷ ( »ç¿ëÇÏ¸é Ä³½¬ ÁÖ´Â ¾ÆÀÌÅÛ )
+//{{ 2011.10.24 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ Æ¼ï¿½ï¿½ ï¿½Û¾ï¿½ ( ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ Ä³ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
 #ifdef SERV_GOLD_TICKET
-static const int GOLD_TICKET_ID				= 60003600;// °ñµå Æ¼ÄÏ
+static const int GOLD_TICKET_ID				= 60003600;// ï¿½ï¿½ï¿½ Æ¼ï¿½ï¿½
 static const int GOLD_TICKET_10_ID			= 75000700;// Gold Ticket (10)
 static const int GOLD_TICKET_50_ID			= 75000701;// Gold Ticket (50)
 static const int GOLD_TICKET_100_ID			= 75000702;// Gold Ticket (100)
@@ -1440,7 +1440,7 @@ inline bool IsGoldTicket(const int iItemID )
 	return false;
 }
 
-// Æ¯¼öÇÑ ¾ÆÀÌÅÛ(°ñµå Æ¼ÄÏ) ÀºÇà °øÀ¯ ¾ÈµÇµµ·Ï Ã¼Å© ÇÏ´Â ÇÔ¼ö
+// Æ¯ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ Æ¼ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇµï¿½ï¿½ï¿½ Ã¼Å© ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
 inline bool IsCantShareBankItem(const int iItemID )
 {
 	if(IsGoldTicket(iItemID) == true)
@@ -1454,35 +1454,35 @@ inline bool IsCantShareBankItem(const int iItemID )
 
 
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥: 2013-04-11
-static const int ELIXIR_GIANT_POTION			= 78894;	/// ¾îµÒÀÇ ¹® ¿µ¾à : °ÅÀÎÈ­ ¹°¾à
-static const int ELIXIR_BLAZING_BOMB			= 78895;	/// ¾îµÒÀÇ ¹® ¿µ¾à : ÀÌ±ÛÀÌ±Û Æø¾à
-static const int ELIXIR_SPIRIT_OF_CHASER		= 78896;	/// ¾îµÒÀÇ ¹® ¿µ¾à : ÃßÀûÀÚÀÇ È¥
-static const int ELIXIR_CRADLE_OF_LITTLE_FAIRY	= 78897;	/// ¾îµÒÀÇ ¹® ¿µ¾à : ¾Æ±â ¿äÁ¤ ¿ä¶÷
-static const int ELIXIR_ICE_BALL_OF_DENIPH		= 78898;	/// ¾îµÒÀÇ ¹® ¿µ¾à : µ¥´ÏÇÁÀÇ ¾óÀ½ ±¸½½
-static const int ELIXIR_FEATHER_OF_VENTUS		= 78899;	/// ¾îµÒÀÇ ¹® ¿µ¾à : º¥Åõ½ºÀÇ ³¯°³±ê
-static const int ELIXIR_FLAME_RING_OF_ROSSO		= 78900;	/// ¾îµÒÀÇ ¹® ¿µ¾à : ·Î½îÀÇ È­¿°°í¸®
-static const int ELIXIR_BIG_HAND_POTION			= 78901;	/// ¾îµÒÀÇ ¹® ¿µ¾à : °Å´ë¼Õ ¹°¾à
+#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-11
+static const int ELIXIR_GIANT_POTION			= 78894;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½
+static const int ELIXIR_BLAZING_BOMB			= 78895;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½Ì±ï¿½ï¿½Ì±ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int ELIXIR_SPIRIT_OF_CHASER		= 78896;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¥
+static const int ELIXIR_CRADLE_OF_LITTLE_FAIRY	= 78897;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½Æ±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+static const int ELIXIR_ICE_BALL_OF_DENIPH		= 78898;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int ELIXIR_FEATHER_OF_VENTUS		= 78899;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int ELIXIR_FLAME_RING_OF_ROSSO		= 78900;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½Î½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static const int ELIXIR_BIG_HAND_POTION			= 78901;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : ï¿½Å´ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif // SERV_NEW_DEFENCE_DUNGEON
 #ifdef SERV_EVENT_ARA_NEW_CHAR_THE_ESSENCE_OF_HERETIC
-static const int THE_ESSENCE_OF_WEAK_HERETIC_POTION			= 85003830;	// ÀÌº¥Æ® ¿µ¾à : ¹Ì¾àÇÑ »çÆÄÀÇ Á¤¼ö
-static const int THE_ESSENCE_OF_HERETIC_POTION				= 85003831;	// ÀÌº¥Æ® ¿µ¾à : »çÆÄÀÇ Á¤¼ö
+static const int THE_ESSENCE_OF_WEAK_HERETIC_POTION			= 85003830;	// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ : ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+static const int THE_ESSENCE_OF_HERETIC_POTION				= 85003831;	// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif SERV_EVENT_ARA_NEW_CHAR_THE_ESSENCE_OF_HERETIC
 #ifdef SERV_EVENT_RURIEL_MANA_ENERGIZE_POTION
-static const int BUFF_RURIEL_MANA_ENERGIZE_POTION			= 60008058;	// ÀÌº¥Æ® ¿µ¾à : ·ç¸®¿¤ÀÇ ¸¶³ª È°¼ºÈ­ Æ÷¼Ç
+static const int BUFF_RURIEL_MANA_ENERGIZE_POTION			= 60008058;	// ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ : ï¿½ç¸®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½
 #endif SERV_EVENT_RURIEL_MANA_ENERGIZE_POTION
-// ¼ÒÈ¯°¡´ÉÇÑ npc card list
+// ï¿½ï¿½È¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ npc card list
 #ifdef ADD_TRAININGGAME_NPC
 static const int NPC_CARD[] = { 78620, 78621, 78622, 78623, 78630, 78631, 78632, 78633, 78634, 78635, 78640, 78641, 78642, 78643, 78644, 78645, 78646, 78650, 78651, 78652, 78653, 78654, 78655, 78656, 78660, 78661, 78662, 78663, 78664, 78665, 78666, 78667, 78669, 78670, 78671, 78672, 78673, 78674, 78675, 78676, 78677, 78678, 78679, 78680, 78681, 78682, 78683, 78684, 78685, 78686, 78687, 78688, 78689, 78690, 78691, 78692, 78693, 78694, 78695, 78696, 78697, 78698, 78699, 78700, 78701, 78702, 78703, 78704, 78705, 78706 ,78707, 78708, 78709, 78710, 78711, 78712, 78713, 78714, 78715, 78716, 78717, 78718, 78719, 78720, 78721, 78722, 78723, 78724, 78725, 78726, 78727, 78728, 78729, 78730, 78731, 78732, 78733, 78734, 78735, 78736, 78737, 78738, 78739, 78740, 78741, 78742, 78743, 78744,	78745, 78746, 78747, 78748, 78749, 78750, 78751, 78752, 78753, 78754, 78811, 78812, 78813, 78814, 78815, 78816, 78817, 78818, 78819, 78820, 78821, 78822, 78823, 78824, 78825, 78826, 78827, 78828, 78829, 78830, 78831, 78832, 78833 };
 #endif
 
-#ifdef SERV_NEW_ITEM_SYSTEM_2013_05//¹Ì¶óÅ¬Å¥ºê
+#ifdef SERV_NEW_ITEM_SYSTEM_2013_05//ï¿½Ì¶ï¿½Å¬Å¥ï¿½ï¿½
 static const int ITEM_ID_RESTORE_ITEM_EVALUATE[] = 
 { 
-	270866, 270848,	270849,	270850,	270851,	270852,	270853,	270854,	270855,	270856, // ÀÏ¹Ý 0~9·¹º§
-	270867, 270857,	270858,	270859,	270860,	270861,	270862,	270863,	270864,	270865, // ÄÚº¸ 0~9·¹º§
+	270866, 270848,	270849,	270850,	270851,	270852,	270853,	270854,	270855,	270856, // ï¿½Ï¹ï¿½ 0~9ï¿½ï¿½ï¿½ï¿½
+	270867, 270857,	270858,	270859,	270860,	270861,	270862,	270863,	270864,	270865, // ï¿½Úºï¿½ 0~9ï¿½ï¿½ï¿½ï¿½
 	//INT
-	60007580, 60007571, 60007572, 60007573, 60007574, 60007575, 60007576, 60007577, 60007578, 60007579, // ·ç¸®¿¤ 0~9·¹º§
+	60007580, 60007571, 60007572, 60007573, 60007574, 60007575, 60007576, 60007577, 60007578, 60007579, // ï¿½ç¸®ï¿½ï¿½ 0~9ï¿½ï¿½ï¿½ï¿½
 
 };		   
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
@@ -1523,7 +1523,7 @@ enum X2_UK_FONT
 {
 	XUF_DODUM_11_NORMAL = 0,
 	XUF_DODUM_13_SEMIBOLD,
-	XUF_DODUM_15_BOLD,		// ÀÌ ÆùÆ®´Â »ó¼ö°ªÀÌ 2¿©¾ß ÇÑ´Ù... CKTDGUIUnibuffer CPtoX ¶§¹®¿¡ ¤Ñ,¤Ñ¤»
+	XUF_DODUM_15_BOLD,		// ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½... CKTDGUIUnibuffer CPtoX ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½,ï¿½Ñ¤ï¿½
 	XUF_DODUM_20_BOLD,
 	XUF_HEADLINE_30_NORMAL, 
 
@@ -1580,7 +1580,7 @@ enum X2_LAYER
 	XL_EFFECT_1,
 	XL_EFFECT_2,
 
-//{{ kimhc // 2010.6.17 // enum X2_LAYER¿¡ ·¹ÀÌ¾î Ãß°¡ÇÏ´Â ÀÛ¾÷
+//{{ kimhc // 2010.6.17 // enum X2_LAYERï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½ß°ï¿½ï¿½Ï´ï¿½ ï¿½Û¾ï¿½
 #ifdef	ADD_X2_LAYER
 	XL_SKY_WORLD_OBJECT_OVER_EFFECT_0,
 	XL_SKY_WORLD_OBJECT_OVER_EFFECT_1,
@@ -1590,7 +1590,7 @@ enum X2_LAYER
 	XL_EFFECT_OVER_ALL_WORLD_OBJECT_0,
 	XL_EFFECT_OVER_ALL_WORLD_OBJECT_1,
 #endif	ADD_X2_LAYER
-//}} kimhc // 2010.6.17 // enum X2_LAYER¿¡ ·¹ÀÌ¾î Ãß°¡ÇÏ´Â ÀÛ¾÷
+//}} kimhc // 2010.6.17 // enum X2_LAYERï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½ß°ï¿½ï¿½Ï´ï¿½ ï¿½Û¾ï¿½
 	
 	XL_LENS_FLARE,
 	XL_MINIMAP,
@@ -1608,7 +1608,7 @@ enum X2_DIALOG_LAYER
 	XDL_OPTION			= 200,
 	XDL_GAME_EDIT		= 300,
 	XDL_POP_UP			= 400,
-	XDL_DIRECTING		= 500,	//¿¬ÃâÁß¿¡´Â ¾î¶² ¹«¾ùµµ ÇÒ ¼ö ¾ø´Ù!!!!
+	XDL_DIRECTING		= 500,	//ï¿½ï¿½ï¿½ï¿½ï¿½ß¿ï¿½ï¿½ï¿½ ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!!!
 };
 
 enum X2_CHANNEL
@@ -1616,7 +1616,7 @@ enum X2_CHANNEL
 	XC_PVP_FREE = 1,
 };
 
-//{{ kimhc // 2009-12-15 // ¼­¹ö±º Á¾·ù
+//{{ kimhc // 2009-12-15 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef EXTEND_SERVER_GROUP_MASK
 #else EXTEND_SERVER_GROUP_MASK
 enum SERVER_GROUP_ID
@@ -1627,7 +1627,7 @@ enum SERVER_GROUP_ID
 	SGI_END,
 };
 #endif EXTEND_SERVER_GROUP_MASK
-//}} kimhc // 2009-12-15 // ¼­¹ö±º Á¾·ù
+//}} kimhc // 2009-12-15 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #ifdef	USE_ACCOUNT_DOMAIN
 enum ACCOUNT_DOMAIN_TYPE
 {
@@ -1775,31 +1775,31 @@ enum X2_ERROR_MSG
 	XEM_ERROR131,
 	XEM_ERROR132,
 	XEM_ERROR133,
-	XEM_ERROR134,		// ´øÀüº° ·ÎµùÈ­¸é ·Îµù ½ÇÆÐ
+	XEM_ERROR134,		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½È­ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
 	XEM_ERROR135,
 	XEM_ERROR136,
 	XEM_ERROR137,
 	XEM_ERROR138,
 	XEM_ERROR139,
-	XEM_ERROR140,		// À¥¾Æ¹ÙÅ¸ ÀÌ¹ÌÁö UploadFile ¿¡·¯
+	XEM_ERROR140,		// ï¿½ï¿½ï¿½Æ¹ï¿½Å¸ ï¿½Ì¹ï¿½ï¿½ï¿½ UploadFile ï¿½ï¿½ï¿½ï¿½
 	XEM_ERROR141,		// 
-	XEM_ERROR142,		// ´øÀüID·Î DungeonData ¾ò±â ½ÇÆÐ
-	XEM_ERROR143,		// Ã¤³ÎÀÌ¸§ ¾ò¾î¿À±â ½ÇÆÐ
+	XEM_ERROR142,		// ï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½ DungeonData ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	XEM_ERROR143,		// Ã¤ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //{{ robobeg : 2013-03-12
-    XEM_ERROR144,       // Item.lua ÆÄ½Ì ¿À·ù
-    XEM_ERROR145,       // SetItem.lua ÆÄ½Ì ¿À·ù
-    XEM_ERROR146,       // Åø ¿À·ù
+    XEM_ERROR144,       // Item.lua ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    XEM_ERROR145,       // SetItem.lua ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    XEM_ERROR146,       // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //}} robobeg : 2013-03-12
-	XEM_ERROR147,		// °áÈ¥½ÄÀå ½ºÅ©¸³Æ® ÆÄ½Ì ¿À·ù.
-	XEM_ERROR148,		// CharacterStatTable ÆÄ½Ì ¿À·ù
-	XEM_ERROR149,		// Emblem_Manager.lua	ÆÄ½Ì ¿À·ù
+	XEM_ERROR147,		// ï¿½ï¿½È¥ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+	XEM_ERROR148,		// CharacterStatTable ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	XEM_ERROR149,		// Emblem_Manager.lua	ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½
 };
 
 
 
 //{{ Iruha : 2026-09-04 // base MP regen rate, in MP per second
 #ifdef SERV_IRUHADEV_MP_REGEN_BOOST
-const float SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC = 20.0f;
+const float SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC = 50.0f;
 #endif SERV_IRUHADEV_MP_REGEN_BOOST
 //}} Iruha : 2026-09-04
 
