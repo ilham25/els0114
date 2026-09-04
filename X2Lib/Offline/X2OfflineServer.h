@@ -34,6 +34,7 @@
 #include "X2OfflineSkill.h"
 #include "X2OfflineQuest.h"
 #include "X2OfflineTitle.h"
+#include "X2OfflineCashShop.h"
 
 class CX2OfflineServer : public IX2OfflineHook
 {
@@ -721,9 +722,131 @@ private:
 	void QuestOnInventoryChanged( KOfflineSession& kSes );
 
 	//////////////////////////////////////////////////////////////////////////
-	// Handlers_Stub.cpp - answered because the client blocks on them, nothing more
+	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Shop.cpp - phase 7, the cash shop
+	bool Handler_EGS_BILL_PRODUCT_INFO_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_WISH_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_MODIFY_WISH_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_BILL_INVENTORY_INQUIRY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_BUY_CASH_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PRESENT_CASH_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_VISIT_CASH_SHOP_NOT( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHECK_PRESENT_CASH_INVENTORY_NOT( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_APPLY_COUPON_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Social.cpp - phase 7, the social systems and pets
+	bool Handler_EGS_CREATE_GUILD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_GUILD_USER_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_APPLY_JOIN_GUILD_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_GUILD_AD_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_APPLY_JOIN_GUILD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_ACCEPT_JOIN_GUILD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DELETE_APPLY_JOIN_GUILD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_REGISTRATION_GUILD_AD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_MODIFY_REG_GUILD_AD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_INVITE_GUILD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_INVITE_GUILD_REPLY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_KICK_GUILD_MEMBER_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHANGE_GUILD_MEMBER_GRADE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHANGE_GUILD_MEMBER_MESSAGE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHANGE_GUILD_MESSAGE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHANGE_GUILD_NAME_CHECK_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHANGE_GUILD_NAME_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_GUILD_SKILL_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_GUILD_SKILL_IN_BOARD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_INIT_GUILD_SKILL_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_RESET_GUILD_SKILL_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_INVITE_PARTY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_LEAVE_PARTY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHANGE_PARTY_TYPE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PARTY_CHANGE_DUNGEON_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PARTY_CHANGE_HOST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PARTY_CHANGE_GET_ITEM_TYPE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PARTY_CHANGE_NUM_OF_PER_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PARTY_CHANGE_CHECK_MIN_LEVEL_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PARTY_BAN_USER_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PARTY_GAME_START_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_REQUEST_MATCH_MAKING_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PVP_PARTY_CHANGE_MATCH_INFO_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_COMMUNITY_USER_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_COMMUNITY_USER_LIST_MONITORING_MODE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_RECOMMEND_USER_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_REQUEST_FRIEND_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_ACCEPT_FRIEND_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DENY_FRIEND_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_BLOCK_FRIEND_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_UNBLOCK_FRIEND_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DELETE_FRIEND_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_MOVE_FRIEND_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_MAKE_FRIEND_GROUP_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_RENAME_FRIEND_GROUP_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DELETE_FRIEND_GROUP_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_UPDATE_FRIEND_INFO_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_KNM_REQUEST_NEW_FRIEND_INFO_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_MY_MESSENGER_SN_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_ED_MONITORING_BLOCK_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_USER_COMMUNITY_SURVEY_NEW_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_INVITE_PVP_ROOM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_UPDATE_COMMUNITY_OPTION_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SEARCH_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_CONNECTION_UNIT_INFO_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_WATCH_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_POST_LETTER_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_READ_LETTER_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DELETE_LETTER_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SEND_LETTER_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_ITEM_FROM_LETTER_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_POST_BLACK_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_NEW_POST_BLACK_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DEL_POST_BLACK_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHAT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHAT_OPTION_INFO_WRITE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_NEW_BLACKLIST_USER_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DEL_BLACKLIST_USER_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_USE_MEGAPHONE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_RANKING_INFO_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_TUTORIAL_STUDENT_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_REQUEST_TUTORIAL_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DEL_TUTORIAL_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_SHARE_BANK_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_TEMP_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DELETE_TEMP_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SEARCH_TRADE_BOARD_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHECK_SUM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_GET_PET_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_GET_RIDING_PET_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CREATE_PET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SUMMON_PET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_FEED_PETS_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_COMMANDS_FOR_PETS_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_PET_EVOLUTION_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHANGE_PET_NAME_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SET_AUTO_FEED_PETS_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CREATE_RIDING_PET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SUMMON_RIDING_PET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_UNSUMMON_RIDING_PET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_RELEASE_RIDING_PET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Social.cpp - phase 7, the rest of what a village menu can reach
+	bool Handler_EGS_CHECK_CHANNEL_CHANGE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_JOIN_FIELD_CHANNEL_CHANGE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_WARP_BY_BUTTON_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_2013_EVENT_MISSION_COMPLETE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_REG_SKILL_NOTE_MEMO_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_OPEN_RANDOM_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_AUTH_SECOND_SECURITY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CREATE_SECOND_SECURITY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_COMPARE_SECOND_SECURITY_PW_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CHANGE_SECOND_SECURITY_PW_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DELETE_SECOND_SECURITY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_DELETE_SECOND_SECURITY_VERIFY_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	// Handlers_Stub.cpp - answered because the client blocks on them, nothing more
 	bool Handler_EGS_MODULE_INFO_UPDATE_NOT( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_DUNGEON_PLAY_INFO_TO_SERVER_NOT( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_FRAME_AVERAGE_REQ( KOfflineSession& kSes, const KEvent& kEvent );

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "X2OfflineDB.h"
+#include "X2OfflineCashSeed.h"
 
 #ifdef SERV_IRUHADEV_OFFLINE
 
@@ -203,6 +204,101 @@ namespace
 	const char* const SCHEMA_V6 =
 		"ALTER TABLE unit_dungeon ADD COLUMN max_score  INTEGER NOT NULL DEFAULT 0;"
 		"ALTER TABLE unit_dungeon ADD COLUMN clear_date INTEGER NOT NULL DEFAULT 0;"
+		;
+
+	// v7 (phase 7): the cash shop's two pieces of account state, a knob table,
+	// and pets.
+	//
+	// `account.cash_balance` is already there from v1 and is used unchanged as
+	// the wallet - the column was written into the very first schema for this
+	// and never read until now.
+	//
+	// `cash_order` is the cash deposit: what has been bought and not yet
+	// claimed into the bag. On live that lives in a separate billing database
+	// behind the LoginServer, which is why the client asks for it with its own
+	// packet (EGS_BILL_INVENTORY_INQUIRY_REQ) rather than reading it out of the
+	// inventory. Offline it is one table keyed by account, because the deposit
+	// is an account-level thing on live too: a character buys, any character on
+	// the account can claim.
+	//
+	// `settings` exists so a knob can be changed by editing the save file
+	// instead of by rebuilding the client. Only one key uses it today
+	// (`cash_start`), and the point of the table is that the next one does not
+	// need a migration.
+	const char* const SCHEMA_V7 =
+		"CREATE TABLE IF NOT EXISTS cash_order ("
+		"  trans_no   INTEGER PRIMARY KEY AUTOINCREMENT,"
+		"  user_uid   INTEGER NOT NULL,"
+		"  product_no INTEGER NOT NULL,"
+		"  item_id    INTEGER NOT NULL,"
+		"  quantity   INTEGER NOT NULL DEFAULT 1,"
+		"  period     INTEGER NOT NULL DEFAULT 0,"		// rental days, 0 permanent
+		"  price      INTEGER NOT NULL DEFAULT 0,"
+		"  buy_date   INTEGER NOT NULL );"
+		"CREATE INDEX IF NOT EXISTS ix_cash_order_user ON cash_order( user_uid );"
+
+		"CREATE TABLE IF NOT EXISTS wish_list ("
+		"  user_uid INTEGER NOT NULL,"
+		"  item_id  INTEGER NOT NULL,"
+		"  PRIMARY KEY( user_uid, item_id ) );"
+
+		"CREATE TABLE IF NOT EXISTS settings ("
+		"  name  TEXT PRIMARY KEY,"
+		"  value INTEGER NOT NULL );"
+
+		// dbo.GPet. satiety/intimacy/extroversion/emotion are the four numbers
+		// CX2PetManager draws its pet window from; the two dates drive the
+		// hunger clock the client ticks on its own.
+		"CREATE TABLE IF NOT EXISTS unit_pet ("
+		"  pet_uid        INTEGER PRIMARY KEY AUTOINCREMENT,"
+		"  unit_uid       INTEGER NOT NULL,"
+		"  pet_id         INTEGER NOT NULL,"
+		"  name           TEXT NOT NULL DEFAULT '',"
+		"  evolution_step INTEGER NOT NULL DEFAULT 0,"
+		"  satiety        INTEGER NOT NULL DEFAULT 0,"
+		"  intimacy       INTEGER NOT NULL DEFAULT 0,"
+		"  extroversion   INTEGER NOT NULL DEFAULT 0,"
+		"  emotion        INTEGER NOT NULL DEFAULT 0,"
+		"  auto_feed      INTEGER NOT NULL DEFAULT 0,"
+		"  auto_looting   INTEGER NOT NULL DEFAULT 0,"
+		"  last_feed      INTEGER NOT NULL DEFAULT 0,"
+		"  last_summon    INTEGER NOT NULL DEFAULT 0,"
+		"  reg_date       INTEGER NOT NULL DEFAULT 0 );"
+		"CREATE INDEX IF NOT EXISTS ix_pet_unit ON unit_pet( unit_uid );"
+
+		"CREATE TABLE IF NOT EXISTS unit_riding_pet ("
+		"  riding_pet_uid INTEGER PRIMARY KEY AUTOINCREMENT,"
+		"  unit_uid       INTEGER NOT NULL,"
+		"  riding_pet_id  INTEGER NOT NULL,"
+		"  stamina        REAL    NOT NULL DEFAULT 0,"
+		"  destroy_date   INTEGER NOT NULL DEFAULT 0,"	// 0 permanent
+		"  last_unsummon  INTEGER NOT NULL DEFAULT 0 );"
+		"CREATE INDEX IF NOT EXISTS ix_riding_pet_unit ON unit_riding_pet( unit_uid );"
+		;
+
+	// v9: the cash-shop catalog itself.
+	//
+	// Phase 7 shipped with the catalog living only in memory, rebuilt each
+	// launch from CashItemPrice.lua. That was the wrong source - it is the
+	// GameServer's item-resolve price lookup, not a sale list, and it produced
+	// a shop with roughly 3,000 items in it that were never purchasable.
+	//
+	// The real catalog is dbo.EB_Product in the billing database, which is
+	// exactly what EGS_BILL_PRODUCT_INFO_ACK is for. Its 2360 rows are
+	// transcribed into X2OfflineCashSeed.h and seeded here, so the shop is
+	// queryable and editable in the save file like everything else.
+	//
+	// `price` is a column rather than a constant so it can be edited per
+	// product; every seeded row gets SEED_PRICE.
+	const char* const SCHEMA_V9 =
+		"CREATE TABLE IF NOT EXISTS cash_product ("
+		"  product_no INTEGER PRIMARY KEY,"
+		"  item_id    INTEGER NOT NULL,"
+		"  category   INTEGER NOT NULL,"
+		"  quantity   INTEGER NOT NULL DEFAULT 1,"
+		"  price      INTEGER NOT NULL DEFAULT 1,"
+		"  is_event   INTEGER NOT NULL DEFAULT 0 );"
+		"CREATE INDEX IF NOT EXISTS ix_cash_product_item ON cash_product( item_id );"
 		;
 }
 
@@ -556,6 +652,102 @@ bool CX2OfflineDB::Migrate()
 		CX2OfflineLog::Server( L"DB       schema upgraded to v6 (dungeon clear score and date)" );
 	}
 
+	if( iFrom < 7 )
+	{
+		// The starting wallet, and the same amount handed to an account that
+		// already exists. A save upgraded from v6 has cash_balance 0 - the
+		// column was in the v1 schema and nothing ever wrote it - so without
+		// this line the cash shop opens for an existing character and can never
+		// buy anything, which is indistinguishable from a broken shop.
+		//
+		// Only a zero balance is topped up, so re-running the rung (which
+		// cannot happen, but the SQL should not depend on that) never refunds a
+		// player who has spent down to nothing on a later run.
+		char szSeed[256];
+		_snprintf( szSeed, 256,
+			"INSERT OR IGNORE INTO settings( name, value ) VALUES( 'cash_start', %d );"
+			"UPDATE account SET cash_balance = ( SELECT value FROM settings WHERE name = 'cash_start' )"
+			" WHERE cash_balance = 0;",
+			(int)DEFAULT_CASH_BALANCE );
+		szSeed[255] = '\0';
+
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( SCHEMA_V7 ) )		{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( szSeed ) )			{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v7 (cash deposit, wish list, pets)" );
+	}
+
+	if( iFrom < 8 )
+	{
+		// The wallet became cosmetic in phase 7's follow-up: a purchase no
+		// longer deducts it, so `cash_start` is the number the shop shows for
+		// the life of the save rather than a starting balance, and it goes up
+		// to 999999.
+		//
+		// Only a row still sitting on the old default is rewritten. A
+		// `cash_start` somebody has edited by hand is theirs, and a migration
+		// that stomps a deliberate edit is a migration nobody can trust.
+		char szWallet[192];
+		_snprintf( szWallet, 192,
+			"UPDATE settings SET value = %d WHERE name = 'cash_start' AND value = %d;"
+			"INSERT OR IGNORE INTO settings( name, value ) VALUES( 'cash_start', %d );",
+			(int)DEFAULT_CASH_BALANCE, (int)LEGACY_CASH_BALANCE, (int)DEFAULT_CASH_BALANCE );
+		szWallet[191] = '\0';
+
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( szWallet ) )			{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v8 (cosmetic wallet, no deduction)" );
+	}
+
+	if( iFrom < 9 )
+	{
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( SCHEMA_V9 ) )		{ Exec( "ROLLBACK;" ); return false; }
+
+		// INSERT OR IGNORE, so a re-run cannot duplicate a product and a row the
+		// player has edited is left exactly as they left it.
+		sqlite3_stmt* pIns = Prepare(
+			"INSERT OR IGNORE INTO cash_product( product_no, item_id, category, quantity, price, is_event )"
+			" VALUES( ?1, ?2, ?3, ?4, ?5, ?6 );" );
+
+		if( NULL == pIns )
+		{
+			Exec( "ROLLBACK;" );
+			return false;
+		}
+
+		int iSeeded = 0;
+		for( int i = 0; i < X2OfflineCashSeed::ROW_COUNT; ++i )
+		{
+			const X2OfflineCashSeed::KRow& kRow = X2OfflineCashSeed::ROWS[i];
+
+			sqlite3_bind_int( pIns, 1, (int)kRow.m_sProductNo );
+			sqlite3_bind_int( pIns, 2, kRow.m_iItemID );
+			sqlite3_bind_int( pIns, 3, (int)kRow.m_cCategoryNo );
+			sqlite3_bind_int( pIns, 4, (int)kRow.m_cQuantity );
+			sqlite3_bind_int( pIns, 5, (int)SEED_CASH_PRICE );
+			sqlite3_bind_int( pIns, 6, 0 != kRow.m_cEvent ? 1 : 0 );
+
+			if( SQLITE_DONE == sqlite3_step( pIns ) )
+				++iSeeded;
+			else
+				LogError( L"seed cash_product" );
+
+			sqlite3_reset( pIns );
+		}
+
+		sqlite3_finalize( pIns );
+
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v9 (cash catalog: %d of %d rows seeded)",
+			iSeeded, (int)X2OfflineCashSeed::ROW_COUNT );
+	}
+
 	char szSetVersion[64];
 	_snprintf( szSetVersion, 64, "PRAGMA user_version = %d;", (int)SCHEMA_VERSION );
 	szSetVersion[63] = '\0';
@@ -597,8 +789,13 @@ bool CX2OfflineDB::GetOrCreateAccount( const std::wstring& wstrLoginID, OUT UidT
 			return true;
 	}
 
+	// cash_balance comes from the `cash_start` setting the v7 migration seeds,
+	// not from a literal, so changing the knob in the save file changes what the
+	// next account starts with. COALESCE covers the case of somebody deleting
+	// the row.
 	sqlite3_stmt* pIns = Prepare(
-		"INSERT INTO account( login_id, unit_slots, cash_balance, created_at ) VALUES( ?1, ?2, 0, ?3 );" );
+		"INSERT INTO account( login_id, unit_slots, cash_balance, created_at ) VALUES( ?1, ?2,"
+		" COALESCE( ( SELECT value FROM settings WHERE name = 'cash_start' ), 0 ), ?3 );" );
 	if( NULL == pIns )
 		return false;
 
@@ -1990,6 +2187,537 @@ bool CX2OfflineDB::SaveEquippedTitle( UidType nUnitUID, int iTitleID )
 
 	sqlite3_finalize( pStmt );
 	return bOK;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// the cash wallet, the cash deposit and the wish list (phase 7)
+
+int CX2OfflineDB::GetWallet()
+{
+	// No lock and no member state: GetSetting takes m_cs itself.
+	int iValue = 0;
+	if( false == GetSetting( "cash_start", iValue ) )
+		return (int)DEFAULT_CASH_BALANCE;		///< row deleted; fall back rather than showing 0
+
+	return iValue < 0 ? 0 : iValue;
+}
+
+bool CX2OfflineDB::GetCashBalance( UidType nUserUID, OUT int& iOut )
+{
+	KLocker lock( m_cs );
+
+	iOut = 0;
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare( "SELECT cash_balance FROM account WHERE user_uid = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUserUID );
+
+	bool bFound = false;
+	if( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		iOut	= sqlite3_column_int( pStmt, 0 );
+		bFound	= true;
+	}
+
+	sqlite3_finalize( pStmt );
+	return bFound;
+}
+
+bool CX2OfflineDB::SetCashBalance( UidType nUserUID, int iBalance )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	if( iBalance < 0 )
+		iBalance = 0;
+
+	sqlite3_stmt* pStmt = Prepare( "UPDATE account SET cash_balance = ?2 WHERE user_uid = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUserUID );
+	sqlite3_bind_int(   pStmt, 2, iBalance );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"set cash balance" );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::LoadCashProducts( OUT std::vector< KOfflineCashProductRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT product_no, item_id, category, quantity, price, is_event"
+		" FROM cash_product ORDER BY product_no;" );
+	if( NULL == pStmt )
+		return false;
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		KOfflineCashProductRow kRow;
+		kRow.m_iProductNo	= sqlite3_column_int( pStmt, 0 );
+		kRow.m_iItemID		= sqlite3_column_int( pStmt, 1 );
+		kRow.m_iCategoryNo	= sqlite3_column_int( pStmt, 2 );
+		kRow.m_iQuantity	= sqlite3_column_int( pStmt, 3 );
+		kRow.m_iPrice		= sqlite3_column_int( pStmt, 4 );
+		kRow.m_bEvent		= ( 0 != sqlite3_column_int( pStmt, 5 ) );
+
+		vecOut.push_back( kRow );
+	}
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+
+bool CX2OfflineDB::LoadCashOrders( UidType nUserUID, OUT std::vector< KOfflineCashOrderRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT trans_no, product_no, item_id, quantity, period, price, buy_date"
+		" FROM cash_order WHERE user_uid = ?1 ORDER BY trans_no;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUserUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		KOfflineCashOrderRow kRow;
+		kRow.m_nTransNo		= (__int64)sqlite3_column_int64( pStmt, 0 );
+		kRow.m_iProductNo	= sqlite3_column_int( pStmt, 1 );
+		kRow.m_iItemID		= sqlite3_column_int( pStmt, 2 );
+		kRow.m_iQuantity	= sqlite3_column_int( pStmt, 3 );
+		kRow.m_iPeriod		= sqlite3_column_int( pStmt, 4 );
+		kRow.m_iPrice		= sqlite3_column_int( pStmt, 5 );
+		kRow.m_tBuyDate		= (__int64)sqlite3_column_int64( pStmt, 6 );
+
+		vecOut.push_back( kRow );
+	}
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+
+bool CX2OfflineDB::InsertCashOrder( UidType nUserUID, IN OUT KOfflineCashOrderRow& kInOut )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT INTO cash_order( user_uid, product_no, item_id, quantity, period, price, buy_date )"
+		" VALUES( ?1, ?2, ?3, ?4, ?5, ?6, ?7 );" );
+	if( NULL == pStmt )
+		return false;
+
+	if( 0 == kInOut.m_tBuyDate )
+		kInOut.m_tBuyDate = NowEpoch();
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUserUID );
+	sqlite3_bind_int(   pStmt, 2, kInOut.m_iProductNo );
+	sqlite3_bind_int(   pStmt, 3, kInOut.m_iItemID );
+	sqlite3_bind_int(   pStmt, 4, kInOut.m_iQuantity );
+	sqlite3_bind_int(   pStmt, 5, kInOut.m_iPeriod );
+	sqlite3_bind_int(   pStmt, 6, kInOut.m_iPrice );
+	sqlite3_bind_int64( pStmt, 7, (sqlite3_int64)kInOut.m_tBuyDate );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"insert cash order" );
+
+	sqlite3_finalize( pStmt );
+
+	if( true == bOK )
+		kInOut.m_nTransNo = (__int64)sqlite3_last_insert_rowid( m_pDB );
+
+	return bOK;
+}
+
+bool CX2OfflineDB::DeleteCashOrder( UidType nUserUID, __int64 nTransNo )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	// user_uid is in the WHERE as well as trans_no. The trans number is the
+	// primary key so it is enough on its own; naming the account too means a
+	// malformed request cannot reach a line that is not this account's.
+	sqlite3_stmt* pStmt = Prepare( "DELETE FROM cash_order WHERE user_uid = ?1 AND trans_no = ?2;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUserUID );
+	sqlite3_bind_int64( pStmt, 2, (sqlite3_int64)nTransNo );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+
+	// sqlite3_changes tells "there was no such line" apart from a SQL error, and
+	// the caller has to know: claiming a line that is not there must not hand
+	// out an item.
+	return bOK && ( 0 < sqlite3_changes( m_pDB ) );
+}
+
+bool CX2OfflineDB::LoadWishList( UidType nUserUID, OUT std::vector< int >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare( "SELECT item_id FROM wish_list WHERE user_uid = ?1 ORDER BY item_id;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUserUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+		vecOut.push_back( sqlite3_column_int( pStmt, 0 ) );
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+
+bool CX2OfflineDB::SetWishListItem( UidType nUserUID, int iItemID, bool bAdd )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare( true == bAdd
+		? "INSERT OR IGNORE INTO wish_list( user_uid, item_id ) VALUES( ?1, ?2 );"
+		: "DELETE FROM wish_list WHERE user_uid = ?1 AND item_id = ?2;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUserUID );
+	sqlite3_bind_int(   pStmt, 2, iItemID );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"set wish list item" );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::GetSetting( const char* szKey, OUT int& iOut )
+{
+	KLocker lock( m_cs );
+
+	iOut = 0;
+
+	if( NULL == m_pDB || NULL == szKey )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare( "SELECT value FROM settings WHERE name = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_text( pStmt, 1, szKey, -1, SQLITE_TRANSIENT );
+
+	bool bFound = false;
+	if( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		iOut	= sqlite3_column_int( pStmt, 0 );
+		bFound	= true;
+	}
+
+	sqlite3_finalize( pStmt );
+	return bFound;
+}
+
+bool CX2OfflineDB::SetSetting( const char* szKey, int iValue )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB || NULL == szKey )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare( "INSERT OR REPLACE INTO settings( name, value ) VALUES( ?1, ?2 );" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_text( pStmt, 1, szKey, -1, SQLITE_TRANSIENT );
+	sqlite3_bind_int(  pStmt, 2, iValue );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// pets and riding pets (phase 7)
+
+bool CX2OfflineDB::LoadPets( UidType nUnitUID, OUT std::vector< KOfflinePetRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT pet_uid, pet_id, name, evolution_step, satiety, intimacy, extroversion,"
+		" emotion, auto_feed, auto_looting, last_feed, last_summon, reg_date"
+		" FROM unit_pet WHERE unit_uid = ?1 ORDER BY pet_uid;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		KOfflinePetRow kRow;
+		kRow.m_nPetUID			= (__int64)sqlite3_column_int64( pStmt, 0 );
+		kRow.m_iPetID			= sqlite3_column_int( pStmt, 1 );
+		kRow.m_wstrName			= ColumnText( pStmt, 2 );
+		kRow.m_iEvolutionStep	= sqlite3_column_int( pStmt, 3 );
+		kRow.m_iSatiety			= sqlite3_column_int( pStmt, 4 );
+		kRow.m_iIntimacy		= sqlite3_column_int( pStmt, 5 );
+		kRow.m_iExtroversion	= sqlite3_column_int( pStmt, 6 );
+		kRow.m_iEmotion			= sqlite3_column_int( pStmt, 7 );
+		kRow.m_bAutoFeed		= ( 0 != sqlite3_column_int( pStmt, 8 ) );
+		kRow.m_bAutoLooting		= ( 0 != sqlite3_column_int( pStmt, 9 ) );
+		kRow.m_tLastFeedDate	= (__int64)sqlite3_column_int64( pStmt, 10 );
+		kRow.m_tLastSummonDate	= (__int64)sqlite3_column_int64( pStmt, 11 );
+		kRow.m_tRegDate			= (__int64)sqlite3_column_int64( pStmt, 12 );
+
+		vecOut.push_back( kRow );
+	}
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+
+bool CX2OfflineDB::InsertPet( UidType nUnitUID, IN OUT KOfflinePetRow& kInOut )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT INTO unit_pet( unit_uid, pet_id, name, evolution_step, satiety, intimacy,"
+		" extroversion, emotion, auto_feed, auto_looting, last_feed, last_summon, reg_date )"
+		" VALUES( ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13 );" );
+	if( NULL == pStmt )
+		return false;
+
+	if( 0 == kInOut.m_tRegDate )
+		kInOut.m_tRegDate = NowEpoch();
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, kInOut.m_iPetID );
+	BindText(           pStmt, 3, kInOut.m_wstrName );
+	sqlite3_bind_int(   pStmt, 4, kInOut.m_iEvolutionStep );
+	sqlite3_bind_int(   pStmt, 5, kInOut.m_iSatiety );
+	sqlite3_bind_int(   pStmt, 6, kInOut.m_iIntimacy );
+	sqlite3_bind_int(   pStmt, 7, kInOut.m_iExtroversion );
+	sqlite3_bind_int(   pStmt, 8, kInOut.m_iEmotion );
+	sqlite3_bind_int(   pStmt, 9, true == kInOut.m_bAutoFeed ? 1 : 0 );
+	sqlite3_bind_int(   pStmt, 10, true == kInOut.m_bAutoLooting ? 1 : 0 );
+	sqlite3_bind_int64( pStmt, 11, (sqlite3_int64)kInOut.m_tLastFeedDate );
+	sqlite3_bind_int64( pStmt, 12, (sqlite3_int64)kInOut.m_tLastSummonDate );
+	sqlite3_bind_int64( pStmt, 13, (sqlite3_int64)kInOut.m_tRegDate );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"insert pet" );
+
+	sqlite3_finalize( pStmt );
+
+	if( true == bOK )
+		kInOut.m_nPetUID = (__int64)sqlite3_last_insert_rowid( m_pDB );
+
+	return bOK;
+}
+
+bool CX2OfflineDB::SavePet( UidType nUnitUID, const KOfflinePetRow& kRow )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"UPDATE unit_pet SET pet_id = ?3, name = ?4, evolution_step = ?5, satiety = ?6,"
+		" intimacy = ?7, extroversion = ?8, emotion = ?9, auto_feed = ?10, auto_looting = ?11,"
+		" last_feed = ?12, last_summon = ?13"
+		" WHERE unit_uid = ?1 AND pet_uid = ?2;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int64( pStmt, 2, (sqlite3_int64)kRow.m_nPetUID );
+	sqlite3_bind_int(   pStmt, 3, kRow.m_iPetID );
+	BindText(           pStmt, 4, kRow.m_wstrName );
+	sqlite3_bind_int(   pStmt, 5, kRow.m_iEvolutionStep );
+	sqlite3_bind_int(   pStmt, 6, kRow.m_iSatiety );
+	sqlite3_bind_int(   pStmt, 7, kRow.m_iIntimacy );
+	sqlite3_bind_int(   pStmt, 8, kRow.m_iExtroversion );
+	sqlite3_bind_int(   pStmt, 9, kRow.m_iEmotion );
+	sqlite3_bind_int(   pStmt, 10, true == kRow.m_bAutoFeed ? 1 : 0 );
+	sqlite3_bind_int(   pStmt, 11, true == kRow.m_bAutoLooting ? 1 : 0 );
+	sqlite3_bind_int64( pStmt, 12, (sqlite3_int64)kRow.m_tLastFeedDate );
+	sqlite3_bind_int64( pStmt, 13, (sqlite3_int64)kRow.m_tLastSummonDate );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"save pet" );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::LoadRidingPets( UidType nUnitUID, OUT std::vector< KOfflineRidingPetRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT riding_pet_uid, riding_pet_id, stamina, destroy_date, last_unsummon"
+		" FROM unit_riding_pet WHERE unit_uid = ?1 ORDER BY riding_pet_uid;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		KOfflineRidingPetRow kRow;
+		kRow.m_nRidingPetUID		= (__int64)sqlite3_column_int64( pStmt, 0 );
+		kRow.m_iRidingPetID			= sqlite3_column_int( pStmt, 1 );
+		kRow.m_fStamina				= (float)sqlite3_column_double( pStmt, 2 );
+		kRow.m_tDestroyDate			= (__int64)sqlite3_column_int64( pStmt, 3 );
+		kRow.m_tLastUnSummonDate	= (__int64)sqlite3_column_int64( pStmt, 4 );
+
+		vecOut.push_back( kRow );
+	}
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+
+bool CX2OfflineDB::InsertRidingPet( UidType nUnitUID, IN OUT KOfflineRidingPetRow& kInOut )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT INTO unit_riding_pet( unit_uid, riding_pet_id, stamina, destroy_date, last_unsummon )"
+		" VALUES( ?1, ?2, ?3, ?4, ?5 );" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64(  pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(    pStmt, 2, kInOut.m_iRidingPetID );
+	sqlite3_bind_double( pStmt, 3, (double)kInOut.m_fStamina );
+	sqlite3_bind_int64(  pStmt, 4, (sqlite3_int64)kInOut.m_tDestroyDate );
+	sqlite3_bind_int64(  pStmt, 5, (sqlite3_int64)kInOut.m_tLastUnSummonDate );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"insert riding pet" );
+
+	sqlite3_finalize( pStmt );
+
+	if( true == bOK )
+		kInOut.m_nRidingPetUID = (__int64)sqlite3_last_insert_rowid( m_pDB );
+
+	return bOK;
+}
+
+bool CX2OfflineDB::SaveRidingPet( UidType nUnitUID, const KOfflineRidingPetRow& kRow )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"UPDATE unit_riding_pet SET riding_pet_id = ?3, stamina = ?4, destroy_date = ?5,"
+		" last_unsummon = ?6 WHERE unit_uid = ?1 AND riding_pet_uid = ?2;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64(  pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int64(  pStmt, 2, (sqlite3_int64)kRow.m_nRidingPetUID );
+	sqlite3_bind_int(    pStmt, 3, kRow.m_iRidingPetID );
+	sqlite3_bind_double( pStmt, 4, (double)kRow.m_fStamina );
+	sqlite3_bind_int64(  pStmt, 5, (sqlite3_int64)kRow.m_tDestroyDate );
+	sqlite3_bind_int64(  pStmt, 6, (sqlite3_int64)kRow.m_tLastUnSummonDate );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"save riding pet" );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::DeleteRidingPet( UidType nUnitUID, __int64 nRidingPetUID )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"DELETE FROM unit_riding_pet WHERE unit_uid = ?1 AND riding_pet_uid = ?2;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int64( pStmt, 2, (sqlite3_int64)nRidingPetUID );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK && ( 0 < sqlite3_changes( m_pDB ) );
 }
 
 #endif SERV_IRUHADEV_OFFLINE

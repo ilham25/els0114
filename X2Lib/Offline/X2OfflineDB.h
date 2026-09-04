@@ -176,6 +176,111 @@ struct KOfflineTitleRow
 	}
 };
 
+/// One row of `cash_product` - one purchasable line of the cash shop.
+///
+/// Seeded from X2OfflineCashSeed.h, which is a transcription of dbo.EB_Product
+/// out of the ES_BILLING database. Everything about it that was constant across
+/// all 2360 source rows lives in code rather than in a column; see that header.
+struct KOfflineCashProductRow
+{
+	int				m_iProductNo;
+	int				m_iItemID;
+	int				m_iCategoryNo;		///< the billing category, 11..63
+	int				m_iQuantity;
+	int				m_iPrice;
+	bool			m_bEvent;
+
+	KOfflineCashProductRow()
+		: m_iProductNo( 0 )
+		, m_iItemID( 0 )
+		, m_iCategoryNo( 0 )
+		, m_iQuantity( 1 )
+		, m_iPrice( 0 )
+		, m_bEvent( false )
+	{
+	}
+};
+
+/// One line of the cash deposit - a cash-shop product bought and not yet
+/// claimed into the bag. The live equivalent is the billing DB's cash
+/// inventory, which KBillOrderInfo is the wire shape of; `trans_no` is the row
+/// id, which is what m_iTransNo carries and what the claim request names.
+struct KOfflineCashOrderRow
+{
+	__int64			m_nTransNo;
+	int				m_iProductNo;
+	int				m_iItemID;
+	int				m_iQuantity;
+	int				m_iPeriod;		///< rental days; 0 is permanent
+	int				m_iPrice;
+	__int64			m_tBuyDate;
+
+	KOfflineCashOrderRow()
+		: m_nTransNo( 0 )
+		, m_iProductNo( 0 )
+		, m_iItemID( 0 )
+		, m_iQuantity( 1 )
+		, m_iPeriod( 0 )
+		, m_iPrice( 0 )
+		, m_tBuyDate( 0 )
+	{
+	}
+};
+
+/// One owned pet - dbo.GPet, and KPetInfo on the wire.
+struct KOfflinePetRow
+{
+	__int64			m_nPetUID;
+	int				m_iPetID;
+	std::wstring	m_wstrName;
+	int				m_iEvolutionStep;
+	int				m_iSatiety;
+	int				m_iIntimacy;
+	int				m_iExtroversion;
+	int				m_iEmotion;
+	bool			m_bAutoFeed;
+	bool			m_bAutoLooting;
+	__int64			m_tLastFeedDate;
+	__int64			m_tLastSummonDate;
+	__int64			m_tRegDate;
+
+	KOfflinePetRow()
+		: m_nPetUID( 0 )
+		, m_iPetID( 0 )
+		, m_iEvolutionStep( 0 )
+		, m_iSatiety( 0 )
+		, m_iIntimacy( 0 )
+		, m_iExtroversion( 0 )
+		, m_iEmotion( 0 )
+		, m_bAutoFeed( false )
+		, m_bAutoLooting( false )
+		, m_tLastFeedDate( 0 )
+		, m_tLastSummonDate( 0 )
+		, m_tRegDate( 0 )
+	{
+	}
+};
+
+/// One owned riding pet - KRidingPetInfo on the wire. `m_tDestroyDate` 0 means
+/// permanent, the same convention KOfflineTitleRow uses for a title.
+struct KOfflineRidingPetRow
+{
+	__int64			m_nRidingPetUID;
+	int				m_iRidingPetID;
+	float			m_fStamina;
+	__int64			m_tDestroyDate;
+	__int64			m_tLastUnSummonDate;
+
+	KOfflineRidingPetRow()
+		: m_nRidingPetUID( 0 )
+		, m_iRidingPetID( 0 )
+		, m_fStamina( 0.0f )
+		, m_tDestroyDate( 0 )
+		, m_tLastUnSummonDate( 0 )
+	{
+	}
+};
+
 /// One in-progress title mission. Same shape as KOfflineQuestRow, and for the
 /// same positional reason.
 struct KOfflineMissionRow
@@ -281,7 +386,7 @@ public:
 	{
 		/// Schema revision. Bump it and add a rung to Migrate() when a later
 		/// phase needs a new table, so existing saves are not wiped.
-		SCHEMA_VERSION			= 6,
+		SCHEMA_VERSION			= 9,
 
 		/// How long after a soft delete the final delete becomes possible.
 		/// Zero: a solo save has nobody to protect a character from, so the
@@ -301,6 +406,32 @@ public:
 
 		/// dbo.gup_create_unit inserts LastPosition = 20000 on a new character.
 		DEFAULT_LAST_POSITION	= 20000,
+
+		/// The cash wallet. Cosmetic: a purchase does NOT deduct it (see
+		/// Handler_EGS_BUY_CASH_ITEM_REQ), so this is the number the shop shows
+		/// for the whole life of the save rather than a starting balance.
+		///
+		/// It is still checked before a purchase, so setting it to 0 in the
+		/// save file turns the shop into a look-but-don't-touch window - which
+		/// is the only reason the affordability check is still there.
+		///
+		/// Lives in `settings` under the key `cash_start`, so it can be changed
+		/// with a SQL editor and no rebuild.
+		DEFAULT_CASH_BALANCE	= 999999,
+
+		/// The price every seeded cash_product row gets. dbo.EB_Product carries
+		/// 1 for all 2360 of its rows - a deliberate choice by the owner of this
+		/// save, since the wallet is cosmetic and nothing is ever deducted.
+		///
+		/// Using the real KOG prices instead is not an option: CashItemPrice.lua
+		/// covers only 789 of the 2342 items this shop sells, so two thirds of
+		/// the catalog would display 0.
+		SEED_CASH_PRICE		= 1,
+
+		/// What DEFAULT_CASH_BALANCE used to be. The v8 migration only rewrites
+		/// a `cash_start` row still sitting on this value, so a hand-edited one
+		/// survives.
+		LEGACY_CASH_BALANCE	= 100000,
 	};
 
 public:
@@ -452,6 +583,64 @@ public:
 	bool	LoadTitles( UidType nUnitUID, OUT std::vector< KOfflineTitleRow >& vecOut );
 	bool	SaveTitle( UidType nUnitUID, const KOfflineTitleRow& kRow );
 	bool	SaveEquippedTitle( UidType nUnitUID, int iTitleID );
+
+	//////////////////////////////////////////////////////////////////////////
+	// the cash wallet, the cash deposit and the wish list (phase 7)
+
+	/// The wallet the shop displays, out of `settings.cash_start`.
+	///
+	/// NOT account.cash_balance. That column has been in the schema since v1
+	/// and briefly held the wallet in phase 7; it is left alone now because the
+	/// wallet is cosmetic and never spent, and a per-account copy of a constant
+	/// is just a second value to disagree with the first. Reading the setting
+	/// directly also means changing the knob takes effect on the next login
+	/// with no migration.
+	int		GetWallet();
+
+	bool	GetCashBalance( UidType nUserUID, OUT int& iOut );
+	bool	SetCashBalance( UidType nUserUID, int iBalance );
+
+	/// The whole cash-shop catalog, in product-number order.
+	///
+	/// Keyed by product number, not item ID: eighteen items are sold as two
+	/// products each in the source table, and the client expects exactly that -
+	/// CX2ItemManager::AddCashItem keeps a vector of KBillProductInfo per item.
+	bool	LoadCashProducts( OUT std::vector< KOfflineCashProductRow >& vecOut );
+
+	/// Everything bought and not yet claimed, oldest first.
+	bool	LoadCashOrders( UidType nUserUID, OUT std::vector< KOfflineCashOrderRow >& vecOut );
+
+	/// Inserts and fills in kInOut.m_nTransNo with the row id, which becomes
+	/// KBillOrderInfo::m_iTransNo on the wire and is what the claim request
+	/// names back. Deposit lines therefore survive a relog, the same way item
+	/// UIDs do.
+	bool	InsertCashOrder( UidType nUserUID, IN OUT KOfflineCashOrderRow& kInOut );
+
+	bool	DeleteCashOrder( UidType nUserUID, __int64 nTransNo );
+
+	/// The wish list is per account, not per character, which is how the client
+	/// treats it: CX2CashShop asks for it once when the shop opens and never
+	/// mentions a unit.
+	bool	LoadWishList( UidType nUserUID, OUT std::vector< int >& vecOut );
+	bool	SetWishListItem( UidType nUserUID, int iItemID, bool bAdd );
+
+	/// A free-form key/value table, so a knob can be changed by editing the save
+	/// file rather than by rebuilding. Reads return false when the key is absent
+	/// rather than inventing a value.
+	bool	GetSetting( const char* szKey, OUT int& iOut );
+	bool	SetSetting( const char* szKey, int iValue );
+
+	//////////////////////////////////////////////////////////////////////////
+	// pets and riding pets (phase 7)
+
+	bool	LoadPets( UidType nUnitUID, OUT std::vector< KOfflinePetRow >& vecOut );
+	bool	InsertPet( UidType nUnitUID, IN OUT KOfflinePetRow& kInOut );
+	bool	SavePet( UidType nUnitUID, const KOfflinePetRow& kRow );
+
+	bool	LoadRidingPets( UidType nUnitUID, OUT std::vector< KOfflineRidingPetRow >& vecOut );
+	bool	InsertRidingPet( UidType nUnitUID, IN OUT KOfflineRidingPetRow& kInOut );
+	bool	SaveRidingPet( UidType nUnitUID, const KOfflineRidingPetRow& kRow );
+	bool	DeleteRidingPet( UidType nUnitUID, __int64 nRidingPetUID );
 
 	/// Base slot count per CX2Inventory::SORT_TYPE category. Mirrors
 	/// KInventory::GetBaseSlotSize (KncWX2Server/GameServer/Inventory.cpp),

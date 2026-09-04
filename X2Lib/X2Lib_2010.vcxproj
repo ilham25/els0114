@@ -2045,6 +2045,13 @@
     <ClInclude Include="Offline\X2OfflineDB.h" />
     <ClInclude Include="Offline\X2OfflineQuest.h" />
     <ClInclude Include="Offline\X2OfflineTitle.h" />
+    <ClInclude Include="Offline\X2OfflineCashShop.h" />
+    <ClInclude Include="Offline\X2OfflineCashSeed.h" />
+    <ClInclude Include="Offline\X2OfflineClassChangeSeed.h" />
+    <ClInclude Include="Offline\X2OfflineLuaEnum.h" />
+    <ClInclude Include="Offline\X2OfflineLuaEnumSeed.h" />
+    <ClInclude Include="Offline\X2OfflinePetData.h" />
+    <ClInclude Include="Offline\X2OfflineRandomItem.h" />
     <ClInclude Include="Offline\X2OfflineInventory.h" />
     <ClInclude Include="Offline\X2OfflineSkill.h" />
     <ClInclude Include="Offline\X2OfflineDropTable.h" />
@@ -3129,6 +3136,9 @@
     <ClCompile Include="Offline\Handlers_Skill.cpp" />
     <ClCompile Include="Offline\Handlers_Login.cpp" />
     <ClCompile Include="Offline\Handlers_Room.cpp" />
+    <ClCompile Include="Offline\Handlers_Shop.cpp" />
+    <ClCompile Include="Offline\Handlers_Social.cpp" />
+    <ClCompile Include="Offline\X2OfflineCashShop.cpp" />
     <ClCompile Include="Offline\Handlers_Stub.cpp" />
     <ClCompile Include="Offline\Handlers_Unit.cpp" />
     <ClCompile Include="Offline\X2OfflineDB.cpp" />
@@ -3138,6 +3148,9 @@
     <ClCompile Include="Offline\X2OfflineInventory.cpp" />
     <ClCompile Include="Offline\X2OfflineSkill.cpp" />
     <ClCompile Include="Offline\X2OfflineDropTable.cpp" />
+    <ClCompile Include="Offline\X2OfflineLuaEnum.cpp" />
+    <ClCompile Include="Offline\X2OfflinePetData.cpp" />
+    <ClCompile Include="Offline\X2OfflineRandomItem.cpp" />
     <ClCompile Include="Offline\X2OfflineBattleField.cpp" />
     <ClCompile Include="Offline\X2OfflineEventName.cpp" />
     <ClCompile Include="Offline\X2OfflineLog.cpp" />

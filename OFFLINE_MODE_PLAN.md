@@ -2732,7 +2732,7 @@ the build was deployed.
 Play from level 1 through several story quests and at least one class change,
 with progression intact across restarts.
 
-### Exit test — PASSED (2026-09-04)
+### Exit test — RUN, PASSED (2026-09-04)
 
 **Status: phase 6 complete.** The story chain plays through, quests accept /
 progress / complete / reward, titles and missions arrive, and a job advancement
@@ -3557,7 +3557,651 @@ returning a confusing error — but only where that is a small, contained edit.
 Open every menu in the game. Nothing hangs, nothing shows a network error, cash
 shop purchases work and persist.
 
+### Exit test — RUN, PASSED with two defects found (2026-09-04)
+
+Every menu opens, nothing hangs, and `offline_packets.log` came back with **zero
+`UNHANDLED` entries** across a full session. Cash-shop purchases work and
+persist: buy, deposit, claim, relog, item still there.
+
+Two defects the play-test found, both fixed and both written up in the addendum
+below: costumes could be bought but never claimed ("select the item socket
+option"), and the catalog was being built from the wrong file.
+
 ---
+
+### 7.1 What the cash shop turned out to be
+
+**The plan's "catalog from the client's own cash-shop script data" was wrong,
+and the correction is the most important thing in this phase.** There is no
+client-side catalog. `CashShopItemList.lua` only marks which items get a NEW /
+HOT / RECOMMEND badge; `CashShopCategory.lua` only maps a tab to a category
+number. The catalog itself is `KBillProductInfo` rows out of a **separate
+billing database** behind the LoginServer, which this tree does not contain and
+which is not among the two databases (`Account`, `Game01`) the live-DB rule
+covers.
+
+What this tree *does* contain is `KncWX2Server/ServerResource/US/CashItemPrice.lua`
+— 854KB, 10,224 `AddCashItemPrice( itemID, price )` lines, the real US cash
+price of every cash item, loaded by the GameServer's own
+`CXSLCashItemManager`. So the catalog is that file, and it is the user's to pack,
+exactly like `StatTable.lua` and `DropTable.lua` before it. `CX2OfflineCashShop`
+is a transcription of `CXSLCashItemManager`'s three Lua entry points, registered
+under the same global name (`g_pCashItemManager`) the script calls.
+
+Three fields of `KBillProductInfo` have no source anywhere and get a **stated
+default rather than an invented value**:
+
+| Field | Offline | Why not a number |
+|---|---|---|
+| `m_cPeriod` | 0 (permanent) | Rental lengths lived only in the billing DB. 0 is not a guess at the real length — it is a *different offer*, and the shop prints it: with `m_cPeriod` 0 the client's own `GetPeriod()` renders the quantity instead of a day count, so nobody is shown a made-up "30 days". |
+| `m_cQuantity` | 1 | One purchase, one item. |
+| `m_cCategoryNo` | derived | It decides only which tab an item appears under. `CategoryFor()` maps the item's own templet — its fashion flag, type and equip position — onto the `CSSC_*` range. That is a presentation mapping over client data, not game data being invented. |
+
+`m_iProductNo` is the item ID: a surrogate key (the live product numbers are
+billing-DB identities with no meaning here) chosen because it is stable across
+runs, which matters because a deposit row stores it.
+
+### 7.2 Corrections to this plan, found by doing it
+
+1. **The plan's "solo party of one" is the wrong shape; no party is right.**
+   The client has no party until an `EGS_REGROUP_PARTY_NOT` says so, and every
+   button in the party UI then acts on members that do not exist. A player alone
+   on live has no party either, and the whole phase-4 dungeon flow already runs
+   without one. So each party packet answers `ERR_PARTY_09` ("no party") and the
+   party window stays the empty one the client starts with.
+
+2. **`EGS_CHECK_BALANCE_ACK` was silently broken since phase 1, and nothing had
+   noticed.** It filled `m_ulBalance`, which under `SERV_SUPPORT_SEVERAL_CASH_TYPES`
+   — on for every region — the client never reads: its handler routes
+   `m_bOnlyType == false` to `SetGlobalCash( m_GlobalCashInfo )` and ignores the
+   scalar entirely ([X2State.cpp:5645](X2Lib/X2State.cpp#L5645)). The wallet
+   would have shown zero however much the save file said. Fixed by filling
+   `m_GlobalCashInfo.m_ulCash[GCT_PUBLISHER_CASH]`, which is the slot the US
+   client's own buy popup defaults to ([X2CashShop.cpp:11170](X2Lib/X2CashShop.cpp#L11170)).
+   This is the phase-0 "a flag set on one project and not another silently does
+   nothing" failure in a new costume: a field written and never read.
+
+3. **Chat is not a stub, and treating it as one would have broken it.** The
+   plan's table says "echo locally, no broadcast". The client does not echo
+   locally — `CX2ChatBox::Handler_EGS_CHAT_REQ` hands the packet over and stops;
+   what puts the line on screen is `EGS_CHAT_NOT` coming back. Drop it and the
+   chat box swallows everything the player types. The offline server broadcasts
+   it back to the one player.
+
+4. **Eighteen handlers were written and then deleted because their packet
+   structs do not exist in `US_SERVICE`.** The whole local-ranking system
+   (`SERV_LOCAL_RANKING` off — so the plan's "Ranking / profile →
+   `X2ProfileManager.cpp:185`" row is for a system that is not in this build),
+   the whole relationship/marriage system, the spirit-reward ladder, the
+   jumping-character event, the `.kom` integrity report, both halves of the
+   returning-player retention offer, both recruit-a-friend packets, and the
+   VER2 lag check. **The textual `SendPacket`/`AddServerPacket` scan cannot see
+   `#ifdef`s, and neither can the plan's table** — the compiler is the only
+   honest filter, and the fastest way to use it is to write the handler and let
+   the build delete it.
+
+5. **The catalog loader must not go through `CX2OfflineInventory::Templet`.**
+   That helper logs a warning line per unresolvable item, which is right when a
+   *save file* names an item the client does not ship and very wrong over ten
+   thousand script rows in one go. `AddCashItemPrice_LUA` calls
+   `GetItemTemplet` directly and reports one summary count.
+
+6. **A cash purchase lands in the deposit, not the bag** — `cash_order` is a
+   real table, not a shortcut. The client has a whole window for the deposit and
+   asks for it by name (`EGS_BILL_INVENTORY_INQUIRY_REQ`); skipping it would
+   leave that window permanently empty and its "get item" button inert.
+
+### Packets the plan did not predict
+
+Answered — 91 new handlers across the two files:
+
+```
+cash shop   BILL_PRODUCT_INFO, GET/MODIFY_WISH_LIST, BILL_INVENTORY_INQUIRY,
+            BUY_CASH_ITEM, BILL_GET_PURCHASED_CASH_ITEM,
+            GET_PURCHASED_PACKAGE_CASH_ITEM, PRESENT_CASH_ITEM,
+            VISIT_CASH_SHOP_NOT, CHECK_PRESENT_CASH_INVENTORY_NOT, APPLY_COUPON
+guild       21 packets - creation, the three boards, applications, invitations,
+            member management, guild skills
+party       13 - invite, leave, the six change-* packets, game start, PvP and
+            auto-party matchmaking
+friends     24 - the community list, the eight friend verbs, friend groups, the
+            messenger serial, community options, unit search and watch
+mail        8  - the letter list, read/delete/send, attachments, the black list
+chat        5  - CHAT_REQ (a real echo), the option write, the black list,
+            the megaphone
+ranking     1  - GET_RANKING_INFO (Henir / dungeon / PvP boards, all empty)
+tutor       3, bank 1, temp inventory 2, trade board 1, checksum 1
+pets        13 - the two lists out of SQLite, hatching, summon, feed, commands,
+            evolution, rename, auto-feed, and the four riding-pet packets
+menu        6  - the two channel-change packets, the warp button, the 2013 event
+            mission, the skill-note memo, the random box
+security    6  - the second-password pad
+```
+
+Deliberately not implemented, and they will show as `UNHANDLED` if reached:
+every `EGS_ADMIN_*` cheat (auth-gated, and the auth level is never raised
+offline), the personal shop and personal trade, PvP rooms and lobbies, the
+training school, the item crafting family phase 5 already refuses (manufacture,
+synthesis, resolve, identify, seal, evaluate, convert), and the pre-global
+billing packets (`EGS_CASH_PRODUCT_INFO_REQ`, `EGS_GET_PURCHASED_CASH_ITEM_REQ`,
+`EGS_PURCHASED_CASH_ITEM_LIST_REQ`) that `SERV_GLOBAL_BILLING` replaces.
+
+The blocking-REQ checklist went from **209 unhandled to 110**, with the dispatch
+table at 203 cases.
+
+### What was actually built, against *Code layout to create*
+
+```
+X2Lib/Offline/Handlers_Shop.cpp        predicted
+X2Lib/Offline/Handlers_Social.cpp      NEW - the plan folded these into Handlers_Stub
+X2Lib/Offline/X2OfflineCashShop.h/.cpp NEW - CXSLCashItemManager, reduced to a catalog
+```
+
+Extended:
+
+```
+X2OfflineDB        schema v7: cash_order, wish_list, settings, unit_pet,
+                   unit_riding_pet, plus the wallet accessors. account.cash_balance
+                   has been in the schema since v1 and was never written until now.
+Handlers_Login     EGS_CHECK_BALANCE_REQ now pays the real wallet - see correction 2
+Handlers_Stub      the two pet-list handlers moved out, now that pets have a table
+```
+
+No client-side edit was needed this phase — no new `SERV_IRUHADEV_` flag, and
+`SERV_IRUHADEV_QUICK_SLOT_FULL_FREE` already hides the quick-slot expansion
+ticket the plan asked about (`CX2CashShop::GetCahBuyExpandQuickSlotItem` returns
+false under it, [X2CashShop.cpp:8306](X2Lib/X2CashShop.cpp#L8306)).
+
+Schema v7 is additive — five new tables and no `ALTER TABLE` at all — and its
+migration also tops up an existing account's zero balance from the new
+`settings.cash_start` row, or a v6 save could open the shop and never afford
+anything. The migration and all sixteen new statements were dry-run against a
+copy of the live `els_db.sql` before the build was deployed: v6 → v7, the
+existing account `shadow_x` went 0 → 100000, and every insert/update/delete the
+handlers use round-tripped.
+
+### Decisions made while implementing phase 7
+
+1. **A list fetch answers with a well-formed EMPTY list; an action that needs
+   somebody else answers with a refusal that is TRUE.** That is the whole rule
+   the social half follows. An empty guild list is what a player with no guild
+   sees on live; an error box is not, and silence is a spinner that never stops.
+   And when a friend request fails, the honest reason is "that nickname does not
+   exist" (`ERR_MESSENGER_04`) — because the only character in the world is the
+   one sending it — not a generic failure.
+
+2. **A refusal never consumes the item it was given.** Guild creation, the guild
+   skill reset, the megaphone, the random box, the pet egg and the mount ticket
+   all name an item by UID that a *success* would destroy. Every one of those
+   handlers refuses before touching the inventory, and says so in the log. The
+   one place an item IS consumed is the pet rename, which succeeds.
+
+3. **Five cash items are refused at purchase rather than sold and then broken.**
+   The six inventory-expansion tickets, their six event twins, and the
+   resurrection stone (127030) all exist to cause a side effect the offline
+   server does not model — `m_mapExpandedCategorySlot` is always empty and the
+   resurrection count has been 0 since phase 4. Selling one would take the cash
+   and hand back an item that does nothing. Every ID in that list is a named
+   constant in the client's own `X2Define.h` or is named in the client's own
+   purchase handler; none is guessed.
+
+4. **The claim path finds the deposit line, checks for room, deletes, then
+   inserts — in that order.** Checking room first means a full bag leaves the
+   line in the deposit to be claimed later; deleting before inserting means a
+   `DeleteCashOrder` that comes back false (the line was not there) cannot mint
+   an item out of nothing. `DeleteCashOrder` returns false on zero
+   `sqlite3_changes` precisely so the caller can tell those apart.
+
+5. **One deposit line per ordered unit, not one line carrying a count.**
+   `KBillOrderInfo` has no quantity of its own — the count it shows comes from
+   its embedded product's `m_cQuantity` — so ordering two of something has to be
+   two rows or the second is lost.
+
+6. **The second-password pad authenticates whatever is typed and refuses to set
+   a new one.** Authenticating is right: there is nothing to protect (the
+   account is a row in a local file the player owns) and refusing would lock
+   them out of their own save. Refusing to *set* one is right for the same
+   reason accepting would be wrong — it would tell the player they have a PIN
+   that is not stored anywhere, and the next login would silently not ask.
+
+7. **The shared bank opens empty with a size of zero rather than opening onto
+   slots.** `PRIVATE_BANK` is on so the button is there, but nothing offline
+   stores a bank and `CX2OfflineInventory` has no `ST_BANK` category behind it —
+   a non-zero size would give the player slots that swallow items.
+
+8. **The catalog is sorted by item ID and paged at 400 products.** Sorting is
+   for reproducibility: the same product lands on the same page every run, so a
+   log line naming a page means something. 400 is a packet-size choice — ten
+   thousand products at ~50 bytes each would be one 500KB event.
+
+9. **Guild-board reads succeed where guild-board writes fail.** Opening the
+   guild skill board answers `NET_OK` with an empty `KGuildSkillInfo`, because a
+   failure pops a dialog on a window the player only opened to look at; joining,
+   inviting or renaming answers `ERR_GUILD_19` ("not in a guild"). Same split in
+   the friends list: deleting or denying something that is not there *succeeds*,
+   because the list ends in the state the player asked for.
+
+### Operational notes, extending the earlier phases'
+
+- **The `cl /P` flag probe from phase 1 is worth keeping as a script.** A probe
+  TU that is just `#define _ALWAYS_` + `Always.h` + `AlwaysButConditionally.h` +
+  `ServerDefine.h` and one `#pragma message` per flag, compiled with `/Zs` and
+  the `US_SERVICE` defines, answers thirty flag questions in one second. Use
+  `/Zs`, **not** `/EP` — with `/EP` the pragmas are passed through to the output
+  instead of being executed, and nothing prints.
+- **The VC toolchain is on `D:`, not under either `Program Files`.**
+  `C:\Program Files (x86)\Microsoft Visual Studio 10.0` has no `VC` directory at
+  all; `where cl` finds nothing until `Common7\Tools\vsvars32.bat` has been run,
+  which points at `D:\Program Files\VS\Microsoft Visual Studio 10.0\VC\bin\`.
+  Anything invoking `cl` directly has to go through that .bat.
+- **Dry-run a migration by extracting the SQL from the `.cpp` rather than
+  retyping it.** `re.findall(r'"([^"]*)"', ...)` over the `SCHEMA_V*` block gives
+  the exact string the client will execute; a retyped copy tests a different
+  statement than the one that ships.
+- **`grep -rn "SendPacket( EGS_"` + `AddServerPacket` is still the checklist,
+  and it over-reports.** It found all 91 of this phase's packets — and 18 more
+  whose structs are compiled out. Treat its output as a candidate list, not a
+  work list.
+
+### Addendum (2026-09-04): the catalog was coming from the wrong file
+
+Shipped, play-tested, and then corrected. Three findings, in the order they
+turned up.
+
+**1. The costume socket bug.** Buying a costume and sending it to the inventory
+failed with "select the item socket option", and the attribute dropdown never
+appeared. `MakeOrderInfo` was sending `m_vecSocketOption` empty, and that field
+is not a list of socket IDs - it is a list of socket *group* IDs, which both
+halves of the client expand through
+`CX2SocketItem::GetSocketIdListForCashAvatar`: the combo box to draw the
+options, and `GetSelectedOptionList` to turn the pick back into a socket. Empty
+list, no combo, no selection, and
+`GetSelectedOptionListAndGroupID` returns false for anything
+`GetIsPossibleSocketItemByOnlyItemType` says can hold a socket - so a costume
+could be bought and never claimed.
+
+Fixed with the client's own fallback numbers, 2000 for a weapon and 1000 for
+defence ([X2SocketItem.cpp:2214-2231](X2Lib/X2SocketItem.cpp#L2214)), which is
+what it uses for a group ID it does not recognise. The claim now reads
+`m_mapSocketForCash`, validates the pick back through the same function, and
+passes it into `InsertItem` so it persists on the item row.
+
+The first cut of that fix validated the socket *after* `DeleteCashOrder`, which
+would have destroyed the deposit line on a rejected pick. Order is now room ->
+socket -> delete -> insert.
+
+**2. `m_cCategoryNo` is the billing category, not the client enum.** From
+`CX2CashShop::GetItemByCategory`:
+
+```cpp
+if ( (int)subCateID.x == (int)subCategoryID )   // x = CSSC_* client enum
+    if ( m_cCategoryNo == (int)subCateID.y )    // y = the REAL billing number
+```
+
+`CategoryFor()` had been returning the `CSSC_*` enum - a different number space
+entirely. Worse, the field is a **signed char**, so the values it returned for
+`IT_SPECIAL` and the default case (`CSSC_INSTALL_ETC` 152, `CSSC_PET_PET` 200)
+wrapped to -104 and -56 and could never match anything. Those tabs were empty
+and nobody had noticed.
+
+**3. The catalog itself came from the wrong file.** The plan said "catalog from
+the client's own cash-shop script data"; phase 7 corrected that to
+`CashItemPrice.lua` on the grounds that it was the only price list in the tree.
+Both were wrong. `CashItemPrice.lua` is the GameServer's **item-resolve** price
+lookup - its only two readers are `Inventory.cpp:11939` and `:18992`, the
+decompose value - and it prices 9,947 items where the shop sold 2,342. Built
+from it, the shop showed roughly 3,000 items that were never purchasable.
+
+The real catalog is `dbo.EB_Product` in the **billing** database, which is what
+`EGS_BILL_PRODUCT_INFO_ACK` exists to deliver. Its 2360 rows are now transcribed
+into `X2Lib/Offline/X2OfflineCashSeed.h` and seeded into `cash_product` by the
+schema v9 migration, so the shop is queryable and editable in the save file.
+
+Numbers that settled the open questions, all measured rather than assumed:
+
+| question | answer | how |
+|---|---|---|
+| real KOG prices for display? | no - only 789 of 2342 shop items have one, so two thirds would show 0 | intersected `EB_Product` against `CashItemPrice.lua` |
+| use `EB_ProductAttribute` for socket groups? | no - all 1996 rows carry the same value, and gating the dropdown on row *presence* would reintroduce bug 1 for the 364 products with no row | `COUNT(DISTINCT NO_ATTRIBUTE1)` = 1 |
+| key the catalog by item ID? | no - 18 items are sold as two products each, and the client keeps a vector of products per item | `COUNT(*) - COUNT(DISTINCT NO_PRODUCTID)` = 18 |
+| do categories fit a signed char? | yes - 22 values, 11..63 | `MAX(CD_CATEGORYNO)` = 63 |
+| carry period / level / show / sale / gift? | no - constant across all 2360 rows | `COUNT(DISTINCT ...)` = 1 on each |
+
+The category scheme confirms itself against the client's enum: 11-16 is the six
+fashion sub-tabs, 21-27 the seven accessory ones, 31-34 the four consume ones,
+then install, pet and event. Tens digit is the tab.
+
+**The wallet is now cosmetic.** `settings.cash_start` is 999999 and a purchase
+deducts nothing; the affordability check stays only because it makes the knob
+mean something (set it to 0 and the shop is read-only). `account.cash_balance`
+is no longer consulted - a per-account copy of a constant is just a second value
+to drift.
+
+`CashItemPrice.lua` is no longer needed in `data036.kom` for the shop. Nothing
+reads it any more.
+
+### Operational notes from the addendum
+
+- **The game's SQLite has an uncheckpointed WAL, and reading the main file alone
+  gives a stale snapshot.** Copying `els_db.sql` on its own showed schema v6 and
+  a zero cash balance while the live save was v7 with six deposit lines. Always
+  copy `-wal` and `-shm` alongside it.
+- **`sqlcmd` v100 (the SQL 2008 tools, and what is on PATH here) cannot reach a
+  modern SQL Server** - Native Client 10.0 tops out at TLS 1.0 and the
+  connection is closed on it. The container's own client works:
+  `docker exec mssql2022 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ... -C`.
+  Run it from PowerShell, not Git Bash, which rewrites `/opt/...` into a Windows
+  path before Docker sees it.
+- **Profile a table before dumping it.** Five `COUNT(DISTINCT ...)` subqueries
+  in one row cut this ask from 2360x15 columns to 2360x4, killed a second table
+  outright, and answered two design questions that would otherwise have been
+  guesses.
+
+---
+
+---
+
+# Phase 7b — Actionable items: cubes, pets, mounts, class change
+
+Phase 7 built the shop. This is what happens after you buy something that is not
+just a costume: the items that have to *do* something when you use them. All of
+them were refused, three of them by a phase-7 decision that said the data did
+not exist. It does exist — it was just never packed.
+
+## What was actually wrong
+
+Five kinds of item were reported broken. They are not one bug:
+
+| kind | packet | was | now |
+|---|---|---|---|
+| box / cube | `EGS_OPEN_RANDOM_ITEM_REQ` | refused: "contents table is server data with no client copy" | real, out of `RandomItemTable.lua` |
+| pet egg | `EGS_CREATE_PET_REQ` | refused: needs `PetData.lua` | real |
+| mount stone | `EGS_CREATE_RIDING_PET_REQ` | refused: needs `RidingPetData.lua` | real |
+| class change | *(none — it is claim-time)* | **silently landed in the bag and did nothing, ever** | intercepted at claim, changes class |
+| package | `EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ` | refused | still refused, and correctly — see below |
+
+The class-change one is the interesting failure, because nothing logged and
+nothing errored. On live, claiming one of those 42 items is intercepted before
+the inventory insert (`GSUserCashShop.cpp:2887`) and turned into a class change;
+the item never exists. Offline it was an ordinary item ID with no handler
+attached to it, so it claimed into the bag and sat there. There was no
+`UNHANDLED` packet to notice, because the packet that would have been
+unhandled — `EGS_UNLIMITED_SECOND_CHANGE_JOB_NOT` — is a *different* item, and
+that one is not in the catalog at all. A silent success is worse than an error
+and this is why.
+
+**Packages do not exist in this data.** `EB_ProductPackage` in `ES_BILLING` has
+zero rows, and `EB_Product` has no product-kind column, so nothing the shop
+sells is a package and `m_byteProductKind` is 0 for every line. The refusal is
+unreachable rather than wrong, and it stays. What the report called a "package"
+is a box, and boxes are cubes.
+
+## 7b.1 The four files the user has to pack
+
+Same rule as `StatTable.lua` and `DropTable.lua`: XOR-encrypt and pack into
+`data036.kom`, no loose copies left behind.
+
+```
+KncWX2Server/ServerResource/US/RandomItemTable.lua   8.8 MB   the cube contents
+KncWX2Server/ServerResource/US/RandomItemData.lua    220 KB   seal / announce / charm
+KncWX2Server/ServerResource/US/PetData.lua            18 KB   egg -> pet
+KncWX2Server/ServerResource/US/RidingPetData.lua     5.8 KB   stone -> mount
+```
+
+`RandomItemMapping.lua` is deliberately **not** on that list: every call in the
+US copy is commented out, so the live US server applies no timed group swap
+either. Its two entry points are still bound — as no-ops that log if they ever
+fire — because an unbound call aborts the whole chunk at that line.
+
+`RandomItemTable.lua` is eleven times the size of `DropTable.lua`, which is why
+the load is lazy. Nothing touches it until the first cube is opened, and that
+first open will hitch for a moment.
+
+## 7b.2 The thing that made all three loadable: the enum tables
+
+These files are not self-contained. They index globals by name:
+
+```lua
+m_UseCondition = USE_CONDITION["UC_ANYONE"]
+m_cUnitClass   = UNIT_CLASS["UC_NONE"]
+g_pPetManager:AddPetCreateItemInfo( 500000, PET_UNIT_ID["PUI_PETTE_PPORU"], -1 )
+```
+
+On the server those globals exist because the server built them from its own
+enums. In the client's Lua state **nothing defines them at all** — every
+subscript would come back `nil`, arrive as 0, and the files would load into a
+table of zeroes that parses perfectly and is completely wrong. That is the worst
+failure shape available, so `CX2OfflineLuaEnum::Publish()` is a hard
+prerequisite: if it fails, the loaders refuse to run the scripts rather than
+load garbage.
+
+The values are the **client's own** enums, extracted by a generator
+(`scratchpad/gen_luaenum.py` → `X2OfflineLuaEnumSeed.h`) and then diffed against
+the server's independent copy of each enum, which is a genuine cross-check
+rather than two views of one source:
+
+| enum | client | server | shared | mismatched |
+|---|---|---|---|---|
+| `PET_UNIT_ID` | 103 | 103 | 103 | **0** |
+| `RIDING_PET_UNIT_ID` | 6 | 6 | 6 | **0** |
+| `UNIT_CLASS` | 60 | 65 | 58 | **0** |
+
+`USE_CONDITION` is the one exception — the client has no copy of it, so its four
+values are `CXSLItem::USE_CONDITION` verbatim.
+
+### The bug this nearly shipped with
+
+`True` and `False` are globals too — `m_bGiveAll = True` appears in all 4360
+cube blocks, and 1734 of them say `False`. The obvious implementation is
+`lua_pushboolean`. It is wrong. `KLuaManager` reads an int field through
+`GET_BY_NAME`, which gates on `lua_isnumber` (`KLuaManager.cpp:672`), and in
+Lua 5.1 **`lua_isnumber` is false for a boolean**. A boolean `True` would have
+read as "field absent", fallen back to the init value, and turned all 2626
+give-all cubes into single-item draws — a wrong result with no error anywhere.
+They are pushed as the numbers 1 and 0, which read back correctly and are still
+truthy to any `if True then`.
+
+Caught by reading `GET_BY_NAME` rather than by testing, which is the only way it
+would have been caught — the symptom is "this cube gave me one item" and nobody
+knows how many it should have given.
+
+## 7b.3 The cube draw
+
+`CXSLRandomItemManager::GetResultItem` transcribed
+(`XSLRandomItemManager.cpp:756`):
+
+* resolve the item group by `m_UseCondition` — `UC_ANYONE` takes entry [0];
+  `UC_ONE_UNIT` collapses the class to its base class first; `UC_ONE_CLASS`
+  matches exactly. All three occur: 3161 / 926 / 273 blocks.
+* `m_bGiveAll` false → one `KLottery` draw over the group; true → the whole group
+* plus the charm bonus item, for the 76 cubes that have one
+
+Base-grade collapse needed `CXSLUnit::GetUnitClassBaseGrade`, which the client
+has no copy of — and does not need one. The eight base classes are numbered 1..8
+and `CX2Unit::UNIT_TYPE` is numbered `UT_ELSWORD`=1..`UT_ELESIS`=8 to match, so
+the unit type *is* the base-grade class value, and `CX2OfflineStatTable::UnitTypeOf`
+already reads it off the client's own unit templet.
+
+Deliberately not carried over, each for a checked reason:
+
+* **the timed group swap** — mechanism on, US data empty (see above)
+* **the enchant level on cube weapons/armour** — `SERV_NEW_ITEM_SYSTEM_2013_05`
+  is ON and `#else`s that block out of the single-draw path. (The give-all path
+  is not guarded the same way. That asymmetry is in the studio's source; it is
+  left alone rather than "corrected".)
+* **resurrection / stamina counters** — carried on the packet and passed
+  through, but nothing offline consumes them
+
+**ED is a trap on this packet.** `SERV_CUBE_OPEN_ED_CONDITION` is on, and the
+client does not treat `m_iED` as a delta — it *assigns* it over the character's
+ED (`X2UIInventory.cpp:9121`). A default-constructed ACK carries 0. Every reply
+out of the handler, refusals included, fills it, or opening a cube empties the
+wallet.
+
+Ordering, as everywhere else in this project: draw → room check → consume cube →
+consume key → spend ED → insert. A cube that draws nothing, or does not fit,
+leaves the bag exactly as it found it.
+
+Error codes came from `NetError_def.h:288-294`, which does not read the way the
+numbering suggests: 00 not in the inventory, 01 not a cube, 02 wrong class,
+**04** not enough keys (there is no 03), 05 generic, 07 no room, 13 not enough
+ED. The first pass guessed and used a code that does not exist.
+
+## 7b.4 Pets and mounts, and the gap that will bite
+
+Hatching and mount creation are straightforward — the storage
+(`unit_pet`, `unit_riding_pet`) was already there from phase 7. New pets start at
+`PetData.lua`'s own `SetNewPetInfo` values rather than at invented defaults.
+A timed pet is permanent, because `unit_pet` has no expiry column and only 4 of
+120 rows are timed (none sold offline); a timed **mount** really does expire,
+because `unit_riding_pet` does have one, and 20 of the 38 stone rows are timed.
+
+**The shipped `ServerResource` .lua files are newer than this source tree.** They
+name enum values this build does not have:
+
+| file | names | this build has | in the shop |
+|---|---|---|---|
+| `RidingPetData.lua` | 11 mounts | **4** | 7 sold, **3 unrenderable** |
+| `PetData.lua` | 105 pets | 98 | 11 sold, all fine |
+
+The three are the Hamelings — items 550040 / 550041 / 550042 — and the client's
+own `RIDING_PET_ITEM_ID` array offers "use" on them regardless, so this is
+reachable in ordinary play, not a theoretical edge. Those refuse with a log line
+naming the item and **keep the ticket**. Inventing an ID would burn the ticket on
+a mount the client cannot draw.
+
+This is worth stating plainly: it is not a bug in this phase and there is no fix
+short of extending `CX2RidingPetManager::RIDING_PET_UNIT_ID` and shipping the
+models, which is a different project.
+
+## 7b.5 Class change
+
+42 cash items, intercepted at claim before the room check — the item never
+enters the bag, so a full inventory is no reason to refuse it.
+
+The map is generated (`gen_classchange.py` → `X2OfflineClassChangeSeed.h`) from
+two sources that had to agree and did: the IDs from the client's
+`UNIT_CLASS_CHANGE_*_ITEM_ID` constants, the targets from
+`CXSLItem::GetClassChangeCashItem`'s switch. 42 IDs, present in both, none on
+only one side.
+
+Resolving which branch of that switch counts was the subtle part. Every case
+sits inside an `#ifdef` naming a transcendence class with an `#else` naming the
+older `UC_*_2` placeholder. All seven of those flags are ON in `US_SERVICE`
+(compiler probe), so the live case is the one naming a class the client has —
+and the `#else` names a `UC_*_2` this build does not compile. Reading the switch
+without resolving that gives six items the wrong target class, which is exactly
+what the first pass produced.
+
+What it does: `SaveUnitClass`, then the full skill-tree reset the live path also
+does (`InitSkillTree` — clear, restore all SP, re-grant the new class's
+defaults). Then `EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK` **first** and
+`EGS_BUY_UNIT_CLASS_CHANGE_NOT` **second**, because the client is holding an
+`AddServerPacket` wait on the ACK and the NOT rebuilds the character sheet
+against a unit it has not been told about yet. Same ordering rule
+`AfterQuestComplete` follows.
+
+### The second bug this nearly shipped with
+
+`KEGS_BUY_UNIT_CLASS_CHANGE_NOT` carries `m_vecChangeInProgressQuest` and
+`m_vecChangeCompleteQuest`, and the names lie: they are not "the quests that
+changed". `CX2State`'s handler feeds them straight into
+`CX2QuestManager::SetUnitQuest`, which opens with `ClearUnitQuest()` and rebuilds
+from whatever it was handed. Sending the empty vectors the packet is born with
+would have **blanked the player's entire quest log** the moment they changed
+class, until the next relog put it back.
+
+They now carry the lists exactly as they stand. On live they would be the
+*remapped* lists, out of `ClassChangeQuest.lua`; that file is not packed, so no
+remap happens and unremapped-but-intact is the honest answer.
+
+Not carried, and narrow enough to state rather than hide: the memo remap, the
+item remap and the quest remap (`ClassChangeMemo.lua`, `ClassChangeItem.lua`,
+`ClassChangeQuest.lua`, none packed). Class-specific skill notes and completed
+job quests keep their old class's IDs. The class change itself — which is what
+the item is for — is complete.
+
+`EGS_UNLIMITED_SECOND_CHANGE_JOB_NOT` is still unhandled, and stays that way:
+its item (`153000168`) is not in the catalog, so it cannot be bought.
+
+## 7b.6 What is new
+
+```
+X2Lib/Offline/X2OfflineLuaEnum.h/.cpp          the four enum tables + True/False
+X2Lib/Offline/X2OfflineLuaEnumSeed.h           GENERATED from the client's enums
+X2Lib/Offline/X2OfflineRandomItem.h/.cpp       cubes
+X2Lib/Offline/X2OfflinePetData.h/.cpp          egg -> pet, stone -> mount
+X2Lib/Offline/X2OfflineClassChangeSeed.h       GENERATED, 42 rows
+```
+
+rewritten: `Handler_EGS_OPEN_RANDOM_ITEM_REQ`, `Handler_EGS_CREATE_PET_REQ`,
+`Handler_EGS_CREATE_RIDING_PET_REQ`, and the class-change interception inside
+`Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ`.
+
+### Exit test
+
+Pack the four files. Then, watching `offline_server.log`:
+
+* `LUA published enum tables: UNIT_CLASS(60) ...` on the first cube or egg
+* `CUBE loaded: N cube(s) ... M case(s) across G group(s)` — a nonzero N
+* `PET loaded: N egg(s) -> pet, M stone(s) -> mount` with a `NOTE ... 7 stone
+  row(s)` skip line
+* open a cube, hatch a pet, summon a mount, claim a class-change item
+* **check ED did not change** after opening a cube — that is the regression this
+  phase is most exposed to
+* **check the quest log still has its quests** after a class change
+
+Anything refused says which file is missing and what to do about it. Nothing
+guesses.
+
+### Exit test — RUN, in progress (2026-09-04)
+
+The four files were packed. Class-change claim confirmed working end to end:
+item claimed, class changed, quest log intact. Two defects turned up before
+the cube/pet/mount checks could be signed off, and neither is fixed yet.
+
+**1. Opening a cube emptied the wallet.** This is despite
+`Handler_EGS_OPEN_RANDOM_ITEM_REQ` ([Handlers_Social.cpp:1907](X2Lib/Offline/Handlers_Social.cpp#L1907))
+setting `kAck.m_iED = kUnit.m_iED` before every reply path, exactly as the
+assign-not-delta warning in this phase's own code comments says it must. Every
+saved backup of the character's ED only ever went up (2783 -> 27127 -> 41145),
+so the value in SQLite was never zeroed - whatever went wrong happened between
+the ACK and the client showing it, or somewhere not yet found. Not root-caused.
+
+**2. A class of consumables is silently voided, wider than cubes/pets/mounts.**
+Found while testing item 78894 ("Elixir" -
+`CXSLItem::SI_THE_GATE_OF_DARKNESS_ELIXIR_GIANT_POTION`,
+[XSLItem.h:934](KncWX2Server/Common/X2Data/XSLItem.h#L934)) and two more items
+(270970-270972) used from the bag. `Handler_EGS_USE_ITEM_IN_INVENTORY_REQ`
+([Handlers_Inventory.cpp:187](X2Lib/Offline/Handlers_Inventory.cpp#L187))
+treats the client's `GetCanUseInventory()==true` flag as blanket permission to
+delete the item and reply success. On live, that flag only means "the UI lets
+you double-click this" - `GSUserInventory.cpp`'s handler (the live path starts
+at line 4940) runs a ~700-line item-ID switch first: warp teleport, buff
+activation via `KGSUser::ActivateItemBuff` / `CXSLBuffManager`
+([GSUserFunction.cpp:15978](KncWX2Server/GameServer/GSUserFunction.cpp#L15978)),
+skill unseal, nickname change, guild/bank/quickslot expansion. Offline has none
+of it. Confirmed concretely:
+
+  - `kAck.m_iWarpPointMapID` is hardcoded to 0
+    ([Handlers_Inventory.cpp:199](X2Lib/Offline/Handlers_Inventory.cpp#L199))
+    and never set afterward, so a warp scroll used from the bag disappears
+    with no teleport.
+  - The Elixir's "blessing" buff is entirely a server + login-server
+    bookkeeping system - no `CXSLBuffManager`/`BTI_BUFF_*` symbol appears
+    anywhere under `X2Lib/`, so there is nothing client-side to trigger. The
+    item is consumed and nothing happens.
+
+  Items 270970-270972 have no `CXSLItem::SI_*`/`EI_*` enum entry at all, so
+  their effect is data-driven (`ItemTemplet::m_iBuffFactorID` /
+  `m_SpecialAbilityList`) rather than a hardcoded case - not yet identified by
+  name. Per the live-DB rule, `ScriptData/ItemTemplet.xlsx` is not trusted for
+  this; the planned next step is a diagnostic log line reading the name and
+  ability counts straight off the client's own loaded item templet, not a
+  guess from the spreadsheet.
+
+Scope for the fix - how much of the live item-use switch is worth porting for
+a single-player save - is an open decision, not yet made.
 
 # Phase 8 — Hardening and packaging
 

@@ -1254,7 +1254,8 @@ bool CX2OfflineInventory::SeedPromotionItems( UidType nUnitUID, int iUnitClass )
 
 bool CX2OfflineInventory::InsertItem( int iItemID, int iQuantity, int iEnchantLevel,
 									  OUT std::vector< KInventoryItemInfo >& vecChanged,
-									  OUT int& iInserted )
+									  OUT int& iInserted,
+									  const std::vector< int >* pvecSocket /*= NULL*/ )
 {
 	vecChanged.clear();
 	iInserted = 0;
@@ -1333,6 +1334,9 @@ bool CX2OfflineInventory::InsertItem( int iItemID, int iQuantity, int iEnchantLe
 		kRow.m_iEndurance		= ( CX2Item::PT_ENDURANCE == pTemplet->GetPeriodType() )
 									? pTemplet->GetEndurance()
 									: 0;
+
+		if( NULL != pvecSocket )
+			kRow.m_vecSocket = *pvecSocket;
 
 		if( false == CX2OfflineDB::Instance()->InsertItem( kRow ) )
 			break;

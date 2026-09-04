@@ -124,9 +124,17 @@ public:
 	/// and then empty slots in its natural category, exactly as
 	/// KInventory::PrepareInsert does; iInserted comes back short when the
 	/// inventory filled up.
+	///
+	/// pvecSocket, when given, is the socket list every newly created row is
+	/// born with - the cash shop's "attribute" pick. It is deliberately not
+	/// applied to a partial stack that was topped up instead: a socketed item is
+	/// always PT_ENDURANCE and so never stacks, and silently rewriting the
+	/// sockets of an item already in the bag would be a different operation
+	/// wearing this one's name.
 	bool	InsertItem( int iItemID, int iQuantity, int iEnchantLevel,
 						OUT std::vector< KInventoryItemInfo >& vecChanged,
-						OUT int& iInserted );
+						OUT int& iInserted,
+						const std::vector< int >* pvecSocket = NULL );
 
 	/// Spend one of a quantity item - a quick-slot potion, a skill-reset scroll.
 	bool	ConsumeOne( UidType nItemUID, OUT KInventoryItemInfo& kOut );

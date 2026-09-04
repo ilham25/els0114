@@ -257,16 +257,37 @@ bool CX2OfflineServer::Handler_EGS_CHECK_BALANCE_REQ( KOfflineSession& kSes, con
 	// Sent with no body (SendID) from CX2State::Handler_EGS_CHECK_BALANCE_REQ,
 	// which CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK calls
 	// unconditionally - so picking a character stalls on the AddServerPacket
-	// wait unless this is answered.
+	// wait unless this is answered. The client also re-sends it after every
+	// cash purchase (X2CashShop.cpp:3580), which is how the shop's wallet
+	// display refreshes.
 	//
-	// The balance is the cash-shop wallet. Phase 7 pays it out of
-	// account.cash_balance; until then it is flat zero, which the cash shop
-	// reads as "cannot afford anything" rather than as an error.
+	// The wallet is cosmetic: a purchase does not deduct it (see
+	// Handler_EGS_BUY_CASH_ITEM_REQ), so this is the same number every time and
+	// comes straight from `settings.cash_start` rather than from a per-account
+	// copy that would only ever drift from it.
+	const int iBalance = CX2OfflineDB::Instance()->GetWallet();
+
 	KEGS_CHECK_BALANCE_ACK kAck;
 	kAck.m_iOK			= NetError::NET_OK;
-	kAck.m_ulBalance	= 0;
+	kAck.m_ulBalance	= (unsigned long)iBalance;
+
+#ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
+	// m_ulBalance is NOT what this build reads. With
+	// SERV_SUPPORT_SEVERAL_CASH_TYPES on - and it is, for every region - the
+	// client's own handler routes m_bOnlyType false to
+	// CX2User::SetGlobalCash( m_GlobalCashInfo ) and never touches m_ulBalance
+	// (X2State.cpp:5645-5659). Filling only the scalar, which is what this
+	// handler did before phase 7, leaves the shop showing zero however much the
+	// save file says.
+	//
+	// GCT_PUBLISHER_CASH is the slot: it is the type the US client's own buy
+	// popup defaults to (X2CashShop.cpp:11170), and the only one
+	// Handler_EGS_BUY_CASH_ITEM_REQ accepts. The other three stay zero, so the
+	// total the UI adds up is the one wallet.
 	kAck.m_bOnlyType	= false;
 	kAck.m_iCashType	= -1;
+	kAck.m_GlobalCashInfo.m_ulCash[ KGlobalCashInfo::GCT_PUBLISHER_CASH ] = (unsigned long)iBalance;
+#endif SERV_SUPPORT_SEVERAL_CASH_TYPES
 
 	return Reply( kSes, EGS_CHECK_BALANCE_ACK, kAck );
 }

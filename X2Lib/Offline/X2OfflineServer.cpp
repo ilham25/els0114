@@ -54,6 +54,7 @@ void CX2OfflineServer::Release()
 	delete ms_pInstance;
 	ms_pInstance = NULL;
 
+	CX2OfflineCashShop::Release();
 	CX2OfflineBattleField::Release();
 	CX2OfflineDropTable::Release();
 	CX2OfflineStatTable::Release();
@@ -482,9 +483,164 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_SKILL_USE_REQ:					return Handler_EGS_SKILL_USE_REQ( kSes, kEvent );
 
 	//////////////////////////////////////////////////////////////////////////
+	// the cash shop - Handlers_Shop.cpp
+	case EGS_BILL_PRODUCT_INFO_REQ:         return Handler_EGS_BILL_PRODUCT_INFO_REQ( kSes, kEvent );
+	case EGS_GET_WISH_LIST_REQ:             return Handler_EGS_GET_WISH_LIST_REQ( kSes, kEvent );
+	case EGS_MODIFY_WISH_LIST_REQ:          return Handler_EGS_MODIFY_WISH_LIST_REQ( kSes, kEvent );
+	case EGS_BILL_INVENTORY_INQUIRY_REQ:    return Handler_EGS_BILL_INVENTORY_INQUIRY_REQ( kSes, kEvent );
+	case EGS_BUY_CASH_ITEM_REQ:             return Handler_EGS_BUY_CASH_ITEM_REQ( kSes, kEvent );
+	case EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ:
+                                        return Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( kSes, kEvent );
+	case EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ:
+                                        return Handler_EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ( kSes, kEvent );
+	case EGS_PRESENT_CASH_ITEM_REQ:         return Handler_EGS_PRESENT_CASH_ITEM_REQ( kSes, kEvent );
+	case EGS_VISIT_CASH_SHOP_NOT:           return Handler_EGS_VISIT_CASH_SHOP_NOT( kSes, kEvent );
+	case EGS_CHECK_PRESENT_CASH_INVENTORY_NOT:
+                                        return Handler_EGS_CHECK_PRESENT_CASH_INVENTORY_NOT( kSes, kEvent );
+	case EGS_APPLY_COUPON_REQ:              return Handler_EGS_APPLY_COUPON_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// guild - Handlers_Social.cpp
+	case EGS_CREATE_GUILD_REQ:              return Handler_EGS_CREATE_GUILD_REQ( kSes, kEvent );
+	case EGS_GET_GUILD_USER_LIST_REQ:       return Handler_EGS_GET_GUILD_USER_LIST_REQ( kSes, kEvent );
+	case EGS_GET_APPLY_JOIN_GUILD_LIST_REQ: return Handler_EGS_GET_APPLY_JOIN_GUILD_LIST_REQ( kSes, kEvent );
+	case EGS_GET_GUILD_AD_LIST_REQ:         return Handler_EGS_GET_GUILD_AD_LIST_REQ( kSes, kEvent );
+	case EGS_APPLY_JOIN_GUILD_REQ:          return Handler_EGS_APPLY_JOIN_GUILD_REQ( kSes, kEvent );
+	case EGS_ACCEPT_JOIN_GUILD_REQ:         return Handler_EGS_ACCEPT_JOIN_GUILD_REQ( kSes, kEvent );
+	case EGS_DELETE_APPLY_JOIN_GUILD_REQ:   return Handler_EGS_DELETE_APPLY_JOIN_GUILD_REQ( kSes, kEvent );
+	case EGS_REGISTRATION_GUILD_AD_REQ:     return Handler_EGS_REGISTRATION_GUILD_AD_REQ( kSes, kEvent );
+	case EGS_MODIFY_REG_GUILD_AD_REQ:       return Handler_EGS_MODIFY_REG_GUILD_AD_REQ( kSes, kEvent );
+	case EGS_INVITE_GUILD_REQ:              return Handler_EGS_INVITE_GUILD_REQ( kSes, kEvent );
+	case EGS_INVITE_GUILD_REPLY_REQ:        return Handler_EGS_INVITE_GUILD_REPLY_REQ( kSes, kEvent );
+	case EGS_KICK_GUILD_MEMBER_REQ:         return Handler_EGS_KICK_GUILD_MEMBER_REQ( kSes, kEvent );
+	case EGS_CHANGE_GUILD_MEMBER_GRADE_REQ: return Handler_EGS_CHANGE_GUILD_MEMBER_GRADE_REQ( kSes, kEvent );
+	case EGS_CHANGE_GUILD_MEMBER_MESSAGE_REQ:
+                                        return Handler_EGS_CHANGE_GUILD_MEMBER_MESSAGE_REQ( kSes, kEvent );
+	case EGS_CHANGE_GUILD_MESSAGE_REQ:      return Handler_EGS_CHANGE_GUILD_MESSAGE_REQ( kSes, kEvent );
+	case EGS_CHANGE_GUILD_NAME_CHECK_REQ:   return Handler_EGS_CHANGE_GUILD_NAME_CHECK_REQ( kSes, kEvent );
+	case EGS_CHANGE_GUILD_NAME_REQ:         return Handler_EGS_CHANGE_GUILD_NAME_REQ( kSes, kEvent );
+	case EGS_GET_GUILD_SKILL_REQ:           return Handler_EGS_GET_GUILD_SKILL_REQ( kSes, kEvent );
+	case EGS_GET_GUILD_SKILL_IN_BOARD_REQ:  return Handler_EGS_GET_GUILD_SKILL_IN_BOARD_REQ( kSes, kEvent );
+	case EGS_INIT_GUILD_SKILL_REQ:          return Handler_EGS_INIT_GUILD_SKILL_REQ( kSes, kEvent );
+	case EGS_RESET_GUILD_SKILL_REQ:         return Handler_EGS_RESET_GUILD_SKILL_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// party - Handlers_Social.cpp
+	case EGS_INVITE_PARTY_REQ:              return Handler_EGS_INVITE_PARTY_REQ( kSes, kEvent );
+	case EGS_LEAVE_PARTY_REQ:               return Handler_EGS_LEAVE_PARTY_REQ( kSes, kEvent );
+	case EGS_CHANGE_PARTY_TYPE_REQ:         return Handler_EGS_CHANGE_PARTY_TYPE_REQ( kSes, kEvent );
+	case EGS_PARTY_CHANGE_DUNGEON_REQ:      return Handler_EGS_PARTY_CHANGE_DUNGEON_REQ( kSes, kEvent );
+	case EGS_PARTY_CHANGE_HOST_REQ:         return Handler_EGS_PARTY_CHANGE_HOST_REQ( kSes, kEvent );
+	case EGS_PARTY_CHANGE_GET_ITEM_TYPE_REQ:
+                                        return Handler_EGS_PARTY_CHANGE_GET_ITEM_TYPE_REQ( kSes, kEvent );
+	case EGS_PARTY_CHANGE_NUM_OF_PER_REQ:   return Handler_EGS_PARTY_CHANGE_NUM_OF_PER_REQ( kSes, kEvent );
+	case EGS_PARTY_CHANGE_CHECK_MIN_LEVEL_REQ:
+                                        return Handler_EGS_PARTY_CHANGE_CHECK_MIN_LEVEL_REQ( kSes, kEvent );
+	case EGS_PARTY_BAN_USER_REQ:            return Handler_EGS_PARTY_BAN_USER_REQ( kSes, kEvent );
+	case EGS_PARTY_GAME_START_REQ:          return Handler_EGS_PARTY_GAME_START_REQ( kSes, kEvent );
+	case EGS_REQUEST_MATCH_MAKING_REQ:      return Handler_EGS_REQUEST_MATCH_MAKING_REQ( kSes, kEvent );
+	case EGS_AUTO_PARTY_DUNGEON_GAME_REQ:   return Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ( kSes, kEvent );
+	case EGS_PVP_PARTY_CHANGE_MATCH_INFO_REQ:
+                                        return Handler_EGS_PVP_PARTY_CHANGE_MATCH_INFO_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// friends, the messenger and the community window - Handlers_Social.cpp
+	case EGS_COMMUNITY_USER_LIST_REQ:       return Handler_EGS_COMMUNITY_USER_LIST_REQ( kSes, kEvent );
+	case EGS_COMMUNITY_USER_LIST_MONITORING_MODE_REQ:
+                                        return Handler_EGS_COMMUNITY_USER_LIST_MONITORING_MODE_REQ( kSes, kEvent );
+	case EGS_GET_RECOMMEND_USER_LIST_REQ:   return Handler_EGS_GET_RECOMMEND_USER_LIST_REQ( kSes, kEvent );
+	case EGS_REQUEST_FRIEND_REQ:            return Handler_EGS_REQUEST_FRIEND_REQ( kSes, kEvent );
+	case EGS_ACCEPT_FRIEND_REQ:             return Handler_EGS_ACCEPT_FRIEND_REQ( kSes, kEvent );
+	case EGS_DENY_FRIEND_REQ:               return Handler_EGS_DENY_FRIEND_REQ( kSes, kEvent );
+	case EGS_BLOCK_FRIEND_REQ:              return Handler_EGS_BLOCK_FRIEND_REQ( kSes, kEvent );
+	case EGS_UNBLOCK_FRIEND_REQ:            return Handler_EGS_UNBLOCK_FRIEND_REQ( kSes, kEvent );
+	case EGS_DELETE_FRIEND_REQ:             return Handler_EGS_DELETE_FRIEND_REQ( kSes, kEvent );
+	case EGS_MOVE_FRIEND_REQ:               return Handler_EGS_MOVE_FRIEND_REQ( kSes, kEvent );
+	case EGS_MAKE_FRIEND_GROUP_REQ:         return Handler_EGS_MAKE_FRIEND_GROUP_REQ( kSes, kEvent );
+	case EGS_RENAME_FRIEND_GROUP_REQ:       return Handler_EGS_RENAME_FRIEND_GROUP_REQ( kSes, kEvent );
+	case EGS_DELETE_FRIEND_GROUP_REQ:       return Handler_EGS_DELETE_FRIEND_GROUP_REQ( kSes, kEvent );
+	case EGS_UPDATE_FRIEND_INFO_REQ:        return Handler_EGS_UPDATE_FRIEND_INFO_REQ( kSes, kEvent );
+	case EGS_KNM_REQUEST_NEW_FRIEND_INFO_REQ:
+                                        return Handler_EGS_KNM_REQUEST_NEW_FRIEND_INFO_REQ( kSes, kEvent );
+	case EGS_GET_MY_MESSENGER_SN_REQ:       return Handler_EGS_GET_MY_MESSENGER_SN_REQ( kSes, kEvent );
+	case EGS_ED_MONITORING_BLOCK_REQ:       return Handler_EGS_ED_MONITORING_BLOCK_REQ( kSes, kEvent );
+	case EGS_USER_COMMUNITY_SURVEY_NEW_REQ: return Handler_EGS_USER_COMMUNITY_SURVEY_NEW_REQ( kSes, kEvent );
+	case EGS_INVITE_PVP_ROOM_REQ:           return Handler_EGS_INVITE_PVP_ROOM_REQ( kSes, kEvent );
+	case EGS_UPDATE_COMMUNITY_OPTION_REQ:   return Handler_EGS_UPDATE_COMMUNITY_OPTION_REQ( kSes, kEvent );
+	case EGS_SEARCH_UNIT_REQ:               return Handler_EGS_SEARCH_UNIT_REQ( kSes, kEvent );
+	case EGS_GET_CONNECTION_UNIT_INFO_REQ:  return Handler_EGS_GET_CONNECTION_UNIT_INFO_REQ( kSes, kEvent );
+	case EGS_WATCH_UNIT_REQ:                return Handler_EGS_WATCH_UNIT_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// mail - Handlers_Social.cpp
+	case EGS_GET_POST_LETTER_LIST_REQ:      return Handler_EGS_GET_POST_LETTER_LIST_REQ( kSes, kEvent );
+	case EGS_READ_LETTER_REQ:               return Handler_EGS_READ_LETTER_REQ( kSes, kEvent );
+	case EGS_DELETE_LETTER_REQ:             return Handler_EGS_DELETE_LETTER_REQ( kSes, kEvent );
+	case EGS_SEND_LETTER_REQ:               return Handler_EGS_SEND_LETTER_REQ( kSes, kEvent );
+	case EGS_GET_ITEM_FROM_LETTER_REQ:      return Handler_EGS_GET_ITEM_FROM_LETTER_REQ( kSes, kEvent );
+	case EGS_GET_POST_BLACK_LIST_REQ:       return Handler_EGS_GET_POST_BLACK_LIST_REQ( kSes, kEvent );
+	case EGS_NEW_POST_BLACK_LIST_REQ:       return Handler_EGS_NEW_POST_BLACK_LIST_REQ( kSes, kEvent );
+	case EGS_DEL_POST_BLACK_LIST_REQ:       return Handler_EGS_DEL_POST_BLACK_LIST_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// chat - Handlers_Social.cpp
+	case EGS_CHAT_REQ:                      return Handler_EGS_CHAT_REQ( kSes, kEvent );
+	case EGS_CHAT_OPTION_INFO_WRITE_REQ:    return Handler_EGS_CHAT_OPTION_INFO_WRITE_REQ( kSes, kEvent );
+	case EGS_NEW_BLACKLIST_USER_REQ:        return Handler_EGS_NEW_BLACKLIST_USER_REQ( kSes, kEvent );
+	case EGS_DEL_BLACKLIST_USER_REQ:        return Handler_EGS_DEL_BLACKLIST_USER_REQ( kSes, kEvent );
+	case EGS_USE_MEGAPHONE_REQ:             return Handler_EGS_USE_MEGAPHONE_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// ranking and the local-ranking profile - Handlers_Social.cpp
+	case EGS_GET_RANKING_INFO_REQ:          return Handler_EGS_GET_RANKING_INFO_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// the tutor system, the bank, and the rest of the menu - Handlers_Social.cpp
+	case EGS_TUTORIAL_STUDENT_LIST_REQ:     return Handler_EGS_TUTORIAL_STUDENT_LIST_REQ( kSes, kEvent );
+	case EGS_REQUEST_TUTORIAL_REQ:          return Handler_EGS_REQUEST_TUTORIAL_REQ( kSes, kEvent );
+	case EGS_DEL_TUTORIAL_REQ:              return Handler_EGS_DEL_TUTORIAL_REQ( kSes, kEvent );
+	case EGS_GET_SHARE_BANK_REQ:            return Handler_EGS_GET_SHARE_BANK_REQ( kSes, kEvent );
+	case EGS_GET_TEMP_ITEM_REQ:             return Handler_EGS_GET_TEMP_ITEM_REQ( kSes, kEvent );
+	case EGS_DELETE_TEMP_ITEM_REQ:          return Handler_EGS_DELETE_TEMP_ITEM_REQ( kSes, kEvent );
+	case EGS_SEARCH_TRADE_BOARD_REQ:        return Handler_EGS_SEARCH_TRADE_BOARD_REQ( kSes, kEvent );
+	case EGS_CHECK_SUM_REQ:                 return Handler_EGS_CHECK_SUM_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// pets and riding pets - Handlers_Social.cpp
+	case EGS_GET_PET_LIST_REQ:               return Handler_EGS_GET_PET_LIST_REQ( kSes, kEvent );
+	case EGS_GET_RIDING_PET_LIST_REQ:        return Handler_EGS_GET_RIDING_PET_LIST_REQ( kSes, kEvent );
+	case EGS_CREATE_PET_REQ:                return Handler_EGS_CREATE_PET_REQ( kSes, kEvent );
+	case EGS_SUMMON_PET_REQ:                return Handler_EGS_SUMMON_PET_REQ( kSes, kEvent );
+	case EGS_FEED_PETS_REQ:                 return Handler_EGS_FEED_PETS_REQ( kSes, kEvent );
+	case EGS_COMMANDS_FOR_PETS_REQ:         return Handler_EGS_COMMANDS_FOR_PETS_REQ( kSes, kEvent );
+	case EGS_PET_EVOLUTION_REQ:             return Handler_EGS_PET_EVOLUTION_REQ( kSes, kEvent );
+	case EGS_CHANGE_PET_NAME_REQ:           return Handler_EGS_CHANGE_PET_NAME_REQ( kSes, kEvent );
+	case EGS_SET_AUTO_FEED_PETS_REQ:        return Handler_EGS_SET_AUTO_FEED_PETS_REQ( kSes, kEvent );
+	case EGS_CREATE_RIDING_PET_REQ:         return Handler_EGS_CREATE_RIDING_PET_REQ( kSes, kEvent );
+	case EGS_SUMMON_RIDING_PET_REQ:         return Handler_EGS_SUMMON_RIDING_PET_REQ( kSes, kEvent );
+	case EGS_UNSUMMON_RIDING_PET_REQ:       return Handler_EGS_UNSUMMON_RIDING_PET_REQ( kSes, kEvent );
+	case EGS_RELEASE_RIDING_PET_REQ:        return Handler_EGS_RELEASE_RIDING_PET_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// the rest of what a village menu can reach - Handlers_Social.cpp
+	case EGS_CHECK_CHANNEL_CHANGE_REQ:      return Handler_EGS_CHECK_CHANNEL_CHANGE_REQ( kSes, kEvent );
+	case EGS_JOIN_FIELD_CHANNEL_CHANGE_REQ: return Handler_EGS_JOIN_FIELD_CHANNEL_CHANGE_REQ( kSes, kEvent );
+	case EGS_WARP_BY_BUTTON_REQ:            return Handler_EGS_WARP_BY_BUTTON_REQ( kSes, kEvent );
+	case EGS_2013_EVENT_MISSION_COMPLETE_REQ:
+                                        return Handler_EGS_2013_EVENT_MISSION_COMPLETE_REQ( kSes, kEvent );
+	case EGS_REG_SKILL_NOTE_MEMO_REQ:       return Handler_EGS_REG_SKILL_NOTE_MEMO_REQ( kSes, kEvent );
+	case EGS_OPEN_RANDOM_ITEM_REQ:          return Handler_EGS_OPEN_RANDOM_ITEM_REQ( kSes, kEvent );
+	case EGS_AUTH_SECOND_SECURITY_REQ:      return Handler_EGS_AUTH_SECOND_SECURITY_REQ( kSes, kEvent );
+	case EGS_CREATE_SECOND_SECURITY_REQ:    return Handler_EGS_CREATE_SECOND_SECURITY_REQ( kSes, kEvent );
+	case EGS_COMPARE_SECOND_SECURITY_PW_REQ:
+                                        return Handler_EGS_COMPARE_SECOND_SECURITY_PW_REQ( kSes, kEvent );
+	case EGS_CHANGE_SECOND_SECURITY_PW_REQ: return Handler_EGS_CHANGE_SECOND_SECURITY_PW_REQ( kSes, kEvent );
+	case EGS_DELETE_SECOND_SECURITY_REQ:    return Handler_EGS_DELETE_SECOND_SECURITY_REQ( kSes, kEvent );
+	case EGS_DELETE_SECOND_SECURITY_VERIFY_REQ:
+                                        return Handler_EGS_DELETE_SECOND_SECURITY_VERIFY_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
 	// answered only because the client blocks on them - Handlers_Stub.cpp
-	case EGS_GET_PET_LIST_REQ:				return Handler_EGS_GET_PET_LIST_REQ( kSes, kEvent );
-	case EGS_GET_RIDING_PET_LIST_REQ:		return Handler_EGS_GET_RIDING_PET_LIST_REQ( kSes, kEvent );
 	case EGS_MODULE_INFO_UPDATE_NOT:		return Handler_EGS_MODULE_INFO_UPDATE_NOT( kSes, kEvent );
 	case EGS_DUNGEON_PLAY_INFO_TO_SERVER_NOT:
 											return Handler_EGS_DUNGEON_PLAY_INFO_TO_SERVER_NOT( kSes, kEvent );
