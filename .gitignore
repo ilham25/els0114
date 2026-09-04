@@ -25,6 +25,7 @@
 !/X2Project_2003.sln
 !/X2Project_Servers_2010.sln
 !/VS2003_to_VS2010_Port_Guide.md
+!/*.md
 
 # ---- narrow allowlist into KNCSDK (709 MB / 1234 files) for just the files -
 # the VS2010 server port touched, rather than admitting the whole vendored
