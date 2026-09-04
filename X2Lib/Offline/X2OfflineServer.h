@@ -35,6 +35,7 @@
 #include "X2OfflineQuest.h"
 #include "X2OfflineTitle.h"
 #include "X2OfflineCashShop.h"
+#include "X2OfflineIgnore.h"
 
 class CX2OfflineServer : public IX2OfflineHook
 {
@@ -352,6 +353,29 @@ private:
 
 	/// returns true if a handler consumed the packet, false -> log it UNHANDLED
 	bool Dispatch( KOfflineSession& kSes, const KEvent& kEvent );
+
+	/// Dispatch() behind an __except, so one bad packet logs and the process
+	/// keeps running (phase 8).
+	///
+	/// __try, not try/catch. X2Lib's US_SERVICE configuration sets no /EH
+	/// switch at all, so a C++ catch(...) - which is what this used to be -
+	/// cannot be relied on, and the fault that actually happens in a packet
+	/// handler is an access violation rather than a throw. SEH sees both: a
+	/// C++ throw reaches the filter as exception code 0xE06D7363.
+	///
+	/// Kept in a function of its own because MSVC refuses __try in any
+	/// function that needs object unwinding, and OnClientSend has the
+	/// transaction guard. Nothing with a destructor may be added here.
+	///
+	/// dwExceptionCode comes back non-zero if the filter fired.
+	bool DispatchProtected( KOfflineSession& kSes, const KEvent& kEvent,
+							OUT unsigned long& dwExceptionCode );
+
+	/// Checkpoint the WAL and write els_db.sql.bak, then log the packet census.
+	/// Driven by EGS_CLIENT_QUIT_REQ setting m_bQuitRequested - the work itself
+	/// has to happen after the dispatch transaction has committed, so it cannot
+	/// be done inside the handler.
+	void OnCleanShutdown();
 
 	/// Resolve (or create) the single offline account this login ID maps to,
 	/// caching it on the server and on the session.
@@ -858,6 +882,16 @@ private:
 
 	KncCriticalSection							m_cs;
 	std::map< KSession*, KOfflineSession >		m_mapSession;
+
+	/// Serializes the whole of one packet: the log's defer buffer, the
+	/// transaction, and the dispatch. There is one KSession::Run thread per
+	/// proxy, so without this the channel and game sessions can interleave -
+	/// which would braid two packets' replies together in the log and, since
+	/// phase 8, nest one packet's transaction inside another's.
+	KncCriticalSection							m_csDispatch;
+
+	/// set by Handler_EGS_CLIENT_QUIT_REQ, acted on by OnClientSend
+	bool										m_bQuitRequested;
 
 	UidType										m_nUserUID;			///< the single offline account
 	int											m_iUnitSlots;

@@ -4223,6 +4223,348 @@ a single-player save - is an open decision, not yet made.
   `CLAUDE.md` with a short "Offline mode" section pointing at
   `X2Lib/Offline/` and the three seams.
 
+## 8.1 What was actually built (2026-09-04)
+
+### The unhandled sweep is not a play-test, and could not be
+
+The phase asks for "play everything, collect all remaining `*** UNHANDLED ***`
+IDs, classify each". **Phase 7's exit test already came back with zero
+`UNHANDLED` entries across a full session**, so there was no bucket to sweep —
+and one more session of play would not have produced one either. What the phase
+actually needs, then, is the thing that *keeps* that bucket empty and
+meaningful, and that is what was built:
+
+* `X2Lib/Offline/X2OfflineIgnore.h/.cpp` — the deliberately-not-implemented
+  list. Consulted **only after `Dispatch()` has already declined** the packet,
+  so a rule that matches something it should not costs a misleading label in
+  the log and can never change what the server does. Every entry is a family a
+  phase note already called refused, with the phase and its sentence in the
+  comment: `EGS_ADMIN_*` / `ELG_ADMIN_*`, the personal shop and `PSHOP_AGENCY`,
+  person-to-person trade, PvP, the training school (`_TC_` in the ids), the
+  fourteen item-workshop packets phase 5 refuses, the three pre-global billing
+  packets `SERV_GLOBAL_BILLING` replaced, and the three server-originated
+  quest/title pushes from phase 6.
+* Those now log as `--- IGNORED ---` with the reason instead of
+  `*** UNHANDLED ***`, which is what makes any remaining `UNHANDLED` line new
+  information rather than one of 221 already-known ones.
+* **The census is the sweep, produced by playing rather than by reading.** On a
+  clean exit, `CX2OfflineIgnore::LogCensus()` writes every event ID the dispatch
+  declined to `offline_server.log` with its count, not-on-the-list first:
+
+  ```
+  CENSUS   the dispatch declined 3 event id(s): 2 on the ignore list, 1 NOT
+  CENSUS   ** UNHANDLED  EGS_SOMETHING_REQ    x4      needs a handler, or an entry in X2OfflineIgnore.cpp
+  CENSUS      ignored   EGS_ITEM_CONVERT_REQ  x1      the item workshop is not implemented offline
+  ```
+
+  Nothing is written at all when nothing was declined, which is the expected
+  outcome.
+
+27 rules, and checked statically against `EventID_Client.h`: of the 221 client
+`_REQ` ids with no handler, **77 are now labelled and 144 are still loud**. The
+three rules that also match a *handled* name — `EGS_INVITE_PVP_ROOM_REQ`,
+`EGS_PVP_PARTY_CHANGE_MATCH_INFO_REQ`, `EGS_SEARCH_TRADE_BOARD_REQ` — are
+harmless for the reason above: those packets never reach `Reason()`, because
+the dispatch claims them first.
+
+Deliberately **not** done: an ignore entry for each of the 221 client `_REQ`
+ids that have no handler. Ordinary play reaches none of them; a generated list
+of 221 would be a list nobody wrote and nobody could defend, and it would hide
+the next real discovery instead of surfacing it. Anything not on the hand-written
+list stays loud.
+
+### One packet is one transaction
+
+`X2OfflineDB` gained `Begin()` / `Commit()` / `Rollback()` / `Checkpoint()` /
+`Backup()`, and `KOfflineDBTxn` — a scoped guard that commits only when
+`Commit()` is called and rolls back on every other way out.
+`OnClientSend` now wraps the whole dispatch in one:
+
+```cpp
+{
+    KOfflineDBTxn txn;
+    bHandled = DispatchProtected( kSes, kEvent, dwExceptionCode );
+    if( 0 == dwExceptionCode )
+        txn.Commit();
+}
+```
+
+Three things this had to get right, none of them obvious:
+
+1. **`SAVEPOINT`, not `BEGIN`.** Two operations already had a transaction of
+   their own — `FinalDeleteUnit` (ten `DELETE`s plus the row) and
+   `SeedInventorySizes` — and SQLite answers a nested `BEGIN` with *"cannot
+   start a transaction within a transaction"*. Savepoints nest by name, and the
+   outermost one behaves exactly like a transaction. Both were converted;
+   `Migrate()`'s nine literal `BEGIN`/`COMMIT` pairs were left alone and
+   commented, because it runs from `Open()` before the first packet, where no
+   dispatch transaction can be open. **Anything added to `X2OfflineDB` that
+   runs during play must use `Begin()`, not `"BEGIN;"`** — get that wrong and
+   the statement silently does not apply.
+2. **`ROLLBACK TO` does not pop the savepoint.** It has to be followed by
+   `RELEASE` or the depth counter and SQLite's own stack drift apart, and every
+   later transaction in the session nests one level deeper than it thinks.
+3. **The dispatch had to be serialized first.** There is one
+   `KSession::Run` thread *per proxy*, so the channel and game sessions can
+   interleave — which would have nested one packet's transaction inside
+   another's, and had already been braiding their replies together in the
+   packet log. `m_csDispatch` now covers the log's defer buffer, the
+   transaction and the dispatch as one unit. The DB's own `m_cs` is still taken
+   per statement, and that is correct: what makes the transaction safe is that
+   nothing outside the dispatch path touches `X2OfflineDB` at all — the three
+   client-side seams (`X2StateServerSelect`, `X2DungeonSubStage`,
+   `X2QuestManager`) go nowhere near it.
+
+### The crash net had to become SEH
+
+The `try { Dispatch(); } catch( ... )` that was there did two things wrong:
+
+* **`catch( ... )` was probably never going to fire.** X2Lib's `US_SERVICE`
+  configuration sets **no `/EH` switch at all** (the KR configuration sets
+  `Sync`; US does not), and the fault a packet handler actually produces is an
+  access violation, not a `throw`. `DispatchProtected` uses `__try` /
+  `__except( EXCEPTION_EXECUTE_HANDLER )` instead, which sees both — a C++
+  throw reaches the filter as exception code `0xE06D7363`, and the log says so
+  when it does.
+* **It logged the packet as `HANDLED`.** A fault that reads as a successful
+  packet is a fault nobody finds. It is now
+  `*** EXCEPTION - ROLLED BACK ***` in `offline_packets.log`, with the event
+  name and the exception code in `offline_server.log`. The packet is still
+  consumed, because letting it fall through to the dead socket path would hang
+  the client on top of whatever already went wrong.
+
+`DispatchProtected` is a function of its own because **MSVC refuses `__try` in
+any function that needs object unwinding**, and `OnClientSend` has the
+transaction guard. Nothing with a destructor may be added to it.
+
+### Clean shutdown, and why the WAL mattered
+
+`CX2OfflineServer::Release()` **is never called** — nothing in the client's
+teardown reaches it — so the SQLite connection is never closed and the WAL is
+never checkpointed. The observable result was an `els_db.sql-wal` of 4.1 MB
+sitting next to a 256 KB `els_db.sql`: anyone backing up the save by copying
+`els_db.sql` alone was copying a stale file and would not have known.
+
+`EGS_CLIENT_QUIT_REQ` is the only notice the offline server gets that an exit
+was orderly (`CX2Main::SendQuitMsgToServer`), so it is now the clean-shutdown
+signal. The handler only sets `m_bQuitRequested`; `OnClientSend` does the work
+**after the transaction has committed**, because a `wal_checkpoint` inside an
+open savepoint does nothing at all:
+
+```
+SHUTDOWN clean: wal checkpoint ok, els_db.sql.bak written
+```
+
+The `.bak` goes through `sqlite3_backup_*`, not `CopyFile` — with the
+connection still open, a byte copy misses whatever is in the `-wal`. WAL
+recovery after a kill is SQLite's own job and needs nothing from us; what it
+needs from *us* is not deleting the `-wal` file, which is now worth saying out
+loud because the checkpoint makes it look disposable.
+
+### Log rotation
+
+`offline_packets.log` grows at about a line per packet. Both logs are now
+capped — 48 MB for the packet log, 8 MB for the server log — and rotate to
+`<name>.1` (replacing it) with a first line saying so, so a log that starts
+mid-session cannot be mistaken for a session that started there. One
+generation only: two caps' worth is already more play than anyone reads back.
+
+### Packaging
+
+`start_offline.bat` is now version-controlled at
+`X2Lib/Offline/start_offline.bat` and deployed next to `X2_offline.exe`. It was
+a single `start` line; it now does the two things that actually go wrong:
+
+* **`cd /d "%~dp0"`.** The working directory *must* be the game data
+  directory — `X2Main` mounts the `.kom` archives through a `"./"` prefix and
+  the offline server writes `els_db.sql` and both logs there. A shortcut
+  launched from anywhere else either finds no content or quietly starts a
+  second, empty save file somewhere surprising.
+* **It says when the token is missing.** The token is `PATCHER_RUN_ONLY` from
+  `KTDXLIB/OnlyGlobal/Always_US.h`; a `_SERVICE_` build compares `argv[1]`
+  against it in `X2/X2.cpp` and returns 0 out of `WinMain` if it does not
+  match — no window, no message, no log. Both branches of the script were
+  smoke-tested.
+
+It also announces a missing `els_db.sql` rather than letting a fresh copy of
+the game directory look like a lost character.
+
+### Documentation
+
+`MODS.md` has the `SERV_IRUHADEV_OFFLINE` row and the two-place-definition
+warning; `CLAUDE.md` has an *Offline mode* section naming the three seams, the
+two log files, and the two invariants (one packet is one transaction; never
+read a `KActorProxy` member from `X2Lib`).
+
+## 8.2 What is new
+
+```
+X2Lib/Offline/X2OfflineIgnore.h/.cpp     the ignore list + the declined-packet census
+X2Lib/Offline/start_offline.bat          the launcher, now in the repo
+```
+
+changed: `X2OfflineDB.{h,cpp}` (transactions, checkpoint, backup),
+`X2OfflineLog.{h,cpp}` (rotation), `X2OfflineServer.{h,cpp}` (`m_csDispatch`,
+`DispatchProtected`, `OnCleanShutdown`, the four-way packet note),
+`Handlers_Stub.cpp` (the quit flag), `X2Lib_2010.vcxproj`, `MODS.md`,
+`CLAUDE.md`.
+
+### Exit test
+
+Fresh-install bootstrap, then a clean exit.
+
+1. Copy the game directory somewhere new, or just move `els_db.sql`,
+   `els_db.sql-wal` and `els_db.sql-shm` aside. Run `start_offline.bat`.
+   * it should say "No els_db.sql here yet"
+   * `offline_server.log` should show `DB open 'els_db.sql' (schema v9, ...)`
+   * character select should come up empty, and creating a character should
+     work
+2. Play for a few minutes — a dungeon, the shop, the cash shop — then **quit
+   through the game's own exit**, not Alt-F4 or the task manager.
+   * `offline_server.log` must end with
+     `SHUTDOWN clean: wal checkpoint ok, els_db.sql.bak written`
+   * `els_db.sql-wal` should be ~0 bytes and `els_db.sql.bak` should exist
+   * the `CENSUS` lines above it are the sweep: **any `** UNHANDLED` line there
+     is the one thing in this test that needs acting on**
+3. `grep -E "UNHANDLED|EXCEPTION" offline_packets.log` — expect nothing.
+4. Relog and confirm the character, its inventory and its quests are intact,
+   i.e. that the transaction-per-packet change did not lose a write.
+5. Kill the process from the task manager mid-play, then relaunch: the save
+   must open and be consistent (this is SQLite's WAL recovery, not ours — the
+   test is that we have not broken it).
+
+### Exit test — PARTIALLY PASSED (2026-09-04)
+
+**All five numbered steps passed** — a fresh directory bootstraps a new save
+and reaches character creation; a quit through the game's own exit checkpoints
+the WAL and writes `els_db.sql.bak`; the packet log came back with no
+`UNHANDLED` and no `EXCEPTION`; a relog found the character, its inventory and
+its quests intact, so transaction-per-packet loses no write; and a killed
+process recovers.
+
+**The phase is nevertheless not complete, and the five steps are the wrong
+thing to judge it on.** They test the *mechanics* — bootstrap, transactions,
+checkpoint, rotation, recovery — and the mechanics are done. What phase 8
+actually opens with is "**play everything**", and that has not happened: no
+session yet has touched every feature a player can reach from the UI. Until one
+has, the `CENSUS` block is a census of a short session rather than of the game,
+and the claim that rests on it — that the `UNHANDLED` bucket is empty and
+therefore trustworthy — is not yet earned. The five steps cannot produce that
+evidence no matter how many times they pass.
+
+So the phase stays open on exactly one item: a full feature sweep, and whatever
+the census turns up when it is run against one. Everything in 8.1 is built and
+in the deployed exe.
+
+Two things also open, and neither of them is phase 8's:
+
+- The two defects in phase 7b's addendum above, neither fixed: opening a cube
+  empties the wallet, and a class of consumables is silently voided because
+  `Handler_EGS_USE_ITEM_IN_INVENTORY_REQ` treats the client's
+  `GetCanUseInventory()` flag as blanket permission where live runs a
+  ~700-line item-ID switch first.
+- `SERV_IRUHADEV_NO_PATCHER_TOKEN`, added 2026-09-04 after this test and
+  described below, is built but not yet play-tested.
+
+One thing found while doing phase 8 and worth writing down, because it is the
+kind of thing that is invisible a week later: **the elixir/blessing work
+described in 7b's addendum is not in the tree.** `offline_server.log` from the
+20:03 run shows `ITEM used item 78894 ... blessing group 2 activated`, but no
+`blessing` symbol exists anywhere under `X2Lib/`, the working tree is clean at
+`e599c50`, and there is no stash. It existed only in the `X2_offline.exe` built
+at 19:53, which phase 8's own build then overwrote. Source cannot be recovered
+from the binary, so that work has to be redone when 7b is picked back up - and
+the addendum's account of what it found is the record of it: the id
+`SI_THE_GATE_OF_DARKNESS_ELIXIR_GIANT_POTION`, that the buff is a server
+plus login-server bookkeeping system with nothing client-side to trigger,
+and that 270970-270972 have no `SI_*`/`EI_*` entry at all.
+
+## 8.3 `SERV_IRUHADEV_NO_PATCHER_TOKEN` — launching without the .bat (2026-09-04)
+
+The exe could only be started through `start_offline.bat`, because a
+`_SERVICE_` build compares `argv[1]` against `PATCHER_RUN_ONLY` in
+[X2.cpp](X2/X2.cpp) and returns 0 out of `WinMain` if it does not match. On a
+bare launch `__argc` is 1, so `__argv[1]` is the NULL terminator of the argv
+array, the `tempArgv == NULL` test takes it, and the process exits with no
+window, no message box and no log line. On a live install that was fine —
+X2Patcher supplied the token — and offline there is no patcher.
+
+`SERV_IRUHADEV_NO_PATCHER_TOKEN` (`KTDXLIB/Always.h`) supplies the value the
+check wants instead of reading it out of argv:
+
+```c
+#ifdef SERV_IRUHADEV_NO_PATCHER_TOKEN
+#ifdef PATCHER_RUN_ONLY
+	char* tempArgv = (char*)PATCHER_RUN_ONLY;
+#else PATCHER_RUN_ONLY
+	char* tempArgv = (char*)"";
+#endif PATCHER_RUN_ONLY
+#else SERV_IRUHADEV_NO_PATCHER_TOKEN
+	...original...
+#endif SERV_IRUHADEV_NO_PATCHER_TOKEN
+```
+
+Three choices in that, all deliberate:
+
+* **The two tests are left standing rather than `#ifdef`'d out, and the
+  constant is used rather than the literal spelled out a third time.** The
+  string now lives in exactly two places that have to agree — `Always_US.h`
+  and `start_offline.bat` — instead of three. If `PATCHER_RUN_ONLY` is ever
+  changed, this keeps agreeing with it.
+* **Passing the token still works**, so `start_offline.bat`, a patcher, or an
+  existing shortcut all keep working unchanged; the token is simply no longer
+  required.
+* **The `PATCHER_RUN_ONLY`-undefined arm exists because `Always.h` reaches all
+  ~50 configurations**, not just `US_SERVICE`, and not every region defines
+  the constant. In those the checks below are compiled out anyway, so the
+  value is never read and only has to be non-NULL.
+
+### What had to be established first, and how
+
+The question that mattered was not "where is the check" but "**is `argv` read
+anywhere else on a live path**" — because a bare launch would then walk into
+`__argv[1]` being NULL or `__argv[2]` being off the end of the array. There are
+nine other `__argv` reads across `X2.cpp` and `X2Main.cpp`, several of them
+without a NULL guard (`X2Main.cpp:1083`, `1300-1301`, `1478`).
+
+Settled with the cheap `#pragma message` probe from the *Toolchains* notes, not
+by reading the `#ifdef` nesting. Every one of those reads turned out to be
+behind a flag that is **off** in `US_SERVICE`:
+
+```
+LAUNCHER_COMMAND_ARGUMENT           OFF   X2.cpp:756-766, X2Main.cpp:1438-1460
+CLOSE_ON_START_FOR_GAMEGUARD        OFF   X2.cpp:815
+CLIENT_PURPLE_MODULE                OFF   X2.cpp:775-778
+CLIENT_PURPLE_MODULE_IN_HOUSE_AUTH  OFF   X2Main.cpp:1300-1301
+SERV_CHANNELING_AERIA               OFF   X2.cpp:806, X2Main.cpp:1292
+SERV_COUNTRY_PH                     OFF   X2Main.cpp:1478
+_NEXON_KR_                          OFF   X2Main.cpp:1083-1086
+_SERVICE_MANUAL_LOGIN_              OFF   -> the token check IS live
+ARGUMENT_LOGIN / SERV_STEAM         OFF
+PATCHER_RUN_ONLY                    ON    = pxk19slammsu286nfha02kpqnf729ck
+```
+
+So **the token check is the only live argv dependency in a `US_SERVICE`
+build**, and this one change is sufficient. Worth having written down: the next
+person to wonder whether the client reads its command line does not have to
+re-derive it.
+
+The probe also confirmed the constant matches the string
+`start_offline.bat` has been passing, which was the other thing worth checking
+rather than assuming.
+
+### The .bat is still worth using
+
+It is no longer *required*, and it is still the better way to start the game,
+for the one reason it always was: **it sets the working directory.** `X2Main`
+mounts the `.kom` archives through a `"./"` prefix and the offline server
+writes `els_db.sql` and both logs into the working directory. Double-clicking
+the exe in Explorer happens to be fine — Explorer starts a process in the
+directory of the exe — but a Start-menu or desktop shortcut with a different
+*Start in* field, or a launch from a terminal sitting somewhere else, is not:
+the client finds no content, or quietly starts a second empty save file
+somewhere surprising. The `.bat`'s `cd /d "%~dp0"` makes that impossible.
+
 ---
 
 ## Verification — how to test at any point
@@ -4242,8 +4584,15 @@ cd "F:/elsword stuff/elsword_2014/els_2014/237311/22191271/data" && ./start_offl
 
 ```sh
 # the core development loop
-grep "UNHANDLED" offline_packets.log | sort | uniq -c | sort -rn
+grep -E "UNHANDLED|EXCEPTION" offline_packets.log | sort | uniq -c | sort -rn
 tail -50 offline_server.log
+
+# since phase 8: on a clean exit the census names every declined id, so this
+# is the same sweep without having to read the packet log at all
+grep "CENSUS" offline_server.log
+
+# and the deliberately-refused ones, which are labelled rather than silent
+grep "IGNORED" offline_packets.log | sort | uniq -c | sort -rn
 sqlite3 els_db.sql "select unit_uid, nickname, level, del_date = reg_date as alive from unit;"
 ```
 

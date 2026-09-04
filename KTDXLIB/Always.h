@@ -2512,3 +2512,15 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              class-change path in the client already refreshes it.
 #define SERV_IRUHADEV_JOBCHANGE_PORTRAIT
 //////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-04
+// Description: Launch x2.exe without the patcher token in argv[1], so the
+//              exe can be started directly (double-click, a debugger, a
+//              shortcut) and not only through a launcher that knows the
+//              string. See X2/X2.cpp - the token itself is still
+//              PATCHER_RUN_ONLY, it is just no longer read out of argv.
+#define SERV_IRUHADEV_NO_PATCHER_TOKEN
+//////////////////////////////////////////////////////////////////////////

@@ -71,9 +71,19 @@ bool CX2OfflineServer::Handler_EGS_REQUEST_GET_AUTO_PARTY_BONUS_INFO_NOT( KOffli
 
 bool CX2OfflineServer::Handler_EGS_CLIENT_QUIT_REQ( KOfflineSession& /*kSes*/, const KEvent& /*kEvent*/ )
 {
-	// Sent as the client shuts down. Its ACK would let the server close the
-	// session cleanly; offline the process is going away regardless, and
-	// ~KSession already tells the offline server through OnSessionClose.
+	// Sent as the client shuts down (CX2Main::SendQuitMsgToServer). Its ACK
+	// would let the server close the session cleanly; offline the process is
+	// going away regardless, and ~KSession already tells the offline server
+	// through OnSessionClose.
+	//
+	// It is, however, the only notice the offline server gets that this was an
+	// orderly exit rather than a crash or an Alt-F4, so phase 8 uses it as the
+	// clean-shutdown signal: checkpoint the WAL, write els_db.sql.bak, log the
+	// census. Only the flag is set here. The work is done by OnClientSend once
+	// this packet's transaction has committed, because a WAL checkpoint inside
+	// an open savepoint does nothing at all.
+	m_bQuitRequested = true;
+
 	return true;
 }
 

@@ -306,6 +306,7 @@ namespace
 
 CX2OfflineDB::CX2OfflineDB()
 : m_pDB( NULL )
+, m_iTxnDepth( 0 )
 {
 }
 
@@ -559,8 +560,155 @@ void CX2OfflineDB::Close()
 	if( NULL == m_pDB )
 		return;
 
+	// An open savepoint at this point means a handler faulted and its guard
+	// never ran; SQLite would roll it back on close anyway, but say so.
+	if( m_iTxnDepth > 0 )
+		CX2OfflineLog::Server( L"DB WARN  closing with %d savepoint(s) still open - they roll back", m_iTxnDepth );
+
+	m_iTxnDepth = 0;
+
 	sqlite3_close( m_pDB );
 	m_pDB = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// save integrity (phase 8) - see the header for why these are savepoints
+
+bool CX2OfflineDB::Begin()
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	char szSQL[64];
+	_snprintf( szSQL, 64, "SAVEPOINT sp%d;", m_iTxnDepth );
+	szSQL[63] = '\0';
+
+	if( false == Exec( szSQL ) )
+		return false;
+
+	++m_iTxnDepth;
+	return true;
+}
+
+bool CX2OfflineDB::Commit()
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB || m_iTxnDepth <= 0 )
+		return false;
+
+	--m_iTxnDepth;
+
+	// RELEASE, not COMMIT: releasing the outermost savepoint is what commits.
+	char szSQL[64];
+	_snprintf( szSQL, 64, "RELEASE sp%d;", m_iTxnDepth );
+	szSQL[63] = '\0';
+
+	return Exec( szSQL );
+}
+
+bool CX2OfflineDB::Rollback()
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB || m_iTxnDepth <= 0 )
+		return false;
+
+	--m_iTxnDepth;
+
+	// ROLLBACK TO leaves the savepoint on the stack, so it has to be released
+	// as well or the depth counter and SQLite's own stack drift apart.
+	char szSQL[96];
+	_snprintf( szSQL, 96, "ROLLBACK TO sp%d; RELEASE sp%d;", m_iTxnDepth, m_iTxnDepth );
+	szSQL[95] = '\0';
+
+	return Exec( szSQL );
+}
+
+bool CX2OfflineDB::Checkpoint()
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	if( m_iTxnDepth > 0 )
+	{
+		CX2OfflineLog::Server( L"DB WARN  checkpoint skipped - %d savepoint(s) open", m_iTxnDepth );
+		return false;
+	}
+
+	return Exec( "PRAGMA wal_checkpoint(TRUNCATE);" );
+}
+
+bool CX2OfflineDB::Backup( const wchar_t* szPath )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB || NULL == szPath )
+		return false;
+
+	// Written to a temporary and renamed over the target only once it is
+	// complete. The one caller runs during the client's own shutdown, so the
+	// process can go away in the middle of this - and a half-written backup
+	// that looks like a backup is worse than no backup at all.
+	wchar_t szTemp[MAX_PATH];
+	_snwprintf( szTemp, MAX_PATH, L"%s.tmp", szPath );
+	szTemp[MAX_PATH - 1] = L'\0';
+
+	::DeleteFileW( szTemp );		// never append to a previous partial
+
+	sqlite3* pDest = NULL;
+	if( SQLITE_OK != sqlite3_open16( szTemp, &pDest ) )
+	{
+		CX2OfflineLog::Server( L"DB ERROR backup could not open '%s'", szTemp );
+
+		if( NULL != pDest )
+			sqlite3_close( pDest );
+
+		return false;
+	}
+
+	bool bOK = false;
+
+	sqlite3_backup* pBackup = sqlite3_backup_init( pDest, "main", m_pDB, "main" );
+	if( NULL != pBackup )
+	{
+		// -1 pages: the whole database in one step, which is what we want -
+		// nothing else is writing, and a partial backup is worse than none.
+		sqlite3_backup_step( pBackup, -1 );
+		bOK = ( SQLITE_OK == sqlite3_backup_finish( pBackup ) );
+	}
+
+	if( false == bOK )
+	{
+		const void* pMsg = sqlite3_errmsg16( pDest );
+		CX2OfflineLog::Server( L"DB ERROR backup to '%s' failed : %s",
+			szPath, ( NULL != pMsg ) ? (const wchar_t*)pMsg : L"<no message>" );
+	}
+
+	sqlite3_close( pDest );
+
+	if( true == bOK )
+	{
+		// The destination is a plain SQLite file with no WAL of its own (the
+		// backup API writes it in the default journal mode), so a rename is
+		// all that is needed to publish it.
+		if( 0 == ::MoveFileExW( szTemp, szPath, MOVEFILE_REPLACE_EXISTING ) )
+		{
+			CX2OfflineLog::Server( L"DB ERROR backup written but could not be renamed to '%s' (win32 %u); it is in '%s'",
+				szPath, (unsigned int)::GetLastError(), szTemp );
+			bOK = false;
+		}
+	}
+	else
+	{
+		::DeleteFileW( szTemp );
+	}
+
+	return bOK;
 }
 
 int CX2OfflineDB::ReadSchemaVersion()
@@ -595,6 +743,13 @@ bool CX2OfflineDB::Migrate()
 
 	// The ladder. One rung per version; each rung is additive, so an existing
 	// save is upgraded rather than wiped.
+	//
+	// These are the only literal BEGIN/COMMIT left in this file, and they are
+	// allowed to stay because Migrate() runs from Open(), before the first
+	// packet - so the dispatch transaction (phase 8) cannot be open around
+	// them. Anything added below this point that runs during play must use
+	// Begin()/Commit()/Rollback() instead, or SQLite will refuse the nested
+	// BEGIN and the rung will silently not apply.
 	if( iFrom < 1 )
 	{
 		if( false == Exec( "BEGIN;" ) )			return false;
@@ -1027,7 +1182,9 @@ bool CX2OfflineDB::FinalDeleteUnit( UidType nUnitUID )
 		  "unit_subquest", "unit_quest_complete", "unit_mission", "unit_submission",
 		  "unit_title" };
 
-	if( false == Exec( "BEGIN;" ) )
+	// Begin()/Commit(), not "BEGIN;": since phase 8 the whole dispatch is
+	// already inside a transaction, and a nested BEGIN is an error.
+	if( false == Begin() )
 		return false;
 
 	bool bOK = true;
@@ -1063,7 +1220,8 @@ bool CX2OfflineDB::FinalDeleteUnit( UidType nUnitUID )
 		}
 	}
 
-	Exec( true == bOK ? "COMMIT;" : "ROLLBACK;" );
+	if( true == bOK )	Commit();
+	else				Rollback();
 
 	return bOK;
 }
@@ -1321,14 +1479,14 @@ bool CX2OfflineDB::SeedInventorySizes( UidType nUnitUID )
 	if( NULL == m_pDB )
 		return false;
 
-	if( false == Exec( "BEGIN;" ) )
+	if( false == Begin() )
 		return false;
 
 	sqlite3_stmt* pStmt = Prepare(
 		"INSERT OR REPLACE INTO inventory_size( unit_uid, category, size ) VALUES( ?1, ?2, ?3 );" );
 	if( NULL == pStmt )
 	{
-		Exec( "ROLLBACK;" );
+		Rollback();
 		return false;
 	}
 
@@ -1357,7 +1515,8 @@ bool CX2OfflineDB::SeedInventorySizes( UidType nUnitUID )
 
 	sqlite3_finalize( pStmt );
 
-	Exec( true == bOK ? "COMMIT;" : "ROLLBACK;" );
+	if( true == bOK )	Commit();
+	else				Rollback();
 
 	return bOK;
 }

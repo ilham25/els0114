@@ -12,6 +12,7 @@ CX2OfflineServer::CX2OfflineServer()
 , m_iUnitSlots( CX2OfflineDB::DEFAULT_UNIT_SLOTS )
 , m_wstrLoginID( L"" )
 , m_nNextRoomUID( 1000 )
+, m_bQuitRequested( false )
 {
 }
 
@@ -211,25 +212,64 @@ bool CX2OfflineServer::OnClientSend( KSession* pSession, const KEvent& kEvent )
 			(unsigned int)pSession, KindStr( kSes.m_eKind ) );
 	}
 
+	// One packet at a time, whichever session thread it arrived on - see
+	// m_csDispatch. Held across the log's defer buffer and the transaction as
+	// well as the dispatch, because all three are process-wide state.
+	KLocker lockDispatch( m_csDispatch );
+
 	// The handler's replies are logged from inside Reply(); buffer them so this
 	// request's line lands above them in the file (see CX2OfflineLog::DeferEnd).
 	CX2OfflineLog::DeferBegin();
 
-	bool bHandled = false;
-	try
+	bool			bHandled		= false;
+	unsigned long	dwExceptionCode	= 0;
+
 	{
-		bHandled = Dispatch( kSes, kEvent );
+		// One packet is one unit of work: a handler that faults half way
+		// through a multi-row change leaves the save file as it was. Committed
+		// only on the way out of this scope, and only if nothing faulted.
+		KOfflineDBTxn txn;
+
+		bHandled = DispatchProtected( kSes, kEvent, dwExceptionCode );
+
+		if( 0 == dwExceptionCode )
+			txn.Commit();
 	}
-	catch( ... )
+
+	const wchar_t* szNote = L"*** UNHANDLED ***";
+
+	if( 0 != dwExceptionCode )
 	{
-		CX2OfflineLog::Server( L"EXCEPTION in handler for %s (id=%u) - consumed",
-			CX2OfflineLog::EventName( kEvent.m_usEventID ), (unsigned int)kEvent.m_usEventID );
-		bHandled = true;
+		// Deliberately not logged as HANDLED, which is what the old catch(...)
+		// did: a fault that reads as a successful packet is a fault nobody
+		// finds. The packet is still consumed - see the return below - because
+		// letting it fall through to the dead socket path would hang the client
+		// on top of whatever already went wrong.
+		CX2OfflineLog::Server( L"EXCEPTION in the handler for %s (id=%u), code 0x%08X%s - rolled back and consumed",
+			CX2OfflineLog::EventName( kEvent.m_usEventID ), (unsigned int)kEvent.m_usEventID,
+			(unsigned int)dwExceptionCode,
+			( 0xE06D7363 == dwExceptionCode ) ? L" (a C++ throw)" : L"" );
+
+		szNote = L"*** EXCEPTION - ROLLED BACK ***";
+	}
+	else if( true == bHandled )
+	{
+		szNote = L"HANDLED";
+	}
+	else
+	{
+		// Nothing claimed it. Say whether that was expected, and count it
+		// either way for the census on the way out (X2OfflineIgnore).
+		const wchar_t* szReason = CX2OfflineIgnore::Reason( kEvent.m_usEventID );
+
+		CX2OfflineIgnore::Note( kEvent.m_usEventID, szReason );
+
+		if( NULL != szReason )
+			szNote = L"--- IGNORED ---";
 	}
 
 	CX2OfflineLog::DeferEnd( true, KindStr( kSes.m_eKind ), kEvent.m_usEventID,
-		kEvent.m_kbuff.GetLength(),
-		bHandled ? L"HANDLED" : L"*** UNHANDLED ***" );
+		kEvent.m_kbuff.GetLength(), szNote );
 
 	// Write the (possibly advanced) session state back.
 	{
@@ -240,8 +280,67 @@ bool CX2OfflineServer::OnClientSend( KSession* pSession, const KEvent& kEvent )
 			mit->second = kSes;
 	}
 
+	// After the transaction has committed, never inside it: a WAL checkpoint is
+	// a no-op while a savepoint is open.
+	if( true == m_bQuitRequested )
+	{
+		m_bQuitRequested = false;
+		OnCleanShutdown();
+	}
+
 	// Always consume: an unhandled packet must never reach the dead socket path.
 	return true;
+}
+
+bool CX2OfflineServer::DispatchProtected( KOfflineSession& kSes, const KEvent& kEvent,
+										  OUT unsigned long& dwExceptionCode )
+{
+	// Nothing with a destructor in this function - see the header.
+	dwExceptionCode = 0;
+
+	__try
+	{
+		return Dispatch( kSes, kEvent );
+	}
+	__except( EXCEPTION_EXECUTE_HANDLER )
+	{
+		dwExceptionCode = (unsigned long)::GetExceptionCode();
+
+		// Zero would read as "no fault" to the caller, and a filter can in
+		// principle see code 0.
+		if( 0 == dwExceptionCode )
+			dwExceptionCode = 0xFFFFFFFF;
+
+		return false;
+	}
+}
+
+void CX2OfflineServer::OnCleanShutdown()
+{
+	// What the census is for is the next run, not this one: it names every
+	// event id the dispatch declined, so the ignore list can be extended
+	// deliberately rather than by whoever next reads the packet log.
+	CX2OfflineIgnore::LogCensus();
+
+	CX2OfflineDB* pDB = CX2OfflineDB::Instance();
+
+	if( false == pDB->IsOpen() )
+		return;
+
+	// Fold els_db.sql-wal back into els_db.sql. Without this the -wal file is
+	// left holding committed transactions, and anyone who backs up the save by
+	// copying els_db.sql alone silently loses them.
+	const bool bCheckpoint = pDB->Checkpoint();
+
+	// A second copy, through the online-backup API. The point of it is a save
+	// that survives the *next* run: everything in this project is one editable
+	// SQLite file, and one bad migration or one mis-aimed UPDATE would
+	// otherwise be the end of a character.
+	const bool bBackup = pDB->Backup( L"els_db.sql.bak" );
+
+	CX2OfflineLog::Server( L"SHUTDOWN clean: wal checkpoint %s, els_db.sql.bak %s",
+		( true == bCheckpoint ) ? L"ok" : L"FAILED",
+		( true == bBackup )     ? L"written" : L"FAILED" );
 }
 
 /*static*/ void CX2OfflineServer::FillSpirit( OUT int& iSpirit, OUT int& iSpiritMax )

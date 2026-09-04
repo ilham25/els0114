@@ -2056,6 +2056,7 @@
     <ClInclude Include="Offline\X2OfflineSkill.h" />
     <ClInclude Include="Offline\X2OfflineDropTable.h" />
     <ClInclude Include="Offline\X2OfflineBattleField.h" />
+    <ClInclude Include="Offline\X2OfflineIgnore.h" />
     <ClInclude Include="Offline\X2OfflineLog.h" />
     <ClInclude Include="Offline\X2OfflineServer.h" />
     <ClInclude Include="Offline\X2OfflineStatTable.h" />
@@ -3153,6 +3154,7 @@
     <ClCompile Include="Offline\X2OfflineRandomItem.cpp" />
     <ClCompile Include="Offline\X2OfflineBattleField.cpp" />
     <ClCompile Include="Offline\X2OfflineEventName.cpp" />
+    <ClCompile Include="Offline\X2OfflineIgnore.cpp" />
     <ClCompile Include="Offline\X2OfflineLog.cpp" />
     <ClCompile Include="Offline\X2OfflineServer.cpp" />
     <ClCompile Include="Offline\X2OfflineStatTable.cpp" />

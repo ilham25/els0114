@@ -21,6 +21,8 @@ column.
 | `SERV_IRUHADEV_BUFF_DURATION_TEXT` | import-2014 | `KTDXLIB/Always.h:2428` | `X2Lib/X2GageUI.{h,cpp}`, `X2Lib/X2BuffTemplet.{h,cpp}`, `X2Lib/X2BuffFinalizerTemplet.h`, `X2Lib/X2GameUnit.cpp`, `X2Lib/X2PremiumBuffManager.cpp` | -- |
 | `STATIC_AUTO_LOGIN` | import-2014 | `KTDXLIB/OnlyGlobal/Always_US.h:358` | `X2Lib/X2Main.cpp:1255`, `X2Lib/X2Main.cpp:1285` | -- |
 | `SERV_IRUHADEV_QUICK_SLOT_FULL_FREE` | 2026-08-27 | `KTDXLIB/Always.h:2435`, `KncWX2Server/Common/ServerDefine.h:4224` | `X2Lib/X2Unit.h:982-988`, `X2Lib/X2Unit.cpp:104-111`, `X2Lib/X2UIQuickSlot.cpp:1797-1822`, `X2Lib/X2CashShop.cpp:8306-8326` | `KncWX2Server/GameServer/Inventory.cpp:500-534`, `KncWX2Server/GameServer/Inventory.cpp:146-152` |
+| `SERV_IRUHADEV_OFFLINE` | 2026-08-31 | `KTDXLIB/Always.h:2446` **and** `X2ServerProtocol/X2ServerProtocol_2010.vcxproj:1444` (`US_SERVICE` `PreprocessorDefinitions`) | `X2Lib/Offline/` (the whole directory: 44 sources plus `start_offline.bat`), plus seams in `X2ServerProtocol/Socket/Session.cpp` (5 blocks), `X2ServerProtocol/OfflineHook.h`, `X2Lib/X2Data.cpp:2136`, `X2Lib/X2StateServerSelect.cpp:6982`, `X2Lib/X2DungeonSubStage.cpp:1452`, `X2Lib/X2QuestManager.{h,cpp}`, `X2Lib/X2TitleManager.h:339` | -- |
+| `SERV_IRUHADEV_NO_PATCHER_TOKEN` | 2026-09-04 | `KTDXLIB/Always.h:2525` | `X2/X2.cpp:805` | -- |
 
 What each one does:
 
@@ -42,6 +44,41 @@ What each one does:
   11 (`ST_E_QUICK_SLOT`) to exactly 6 slots on load, so a legacy `+3` purchase
   row already sitting in `dbo.GItemInventorySize` no longer stacks on top of
   the new base.
+- **`SERV_IRUHADEV_OFFLINE`** -- makes the client playable with no servers
+  running. `KSession` hands every outbound packet to an in-process emulator
+  (`CX2OfflineServer`) instead of a socket, and the emulator answers on the
+  same session at the point the real receive path queues into, so everything
+  above the socket layer runs unmodified. All player state persists to a local
+  SQLite file, `els_db.sql`, in the game directory. Client-only: no packet
+  struct, event ID or shared enum is touched, so the servers do not need
+  rebuilding. See `OFFLINE_MODE_PLAN.md` for the design and the phase history,
+  and the *Offline mode* section of `CLAUDE.md` for the three seams.
+
+  **This flag has to be defined in two places.** `X2ServerProtocol` does not
+  include `KTDX.h`, so `KTDXLIB/Always.h` alone does not reach the socket seam:
+  it must *also* be in `X2ServerProtocol_2010.vcxproj`'s `US_SERVICE`
+  `PreprocessorDefinitions`. Set only one and nothing fails to compile --
+  `g_pX2OfflineHook` is declared in a header whose flag-conditional body the
+  two projects then disagree about, and the client goes back to trying to
+  reach a real server. Toggle both together, always.
+- **`SERV_IRUHADEV_NO_PATCHER_TOKEN`** -- lets `x2.exe` be started directly
+  instead of only through a launcher that passes the patcher token. A
+  `_SERVICE_` build compares `argv[1]` against `PATCHER_RUN_ONLY` and returns
+  0 out of `WinMain` if it does not match, so a bare launch (double-click, a
+  debugger, a shortcut) exited instantly with no window, no message box and no
+  log line. The flag supplies that same constant at the call site rather than
+  reading it out of `argv`; the two tests are left standing and the token is
+  still accepted when passed, so a launcher or `start_offline.bat` keeps
+  working unchanged. Independent of offline mode, and useful without it.
+
+  Verified by probe, not by reading `#ifdef`s: in `US_SERVICE` this is the
+  **only** live `argv` read in the client. The other nine
+  (`X2.cpp:756-778`, `X2Main.cpp:1083`, `1292-1301`, `1438-1460`, `1478`) are
+  all behind flags that are off -- `LAUNCHER_COMMAND_ARGUMENT`,
+  `CLOSE_ON_START_FOR_GAMEGUARD`, `CLIENT_PURPLE_MODULE*`,
+  `SERV_CHANNELING_AERIA`, `SERV_COUNTRY_PH`, `_NEXON_KR_`, `ARGUMENT_LOGIN`,
+  `SERV_STEAM`. Several of them read `__argv[1]`/`[2]` with no NULL guard, so
+  that mattered.
 
 ## Reverting to stock
 
@@ -65,7 +102,23 @@ Toggling any of them requires rebuilding the VS2010 client *and* the five
 servers, with the flag set consistently in both. Rebuild only one side and the
 wire format desynchronizes silently at runtime instead of failing to compile.
 
-`SERV_IRUHADEV_BUFF_DURATION_TEXT` and `STATIC_AUTO_LOGIN` are client-only.
+The remaining four -- `SERV_IRUHADEV_BUFF_DURATION_TEXT`,
+`STATIC_AUTO_LOGIN`, `SERV_IRUHADEV_OFFLINE` and
+`SERV_IRUHADEV_NO_PATCHER_TOKEN` -- are client-only. None of them touches
+anything under `KncWX2Server/Common/`, so the servers never need rebuilding
+for any of them. Two caveats:
+
+- `SERV_IRUHADEV_OFFLINE` needs **both** of its definition sites toggled
+  together, and all three client libs plus the exe rebuilt (`KTDXLIB`,
+  `X2ServerProtocol`, `X2Lib`, then `X2`).
+- Toggling anything in `KTDXLIB/Always.h` -- which is every
+  `SERV_IRUHADEV_*` flag -- means rebuilding **all four** projects, because
+  `Always.h` sits inside each one's precompiled header. msbuild does not
+  always notice, and a stale PCH makes the flag simply absent at the call
+  site with no error: the `#else` branch compiles and the change appears to
+  have done nothing. If in doubt, prove it rather than assume it -- put a
+  `#pragma message` inside the `#ifdef` at the call site, rebuild that one
+  project, and read the compiler output.
 
 ## Known deviations to clean up
 

@@ -11,6 +11,14 @@
 //
 //              Both are flushed after every line: a crash must not lose the
 //              last packet, because that line is usually the cause.
+//
+//              Both are also capped and rotated (phase 8). offline_packets.log
+//              grows at roughly a line per packet, which is a few MB per hour
+//              of ordinary play and much faster inside a dungeon; left alone it
+//              will eventually be too big to grep and then too big to open. At
+//              the cap the file is renamed to <name>.1 - replacing whatever
+//              was there - and a fresh one is started, so there is always
+//              between one and two caps' worth of the most recent history.
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef SERV_IRUHADEV_OFFLINE
@@ -51,18 +59,43 @@ public:
 	/// system-only array for every client event ID.
 	static const wchar_t* EventName( unsigned short usEventID );
 
+	/// Byte cap per log file, after which it rotates to <name>.1. The packet
+	/// log gets the larger one - it is the file that actually carries the
+	/// evidence when something goes wrong.
+	enum
+	{
+		SERVER_LOG_CAP_BYTES	=  8 * 1024 * 1024,
+		PACKET_LOG_CAP_BYTES	= 48 * 1024 * 1024,
+	};
+
 private:
+	/// Rotate pFile to <szName>.1 and reopen it, if it has passed nCapBytes.
+	/// nBytesWritten is this file's running total and is reset on a rotation.
+	static void Rotate( FILE*& pFile, const wchar_t* szName,
+						size_t& nBytesWritten, size_t nCapBytes );
+
+	static void WriteBOM( FILE* pFile );
+
+	/// One line into one of the two files, rotating first if it is over its
+	/// cap. The only writer; WriteLine does the encoding, this does the
+	/// bookkeeping.
+	static void Write( bool bPacketLog, const wchar_t* szLine );
+
 	static std::wstring Compose( bool bClientToServer,
 								 const wchar_t* szProxy,
 								 unsigned short usEventID,
 								 size_t nPayloadBytes,
 								 const wchar_t* szNote );
 	static void Emit( const std::wstring& wstrLine );		///< respects the defer buffer
-	static void WriteLine( FILE* pFile, const wchar_t* szLine );
+
+	/// wide -> UTF-8 and out; returns how many bytes reached the file
+	static size_t WriteLine( FILE* pFile, const wchar_t* szLine );
 	static void TimeStamp( wchar_t* szOut, size_t nCount );
 
 	static FILE*						ms_pServerLog;
 	static FILE*						ms_pPacketLog;
+	static size_t						ms_nServerBytes;
+	static size_t						ms_nPacketBytes;
 	static KncCriticalSection			ms_cs;
 	static bool							ms_bOpened;
 	static bool							ms_bDefer;

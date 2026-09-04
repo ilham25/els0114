@@ -801,12 +801,36 @@ INT WINAPI VirtualWinMain( HINSTANCE hInst, HINSTANCE, LPSTR, INT )
 
 #ifndef _SERVICE_MANUAL_LOGIN_
 
+//{{ Iruha : 2026-09-04 // launch without the patcher token in argv[1]
+#ifdef SERV_IRUHADEV_NO_PATCHER_TOKEN
+	// The value the two tests below want, supplied here instead of read out
+	// of argv. On a live install X2Patcher launched the client and passed
+	// this token; nothing launches it here, and a bare start arrives with
+	// __argc == 1 - so __argv[1] is the NULL terminator of the argv array,
+	// the first test takes it, and WinMain returns 0. No window, no message,
+	// no log: indistinguishable from a crash, and the reason the exe had to
+	// be started from start_offline.bat.
+	//
+	// The tests are left standing rather than compiled out, and the constant
+	// is used rather than the literal spelled again, so that this keeps
+	// agreeing with PATCHER_RUN_ONLY if that is ever changed. Passing the
+	// token still works - it is simply no longer required.
+#ifdef PATCHER_RUN_ONLY
+	char* tempArgv = (char*)PATCHER_RUN_ONLY;
+#else PATCHER_RUN_ONLY
+	// No token to satisfy in this configuration; the value is never read,
+	// it only has to be non-NULL.
+	char* tempArgv = (char*)"";
+#endif PATCHER_RUN_ONLY
+#else SERV_IRUHADEV_NO_PATCHER_TOKEN
 #ifdef SERV_CHANNELING_AERIA
 	// 패쳐에서는 arg 젤 마지막에 PATCHER_RUN_ONLY 를 붙이는데 여기선 젤 앞에걸로 비교를 하네...
 	char* tempArgv = __argv[__argc - 1];
 #else //SERV_CHANNELING_AERIA
 	char* tempArgv = __argv[1];
 #endif //SERV_CHANNELING_AERIA
+#endif SERV_IRUHADEV_NO_PATCHER_TOKEN
+//}}
 	if( tempArgv == NULL )
 	{
 		return 0;

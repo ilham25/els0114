@@ -270,6 +270,29 @@ Nearly every change since ~2009 sits behind a named `#define`, and there is no b
 
 When adding a flag, follow the local pattern: new `#define` at the end of the owning file, commented with author / date / description, and make sure it is defined for *every* project that compiles code guarded by it. For our own client changes the owning file is always `KTDXLIB/Always.h` and the name always starts with `SERV_IRUHADEV_` — see the rule at the top of this file.
 
+### Offline mode
+
+`SERV_IRUHADEV_OFFLINE` makes the client playable with **no servers running**: an in-process emulator answers the packets the five servers used to, and all player state persists to a local SQLite file, `els_db.sql`, in the game directory. It is client-only — it touches nothing under `KncWX2Server/Common/`, so the servers never need rebuilding for it. Design, phase history, and every correction the phases produced are in `OFFLINE_MODE_PLAN.md`; what has been changed and how to revert is in `MODS.md`.
+
+**The flag is defined in two places and both must be toggled together**: `KTDXLIB/Always.h` (the usual place) *and* `X2ServerProtocol/X2ServerProtocol_2010.vcxproj`'s `US_SERVICE` `PreprocessorDefinitions`. `X2ServerProtocol` does not include `KTDX.h`, so `Always.h` alone does not reach the socket seam, and setting only one side fails silently rather than at compile time.
+
+The code is all under `X2Lib/Offline/` — `X2OfflineServer.{h,cpp}` (the emulator and its dispatch table, ~200 packets), `Handlers_*.cpp` (the handlers, one file per subsystem), `X2OfflineDB.{h,cpp}` (SQLite; a versioned schema with a migration ladder), and one module per subsystem it had to reimplement (`X2OfflineInventory`, `X2OfflineQuest`, `X2OfflineTitle`, `X2OfflineSkill`, `X2OfflineCashShop`, `X2OfflineStatTable`, `X2OfflineDropTable`, `X2OfflineBattleField`, `X2OfflineRandomItem`, `X2OfflinePetData`).
+
+Three seams, and there are only three:
+
+1. **`X2ServerProtocol/Socket/Session.cpp`** — the one that matters. `KSession` hands every outbound `KEvent` to `g_pX2OfflineHook->OnClientSend()` instead of serializing it to a socket, and the hook answers by calling `KSession::QueueingEvent()` on the same session — the exact point the real receive path queues into. Everything above the socket layer therefore runs completely unmodified. The hook interface is `X2ServerProtocol/OfflineHook.h`, declared there so the socket layer does not depend on `X2Lib`.
+2. **`X2Lib/X2Data.cpp:2136`** — `ResetServerProtocol()` stands the emulator up and registers it before any proxy can connect. It outlives every `CX2ServerProtocol` on purpose: the client drops and rebuilds its proxies several times per session.
+3. **A handful of client-side revivals** — code the shipping client contains but never calls, because the *server* used to do that job. `X2DungeonSubStage.cpp` (the static-NPC parser), `X2QuestManager.cpp` (`m_iAfterQuestID`, which is a table the client never read), `X2StateServerSelect.cpp` (the UDP port check has no server to echo off). These are revivals, not rewrites.
+
+**Launching it**: `X2_offline.exe` plus `start_offline.bat` in the game directory. `SERV_IRUHADEV_NO_PATCHER_TOKEN` (a separate flag, independent of offline mode) means the exe no longer needs the `PATCHER_RUN_ONLY` token in `argv[1]` and can be started directly — without it a bare launch returns 0 out of `WinMain` with no window and no log. The `.bat` is still preferred because it does `cd /d "%~dp0"`: the working directory must be the game data directory, since `X2Main` mounts the `.kom` archives through a `"./"` prefix and the offline server writes `els_db.sql` and both logs there.
+
+**Debugging it is done by reading two log files**, both written into the game directory and both flushed after every line: `offline_server.log` (lifecycle, errors, and one line per interesting decision) and `offline_packets.log` (one line per packet, both directions, tagged `HANDLED` / `--- IGNORED ---` / `*** UNHANDLED ***` / `*** EXCEPTION - ROLLED BACK ***`). The core loop for any new work is: play until something breaks, `grep UNHANDLED offline_packets.log`, implement, repeat. Packets that are deliberately not implemented are labelled `IGNORED` with a reason from `X2OfflineIgnore.cpp`, so the `UNHANDLED` bucket stays empty and any line in it is new information. On a clean exit the same file's census is written to `offline_server.log`, naming every event ID the dispatch declined and how often.
+
+Two invariants worth knowing before changing anything in here:
+
+- **One packet is one transaction.** `OnClientSend` opens a SQLite savepoint before dispatch and commits it only if the handler returned without faulting, and it runs the whole dispatch under `m_csDispatch` because there is one `KSession::Run` thread per proxy. Anything inside `X2OfflineDB` that runs during play must use `Begin()`/`Commit()`/`Rollback()`, never a literal `BEGIN` — the literals left in `Migrate()` are safe only because it runs from `Open()`, before the first packet.
+- **`sizeof(KSession)` differs between `X2Lib` and `X2ServerProtocol`**, because `X2ServerProtocol/StdAfx.h` defines `ADD_COLLECT_CLIENT_INFO_PROTOCOL` before including the header and `X2Lib` reaches it earlier, without the macro. Never read a `KActorProxy`/`KUserProxy` member from `X2Lib`; every member reads 4 bytes low. `CX2OfflineServer::KindFromEventID` exists specifically to avoid needing to.
+
 ## Conventions
 
 - Comments and identifiers are frequently **Korean in CP949/ANSI encoding**, not UTF-8 — most editors and `grep` render them as mojibake. Do not "fix" the encoding of a file you are editing; write new comments in ASCII and leave existing bytes alone.

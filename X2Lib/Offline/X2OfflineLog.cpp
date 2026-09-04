@@ -7,6 +7,8 @@
 
 FILE*						CX2OfflineLog::ms_pServerLog	= NULL;
 FILE*						CX2OfflineLog::ms_pPacketLog	= NULL;
+size_t						CX2OfflineLog::ms_nServerBytes	= 0;
+size_t						CX2OfflineLog::ms_nPacketBytes	= 0;
 KncCriticalSection			CX2OfflineLog::ms_cs;
 bool						CX2OfflineLog::ms_bOpened		= false;
 bool						CX2OfflineLog::ms_bDefer		= false;
@@ -28,10 +30,73 @@ void CX2OfflineLog::Open()
 	ms_pServerLog = _wfopen( L"offline_server.log", L"wb" );
 	ms_pPacketLog = _wfopen( L"offline_packets.log", L"wb" );
 
-	// UTF-8 BOM so an editor picks the encoding up; nicknames are wide strings
+	WriteBOM( ms_pServerLog );
+	WriteBOM( ms_pPacketLog );
+
+	ms_nServerBytes = 0;
+	ms_nPacketBytes = 0;
+}
+
+void CX2OfflineLog::WriteBOM( FILE* pFile )
+{
+	if( NULL == pFile )
+		return;
+
+	// UTF-8 BOM so an editor picks the encoding up; nicknames are wide strings.
+	// Not counted towards the cap - three bytes either way.
 	const unsigned char szBOM[3] = { 0xEF, 0xBB, 0xBF };
-	if( NULL != ms_pServerLog )		fwrite( szBOM, 1, 3, ms_pServerLog );
-	if( NULL != ms_pPacketLog )		fwrite( szBOM, 1, 3, ms_pPacketLog );
+	fwrite( szBOM, 1, 3, pFile );
+}
+
+void CX2OfflineLog::Rotate( FILE*& pFile, const wchar_t* szName,
+							size_t& nBytesWritten, size_t nCapBytes )
+{
+	// the caller holds ms_cs
+	if( NULL == pFile || nBytesWritten < nCapBytes )
+		return;
+
+	wchar_t szOld[MAX_PATH];
+	_snwprintf( szOld, MAX_PATH, L"%s.1", szName );
+	szOld[MAX_PATH - 1] = L'\0';
+
+	fclose( pFile );
+	pFile = NULL;
+
+	// MOVEFILE_REPLACE_EXISTING, and only one generation kept, on purpose: two
+	// caps' worth is already more play than anyone reads back, and a growing
+	// pile of numbered logs in the game directory is its own problem.
+	::MoveFileExW( szName, szOld, MOVEFILE_REPLACE_EXISTING );
+
+	pFile = _wfopen( szName, L"wb" );
+	WriteBOM( pFile );
+
+	nBytesWritten = 0;
+
+	// First line of the new file says what happened, so a log that starts in
+	// the middle of a session cannot be mistaken for a session that started
+	// there.
+	wchar_t szNote[MAX_PATH + 128];
+	_snwprintf( szNote, MAX_PATH + 128,
+		L"---- rotated at %u bytes; what came before is in %s ----",
+		(unsigned int)nCapBytes, szOld );
+	szNote[MAX_PATH + 127] = L'\0';
+
+	nBytesWritten += WriteLine( pFile, szNote );
+}
+
+void CX2OfflineLog::Write( bool bPacketLog, const wchar_t* szLine )
+{
+	// the caller holds ms_cs
+	if( true == bPacketLog )
+	{
+		Rotate( ms_pPacketLog, L"offline_packets.log", ms_nPacketBytes, PACKET_LOG_CAP_BYTES );
+		ms_nPacketBytes += WriteLine( ms_pPacketLog, szLine );
+	}
+	else
+	{
+		Rotate( ms_pServerLog, L"offline_server.log", ms_nServerBytes, SERVER_LOG_CAP_BYTES );
+		ms_nServerBytes += WriteLine( ms_pServerLog, szLine );
+	}
 }
 
 void CX2OfflineLog::Close()
@@ -44,6 +109,9 @@ void CX2OfflineLog::Close()
 	ms_bDefer = false;
 	ms_vecDeferred.clear();
 	ms_bOpened = false;
+
+	ms_nServerBytes = 0;
+	ms_nPacketBytes = 0;
 }
 
 void CX2OfflineLog::TimeStamp( wchar_t* szOut, size_t nCount )
@@ -56,15 +124,15 @@ void CX2OfflineLog::TimeStamp( wchar_t* szOut, size_t nCount )
 	szOut[ nCount - 1 ] = L'\0';
 }
 
-void CX2OfflineLog::WriteLine( FILE* pFile, const wchar_t* szLine )
+size_t CX2OfflineLog::WriteLine( FILE* pFile, const wchar_t* szLine )
 {
 	if( NULL == pFile || NULL == szLine )
-		return;
+		return 0;
 
 	// wide -> UTF-8 so the files stay greppable with ordinary tools
 	int nBytes = ::WideCharToMultiByte( CP_UTF8, 0, szLine, -1, NULL, 0, NULL, NULL );
 	if( nBytes <= 1 )
-		return;
+		return 0;
 
 	std::vector< char > vecUtf8( nBytes );
 	::WideCharToMultiByte( CP_UTF8, 0, szLine, -1, &vecUtf8[0], nBytes, NULL, NULL );
@@ -72,6 +140,8 @@ void CX2OfflineLog::WriteLine( FILE* pFile, const wchar_t* szLine )
 	fwrite( &vecUtf8[0], 1, nBytes - 1, pFile );		// nBytes includes the terminator
 	fwrite( "\r\n", 1, 2, pFile );
 	fflush( pFile );									// never lose the last line
+
+	return (size_t)( nBytes - 1 ) + 2;
 }
 
 void CX2OfflineLog::Server( const wchar_t* szFmt, ... )
@@ -94,7 +164,7 @@ void CX2OfflineLog::Server( const wchar_t* szFmt, ... )
 	szLine[2175] = L'\0';
 
 	KLocker lock( ms_cs );
-	WriteLine( ms_pServerLog, szLine );
+	Write( false, szLine );
 }
 
 std::wstring CX2OfflineLog::Compose( bool bClientToServer,
@@ -127,7 +197,7 @@ void CX2OfflineLog::Emit( const std::wstring& wstrLine )
 	if( true == ms_bDefer )
 		ms_vecDeferred.push_back( wstrLine );
 	else
-		WriteLine( ms_pPacketLog, wstrLine.c_str() );
+		Write( true, wstrLine.c_str() );
 }
 
 void CX2OfflineLog::Packet( bool bClientToServer,
@@ -160,10 +230,10 @@ void CX2OfflineLog::DeferEnd( bool bClientToServer,
 
 	ms_bDefer = false;
 
-	WriteLine( ms_pPacketLog, wstrHead.c_str() );
+	Write( true, wstrHead.c_str() );
 
 	for( size_t i = 0; i < ms_vecDeferred.size(); ++i )
-		WriteLine( ms_pPacketLog, ms_vecDeferred[i].c_str() );
+		Write( true, ms_vecDeferred[i].c_str() );
 
 	ms_vecDeferred.clear();
 }

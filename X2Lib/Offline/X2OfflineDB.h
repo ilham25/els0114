@@ -443,6 +443,42 @@ public:
 	bool	IsOpen() const					{ return NULL != m_pDB; }
 
 	//////////////////////////////////////////////////////////////////////////
+	// save integrity (phase 8)
+	//
+	// One packet is one unit of work. CX2OfflineServer::OnClientSend opens a
+	// transaction before dispatch and commits it only if the handler came back
+	// without faulting, so a handler that dies half way through a multi-row
+	// change leaves the save file as it was rather than as it briefly was.
+	//
+	// SAVEPOINT rather than BEGIN, because two operations already had a
+	// transaction of their own - CreateUnit and FinalDeleteUnit - and SQLite
+	// answers a nested BEGIN with "cannot start a transaction within a
+	// transaction". Savepoints nest by name and the outermost one behaves
+	// exactly like a transaction.
+	//
+	// Not guarded by m_cs for their whole span: the lock is taken per
+	// statement, and what actually makes a transaction safe here is that all
+	// DB access happens on the dispatch path, which CX2OfflineServer
+	// serializes on m_csDispatch. Nothing on the client's own threads touches
+	// this class.
+
+	bool	Begin();
+	bool	Commit();
+	bool	Rollback();
+	int		TransactionDepth() const		{ return m_iTxnDepth; }
+
+	/// PRAGMA wal_checkpoint(TRUNCATE) - folds els_db.sql-wal back into
+	/// els_db.sql and empties it. A no-op inside a transaction, so callers run
+	/// it from outside one.
+	bool	Checkpoint();
+
+	/// Copy the whole save to szPath through sqlite3_backup_*, replacing what
+	/// is there. The online-backup API and not CopyFile: the connection is
+	/// never closed while the game runs, so a byte copy of els_db.sql alone
+	/// misses everything still sitting in the -wal file.
+	bool	Backup( const wchar_t* szPath );
+
+	//////////////////////////////////////////////////////////////////////////
 	// account
 	bool	GetOrCreateAccount( const std::wstring& wstrLoginID, OUT UidType& nUserUID, OUT int& iUnitSlots );
 
@@ -699,6 +735,49 @@ private:
 
 	sqlite3*				m_pDB;
 	KncCriticalSection		m_cs;
+
+	/// how many savepoints are open; 0 means "not in a transaction"
+	int						m_iTxnDepth;
+};
+
+//////////////////////////////////////////////////////////////////////////
+/// Scoped transaction, for the one caller that needs it (OnClientSend).
+///
+/// Commits only when Commit() is called explicitly. Every other way out -
+/// an early return, a handler that declined the packet, a fault caught by
+/// the __except in DispatchProtected - runs the destructor, which rolls back.
+class KOfflineDBTxn
+{
+public:
+	KOfflineDBTxn()
+		: m_bOpen( false )
+	{
+		m_bOpen = CX2OfflineDB::Instance()->Begin();
+	}
+
+	~KOfflineDBTxn()
+	{
+		if( true == m_bOpen )
+			CX2OfflineDB::Instance()->Rollback();
+	}
+
+	bool	IsOpen() const	{ return m_bOpen; }
+
+	void	Commit()
+	{
+		if( true == m_bOpen )
+		{
+			CX2OfflineDB::Instance()->Commit();
+			m_bOpen = false;
+		}
+	}
+
+private:
+	// no copies: two guards over one savepoint would release it twice
+	KOfflineDBTxn( const KOfflineDBTxn& );
+	KOfflineDBTxn& operator = ( const KOfflineDBTxn& );
+
+	bool	m_bOpen;
 };
 
 #endif SERV_IRUHADEV_OFFLINE
