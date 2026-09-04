@@ -201,6 +201,18 @@ public:
 	/// Is there room for iQuantity of iItemID? The ED shop asks before charging.
 	bool	HasRoomFor( int iItemID, int iQuantity ) const;
 
+#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+	/// Grow one category by up to iRequestedIncrement slots, capped at
+	/// INVENTORY_SLOT_MAX_NUM the same way the client itself checks before
+	/// ever sending the purchase (X2CashShop.cpp). Persists through
+	/// CX2OfflineDB::ExpandInventorySize and grows m_vecSlot to match, the
+	/// same shape KInventory::ExpandSlot leaves m_vecInventorySlot in.
+	/// iGranted is the amount actually applied - the value the cash-shop
+	/// claim ACK's m_mapExpandedCategorySlot wants, and 0 is a valid,
+	/// non-error answer for a category already at the cap.
+	bool	ExpandCategorySlot( int iCategory, int iRequestedIncrement, OUT int& iGranted );
+#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+
 	//////////////////////////////////////////////////////////////////////////
 	// rules, ported from KInventory
 

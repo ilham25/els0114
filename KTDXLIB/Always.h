@@ -2537,3 +2537,15 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              of it and a class whose Lua already asks for more keeps it.
 #define SERV_IRUHADEV_MP_REGEN_BOOST
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-05
+// Description: Offline mode - phase 9 (OFFLINE_MODE_PHASE9_PLAN.md). Let an
+//              inventory-expansion cash card actually expand the category
+//              instead of refusing with "item cannot be purchased". The
+//              refusal was right for phase 7 (nothing changed inventory_size
+//              after character creation) and is stale now that the size is a
+//              row in the offline SQLite DB.
+#define SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+//////////////////////////////////////////////////////////////////////////

@@ -1409,6 +1409,36 @@ bool CX2OfflineInventory::HasRoomFor( int iItemID, int iQuantity ) const
 	return ( iRemaining <= 0 );
 }
 
+#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+bool CX2OfflineInventory::ExpandCategorySlot( int iCategory, int iRequestedIncrement,
+											   OUT int& iGranted )
+{
+	iGranted = 0;
+
+	if( 0 == m_nUnitUID )
+		return false;
+
+	if( false == CX2OfflineDB::Instance()->ExpandInventorySize(
+			m_nUnitUID, iCategory, iRequestedIncrement, INVENTORY_SLOT_MAX_NUM, iGranted ) )
+		return false;
+
+	if( iGranted <= 0 )
+		return true;			///< already at the cap - a no-op, not a failure
+
+	m_mapSlotSize[ iCategory ] = GetSlotSize( iCategory ) + iGranted;
+
+	// Same shape KInventory::ExpandSlot leaves m_vecInventorySlot in
+	// (Inventory.cpp:9906): append iGranted empty slots rather than
+	// reallocating the whole vector, so existing slot indices do not move.
+	m_vecSlot[ iCategory ].insert( m_vecSlot[ iCategory ].end(), (size_t)iGranted, (UidType)0 );
+
+	CX2OfflineLog::Server( L"ITEM     category %d expanded by %d slot(s), now %d",
+		iCategory, iGranted, GetSlotSize( iCategory ) );
+
+	return true;
+}
+#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+
 //////////////////////////////////////////////////////////////////////////
 
 bool CX2OfflineInventory::SortCategory( int iCategory,

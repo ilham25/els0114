@@ -260,6 +260,71 @@ Buy an expansion card. It succeeds; the category shows the extra slots; quit and
 relaunch; the slots are still there; `select * from inventory_size` shows the
 bumped row.
 
+### What actually happened
+
+No new packets were involved - this was bucket A exactly as filed, a single
+handler refusing on purpose. What the plan got right and wrong once the server
+source was actually read for structure:
+
+- **The per-card increment (8) is a real, citable constant, not a value to
+  invent.** `CXSLInventory::SLOT_COUNT_ONE_LINE` at
+  `KncWX2Server/Common/X2Data/XSLInventory.h:54` is a compile-time `= 8` in a
+  shared header, not data behind a stored procedure - so unlike the phase 9-27
+  batch's DB-blocked phases, this one needed no ask-the-user step at all. It is
+  hardcoded in `Handlers_Shop.cpp` with the file:line citation, the same shape
+  as the `BattleFieldServerData.lua` fallback `CLAUDE.md` describes.
+
+- **There is a second, unrelated implementation of this same item ID in the
+  tree, and it is not the one that applies.**
+  `GSUserCashShop_Global.cpp:769-881` (the CN/Global variant) expands the
+  category the instant `EGS_BUY_CASH_ITEM_REQ` is handled - no deposit, no
+  claim step. That is not the flow phase 7 built offline around (US goes
+  through the two-step deposit/claim `X2CashShop.cpp:3580` describes), so
+  reading `_Global.cpp` first would have produced a purchase-time
+  implementation that never matches what the client actually waits on. The
+  real match is `GSUserFunction.cpp:13523-13639`, inside the handler for the
+  **claimed** item ID (`m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ`) - same
+  file that also confirmed the six categories `INVENTORY_SLOT_ADD_ITEM_EQUIP`
+  etc. expand individually while bare `INVENTORY_SLOT_ADD_ITEM` (200750, the
+  "all categories" bundle card the plan didn't call out by name) expands all
+  six from one card, each by the same 8.
+
+- **The relog trap in the plan doesn't apply, and no extra send was needed.**
+  The plan assumed the fix would need to hand `m_mapExpandedCategorySlot` back
+  to the client at character load or the DB-vs-client picture would desync on
+  restart. Reading `Handlers_Unit.cpp:519-537` (`KEGS_SELECT_UNIT_1_NOT`, phase
+  5's own char-load packet) shows the client is never told slot counts as
+  deltas at login at all - `kNot.m_mapInventorySlotSize` there is
+  `pInven->GetSlotSizes()`, the *absolute* size map, freshly loaded from the
+  same `inventory_size` table the purchase writes to. So persisting the bump
+  is sufficient by construction; there was nothing further to wire up, and the
+  trap the plan warned about was already closed by phase 5's own design.
+
+- **Both `INVENTORY_SLOT_ADD_ITEM_*` families were removed from
+  `NOT_MODELLED[]`, not just the plan's six.** The plan said "remove only the
+  `INVENTORY_SLOT_ADD_ITEM_*` entries" without saying whether that covered the
+  `_EVENT` twins (`INVENTORY_SLOT_ADD_ITEM_EQUIP_EVENT` etc., IDs
+  60002281-60002286). The claim-time code added here maps both families to the
+  same category identically, so both were unrefused rather than leaving the
+  `_EVENT` six as a narrower follow-up; 127030 (the resurrection stone) is
+  still refused, unchanged from the plan.
+
+- **Implementation shape**: `CX2OfflineDB::ExpandInventorySize` (bump the row,
+  capped at `INVENTORY_SLOT_MAX_NUM`) under `CX2OfflineInventory::
+  ExpandCategorySlot` (also grows the in-memory slot vector, mirroring
+  `KInventory::ExpandSlot`'s append-only resize so existing slot indices don't
+  move), called from the claim handler the same way the existing class-change
+  branch already claims-without-carrying: take the deposit line, don't touch
+  the bag, fill `m_mapExpandedCategorySlot` in the ACK.
+
+- **Build**: `X2Lib_2010.vcxproj` then `X2_2010.vcxproj`, both `US_SERVICE`,
+  0 errors. Deployed to `X2_offline.exe`; confirmed by size/mtime against the
+  seven other `X2_*.exe` builds already in the game directory.
+
+- **Not yet done**: the exit test itself is a real play-test (buy a card,
+  relog, check the DB row) that needs a human at the client - not run as part
+  of this phase.
+
 ---
 
 # Phase 10 — Cannot feed pet (`ISSUES.md` #15)

@@ -546,6 +546,15 @@ public:
 	bool	LoadInventorySizes( UidType nUnitUID, OUT std::map< int, int >& mapOut );
 	bool	SeedInventorySizes( UidType nUnitUID );
 
+#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+	/// Bump one category's persisted size by up to iRequestedIncrement, capped
+	/// so the result never exceeds iMaxSize. iGranted comes back as the amount
+	/// actually applied (0 if the category was already at the cap); the
+	/// return value is only about whether the write itself succeeded.
+	bool	ExpandInventorySize( UidType nUnitUID, int iCategory, int iRequestedIncrement,
+								 int iMaxSize, OUT int& iGranted );
+#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+
 	//////////////////////////////////////////////////////////////////////////
 	// items (phase 5)
 

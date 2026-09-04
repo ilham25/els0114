@@ -1549,6 +1549,64 @@ bool CX2OfflineDB::LoadInventorySizes( UidType nUnitUID, OUT std::map< int, int 
 	return true;
 }
 
+#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+bool CX2OfflineDB::ExpandInventorySize( UidType nUnitUID, int iCategory, int iRequestedIncrement,
+										 int iMaxSize, OUT int& iGranted )
+{
+	iGranted = 0;
+
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	int iCurrent = BaseSlotSize( iCategory );
+
+	sqlite3_stmt* pRead = Prepare(
+		"SELECT size FROM inventory_size WHERE unit_uid = ?1 AND category = ?2;" );
+	if( NULL == pRead )
+		return false;
+
+	sqlite3_bind_int64( pRead, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pRead, 2, iCategory );
+
+	if( SQLITE_ROW == sqlite3_step( pRead ) )
+		iCurrent = sqlite3_column_int( pRead, 0 );
+
+	sqlite3_finalize( pRead );
+
+	iGranted = std::min< int >( iRequestedIncrement, iMaxSize - iCurrent );
+	if( iGranted <= 0 )
+	{
+		iGranted = 0;
+		return true;			///< already at the cap - not a failure
+	}
+
+	sqlite3_stmt* pWrite = Prepare(
+		"INSERT OR REPLACE INTO inventory_size( unit_uid, category, size ) VALUES( ?1, ?2, ?3 );" );
+	if( NULL == pWrite )
+	{
+		iGranted = 0;
+		return false;
+	}
+
+	sqlite3_bind_int64( pWrite, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pWrite, 2, iCategory );
+	sqlite3_bind_int(   pWrite, 3, iCurrent + iGranted );
+
+	const bool bOK = ( SQLITE_DONE == sqlite3_step( pWrite ) );
+	sqlite3_finalize( pWrite );
+
+	if( false == bOK )
+	{
+		iGranted = 0;
+		LogError( L"expand inventory_size" );
+	}
+
+	return bOK;
+}
+#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+
 //////////////////////////////////////////////////////////////////////////
 // items
 

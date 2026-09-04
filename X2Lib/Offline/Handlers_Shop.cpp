@@ -46,11 +46,11 @@ namespace
 	/// Every ID here is a named constant in the client's own X2Define.h, or is
 	/// named in the client's own purchase handler - none is guessed:
 	///
-	///   INVENTORY_SLOT_ADD_ITEM*   expand an inventory category. The server
-	///                              answers these by sending back
-	///                              m_mapExpandedCategorySlot, which offline is
-	///                              always empty: nothing here changes the
-	///                              inventory_size rows after creation.
+	///   INVENTORY_SLOT_ADD_ITEM*   expand an inventory category. Offline
+	///                              phase 9 (SERV_IRUHADEV_OFFLINE_INVENTORY_
+	///                              EXPAND) makes these purchasable - see the
+	///                              claim handler below - so they are only
+	///                              still refused when that flag is off.
 	///   127030                     the resurrection stone. It is not an
 	///                              inventory item at all - it is a counter on
 	///                              the character (CX2Unit::GetResurrection
@@ -59,6 +59,7 @@ namespace
 	///                              X2CashShop.cpp:3508 names the ID.
 	const int NOT_MODELLED[] =
 	{
+#ifndef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 		INVENTORY_SLOT_ADD_ITEM,
 		INVENTORY_SLOT_ADD_ITEM_EQUIP,
 		INVENTORY_SLOT_ADD_ITEM_ACCESSORY,
@@ -72,6 +73,7 @@ namespace
 		INVENTORY_SLOT_ADD_ITEM_MATERIAL_EVENT,
 		INVENTORY_SLOT_ADD_ITEM_QUEST_EVENT,
 		INVENTORY_SLOT_ADD_ITEM_SPECIAL_EVENT,
+#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 		127030,
 	};
 
@@ -85,6 +87,58 @@ namespace
 
 		return false;
 	}
+
+#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+	/// Every card grants this many slots per category - CXSLInventory::
+	/// SLOT_COUNT_ONE_LINE (KncWX2Server/Common/X2Data/XSLInventory.h:54).
+	/// Read for structure, same as ClassChangeTargetOf's table below: it is a
+	/// compile-time constant in the shared header, not data behind a stored
+	/// procedure, so citing it here is honest and does not need the user's DB.
+	const int EXPAND_SLOT_INCREMENT = 8;
+
+	/// The six categories INVENTORY_SLOT_ADD_ITEM (200750, the bundle card)
+	/// expands at once - GSUserFunction.cpp's CI_EXPAND_INVENTORY case.
+	const int EXPAND_ALL_CATEGORIES[] =
+	{
+		CX2Inventory::ST_EQUIP,
+		CX2Inventory::ST_ACCESSORY,
+		CX2Inventory::ST_MATERIAL,
+		CX2Inventory::ST_SPECIAL,
+		CX2Inventory::ST_QUEST,
+		CX2Inventory::ST_QUICK_SLOT,
+	};
+
+	/// The one category a per-category card (200751..200756, or their _EVENT
+	/// twins) expands, or ST_NONE for the bundle card or anything else -
+	/// X2CashShop.cpp:3242's switch, and GSUserFunction.cpp's per-category
+	/// CI_EXPAND_INVENTORY_* cases.
+	int ExpandedCategoryOf( int iItemID )
+	{
+		switch( iItemID )
+		{
+		case INVENTORY_SLOT_ADD_ITEM_EQUIP:
+		case INVENTORY_SLOT_ADD_ITEM_EQUIP_EVENT:
+			return CX2Inventory::ST_EQUIP;
+		case INVENTORY_SLOT_ADD_ITEM_ACCESSORY:
+		case INVENTORY_SLOT_ADD_ITEM_ACCESSORY_EVENT:
+			return CX2Inventory::ST_ACCESSORY;
+		case INVENTORY_SLOT_ADD_ITEM_QUICK_SLOT:
+		case INVENTORY_SLOT_ADD_ITEM_QUICK_SLOT_EVENT:
+			return CX2Inventory::ST_QUICK_SLOT;
+		case INVENTORY_SLOT_ADD_ITEM_MATERIAL:
+		case INVENTORY_SLOT_ADD_ITEM_MATERIAL_EVENT:
+			return CX2Inventory::ST_MATERIAL;
+		case INVENTORY_SLOT_ADD_ITEM_QUEST:
+		case INVENTORY_SLOT_ADD_ITEM_QUEST_EVENT:
+			return CX2Inventory::ST_QUEST;
+		case INVENTORY_SLOT_ADD_ITEM_SPECIAL:
+		case INVENTORY_SLOT_ADD_ITEM_SPECIAL_EVENT:
+			return CX2Inventory::ST_SPECIAL;
+		default:
+			return CX2Inventory::ST_NONE;
+		}
+	}
+#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -392,9 +446,10 @@ bool CX2OfflineServer::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSes
 	kAck.m_iExceptionProcessItemID	= 0;
 #endif SERV_GUILD_CHANGE_NAME
 
-	// Nothing offline expands an inventory category, so this stays empty. The
-	// client adds each entry onto its current slot count, so a non-empty map
-	// here that the save file did not also grow would desync the two.
+	// Empty unless an INVENTORY_SLOT_ADD_ITEM* card is claimed below
+	// (SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND). The client adds each entry
+	// onto its current slot count, so a non-empty map here that the save file
+	// did not also grow would desync the two.
 	kAck.m_mapExpandedCategorySlot.clear();
 
 	// Find the line first, without deleting it: the bag might be full, and a
@@ -535,6 +590,58 @@ bool CX2OfflineServer::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSes
 
 		return true;
 	}
+
+#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
+	//////////////////////////////////////////////////////////////////////////
+	// Inventory expansion: claimed, not carried - same shape as the class
+	// change above and for the same reason. The card's effect is the DB row,
+	// not a bag item, so it runs before the room check rather than being
+	// subject to it.
+	{
+		std::vector< int > vecCategory;
+
+		const int iSingleCategory = ExpandedCategoryOf( iItemID );
+		if( CX2Inventory::ST_NONE != iSingleCategory )
+		{
+			vecCategory.push_back( iSingleCategory );
+		}
+		else if( INVENTORY_SLOT_ADD_ITEM == iItemID )
+		{
+			vecCategory.assign( EXPAND_ALL_CATEGORIES,
+				EXPAND_ALL_CATEGORIES + ( sizeof( EXPAND_ALL_CATEGORIES ) / sizeof( EXPAND_ALL_CATEGORIES[0] ) ) );
+		}
+
+		if( false == vecCategory.empty() )
+		{
+			// Take the line out first - same ordering rule the item path below
+			// follows. If it was not there after all, nothing should have
+			// happened.
+			if( false == pDB->DeleteCashOrder( kSes.m_nUserUID, pRow->m_nTransNo ) )
+			{
+				CX2OfflineLog::Server( L"CASH     expand refused: deposit line %I64d could not be"
+					L" removed", pRow->m_nTransNo );
+
+				return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+			}
+
+			for( size_t i = 0; i < vecCategory.size(); ++i )
+			{
+				int iGranted = 0;
+				pInven->ExpandCategorySlot( vecCategory[i], EXPAND_SLOT_INCREMENT * iQuantity, iGranted );
+
+				if( iGranted > 0 )
+					kAck.m_mapExpandedCategorySlot[ vecCategory[i] ] = iGranted;
+			}
+
+			CX2OfflineLog::Server( L"CASH     claimed line %I64d: item %d expanded %u categor%s",
+				pRow->m_nTransNo, iItemID, (unsigned int)kAck.m_mapExpandedCategorySlot.size(),
+				1 == kAck.m_mapExpandedCategorySlot.size() ? L"y" : L"ies" );
+
+			kAck.m_iOK = NetError::NET_OK;
+			return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+		}
+	}
+#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 
 	if( false == pInven->HasRoomFor( iItemID, iQuantity ) )
 	{
