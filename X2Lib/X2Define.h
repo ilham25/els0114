@@ -1796,3 +1796,10 @@ enum X2_ERROR_MSG
 };
 
 
+
+//{{ Iruha : 2026-09-04 // base MP regen rate, in MP per second
+#ifdef SERV_IRUHADEV_MP_REGEN_BOOST
+const float SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC = 20.0f;
+#endif SERV_IRUHADEV_MP_REGEN_BOOST
+//}} Iruha : 2026-09-04
+

@@ -23,6 +23,8 @@ column.
 | `SERV_IRUHADEV_QUICK_SLOT_FULL_FREE` | 2026-08-27 | `KTDXLIB/Always.h:2435`, `KncWX2Server/Common/ServerDefine.h:4224` | `X2Lib/X2Unit.h:982-988`, `X2Lib/X2Unit.cpp:104-111`, `X2Lib/X2UIQuickSlot.cpp:1797-1822`, `X2Lib/X2CashShop.cpp:8306-8326` | `KncWX2Server/GameServer/Inventory.cpp:500-534`, `KncWX2Server/GameServer/Inventory.cpp:146-152` |
 | `SERV_IRUHADEV_OFFLINE` | 2026-08-31 | `KTDXLIB/Always.h:2446` **and** `X2ServerProtocol/X2ServerProtocol_2010.vcxproj:1444` (`US_SERVICE` `PreprocessorDefinitions`) | `X2Lib/Offline/` (the whole directory: 44 sources plus `start_offline.bat`), plus seams in `X2ServerProtocol/Socket/Session.cpp` (5 blocks), `X2ServerProtocol/OfflineHook.h`, `X2Lib/X2Data.cpp:2136`, `X2Lib/X2StateServerSelect.cpp:6982`, `X2Lib/X2DungeonSubStage.cpp:1452`, `X2Lib/X2QuestManager.{h,cpp}`, `X2Lib/X2TitleManager.h:339` | -- |
 | `SERV_IRUHADEV_NO_PATCHER_TOKEN` | 2026-09-04 | `KTDXLIB/Always.h:2525` | `X2/X2.cpp:805` | -- |
+| `SERV_IRUHADEV_JOBCHANGE_PORTRAIT` | 2026-09-04 | `KTDXLIB/Always.h:2513` | `X2Lib/X2UIQuestNew.cpp:8`, `X2Lib/X2UIQuestNew.cpp:1516`, `X2Lib/X2UIQuestNew.cpp:2043` | -- |
+| `SERV_IRUHADEV_MP_REGEN_BOOST` | 2026-09-04 | `KTDXLIB/Always.h:2538` (rate constant in `X2Lib/X2Define.h:1802`) | `X2Lib/X2GUUser.cpp:1829`, `X2Lib/X2GUUser.cpp:3654`, `X2Lib/X2GUUser.cpp:3726`, `X2Lib/X2GageManager.cpp:50` | -- |
 
 What each one does:
 
@@ -79,6 +81,99 @@ What each one does:
   `SERV_CHANNELING_AERIA`, `SERV_COUNTRY_PH`, `_NEXON_KR_`, `ARGUMENT_LOGIN`,
   `SERV_STEAM`. Several of them read `__argv[1]`/`[2]` with no NULL guard, so
   that mattered.
+- **`SERV_IRUHADEV_JOBCHANGE_PORTRAIT`** -- refreshes the top-left gage
+  portrait when a quest changes the character's class. The quest path resets
+  the 3D square unit but never the gage, so the HUD kept drawing the old class
+  until the gage was rebuilt on a state change; every other class-change path
+  in the client already refreshes it.
+- **`SERV_IRUHADEV_MP_REGEN_BOOST`** -- quality of life: raises the base MP
+  regeneration rate for player units from 1 MP/s to
+  `SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC` (50 MP/s), the single tuning knob, in
+  `X2Lib/X2Define.h`.
+
+  The base rate is not a constant in the shipped client -- it is
+  `MP_CHANGE_RATE` out of each class's Lua, read into
+  `CX2GUUser::m_fOriginalMPChangeRate` at both of the two places that load it
+  (`InitAndInsertToGame` and `InitComponent`) and then pushed into the gage by
+  `ResetMPChangeRate()`. The flag raises the value at those two load points
+  only, as a **floor** rather than an assignment, which is what keeps it from
+  breaking anything downstream:
+
+  - everything that composes on top of the base still composes -- Aisha's
+    Meditation, Rena's charge states, Eve's passives, socket
+    `m_fSpeedUpManaGather`, title and drag-and-set mana-recovery options all
+    read `GetOriginalMPChangeRate()` and add to or scale it;
+  - the PvP play-channel scale (x7 in `ResetMPChangeRate`, /7 in
+    `GetNowMPChange`) is unaffected, since it wraps the base either way;
+  - a class whose Lua already asks for more than the floor keeps its own
+    higher value.
+
+  Two things it deliberately does **not** touch. The socket-item MP option
+  (`SetMPChangeRateValue`, `KSocketData::m_iMPChangeValue`) is a separate
+  additive path and is left at its item-driven value. And the two absolute
+  `ResetMPChangeRate( 3.f )` / `( 10.f )` calls behind Eve's `SMI_EVE_MEMO5`
+  skill note (`X2Lib/X2GuEve.cpp:8665`) overwrite the base outright while that
+  memo is equipped, so Eve regenerates *slower* than the floor in that one
+  state. Both are class/item behaviour rather than the general base rate, which
+  is what this flag is scoped to.
+
+  NPC and monster MP is untouched -- `CX2GUUser` is the player-unit class. In
+  online play MP is client-simulated per unit and P2P-synced, so a remote
+  player running an unmodded client will regenerate at their own rate.
+
+  **The village map needed a second site.** `XS_VILLAGE_MAP` does not regen MP
+  through the unit's change rate at all. `CX2GageManager::OnFrameMove` runs a
+  fixed 1.0 s timer (`m_ElapsedTimeCheckVillageBuff`) that calls
+  `CX2GageSet::UpNowHpAndMpInVillage()`, which does a hardcoded
+  `UpNowMp( 1.f )` straight onto the HUD's own `CX2GageData` -- the my-gage-set
+  has no game unit attached in town, so `UpdateGageDataFromGameUnit()` degrades
+  to a self-copy and the unit's rate never reaches the bar. That is the only
+  hardcoded periodic MP tick in the client (every other literal `UpNowMp` is
+  hit- or skill-driven), and it is why the first cut of this flag looked like
+  it had done nothing while idle in a village but clearly worked in a dungeon.
+  The tick is now worth one second of the base rate; since the period is
+  exactly 1.0 s the constant goes in unscaled.
+
+  **And dungeons and fields needed a third site, which is the one that
+  mattered.** Raising the base rate had no effect there at all, and the reason
+  is a stock bug: `CX2GUUser::InitComponent` sets the rate from the class Lua
+  near the top, then further down -- in the `default` branch of the game-type
+  switch, i.e. everything that is not PvP and not the training room -- does
+
+  ```cpp
+  CX2GageManager::GetInstance()->RestoreGageData();
+  m_pGageData = CX2GageManager::GetInstance()->GetMyGageData()->GetCloneGageData();
+  ResetMaxHP();
+  ResetMaxMP();
+  SetNowHp( ... ); SetNowMp( ... );
+  ```
+
+  The clone replaces the **whole** `CX2GageData`, so the MP change rate set
+  minutes earlier in the same function is thrown away. The four calls after it
+  restore the maxima and the current values; nothing restores the rate, and the
+  clone carries the gage manager's, which no code ever sets -- it is the `1.0f`
+  default out of `CX2GageData::Gage::Init()`. So in stock code a class's
+  `MP_CHANGE_RATE` is dead in dungeons and fields, and every character
+  regenerates at exactly 1 MP/s there regardless of what its Lua asks for. It
+  survives only in the PvP and training branches, which do not re-clone.
+
+  The flag re-applies `ResetMPChangeRate( GetOriginalMPChangeRate() )`
+  immediately after that `ResetMaxMP()`. With the flag off the line is gone and
+  stock behaviour is byte-for-byte unchanged, bug included.
+
+  **This was found by measuring, not by reading.** Three rounds of static
+  analysis got it wrong, because every writer of the rate looked correct in
+  isolation -- the value was right when set and the thing that destroyed it
+  does not mention MP at all. A temporary `SERV_IRUHADEV_MP_REGEN_DEBUG` flag
+  logging one `[MPDBG]` line per second into `offline_server.log` settled it in
+  one play-test: `InitComponent` logged `rateMp=20.000`, every per-frame sample
+  a second later logged `rateMp=1.000` with `orig=20.000` still intact, which
+  localises the loss to the gage object rather than the value. That asymmetry
+  -- member right, gage wrong -- is also what made the class states look like
+  they were working while idle regen was not: Aisha and Rena recompute from
+  `GetOriginalMPChangeRate()`, which reads the member the clone never touched.
+  See the *Deploying the offline client* section of `CLAUDE.md` for the
+  diagnostic pattern.
 
 ## Reverting to stock
 
@@ -102,9 +197,10 @@ Toggling any of them requires rebuilding the VS2010 client *and* the five
 servers, with the flag set consistently in both. Rebuild only one side and the
 wire format desynchronizes silently at runtime instead of failing to compile.
 
-The remaining four -- `SERV_IRUHADEV_BUFF_DURATION_TEXT`,
-`STATIC_AUTO_LOGIN`, `SERV_IRUHADEV_OFFLINE` and
-`SERV_IRUHADEV_NO_PATCHER_TOKEN` -- are client-only. None of them touches
+The remaining six -- `SERV_IRUHADEV_BUFF_DURATION_TEXT`,
+`STATIC_AUTO_LOGIN`, `SERV_IRUHADEV_OFFLINE`,
+`SERV_IRUHADEV_NO_PATCHER_TOKEN`, `SERV_IRUHADEV_JOBCHANGE_PORTRAIT` and
+`SERV_IRUHADEV_MP_REGEN_BOOST` -- are client-only. None of them touches
 anything under `KncWX2Server/Common/`, so the servers never need rebuilding
 for any of them. Two caveats:
 

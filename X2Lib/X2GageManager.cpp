@@ -47,7 +47,18 @@ void CX2GageManager::CX2GageSet::UpNowHpAndMpInVillage()
 		m_pGageData->UpNowHp( m_pGageData->GetMaxHp() * 0.008f );
 		UpdateNowHpPercent();
 
+
+		//{{ Iruha : 2026-09-04 // the village map regens MP on this fixed tick
+		//   instead of through the unit's MP change rate, so the base-rate
+		//   floor in CX2GUUser does not reach it. The tick is 1.0 s -- see
+		//   m_ElapsedTimeCheckVillageBuff( 1.0f ) in the CX2GageManager ctor --
+		//   so one tick is worth exactly one second of the base rate.
+#ifdef SERV_IRUHADEV_MP_REGEN_BOOST
+		m_pGageData->UpNowMp( SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC );
+#else
 		m_pGageData->UpNowMp( 1.f );
+#endif SERV_IRUHADEV_MP_REGEN_BOOST
+		//}} Iruha : 2026-09-04
 		UpdateNowMpPercent();
 	}
 }

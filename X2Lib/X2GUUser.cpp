@@ -1824,6 +1824,13 @@ void CX2GUUser::ReInit( bool bUseTeamPos, int startPosIndex )
 	{
 		ResetMaxHP();
 		m_LuaManager.GetValue( "MP_CHANGE_RATE",		m_fOriginalMPChangeRate );
+
+		//{{ Iruha : 2026-09-04 // raise the base MP regen rate loaded from the class Lua
+#ifdef SERV_IRUHADEV_MP_REGEN_BOOST
+		if( m_fOriginalMPChangeRate < SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC )
+			m_fOriginalMPChangeRate = SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC;
+#endif SERV_IRUHADEV_MP_REGEN_BOOST
+		//}} Iruha : 2026-09-04
 		
 		//{{ kimhc // 2010.06.04 // 드래고닉셋트효과 아이템 버그 수정
 #ifdef SERV_SECRET_HELL
@@ -3643,6 +3650,13 @@ void CX2GUUser::InitComponent()
 		//ResetMaxHP();
 		m_LuaManager.GetValue( "MP_CHANGE_RATE",		m_fOriginalMPChangeRate );
 
+		//{{ Iruha : 2026-09-04 // raise the base MP regen rate loaded from the class Lua
+#ifdef SERV_IRUHADEV_MP_REGEN_BOOST
+		if( m_fOriginalMPChangeRate < SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC )
+			m_fOriginalMPChangeRate = SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC;
+#endif SERV_IRUHADEV_MP_REGEN_BOOST
+		//}} Iruha : 2026-09-04
+
 	//{{ kimhc // 2010.6.14	// 드래고닉셋트 효과 적용 여부 포함 
 	// GetOriginalMPChangeRate() 에서 드래고닉셋트 효과가 아직 적용 중인지를 판단함
 #ifdef	SERV_SECRET_HELL
@@ -3704,6 +3718,17 @@ void CX2GUUser::InitComponent()
 							m_pGageData = CX2GageManager::GetInstance()->GetMyGageData()->GetCloneGageData();
 						ResetMaxHP();
 						ResetMaxMP();
+
+						//{{ Iruha : 2026-09-04 // the clone above replaces the whole gage
+						//   data, so it discards the MP change rate set from the class Lua
+						//   further up this function. ResetMaxHP/ResetMaxMP/SetNowHp/SetNowMp
+						//   restore the maxima and the current values, but nothing restores
+						//   the rate -- the clone carries the manager's, which is the 1.0f
+						//   default out of CX2GageData::Gage::Init(). Put it back.
+#ifdef SERV_IRUHADEV_MP_REGEN_BOOST
+						ResetMPChangeRate( GetOriginalMPChangeRate() );
+#endif SERV_IRUHADEV_MP_REGEN_BOOST
+						//}} Iruha : 2026-09-04
 						SetNowHp( GetMaxHp() * CX2GageManager::GetInstance()->GetMyNowHpPercent() );
 						SetNowMp( GetMaxMp() * CX2GageManager::GetInstance()->GetMyNowMpPercent() );
 					}

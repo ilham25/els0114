@@ -2524,3 +2524,16 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              PATCHER_RUN_ONLY, it is just no longer read out of argv.
 #define SERV_IRUHADEV_NO_PATCHER_TOKEN
 //////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-04
+// Description: Quality of life - raise the base MP regeneration rate for
+//              player units from the class Lua's MP_CHANGE_RATE (1 MP/s)
+//              to SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC in X2Lib/X2Define.h.
+//              Applied as a floor on the base rate, so skill, passive,
+//              socket, charge-state and title bonuses still stack on top
+//              of it and a class whose Lua already asks for more keeps it.
+#define SERV_IRUHADEV_MP_REGEN_BOOST
+//////////////////////////////////////////////////////////////////////////

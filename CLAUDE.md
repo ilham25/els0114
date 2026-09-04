@@ -293,6 +293,53 @@ Two invariants worth knowing before changing anything in here:
 - **One packet is one transaction.** `OnClientSend` opens a SQLite savepoint before dispatch and commits it only if the handler returned without faulting, and it runs the whole dispatch under `m_csDispatch` because there is one `KSession::Run` thread per proxy. Anything inside `X2OfflineDB` that runs during play must use `Begin()`/`Commit()`/`Rollback()`, never a literal `BEGIN` — the literals left in `Migrate()` are safe only because it runs from `Open()`, before the first packet.
 - **`sizeof(KSession)` differs between `X2Lib` and `X2ServerProtocol`**, because `X2ServerProtocol/StdAfx.h` defines `ADD_COLLECT_CLIENT_INFO_PROTOCOL` before including the header and `X2Lib` reaches it earlier, without the macro. Never read a `KActorProxy`/`KUserProxy` member from `X2Lib`; every member reads 4 bytes low. `CX2OfflineServer::KindFromEventID` exists specifically to avoid needing to.
 
+### Deploying the offline client
+
+**This branch (`mods/offline-mod-2`) exists to build and run the offline client.** A change is not finished when it compiles; it is finished when the exe in the game directory has it and the logs show it working. The whole loop:
+
+```sh
+TRUNK="f:/elsword stuff/.../source/EU_CN_US/Trunk"          # this repo
+DATA="F:/elsword stuff/elsword_2014/els_2014/237311/22191271/data"   # the game directory
+
+# 1. build - X2Lib first, then the exe. NEVER via X2Project_2010.sln: its
+#    US_SERVICE build sweeps in ~15 dead tool/server projects and never runs
+#    X2_2010.vcxproj at all, so it does not produce an exe.
+msbuild X2Lib/X2Lib_2010.vcxproj -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+msbuild X2/X2_2010.vcxproj       -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+
+# 2. judge the build by the artifact, not the exit code - the post-build event
+#    copies to original-studio drive letters and always fails here
+ls -la X2/US_SERVICE/X2.exe
+
+# 3. deploy - the game directory names it X2_offline.exe
+cp X2/US_SERVICE/X2.exe "$DATA/X2_offline.exe"
+
+# 4. run, then read the logs it wrote next to itself
+cd "$DATA" && ./start_offline.bat
+```
+
+`SolutionDir` **must** be passed, with a trailing slash: every `IncludePath` entry for Boost, DXSDK, KNCSDK and freetype is written as `$(SolutionDir)Libs...`, so without it the build dies on `fatal error C1083: Cannot open include file: 'boost/shared_ptr.hpp'` or `'d3dx9.h'`. Forward slashes are fine, and are easier than fighting a trailing \ through a shell.
+
+Five things that go wrong at deploy time, all of them silently:
+
+- **Deploy onto the exact name already in the game directory, and confirm it rather than assuming it.** It is `X2_offline.exe`, which is also the name `start_offline.bat` looks for; the directory holds half a dozen other `X2_*.exe` builds from earlier mods, so a near-miss name silently leaves the old exe in place and the next play-test measures stale code. `ls` in a terminal is not proof — read the name programmatically (`python -c "import os; print(os.listdir(DATA))"`) before claiming anything about it, and check the size and mtime of what you copied. A build that did not land is indistinguishable from a change that did not work.
+- **A stale PCH silently discards header edits.** `Always.h` and `X2Define.h` sit inside every project's precompiled header, and msbuild does not always notice. The flag is then simply absent at the call site with no error — the `#else` branch compiles and the change looks like it did nothing. After editing any header, `touch X2Lib/stdafx.cpp` before building, and if a change appears to have no effect, **prove the code compiled in** rather than re-reading the `#ifdef`s: put a `#pragma message` inside the guard, rebuild that one project, and read the compiler output.
+- **Windows Defender quarantines fresh builds.** A newly linked `x2.exe` trips a Bearfoos ML false positive. If the copy or the launch fails with no obvious reason, check Protection History; the fix is folder exclusions for the build output and the game directory, which needs an admin.
+- **The working directory must be the game directory.** `X2Main` mounts the `.kom` archives through a `"./"` prefix, and the offline server writes `els_db.sql` and both logs relative to the cwd. Launching from anywhere else finds no content, or quietly starts a second empty save somewhere surprising. `start_offline.bat` does `cd /d "%~dp0"` for exactly this; a shortcut with a different *Start in* field does not.
+- **The save file is real player data.** `els_db.sql` (plus `-wal`/`-shm`, and the `els_db.sql.bak` written on a clean exit) lives in the game directory and is the only copy of the character. Never delete it to "start clean" without asking, and never assume a schema change is reversible — `X2OfflineDB` migrates forward only.
+
+**Reading the result** is the actual verification; there is no test suite. Both logs are in the game directory and flushed per line:
+
+```sh
+cd "$DATA"
+grep -E "UNHANDLED|EXCEPTION" offline_packets.log | sort | uniq -c | sort -rn
+grep "CENSUS" offline_server.log          # clean-exit summary of every declined id
+tail -50 offline_server.log
+sqlite3 els_db.sql "select unit_uid, nickname, level from unit;"
+```
+
+**When a gameplay change cannot be verified by reading code**, add a temporary diagnostic rather than reasoning further: `CX2OfflineLog::Server( L"..." )` writes a printf-style wide line into `offline_server.log`, is flushed immediately, and is available anywhere in `X2Lib`. Gate it behind its own short-lived `SERV_IRUHADEV_*_DEBUG` flag so it is one `#define` to remove, tag the lines with a grep-able prefix, and throttle per-frame logging to about once a second. This is how a rate that "should" have applied gets settled in one play-test instead of three.
+
 ## Conventions
 
 - Comments and identifiers are frequently **Korean in CP949/ANSI encoding**, not UTF-8 — most editors and `grep` render them as mojibake. Do not "fix" the encoding of a file you are editing; write new comments in ASCII and leave existing bytes alone.
