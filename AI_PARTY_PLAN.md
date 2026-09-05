@@ -1,12 +1,12 @@
 # AI party members in offline dungeons
 
 **Status:** **phases 0 and 1 done 2026-09-05, both play-tested. Phase 2 is
-implemented and play-tested, and is NOT closed** — the cast, count, draw and
-placement are right and the solo button still spawns nobody, but one defect is
-open: the first spawn after a stage change does not land, and a 3 s retry covers
-for it. Revive is unproven and cannot be proven until that is settled, because
-both depend on the same UID lookup. See *Phase 2*, defect 2, before doing
-anything else in this file. Phase 0 was a
+implemented and play-tested three times, and is NOT closed** — the cast, count,
+draw and placement are right and the solo button still spawns nobody. Both
+defects found in play are now fixed, but **the last two fixes are unverified**:
+defect 2 (the first spawn of every stage was silently deleted) and the staggered
+one-at-a-time spawn. Revive and the EXP/ED check have never been run. See
+*Picking phase 2 up in a new conversation* under *Phase 2* first. Phase 0 was a
 gate and it FAILED for the intended cast, so the plan is re-pointed at
 `NUI_CSM_PVP_HERO_*` — see *Phase 0*. Phase 1 PASSED: pressing auto-party puts
 one AI party member (Lowe) in the dungeon, fighting on your team, and the
@@ -778,14 +778,51 @@ spawn *plumbing* is not finished, and phase 2 is **not closed**.
 | Check | Result |
 |---|---|
 | Three bots, three different heroes, redrawn per press | **PASS.** `AIPARTY bot slot 1..3` names a different trio on each auto-party press - `Valak/Noah/Lowe`, then `Apple/Lowe/Valak`, then `Noah/Valak/Code: Q-Proto_00` |
-| They fan out rather than queue up | **PASS** once defect 2 below was fixed. Positions now differ per bot (`-1660 / -1520 / -1700`) instead of stacking |
+| They fan out rather than queue up | **PASS**, and now superseded: placement comes from the line map's party start slots rather than an offset off the player |
+| No stutter at a stage change | **CHANGED, UNVERIFIED.** The party spawns one member at a time, 0.5 s apart, instead of three on one frame |
 | Sub-stages clear, dungeon finishes | **PASS** - the 05:29 run reached `SHUTDOWN clean` through a full dungeon |
 | Six bots instead of three | **WAS FAILING, now fixed** - defect 1 |
-| **One spawn burst per stage** | **STILL FAILING** - defect 2. Two bursts per stage from stage 1 onwards |
+| **Bots present at stage start** | **FIXED, UNVERIFIED.** Defect 2's root cause is found and fixed; needs one run to confirm. Was: two bursts per stage from stage 1 on, and a few seconds fighting alone after every stage change |
 | A dead bot comes back | **UNPROVEN, and assumed working by decision.** No `was down` line in any run - the mobs at this level cannot kill a bot carrying the player's stat line, so it could not be provoked. See *Revive is unproven and coupled to defect 2* below before relying on it |
 | **The normal start button spawns nobody** | **PASS** (2026-09-06). The standing regression check, re-run after the count went to three |
 | Reward path is clean | **NOT YET RUN.** Still wants the before/after `els_db.sql` comparison |
 | No new failures | **PASS for this feature.** One `UNHANDLED`, `EGS_SECRET_STAGE_LOAD_REQ` (id=1197), unrelated to the AI party - it is a dungeon feature offline mode has never handled |
+
+### Picking phase 2 up in a new conversation (as of 2026-09-06)
+
+**Everything below the line is committed and the exe in the game directory is
+current** (`X2_offline.exe`, 14,336,000 bytes, 06:14). Two changes are in that
+build and have **not been play-tested**: defect 2's fix (spawn at line-map start
+slots) and the staggered one-at-a-time spawn. Start there.
+
+Open the next conversation with:
+
+```
+Read AI_PARTY_PLAN.md, phase 2. The last build fixed defect 2 and made the
+party spawn one bot at a time; neither is play-tested yet. <what you saw>
+```
+
+What one run answers, in order of importance:
+
+1. **Are you alone at a stage change?** You should not be. If you still are,
+   defect 2's fix did not take and the next step is a log line in
+   `CX2Game::CreateNPC` for an `IsPvpBot()` unit, printing the UID it was built
+   with - not more reading.
+2. **`grep "never arrived" offline_server.log` should be empty.** Anything there
+   means a spawn is still being dropped.
+3. **`grep "NOTE line map has" offline_server.log` should be empty too.** If it
+   fires, that map has fewer than two start slots and the bots fell back to the
+   player-offset placement, which is the path the old bug lived on.
+4. Is the stage-change stutter gone, and do the three arrive in sequence?
+
+Still not run at all, from the original exit test: **a bot death** (nothing at
+this level hits hard enough - see *Revive is still unproven*), and the
+**EXP/ED comparison** between an auto-party run and a solo run
+(`sqlite3 els_db.sql "select unit_uid, exp, ed from unit;"` before and after).
+Both are play-test work, not code work.
+
+Known-good and not worth re-checking: the random draw, three distinct heroes per
+press, the solo button spawning nobody, and a full dungeon completing.
 
 ### Two defects found by play-testing phase 2
 
@@ -829,52 +866,88 @@ questions, and in this client every spawn, every item grant and every state
 change goes through a packet round-trip that makes them different for several
 frames.**
 
-#### Defect 2 - OPEN: the first spawn after a stage change does not land, and the 3 s retry does
+#### Defect 2 - the first spawn of every stage was silently thrown away
 
-Visible only once defect 1's guard existed, because the guard is what made the
-client say so. From the 05:29 run, stage 1:
+**Root cause found and fixed 2026-09-06. The fix is built and deployed but NOT
+play-tested.**
 
+The symptom: from stage 1 onwards, three spawn requests went out at
+`SubStageStart`, the offline server acknowledged and broadcast them, and no bot
+appeared. A few seconds later the retry fired and they did. Confirmed in play as
+"I always solo for a mere seconds at a stage change, and then the bots appear",
+which is also what **ruled out the dangerous reading**: under the wrong-UID
+explanation those first three would have existed and been fighting, so the
+player would never have been alone. Three bots, not six.
+
+The cause is a silent early return in `CX2Game::CreateNPC`
+([X2Game.cpp:6405](X2Lib/X2Game.cpp#L6405)):
+
+```cpp
+pNPC->Init();
+if( false == pNPC->SetPosition( vPos, bRight ) )
+{
+    ASSERT( !"CreateNPC SetPosition error" );   // compiled out in release
+    SAFE_DELETE_KTDGOBJECT( pNPC );
+    return;                                     // no log, no trace
+}
 ```
-[05:29:24.291] GAME     stage 1 start
-[05:29:24.298] AIPARTY  3 bot spawn request(s) sent          <- SubStageStart
-[05:29:26.422] GAME     NPC uid=4 ... died: KILL_BY_USER     <- the game is live
-[05:29:27.156] AIPARTY  bot "Speka" (uid=-2) never arrived after 3s - asking again
-[05:29:27.156] AIPARTY  3 bot spawn request(s) sent          <- the retry
-```
 
-Three seconds after a request the server acknowledged and broadcast
-(`GAME spawning 1 NPC(s), UIDs -2..-2`), `GetNPCUnitByUID( -2 )` still returns
-NULL - while the dungeon is plainly running, since the player killed something
-in between. The retry sticks: no further `never arrived` until the next stage.
-It happens at **every** stage from 1 onwards and **not** at stage 0, whose
-spawn lands normally.
+**If the requested position has no ground under it, the NPC is built and then
+thrown away.** And `CreateOfflinePartyBots` was deriving its positions by
+offsetting from `GetMyUnit()->GetPos()` at `SubStageStart` — where **the player
+has not been moved to the new stage yet**, so that is still a point on the
+*previous* stage's map. Every bot landed nowhere and every one was discarded.
+The retry worked only because the player had been placed by then.
 
-So there are two bursts per stage, which is why this must be settled before
-phase 2 closes - it is the same shape as defect 1 from the outside.
+The same cause explains the collapsed fan-out recorded under *Decisions* below:
+positions like `(-2833, 898, -285)` for all three, then `y = 658` and properly
+spread 48 ms later. Both are one bug — a stale position — wearing two faces.
 
-Two explanations fit the evidence and they are NOT distinguishable from the log
-as it stands:
+**The fix: spawn at the line map's own start slots**, 1..3, with the player on
+slot 0. A start slot is on the map by definition, so `SetPosition` cannot fail
+on it, and it is exactly where a party of four is placed anyway. Read the slots
+through `CKTDGLineMap::GetStartPosMap()` and **not** `GetStartPosition( 0..n )`:
+`m_mapStartPos` is a `map`, and `GetStartPosition` answers a missing key with
+`(0, 0, 0)` — a position `SetPosition` would reject, putting the bug straight
+back. The old player-offset fan-out survives as a fallback for a map with fewer
+than two start slots, and now logs `AIPARTY NOTE line map has %d start slot(s)`
+when it fires.
 
-1. **The first NPC is created and then destroyed** by the stage load that
-   follows, leaving the slot genuinely empty for the retry to fill. On screen
-   this is correct - three bots - and the double burst is only noise.
-2. **The first NPC is created under a different UID**, so `GetNPCUnitByUID`
-   misses it while it exists and fights. On screen this is *six* bots, three of
-   them invisible to every bot-aware path in the client - the exact failure the
-   plan's table predicts for a wrong NPC UID.
+The retry grace came down from 3 s to 1.5 s at the same time. **It should now
+never fire at all** — `never arrived` appearing in the log again means something
+regressed.
 
-**Do not guess between them, and do not judge it by counting bots on screen
-while both bursts are still firing.** The cheap discriminator is a log line in
-`CX2Game::CreateNPC` for any `IsPvpBot()` unit, printing the UID it was
-actually built with and the size of `m_NPCUnitList` - one build, one run, and
-the answer is in the file. `CLAUDE.md`'s temporary-diagnostic guidance applies:
-tag it `AIPARTY`, keep it one block.
+The general form is the one to carry forward: **this client fails silently by
+deleting things.** `CreateNPC` has three such exits (`m_bLastKillCheck`, a
+NULL templet, this one) and only one of them is reachable with a log statement
+anywhere near it. When something does not appear and nothing says why, look for
+a `SAFE_DELETE` on the failure path before looking for a missing call.
 
-Worth noting for whoever picks this up: the retry mechanism is behaving
-exactly as designed - it detected a spawn that did not arrive, said so, and
-recovered. The bug it uncovered is upstream of it.
+#### Staggered spawn - one party member at a time
 
-### Revive is unproven and coupled to defect 2
+Also 2026-09-06, also built, deployed and **not play-tested**. Asked for after
+the stage-change hitch survived defect 2's fix: building a `CX2GUNPC` loads the
+hero's skin meshes and its lua state machine (74-101 states for this cast), and
+three of those on one frame is a visible stutter.
+
+`CreateOfflinePartyBots` now sends **one** request per call and `break`s, arming
+`m_fOfflineBotSpawnCooldown` (0.5 s); `TickOfflinePartyBots` counts it down and
+calls back for the next. `SubStageStart` only starts the sequence. The cooldown
+is tested inside `CreateOfflinePartyBots` as well as in the tick, because
+`SubStageStart` is a caller too.
+
+**Not done with `CreateNPCReq`'s own `fDelayTime`, and this is worth keeping.**
+That parameter really does defer the whole creation — `CreateNPC`'s `else`
+branch queues a `CreateNPCData` and builds it later — so it looks like exactly
+the right tool, one argument instead of a cooldown. But `CreateNPCData`
+([X2Game.h:121](X2Lib/X2Game.h#L121)) carries **no ally-team and no `bNoDrop`
+field**. A bot routed through it would be rebuilt without either: it would drop
+loot like a monster, and its hits would pass through every enemy again. That is
+phase 1 defect 2 exactly — a struct that quietly does not carry a field — and it
+would have read as the AI being broken. The reasoning sits in a comment on
+`OFFLINE_BOT_SPAWN_INTERVAL` so it is not "simplified" back later.
+
+### Revive is still unproven
 
 Recorded because "assume it works" is a reasonable call to make and a bad thing
 to forget having made.
@@ -893,13 +966,12 @@ CX2GUNPC* pNpc = GetNPCUnitByUID( (int)npcSlot.m_iNpcUid );
 if( NULL == pNpc ) { ...treat as missing, do not check its HP... }
 ```
 
-So if defect 2 turns out to be explanation 2 — the bot exists under a UID the
-room does not know — then the tick is watching a slot nothing occupies, it can
-never observe a death, and **revive is not merely unproven, it is unreachable**.
-The two questions have one answer. Settle defect 2 first; do not spend a
-play-test trying to provoke a bot death before then, because a negative result
-would not distinguish "the delay is wrong" from "the tick is looking at the
-wrong unit".
+That coupling mattered while defect 2 was open, because a bot living under a UID
+the room did not know would have made revive unreachable rather than merely
+untested. **Defect 2 is now settled and it was not that case** — the bots do
+live at their slot UIDs, so the lookup above is sound and revive is simply
+unexercised. It still wants one death in a real run before anyone calls it
+working.
 
 If it does need provoking later, the cheap ways are a dungeon several levels
 above the character, or temporarily dropping `RESPAWN_DELAY` and letting a boss

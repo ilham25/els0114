@@ -192,6 +192,9 @@ m_pDamageEffect( NULL ),
 //m_pMinorXMeshPlayer( NULL ),
 m_bBGMOn( true ), 
 m_bLastKillCheck( false ),
+#ifdef SERV_IRUHADEV_OFFLINE
+m_fOfflineBotSpawnCooldown( 0.f ),		///< AI_PARTY_PLAN.md phase 2 - stagger the party spawn
+#endif SERV_IRUHADEV_OFFLINE
 m_fLastKillWaitTime( 0.05f ),
 m_fLastKillWaitTimeAfterRebirth( 1.f ), 
 m_bEnableCommandKeyProcess( true ),
@@ -6953,9 +6956,31 @@ void CX2Game::PushCreateNPCReq( CX2UnitManager::NPC_UNIT_ID unitID, int level, b
 
 /// How long a sent-but-not-yet-arrived bot spawn request suppresses
 /// another for the same slot. Comfortably longer than the few frames a
-/// create round-trip takes, short enough that a request the offline
-/// server never answered is retried while the stage is still running.
-static const float OFFLINE_BOT_SPAWN_GRACE = 3.f;
+/// create round-trip takes, short enough that a request that produced
+/// nothing is retried before the player notices fighting alone.
+///
+/// Was 3 s while defect 2 made the first request of every stage fail;
+/// now that the position it spawns at is a line-map start slot rather
+/// than an offset from a not-yet-placed player, this should never fire
+/// at all. It is a safety net, not part of the normal path - if
+/// "never arrived" shows up in the log again, something else regressed.
+static const float OFFLINE_BOT_SPAWN_GRACE = 1.5f;
+
+/// Gap between one AI party member's spawn and the next.
+///
+/// The party is spawned ONE AT A TIME rather than in a burst. Building a
+/// CX2GUNPC is not cheap - it loads the hero's skin meshes and runs its
+/// lua state machine, 74-101 states for this cast - and doing three of
+/// them on one frame is a visible hitch at every stage change.
+///
+/// Not done with CreateNPCReq's own fDelayTime, which really does defer
+/// the whole creation (CX2Game::CreateNPC's else branch queues a
+/// CreateNPCData and builds it later). That struct carries no ally-team
+/// and no bNoDrop field (X2Game.h:121), so a bot routed through it would
+/// come back out as an ordinary monster that drops loot and whose hits
+/// pass through every enemy - the same dropped-field failure as phase 1
+/// defect 2, and just as invisible.
+static const float OFFLINE_BOT_SPAWN_INTERVAL = 0.5f;
 
 void CX2Game::CreateOfflinePartyBots()
 {
@@ -6972,6 +6997,13 @@ void CX2Game::CreateOfflinePartyBots()
 	if( true == vecNpcSlot.empty() )
 		return;			///< a solo room has no bot slots - the whole scope guard
 
+	// One party member per call, spaced by OFFLINE_BOT_SPAWN_INTERVAL - see
+	// that constant for why a burst is a visible hitch. The countdown lives
+	// in TickOfflinePartyBots, which is also what calls this again for the
+	// second and third bot; SubStageStart's call only starts the sequence.
+	if( m_fOfflineBotSpawnCooldown > 0.f )
+		return;
+
 	CX2GUUser* pMyUnit = GetMyUnit();
 	if( NULL == pMyUnit )
 	{
@@ -6983,6 +7015,41 @@ void CX2Game::CreateOfflinePartyBots()
 	const D3DXVECTOR3	vMyPos	= pMyUnit->GetPos();
 	const bool			bRight	= pMyUnit->GetIsRight();
 	const UidType		myUID	= pMyUnit->GetUnitUID();
+
+	// THE LINE MAP'S OWN START SLOTS, and preferring them over an offset
+	// from the player is what stopped the bots being silently dropped at
+	// every stage change.
+	//
+	// CX2Game::CreateNPC builds the unit, calls SetPosition, and if that
+	// cannot find ground under the point it DELETES the unit and returns -
+	// with no log and, in a release build, not even the assert
+	// (X2Game.cpp:6405). At SubStageStart the player has not been moved to
+	// the new stage yet, so GetPos() still answers with a point on the
+	// PREVIOUS stage's map; every bot offset from it lands nowhere and
+	// every one of them is thrown away. That is phase 2 defect 2: the
+	// player fights alone until the retry a few seconds later, by which
+	// time they have been placed and the same request succeeds.
+	//
+	// A start slot is on the map by definition, so SetPosition cannot fail
+	// on it. Slots 1..3 are also exactly where a party of four is placed,
+	// which is a better answer than a hand-rolled fan-out anyway.
+	//
+	// Read through GetStartPosMap rather than GetStartPosition( i ):
+	// m_mapStartPos is a MAP, and GetStartPosition answers a missing key
+	// with (0,0,0) - which is a position SetPosition would reject, putting
+	// the bug straight back.
+	std::vector< int >	vecStartKey;
+	CKTDGLineMap* pLineMap = ( NULL != GetWorld() ? GetWorld()->GetLineMap() : NULL );
+
+	if( NULL != pLineMap )
+	{
+		std::map< int, D3DXVECTOR3 >& mapStartPos = pLineMap->GetStartPosMap();
+		for( std::map< int, D3DXVECTOR3 >::iterator itStart = mapStartPos.begin();
+			 itStart != mapStartPos.end(); ++itStart )
+		{
+			vecStartKey.push_back( itStart->first );
+		}
+	}
 
 	int numNpc = 0;
 
@@ -7046,46 +7113,55 @@ void CX2Game::CreateOfflinePartyBots()
 		// the 0 the dungeon path leaves here.
 		npcSlot.m_iNpcId = (int)eNpcID;
 
-		// Fanned out around the player rather than queued up behind them,
-		// which is what phase 1's single 60-unit step reads as once there are
-		// three. Alternating sides at a widening step puts a party of three at
-		// 60 behind, 80 ahead and 100 behind, relative to the way the player
-		// is facing.
-		//
-		// NOT a team-start lookup: a dungeon line map has no team start
-		// positions, and the studio's own party fill spawns its allies at
-		// exactly pUser->GetPos() with no offset at all
-		// (CreateAllyEventMonster, X2DungeonGame.cpp:3556), so the player's
-		// position is the known-good ground here. The offset is therefore
-		// snapped back onto the line map before it is used - GetLandPosition
-		// is what CX2GUNPC::InitPosition falls back on for the same reason -
-		// so a bot placed off the edge of a narrow platform lands on it
-		// instead of beside it.
-		D3DXVECTOR3 vPos = vMyPos;
-		vPos.x += ( true == bRight ? -1.f : 1.f ) *
-			( 0 == ( i % 2 ) ? 1.f : -1.f ) * ( 60.f + 20.f * i );
+		// Party start slots 1..3 when the line map has them - see the block
+		// before the loop for why this is a correctness fix and not a
+		// nicety. The player holds slot 0.
+		D3DXVECTOR3	vPos		= vMyPos;
+		bool		bSpawnRight	= bRight;
 
-		if( NULL != GetWorld() && NULL != GetWorld()->GetLineMap() )
+		if( (int)vecStartKey.size() > 1 )
 		{
-			int iLineIndex = 0;
-			const D3DXVECTOR3 vLanded =
-				GetWorld()->GetLineMap()->GetLandPosition( vPos, LINE_RADIUS, &iLineIndex );
+			const int iKey = vecStartKey[ ( i + 1 ) % (int)vecStartKey.size() ];
 
-			// Only if it found something NEAR the offset. With no line under
-			// the point - which happens at a stage start, before the player
-			// has been placed - GetLandPosition answers with a far-away
-			// fallback, the same one for every input, and the fan-out
-			// collapses into a single stack of bots. The raw offset is the
-			// better answer in that case: it is the player's own position,
-			// which the studio's ally spawn uses unmodified anyway.
-			if( fabsf( vLanded.x - vPos.x ) < 200.f &&
-				fabsf( vLanded.y - vPos.y ) < 200.f )
+			vPos		= pLineMap->GetStartPosition( iKey );
+			bSpawnRight	= pLineMap->GetStartRight( iKey );
+		}
+		else
+		{
+			// No usable start slots. Fall back to a fan-out around the player:
+			// alternating sides at a widening step, so a party of three sits 60
+			// behind, 80 ahead and 100 behind the way the player faces, rather
+			// than queued up in a line as phase 1's single 60-unit step reads
+			// once there is more than one of them.
+			//
+			// Logged, because this is also the path that silently drops bots
+			// when the player position is stale. If the spawn retries ever come
+			// back, this line is what says whether the line map was the reason.
+			CX2OfflineLog::Server( L"AIPARTY  NOTE line map has %d start slot(s) - placing bots off the player instead",
+				(int)vecStartKey.size() );
+
+			vPos.x += ( true == bRight ? -1.f : 1.f ) *
+				( 0 == ( i % 2 ) ? 1.f : -1.f ) * ( 60.f + 20.f * i );
+
+			if( NULL != pLineMap )
 			{
-				vPos = vLanded;
+				int iLineIndex = 0;
+				const D3DXVECTOR3 vLanded =
+					pLineMap->GetLandPosition( vPos, LINE_RADIUS, &iLineIndex );
+
+				// Only if it found something NEAR the offset. With no line under
+				// the point, GetLandPosition answers with a far-away fallback -
+				// the same one for every input - and the fan-out collapses into
+				// a single stack of bots.
+				if( fabsf( vLanded.x - vPos.x ) < 200.f &&
+					fabsf( vLanded.y - vPos.y ) < 200.f )
+				{
+					vPos = vLanded;
+				}
 			}
 		}
 
-		// CreateNPCReq, not PushCreateNPCReq, and the difference is the whole
+				// CreateNPCReq, not PushCreateNPCReq, and the difference is the whole
 		// reason a bot could swing at a monster and take nothing off it.
 		// PushCreateNPCReq never sets KNPCUnitReq::m_cAllyTeam, so the field
 		// keeps its Init() default of 2 = TN_MONSTER (CommonPacket.h:3633) -
@@ -7101,7 +7177,7 @@ void CX2Game::CreateOfflinePartyBots()
 		// CX2GUNPC::CreateAllyNpcByMonster_LUA (X2GUNPC.cpp:25680) both pass
 		// TN_NONE explicitly. One packet per bot rather than a batch, which is
 		// what CreateAllyEventMonster does in its own loop too.
-		CreateNPCReq( eNpcID, npcSlot.m_iLevel, true, vPos, bRight, 0.f,
+		CreateNPCReq( eNpcID, npcSlot.m_iLevel, true, vPos, bSpawnRight, 0.f,
 			true,								///< bNoDrop - a party member drops nothing
 			-1,									///< no keycode
 			CX2Room::TN_RED,					///< the dungeon player team - see the header
@@ -7120,12 +7196,20 @@ void CX2Game::CreateOfflinePartyBots()
 		CX2OfflineLog::Server( L"AIPARTY  spawning bot \"%s\" npcID=%d level=%d slotUID=%I64d at (%.0f, %.0f, %.0f) ally of %I64d",
 			npcSlot.m_wstrNpcName.c_str(), (int)eNpcID, npcSlot.m_iLevel,
 			(__int64)npcSlot.m_iNpcUid, vPos.x, vPos.y, vPos.z, (__int64)myUID );
+
+		// THIS ONE AND NO MORE THIS CALL. The tick comes back for the next
+		// after the interval, so the three mesh-and-lua loads land on three
+		// well-separated frames instead of one.
+		m_fOfflineBotSpawnCooldown = OFFLINE_BOT_SPAWN_INTERVAL;
+		break;
 	}
 
-	// No FlushCreateNPCReq() - CreateNPCReq sends its own packet each time.
+	// No FlushCreateNPCReq() - CreateNPCReq sends its own packet each time,
+	// and there is only ever one of them per call now.
 	if( numNpc > 0 )
 	{
-		CX2OfflineLog::Server( L"AIPARTY  %d bot spawn request(s) sent", numNpc );
+		CX2OfflineLog::Server( L"AIPARTY  bot spawn request sent, next in %.1fs if any slot is still empty",
+			OFFLINE_BOT_SPAWN_INTERVAL );
 	}
 }
 
@@ -7173,6 +7257,12 @@ void CX2Game::TickOfflinePartyBots( float fElapsedTime )
 	std::vector< CX2Room::RoomNpcSlot >& vecNpcSlot = g_pX2Room->GetNpcSlot();
 	if( true == vecNpcSlot.empty() )
 		return;			///< a solo room has no bot slots - the whole scope guard
+
+	// The gap between one party member's spawn and the next. This is the
+	// only place it counts down, which is why the staggering needs the tick
+	// and cannot live in CreateOfflinePartyBots alone.
+	if( m_fOfflineBotSpawnCooldown > 0.f )
+		m_fOfflineBotSpawnCooldown -= fElapsedTime;
 
 	/// How long a party member stays down. Long enough to read as a death
 	/// rather than a stumble, short enough that a wiped party is not a solo
@@ -7240,7 +7330,10 @@ void CX2Game::TickOfflinePartyBots( float fElapsedTime )
 		bAnyDue = true;
 	}
 
-	if( true == bAnyDue )
+	// The cooldown is re-checked inside CreateOfflinePartyBots, which is the
+	// authoritative guard because SubStageStart calls it too. Testing it
+	// here as well just avoids the pointless call on most frames.
+	if( true == bAnyDue && m_fOfflineBotSpawnCooldown <= 0.f )
 	{
 		CreateOfflinePartyBots();
 	}

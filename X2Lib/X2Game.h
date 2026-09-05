@@ -642,6 +642,13 @@ class CX2Game : public CKTDXStage
 		/// not mean "ask again". Without this, the per-frame tick asked four
 		/// times over and put six bots in the room.
 		std::map< int, float >		m_mapOfflineBotSpawnGrace;
+
+		/// Seconds until the next AI party member may be asked for. The party
+		/// spawns one at a time: building a CX2GUNPC loads the hero's meshes
+		/// and lua state machine, and three of those on one frame is a visible
+		/// hitch at every stage change. Counted down in TickOfflinePartyBots,
+		/// armed in CreateOfflinePartyBots.
+		float						m_fOfflineBotSpawnCooldown;
 #endif SERV_IRUHADEV_OFFLINE
 
 #ifdef CREATE_NPC_REQ_FULL_ARGUMENTS
