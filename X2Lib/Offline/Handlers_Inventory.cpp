@@ -653,4 +653,29 @@ bool CX2OfflineServer::Handler_EGS_SOCKET_ITEM_REQ( KOfflineSession& kSes, const
 	return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Phase 12: EGS_RESOLVE_ITEM_REQ (dismantle) used to sit on
+// X2OfflineIgnore.cpp's ignore list, which sends no reply and leaves the
+// dialog hanging. Same shape as the two refusals just above: the yield table
+// (ResolveTable.lua -> CXSLResolveItemManager::m_mapResolveData /
+// m_vecBrokenPieceResolve) is server-only data with no client copy.
+
+#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
+bool CX2OfflineServer::Handler_EGS_RESOLVE_ITEM_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
+{
+	KEGS_RESOLVE_ITEM_ACK kAck;
+	kAck.m_iOK		= NetError::ERR_RESOLVE_ITEM_04;	///< "분해를 할 수 없습니다." (cannot dismantle)
+	kAck.m_bJackpot	= false;
+#ifdef SERV_MULTI_RESOLVE
+	kAck.m_iED = 0;
+#endif SERV_MULTI_RESOLVE
+
+	CX2OfflineLog::Server( L"ITEM     refused a dismantle - the resolve-yield table"
+		L" (ResolveTable.lua -> CXSLResolveItemManager) is server data with no client copy,"
+		L" so the item workshop is not implemented offline" );
+
+	return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+}
+#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
+
 #endif SERV_IRUHADEV_OFFLINE

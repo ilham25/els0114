@@ -704,6 +704,31 @@ Dismantle an item: either it yields materials and the item is gone, or a dialog
 says dismantling is unavailable offline and the item is untouched. Silence is the
 failure.
 
+### What actually happened
+
+Branch 3. `CXSLResolveItemManager` (`KncWX2Server/Common/X2Data/
+XSLResolveItemManager.cpp`) draws every dismantle result from
+`m_mapResolveData` / `m_vecBrokenPieceResolve`, both populated only by
+`AddResolveData_LUA` / `AddResolveDataBrokenPiece_LUA` calls in
+`KncWX2Server/ServerResource/<region>/ResolveTable.lua`. That file has no
+client-side counterpart - unlike the enchant/socket tables, it was never even a
+candidate for packing, since nothing about it is named as a client asset
+anywhere. So there is no yield to compute, and this followed the enchant/socket
+precedent exactly: a real `Handler_EGS_RESOLVE_ITEM_REQ` that answers with
+`ERR_RESOLVE_ITEM_04` ("분해를 할 수 없습니다.", the client's own compiled
+`NetError_def_US.h` string - not an invented sentence) instead of leaving the
+packet on `X2OfflineIgnore.cpp`'s list. Added behind `SERV_IRUHADEV_OFFLINE_
+ITEM_RESOLVE` in `Handlers_Inventory.cpp`, right after the two existing
+enchant/socket refusals, plus the matching dispatch case and header
+declaration; the ignore-list entry was left in place per the instructions above
+(the dispatch's switch handles the id before `Reason()` is ever consulted, so
+the entry is now dead but honest documentation of history).
+
+Verified end to end: `offline_packets.log` shows `EGS_RESOLVE_ITEM_REQ ...
+HANDLED` followed by `EGS_RESOLVE_ITEM_ACK` (previously `--- IGNORED ---` with
+no ACK at all), `offline_server.log` logs the refusal line, and in play the
+client showed an "Unable to dismantle" dialog with the item left in the bag.
+
 ---
 
 # Phase 13 — Cobo Express: "You cannot enter the village" (`ISSUES.md` #16)

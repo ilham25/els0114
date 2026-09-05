@@ -640,6 +640,12 @@ private:
 	bool Handler_EGS_ENCHANT_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_SOCKET_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 
+#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
+	/// Dismantling (phase 12). Same shape as the two refusals above: the
+	/// resolve-yield table is server-only data with no client copy.
+	bool Handler_EGS_RESOLVE_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
+
 	/// Tell the client its own gear changed. The broadcast is what redraws the
 	/// character - phase 4 correction 6 again - and it is a different packet in
 	/// a room than in a village.

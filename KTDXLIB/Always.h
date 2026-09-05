@@ -2578,3 +2578,19 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              instead.
 #define SERV_IRUHADEV_OFFLINE_INVEN_SORT
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-05
+// Description: Offline mode - phase 12 (OFFLINE_MODE_PHASE9_PLAN.md). Answer
+//              EGS_RESOLVE_ITEM_REQ (dismantle equipment) with a refusal ACK
+//              instead of leaving it on X2OfflineIgnore.cpp's ignore list. The
+//              dismantle-yield table (KncWX2Server/ServerResource/US/
+//              ResolveTable.lua -> CXSLResolveItemManager) is server-only data
+//              with no client copy, so there is nothing to compute materials
+//              from - but an ignored packet gets no reply at all, so the
+//              dismantle dialog hung instead of closing. Same shape as the
+//              EGS_ENCHANT_ITEM_REQ / EGS_SOCKET_ITEM_REQ refusals already in
+//              Handlers_Inventory.cpp.
+#define SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
+//////////////////////////////////////////////////////////////////////////
