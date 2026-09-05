@@ -723,6 +723,12 @@ bool CX2OfflineServer::Handler_EGS_QUICK_START_DUNGEON_GAME_REQ( KOfflineSession
 	m_kRoom.m_kInfo.m_RoomState	= (char)CX2Room::RS_LOADING;
 	m_kRoom.m_dwPlayStartTick	= ::GetTickCount();
 
+	// A room outlives its match, so the previous run's kill count, collected
+	// ED, picked-up items and play result have to go here rather than only at
+	// OpenRoom - otherwise a second run started from the result screen reports
+	// the first one's numbers.
+	m_kRoom.ClearPlayRun();
+
 	KEGS_PARTY_GAME_START_NOT kNot;
 	kNot.m_sWorldID	= 0;
 	MakeRoomInfo( kNot.m_RoomInfo );
@@ -1014,6 +1020,12 @@ bool CX2OfflineServer::Handler_EGS_STATE_CHANGE_GAME_START_REQ( KOfflineSession&
 	m_kRoom.m_kInfo.m_RoomState	= (char)CX2Room::RS_LOADING;
 	m_kRoom.m_dwPlayStartTick	= ::GetTickCount();
 
+	// A room outlives its match, so the previous run's kill count, collected
+	// ED, picked-up items and play result have to go here rather than only at
+	// OpenRoom - otherwise a second run started from the result screen reports
+	// the first one's numbers.
+	m_kRoom.ClearPlayRun();
+
 	KEGS_STATE_CHANGE_GAME_START_NOT kNot;
 	kNot.m_cRoomState	= (char)CX2Room::RS_LOADING;
 	kNot.m_iGameType	= (int)CX2Game::GT_DUNGEON;
@@ -1091,17 +1103,30 @@ bool CX2OfflineServer::Handler_EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ( KOfflineSess
 		return false;
 
 	// Combat scores - HP left, combo, technical, damage taken. The client is
-	// trusted with these by design (in-match play was always client-side), and
-	// they are all the result screen needs; the rank thresholds live in the
-	// server's own Lua and are not reproduced here, so the ranks come back as
-	// the default and only the EXP/ED numbers are real. See the plan.
+	// trusted with these by design (in-match play was always client-side).
+	//
+	// The rank thresholds are a different matter: they live in the server's own
+	// Lua (ResultData_new.lua's DUNGEON_COMBO_RESULT and friends), which is not
+	// reproduced here, so every rank comes back as KDungeonUnitResultInfo's
+	// constructor default of RT_F and the rank EXP bonus is left out rather than
+	// invented. Everything else on the screen is real.
 	m_kRoom.m_kPlayResult		= kReq.m_kMyPlayResult;
 	m_kRoom.m_bHavePlayResult	= true;
 
 	KPacketOK kAck;
 	kAck.m_iOK = NetError::NET_OK;
 
-	return Reply( kSes, EGS_MY_USER_UNIT_INFO_TO_SERVER_ACK, kAck );
+	Reply( kSes, EGS_MY_USER_UNIT_INFO_TO_SERVER_ACK, kAck );
+
+	// This is the moment the result screen's data becomes complete. The client
+	// sends this packet from Handler_EGS_END_GAME_NOT, so it lands a few
+	// milliseconds after EGS_END_GAME_REQ was answered and a good five seconds
+	// before EGS_STATE_CHANGE_RESULT_REQ builds the screen - measured at
+	// 53.077 against 58.096 in the session that produced ISSUES.md #18. Sending
+	// it any earlier is sending zeros.
+	SendDungeonResultData( kSes );
+
+	return true;
 }
 
 bool CX2OfflineServer::Handler_EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
@@ -2288,6 +2313,25 @@ bool CX2OfflineServer::Handler_EGS_GET_ITEM_REQ( KOfflineSession& kSes, const KE
 
 	Reply( kSes, EGS_GET_ITEM_REALTIME_NOT, kRealtime );
 
+	// The result screen's acquired-item box. The real server accumulates the
+	// same list in the room - every pickup that is not a GIT_RESULT_ITEM sends
+	// ERM_GET_ITEM_COMPLETE_NOT to the CenterServer, which adds it to
+	// KRoomUser::m_mapGetItemList (GSUserRoomCommon.cpp:2732, RoomUser.cpp:503)
+	// - and quotes it back at result time. Offline the drop pickup is the only
+	// in-match item source, so this is the whole of that list.
+	//
+	// Only an item the client can draw goes in: the result screen calls
+	// GetItemTemplet( id )->GetShopImage() with no NULL check
+	// (X2StateDungeonResult.cpp:1220), so an ID with no templet would not show
+	// as a blank icon, it would crash the screen. Nothing should reach here
+	// without one - InsertItem above looks the templet up too - but the box is
+	// not the place to find out.
+	if( NULL != g_pData->GetItemManager()->GetItemTemplet( iItemID ) )
+		m_kRoom.m_mapObtainedItem[ iItemID ] += 1;
+	else
+		CX2OfflineLog::Server( L"DROP     item %d kept out of the result screen's item box -"
+			L" it has no item templet, and the screen dereferences one without checking", iItemID );
+
 	CX2OfflineLog::Server( L"DROP     picked up item %d (dropUID=%d)",
 		iItemID, kReq.m_iDropItemUID );
 
@@ -2393,6 +2437,52 @@ int CX2OfflineServer::ApplyDungeonReward( UidType nUnitUID, int iAddEXP, int iAd
 	return iLevel;
 }
 
+void CX2OfflineServer::SendDungeonResultData( KOfflineSession& kSes )
+{
+	if( false == m_kRoom.m_bResultDataPending )
+		return;
+
+	m_kRoom.m_bResultDataPending = false;
+
+	if( true == m_kRoom.m_kResultData.m_vecDungeonUnitInfo.empty() )
+		return;
+
+	KDungeonUnitResultInfo& kUnitResult = m_kRoom.m_kResultData.m_vecDungeonUnitInfo[0];
+
+	// The combat half, which is the client's own account of how it played. The
+	// server was never in a position to second-guess it - in-match play is
+	// peer-to-peer - and the real one does not: KRoomUser takes these straight
+	// off ERM_MY_USER_UNIT_INFO_TO_SERVER_NOT and quotes them back.
+	//
+	// Believed only if it actually arrived. A run that reached EGS_END_GAME_REQ
+	// and then never reported is not evidence of a death, and m_bIsDie decides
+	// whether the client records the dungeon as cleared - see the note in
+	// Handler_EGS_END_GAME_REQ.
+	if( true == m_kRoom.m_bHavePlayResult )
+	{
+		kUnitResult.m_bIsDie			= ( m_kRoom.m_kPlayResult.m_fHP <= 0.0f );
+		kUnitResult.m_nTotalScore		= m_kRoom.m_kPlayResult.m_TotalScore;
+		kUnitResult.m_nComboScore		= m_kRoom.m_kPlayResult.m_ComboScore;
+		kUnitResult.m_nTechnicalScore	= m_kRoom.m_kPlayResult.m_TechScore;
+		kUnitResult.m_nDamaged			= m_kRoom.m_kPlayResult.m_nDamageCount;
+
+		CX2OfflineLog::Server( L"GAME     result screen: score=%d combo=%d tech=%d hit=%d hp=%.1f%s",
+			kUnitResult.m_nTotalScore, kUnitResult.m_nComboScore,
+			kUnitResult.m_nTechnicalScore, kUnitResult.m_nDamaged,
+			m_kRoom.m_kPlayResult.m_fHP, kUnitResult.m_bIsDie ? L" DIED" : L"" );
+	}
+	else
+	{
+		// Not fatal, and the screen still draws - it just shows the run as a
+		// scoreless one. Worth a line, because the only way to get here is for
+		// the client to have skipped a packet it always sends.
+		CX2OfflineLog::Server( L"GAME     result screen: NOTE no play result arrived for this run,"
+			L" so combo/technical/damage are reported as zero" );
+	}
+
+	Reply( kSes, EGS_END_GAME_DUNGEON_RESULT_DATA_NOT, m_kRoom.m_kResultData );
+}
+
 bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KEvent& kEvent )
 {
 	KEGS_END_GAME_REQ kReq;
@@ -2482,8 +2572,15 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// the result screen's data
-	KEGS_END_GAME_DUNGEON_RESULT_DATA_NOT kResult;
+	// the result screen's data.
+	//
+	// Built here, where the run's own figures are in scope, and held rather
+	// than sent: the combat half of it does not exist yet. See
+	// SendDungeonResultData, which is what finishes and sends it.
+	m_kRoom.m_kResultData.m_vecDungeonUnitInfo.clear();
+	m_kRoom.m_kResultData.m_mapHaveExpInDungeon.clear();
+
+	KEGS_END_GAME_DUNGEON_RESULT_DATA_NOT& kResult = m_kRoom.m_kResultData;
 	kResult.m_bIsWin			= bWin;
 	kResult.m_iDungeonID		= m_kRoom.m_kInfo.m_iDungeonID;
 	kResult.m_cDifficulty		= m_kRoom.m_kInfo.m_DifficultyLevel;
@@ -2503,32 +2600,33 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 
 	KDungeonUnitResultInfo kUnitResult;
 	kUnitResult.m_UnitUID			= m_kRoom.m_nUnitUID;
-	// THIS FLAG DECIDES WHETHER THE DUNGEON COUNTS AS CLEARED, and reading it
-	// off the play result alone was wrong.
+	// m_bIsDie and the four combat figures - total, combo and technical score,
+	// and the hit count - are deliberately left at their constructor defaults
+	// here. They come out of m_kPlayResult, and m_kPlayResult is still
+	// Clear()ed at this point in the run:
 	//
-	// EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ - the packet that carries the play
-	// result - arrives AFTER this one. Measured, not guessed: the client sent
-	// EGS_END_GAME_REQ at 20:39:57.425 and its play result at 20:39:57.438, so
-	// m_kPlayResult is still Clear()ed here and m_fHP is 0. That made every
-	// successful run report the player as dead.
+	// EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ, the packet that carries them,
+	// arrives AFTER this one, because the client only sends it from
+	// CX2StateDungeonGame::Handler_EGS_END_GAME_NOT (X2StateDungeonGame.cpp:2480)
+	// - i.e. in answer to the last packet this handler sends. Measured, not
+	// guessed: 21:10:53.063 for EGS_END_GAME_REQ and 21:10:53.077 for the play
+	// result.
 	//
-	// And the client acts on it: CX2StateDungeonGame::Handler_EGS_END_GAME_
-	// DUNGEON_RESULT_DATA_NOT only calls AddClearDungeon when
-	// m_bIsWin && false == bDieMyUnit (X2StateDungeonGame.cpp:3005-3015). With
-	// m_bIsDie true it silently skipped the clear, so CX2Unit::m_mapDungeonClear
-	// stayed empty and CX2DungeonManager::IsActiveDungeon kept every dungeon
-	// gated on this one locked - which is exactly the reported symptom, the
-	// second Ruben dungeon still locked after Banthus was beaten.
+	// Filling them in here anyway is what made the result screen report a zero
+	// combo score, a zero technical score and no damage taken on every single
+	// run, and it is also what once made every successful run report the player
+	// as dead - THAT FLAG DECIDES WHETHER THE DUNGEON COUNTS AS CLEARED.
+	// CX2StateDungeonGame::Handler_EGS_END_GAME_DUNGEON_RESULT_DATA_NOT only
+	// calls AddClearDungeon when m_bIsWin && false == bDieMyUnit
+	// (X2StateDungeonGame.cpp:3005-3015); with m_bIsDie true it silently skipped
+	// the clear, so CX2Unit::m_mapDungeonClear stayed empty and
+	// CX2DungeonManager::IsActiveDungeon kept every dungeon gated on this one
+	// locked. That was worked around by only believing a play result that had
+	// actually arrived, which fixed the clear and left the scores at zero.
 	//
-	// So the play result is only believed when it actually arrived. Without one
-	// there is no evidence of a death, and a run that reached EGS_END_GAME_REQ
-	// with a win is evidence of the opposite.
-	kUnitResult.m_bIsDie			= ( true == m_kRoom.m_bHavePlayResult &&
-										m_kRoom.m_kPlayResult.m_fHP <= 0.0f );
-	kUnitResult.m_nTotalScore		= m_kRoom.m_kPlayResult.m_TotalScore;
-	kUnitResult.m_nComboScore		= m_kRoom.m_kPlayResult.m_ComboScore;
-	kUnitResult.m_nTechnicalScore	= m_kRoom.m_kPlayResult.m_TechScore;
-	kUnitResult.m_nDamaged			= m_kRoom.m_kPlayResult.m_nDamageCount;
+	// SendDungeonResultData sets all five, once there is something to set them
+	// from.
+
 	// kBefore was read after the kills had already credited their EXP, so the
 	// "before" figure has to have the run's EXP taken back off - same correction
 	// as the ED line below, and for the same reason.
@@ -2547,7 +2645,7 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 	kResult.m_vecDungeonUnitInfo.push_back( kUnitResult );
 	kResult.m_mapHaveExpInDungeon[ m_kRoom.m_nUnitUID ] = ( iAddEXP > 0 );
 
-	Reply( kSes, EGS_END_GAME_DUNGEON_RESULT_DATA_NOT, kResult );
+	m_kRoom.m_bResultDataPending = true;
 
 	//////////////////////////////////////////////////////////////////////////
 	// the character, with its new EXP, ED and level
@@ -2558,9 +2656,21 @@ bool CX2OfflineServer::Handler_EGS_END_GAME_REQ( KOfflineSession& kSes, const KE
 		MakeUnitInfoFromRow( kUpdate.m_kUnitInfo, kAfter );
 		kUpdate.m_bGameEnd = true;
 		kUpdate.m_vecKInventorySlotInfo.clear();
-		kUpdate.m_mapItemObtained.clear();
+
+		// What the run put in the bag, for the result screen's item box. This
+		// is the only packet that carries it: CX2StateDungeonGame::
+		// Handler_EGS_UPDATE_UNIT_INFO_NOT resets the list and refills it from
+		// m_mapItemObtained (X2StateDungeonGame.cpp:3105-3120), and
+		// CX2StateDungeonResult draws whatever is in it. It was cleared here
+		// until phase 17, which is why the box was always empty even though the
+		// items themselves were in the inventory - the pickups were real, the
+		// report of them was not.
+		kUpdate.m_mapItemObtained = m_kRoom.m_mapObtainedItem;
 
 		Reply( kSes, EGS_UPDATE_UNIT_INFO_NOT, kUpdate );
+
+		CX2OfflineLog::Server( L"GAME     result screen: %d distinct item(s) acquired this run",
+			(int)m_kRoom.m_mapObtainedItem.size() );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -2597,6 +2707,14 @@ bool CX2OfflineServer::Handler_EGS_STATE_CHANGE_RESULT_REQ( KOfflineSession& kSe
 	KEGS_STATE_CHANGE_RESULT_ACK kAck;
 	kAck.m_iOK = NetError::NET_OK;
 	Reply( kSes, EGS_STATE_CHANGE_RESULT_ACK, kAck );
+
+	// Last chance. The _NOT below is what moves the client to XS_DUNGEON_RESULT,
+	// and CX2StateDungeonResult reads g_pData->GetDungeonResultInfo() in its
+	// constructor - so a result packet that has not gone out by now never will
+	// be read. Normally it went out on the play result seconds ago and this is a
+	// no-op; it exists so that a client which somehow never reported still gets
+	// a result screen with its EXP, ED and items on it rather than none at all.
+	SendDungeonResultData( kSes );
 
 	KOfflineUnitRow kRow;
 	if( false == m_kRoom.m_bActive ||

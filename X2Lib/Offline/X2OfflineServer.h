@@ -236,6 +236,26 @@ public:
 		KDungeonPlayResultInfo	m_kPlayResult;
 		bool			m_bHavePlayResult;
 
+		/// The result screen's packet, built at EGS_END_GAME_REQ and held here
+		/// rather than sent there. EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ - the
+		/// packet that carries the combat scores it has to quote - does not
+		/// arrive until the client has been told the game ended, so the numbers
+		/// do not exist yet at the moment the old code filled them in. See
+		/// Handler_EGS_END_GAME_REQ and SendDungeonResultData.
+		KEGS_END_GAME_DUNGEON_RESULT_DATA_NOT	m_kResultData;
+		bool			m_bResultDataPending;
+
+		/// Item ID -> quantity picked up during this run, for the result
+		/// screen's acquired-item box. The CenterServer keeps exactly this list
+		/// per room user (KRoomUser::m_mapGetItemList, fed by
+		/// ERM_GET_ITEM_COMPLETE_NOT) and hands it back at result time, where
+		/// the GameServer forwards it as
+		/// KEGS_UPDATE_UNIT_INFO_NOT::m_mapItemObtained
+		/// (GSUserDungeon.cpp:1478). That field is the only source the client
+		/// has for the box - CX2StateDungeonGame::Handler_EGS_UPDATE_UNIT_INFO_NOT
+		/// turns it into g_pMain->AddDungeonRewardItem (X2StateDungeonGame.cpp:3105).
+		std::map< int, int >	m_mapObtainedItem;
+
 		int				m_iStageID;
 
 		/// A field is populated once, on the first packet that proves the
@@ -286,6 +306,27 @@ public:
 			Clear();
 		}
 
+		/// Everything that describes one *match* rather than the room it was
+		/// played in. A room outlives its match - the result screen's "one more
+		/// time" starts another in the same room - so these have to be cleared
+		/// when play starts, not only when the room is opened. Before the
+		/// result data was deferred it did not matter much; now a stale
+		/// m_bHavePlayResult from the previous run would let the second run
+		/// report the first run's scores.
+		void ClearPlayRun()
+		{
+			m_iCollectedED		= 0;
+			m_iRewardEXP		= 0;
+			m_iRewardED			= 0;
+			m_iKillNPCNum		= 0;
+			m_kPlayResult.Clear();
+			m_bHavePlayResult	= false;
+			m_mapObtainedItem.clear();
+			m_kResultData.m_vecDungeonUnitInfo.clear();
+			m_kResultData.m_mapHaveExpInDungeon.clear();
+			m_bResultDataPending = false;
+		}
+
 		void Clear()
 		{
 			m_bActive			= false;
@@ -300,12 +341,7 @@ public:
 			m_mapDropItem.clear();
 			m_iNextDropUID		= 1;
 			m_mapDropED.clear();
-			m_iCollectedED		= 0;
-			m_iRewardEXP		= 0;
-			m_iRewardED			= 0;
-			m_iKillNPCNum		= 0;
-			m_kPlayResult.Clear();
-			m_bHavePlayResult	= false;
+			ClearPlayRun();
 			m_iStageID			= 0;
 			m_bFieldNpcSent		= false;
 			m_mapNpcGroup.clear();
@@ -628,6 +664,13 @@ private:
 	/// Resend the character to the client mid-play, so a level gained during
 	/// a run shows up without waiting for the village.
 	void PushUnitInfoUpdate( KOfflineSession& kSes, UidType nUnitUID );
+
+	/// Send the result screen's packet, built earlier by
+	/// Handler_EGS_END_GAME_REQ and completed here with the combat scores the
+	/// client reports about itself. Does nothing unless one is pending, so it
+	/// is safe to call from every place that might be the last chance to send
+	/// it. No-op and harmless if the run had no result to report.
+	void SendDungeonResultData( KOfflineSession& kSes );
 
 	/// Announce a level-up: the packet that plays the effect.
 	///

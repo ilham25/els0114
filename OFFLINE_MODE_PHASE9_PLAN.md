@@ -501,7 +501,7 @@ below say otherwise.
 | **14** | 1  | Pet summon/unsummon "Failed to create the pet" | A/C | HYPOTHESIS | no |
 | **15** | 13 | Title image missing in field/dungeon | C | CONFIRMED | no |
 | **16** | 19 | PvP rank not drawn in character list | C | CONFIRMED | no |
-| **17** | 18 | Result screen shows no reward | C | HYPOTHESIS | no |
+| **17** | 18 | Result screen shows no reward | C | **DONE 2026-09-05** — not the ACK the section named; see below | no |
 | **18** | 8  | "Fetch aura" emptied my wallet | C | HYPOTHESIS — **and the ED is intact** | no |
 | **19** | 2  | Elixir cannot be used | ~~B~~ **C** | **DONE 2026-09-05** | no |
 | **20** | 11 | Stamina potion not working | ~~B~~ **C** | **DONE 2026-09-05** | no |
@@ -1830,6 +1830,273 @@ handler; do not read it top to bottom.
 ### Exit test
 Clear a dungeon; the result screen lists ED earned, items acquired and EXP, and
 they match the `REWARD`/`DROP` lines for that run.
+
+### What actually happened
+
+**The diagnosis in this section was wrong, and so was the symptom.** Both are
+worth writing down, because the wrong diagnosis was the plausible one and it
+would have sent someone into a 105 KB file looking for fields that do not exist.
+
+**1. `KEGS_RESULT_SUCCESS_ACK` has two fields and both were already set.**
+`m_iOK` and `m_iDungeonID` ([ClientPacket.h:2319](KncWX2Server/Common/ClientPacket.h#L2319)).
+There is no reward, item or score field in it, and there never was. "Read the
+ACK field by field and expect several left at their constructor defaults" was an
+instruction to audit a packet that carries nothing. `EGS_RESULT_SUCCESS_REQ` is
+the *OK button* on the result screen, not the packet that fills it in.
+
+The screen is built from two other packets, both sent by
+`Handler_EGS_END_GAME_REQ`:
+
+| what it draws | packet | where the client reads it |
+|---|---|---|
+| win/lose, time, EXP, ED, kills, scores, ranks | `EGS_END_GAME_DUNGEON_RESULT_DATA_NOT` | `CX2DungeonGame::DungeonResultInfo`'s ctor, [X2DungeonGame.cpp:2743](X2Lib/X2DungeonGame.cpp#L2743) |
+| the acquired-item box | `EGS_UPDATE_UNIT_INFO_NOT::m_mapItemObtained` | [X2StateDungeonGame.cpp:3105](X2Lib/X2StateDungeonGame.cpp#L3105) -> `g_pMain->AddDungeonRewardItem` |
+
+**2. The symptom in this section contradicts `ISSUES.md`.** The section says
+"EXP gained, damage dealt and combo are correct"; issue 18 says *"the only data
+that's true only exp get, damage, combo etc is not"*. The issue was right. Only
+EXP was correct.
+
+**3. The real cause of the score half is an ordering mistake, and it was already
+described in a comment two lines above the code it broke.**
+`m_kRoom.m_kPlayResult` is filled by `EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ`,
+which the client sends **from its `EGS_END_GAME_NOT` handler**
+([X2StateDungeonGame.cpp:2480](X2Lib/X2StateDungeonGame.cpp#L2480)) - i.e. in
+answer to the *last* packet `Handler_EGS_END_GAME_REQ` sends. So at the moment
+that handler filled in `m_nTotalScore`, `m_nComboScore`, `m_nTechnicalScore` and
+`m_nDamaged`, the play result was still `Clear()`ed and all four were zero.
+Measured in `offline_packets.log`, not inferred:
+
+```
+[21:10:53.063] C->S  EGS_END_GAME_REQ
+[21:10:53.063] S->C  EGS_END_GAME_DUNGEON_RESULT_DATA_NOT   <- scores read here, all zero
+[21:10:53.063] S->C  EGS_END_GAME_NOT
+[21:10:53.077] C->S  EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ    <- scores arrive here, 14ms later
+[21:10:58.096] C->S  EGS_STATE_CHANGE_RESULT_REQ            <- screen built here, 5s later
+```
+
+Phase 4 had already hit this from the other side: `m_bIsDie` is read from the
+same struct, and reading it early made every cleared dungeon report the player
+as dead, which silently blocked `AddClearDungeon`. That was worked around by
+believing the play result only when it had actually arrived
+(`m_bHavePlayResult`) - which fixed the clear, left the four scores at zero, and
+left a comment naming the root cause sitting directly above them. **A workaround
+that names the root cause is not a fix; check what else reads the thing it
+worked around.**
+
+**4. The acquired-item box was one line: `kUpdate.m_mapItemObtained.clear()`.**
+The pickups were always real and always in the bag - what was missing was the
+*report* of them. The real server accumulates the identical list per room user
+(`KRoomUser::m_mapGetItemList`, fed by `ERM_GET_ITEM_COMPLETE_NOT` on every
+non-`GIT_RESULT_ITEM` pickup, [GSUserRoomCommon.cpp:2732](KncWX2Server/GameServer/GSUserRoomCommon.cpp#L2732))
+and quotes it back at result time ([GSUserDungeon.cpp:1478](KncWX2Server/GameServer/GSUserDungeon.cpp#L1478)).
+
+### What was changed
+
+All in `X2Lib/Offline/`, under `SERV_IRUHADEV_OFFLINE`, no new flag.
+
+- **`X2OfflineServer.h`** - the room gained `m_kResultData` +
+  `m_bResultDataPending` (the held result packet), `m_mapObtainedItem` (item ID
+  -> quantity this run), and a `ClearPlayRun()` that `Clear()` now delegates to.
+- **`Handlers_Room.cpp`**
+  - `Handler_EGS_END_GAME_REQ` builds the result packet into the room instead of
+    sending it, leaves the five play-result fields alone, and fills
+    `EGS_UPDATE_UNIT_INFO_NOT::m_mapItemObtained` from the run's pickups.
+  - New `SendDungeonResultData()` completes it with `m_bIsDie` plus the four
+    scores and sends it. Called from
+    `Handler_EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ` (the normal path, ~14 ms after
+    the game ends and ~5 s before the screen is built) and again at the top of
+    `Handler_EGS_STATE_CHANGE_RESULT_REQ` as a last-chance flush, so a client
+    that somehow never reported still gets a screen with its EXP, ED and items
+    rather than no result data at all.
+  - `Handler_EGS_GET_ITEM_REQ` records each successful pickup. Only an item with
+    a live templet goes in: the screen calls
+    `GetItemTemplet( id )->GetShopImage()` with no NULL check
+    ([X2StateDungeonResult.cpp:1220](X2Lib/X2StateDungeonResult.cpp#L1220)), so
+    an unknown ID would crash it rather than draw a blank.
+  - Both game-start points now call `ClearPlayRun()`, because a room outlives its
+    match and a second run would otherwise inherit the first run's kill count,
+    collected ED, items and - now that the result is deferred - play result.
+
+Two lines were added to `offline_server.log` for the play-test: `result screen:
+N distinct item(s) acquired this run` at end-game, and `result screen: score=
+combo= tech= hit= hp=` when the scores arrive.
+
+### Packets the section did not name — and the one it did name was untouched
+
+The section pointed at exactly one entry point, `Handler_EGS_RESULT_SUCCESS_REQ`
+(`X2OfflineServer.cpp:537` -> `Handlers_Room.cpp`). **That handler was not
+modified.** Six other packets were:
+
+| packet | its part in the result screen | changed |
+|---|---|---|
+| `EGS_END_GAME_REQ` | builds the result data and the character update | yes — now builds and *holds* the result data instead of sending it |
+| `EGS_END_GAME_DUNGEON_RESULT_DATA_NOT` | the whole screen except the item box | yes — sent later, from `SendDungeonResultData` |
+| `EGS_UPDATE_UNIT_INFO_NOT` | `m_mapItemObtained` -> the item box | yes — the field was `.clear()`ed |
+| `EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ` | carries the four combat figures; now the normal send point | yes |
+| `EGS_STATE_CHANGE_RESULT_REQ` | last moment before the screen is built | yes — last-chance flush |
+| `EGS_GET_ITEM_REQ` | per-pickup accumulation for the item box | yes |
+| `EGS_RESULT_SUCCESS_REQ` | the OK button on the finished screen | **no** |
+
+Nothing was `UNHANDLED`, no dispatch entry was added, and no exception was
+thrown. §0 called this bucket C and bucket C is what it was — the ACK it named
+was just the wrong ACK.
+
+### Where the section's instructions led, step by step
+
+- **"Read `KEGS_RESULT_SUCCESS_ACK` field by field and check each against what
+  the handler sets. Expect several left at their constructor defaults."** The
+  packet has two fields and the handler sets both. One `grep -n RESULT_SUCCESS
+  KncWX2Server/Common/ClientPacket.h` ends this theory; reading `Handlers_Room.cpp`
+  to find out does not, because there is nothing there to find.
+- **"The per-run totals already exist ... wire the tracked totals and the
+  picked-up item list into the ACK."** The totals were *already* wired — into
+  `EGS_END_GAME_DUNGEON_RESULT_DATA_NOT`, not into the ACK — and that is
+  precisely why EXP and ED were the only two correct figures on the screen. The
+  instruction was to re-do the one part that worked.
+- **"`DROP picked up item 99610` means the acquired-item list is available
+  too."** Right, and the only line in the section that pointed at real work.
+- **Trap: "`Handlers_Room.cpp` is 105 KB. Grep to the handler."** Good advice
+  aimed at the wrong handler. The two greps that actually opened the phase were
+  `RESULT_SUCCESS` in `ClientPacket.h` and `m_mapItemObtained` across `X2Lib`
+  plus `KncWX2Server` — the second finds both ends of the item box in one
+  command, the producer on the server side and the consumer on the client side.
+
+### The hypothesis's *tell* was right; its field assignment was inverted
+
+> "The fields that *do* show — EXP, damage, combo — are exactly the ones the
+> client accumulates locally during the match. The fields that do not are
+> exactly the ones the server was supposed to report back. That split is the
+> tell."
+
+The split reasoning was sound and the two lists were the wrong way round. **EXP
+is the server-reported one** — the client's own bar filling during a run is
+cosmetic, which phase 4 had already had to learn the hard way — and **damage and
+combo are the client-measured ones**, handed over in `KDungeonPlayResultInfo`.
+Correct the assignment and the same sentence reads "the fields that do not show
+are the ones the client measures and reports", which is the defect exactly:
+those numbers never made it into the packet.
+
+Worth keeping as a habit: when a "these work, those do not" split is the whole
+of the evidence, **check which side of the wire each field is actually sourced
+from before drawing the line.** Getting the split right and the sourcing wrong
+points confidently at the opposite half of the code.
+
+### How the ordering was settled: timestamps, not a rebuild
+
+The root cause is a packet-ordering mistake, and `offline_packets.log` already
+had the proof in it — the log prints milliseconds, and `EGS_END_GAME_REQ`,
+`EGS_END_GAME_DUNGEON_RESULT_DATA_NOT`, `EGS_END_GAME_NOT`,
+`EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ` and `EGS_STATE_CHANGE_RESULT_REQ` all
+appear in one 40-line window with both directions interleaved:
+
+```sh
+grep -an "EGS_END_GAME\|MY_USER_UNIT_INFO\|STATE_CHANGE_RESULT" offline_packets.log | head
+```
+
+That is a whole class of defect — "the handler read a field before the packet
+that fills it arrived" — which this log settles without a diagnostic build,
+because it already records send order to the millisecond in both directions.
+**Reach for the timestamps before adding a `SERV_IRUHADEV_*_DEBUG` line.**
+
+### Decisions the plan did not specify
+
+- **Send from the play result, and keep a last-chance flush.** The alternative
+  was to send once, late, from `EGS_STATE_CHANGE_RESULT_REQ` only. Rejected
+  because that is the last possible moment and leaves no margin; sending twice
+  was rejected too, because `CX2StateDungeonGame::Handler_EGS_END_GAME_DUNGEON_
+  RESULT_DATA_NOT` also calls `AddClearDungeon`, so a second copy is not a free
+  correction. The play result is the *earliest* correct moment (~14 ms after the
+  game ends, ~5 s before the screen), and the flush exists only so a client that
+  somehow never reports still gets a screen with real EXP, ED and items on it
+  instead of no result data at all.
+- **Filter the item box on our side rather than fixing the client's
+  dereference.** The client calls `GetItemTemplet( id )->` with no NULL check in
+  *two* places on this path — `GetPeriodType()`
+  ([X2StateDungeonGame.cpp:3117](X2Lib/X2StateDungeonGame.cpp#L3117)) and
+  `GetShopImage()` ([X2StateDungeonResult.cpp:1220](X2Lib/X2StateDungeonResult.cpp#L1220)).
+  An ID with no templet crashes the result screen rather than drawing a blank
+  icon. Excluding such an ID from the map we send is a smaller and more
+  revertible change than guarding both call sites, and it logs the ID it dropped.
+  Nothing should reach it — `InsertItem` looks the templet up too — but the
+  result screen is not where that should be discovered.
+- **`ClearPlayRun()` was added, and it is outside this phase's scope.** The
+  room's per-run counters (`m_iKillNPCNum`, `m_iCollectedED`, `m_kPlayResult`,
+  `m_bHavePlayResult`) were cleared only at `OpenRoom` and at leave-room, never
+  at game start. That was latent before — a second run started without leaving
+  the room would inherit the first run's kill count — and becomes load-bearing
+  the moment the result is deferred, because a stale `m_bHavePlayResult` would
+  let run 2 report run 1's scores. Fixed rather than noted, because this phase
+  is what turns it from cosmetic into wrong.
+- **The rank bonus EXP stays out**, unchanged. The decision is the same one
+  phase 4 took; only its stated reason changed, from "server-side Lua this
+  project does not reproduce" to a sentence naming `ResultData_new.lua`.
+- **`KDungeonUnitResultInfo`'s constructor defaults are not zeros**, and the
+  offline code has to keep overriding them. It sets the five ranks to `1`
+  (`RT_F`) and `m_bIsMVP` to `1` — *true*
+  ([ClientPacket.h:943](KncWX2Server/Common/ClientPacket.h#L943)). "Left at its
+  default" in this struct means "reported as an F-rank MVP", not "left blank".
+  The existing `m_bIsMVP = false` line is not redundant.
+
+### Deliberately not done: the ranks
+
+The five rank letters are `KDungeonUnitResultInfo`'s constructor defaults, which
+are **`1` = `RT_F`, not `RT_NONE`** ([ClientPacket.h:958](KncWX2Server/Common/ClientPacket.h#L958)) -
+so the screen shows straight F rather than a blank. Neither `ISSUES.md` #18 nor
+this section's exit test mentions them, and they are a phase's worth of work on
+their own. What a later phase needs to know:
+
+- **§0.1 correction.** The comment claiming the rank thresholds are "server-side
+  Lua this project does not reproduce" over-claims in the usual direction: the
+  file is **`KncWX2Server/ServerResource/US/ResultData_new.lua`**, in the tree,
+  537 lines. `ResultData.lua` beside it is the pre-`SERV_DUNGEON_RANK_NEW`
+  version that this build does *not* use
+  ([CnSimLayer.cpp:345](KncWX2Server/CenterServer/CnSimLayer.cpp#L345)). The
+  comment was reworded to name the file instead of implying none exists.
+- **The client already sends every per-unit input.** `KDungeonPlayResultInfo`
+  carries `m_iTotalGivenDamamge`, `m_iTotalAttackedDamage`, `m_iTotalSumNpcHP`,
+  `m_iTotalRecoveryHP`, `m_iUsingKindOfSkill`, `m_iCommandTechScore` and
+  `m_iSkillTechScore` under `SERV_DUNGEON_RANK_NEW` - exactly the getters the Lua
+  calls on `pUnitInfo`.
+- **The one genuine gap is the monster mix.** Three of the four rank functions
+  weight by `GetNormalNpcDieCount` / `LowElite` / `HighElite` / `MiddleBoss` /
+  `Boss`, and offline has no monster grade: the client's `NPCData` parses
+  `MONSTER_GRADE` only under `X2TOOL`
+  ([X2DungeonSubStage.cpp:1651](X2Lib/X2DungeonSubStage.cpp#L1651)) and the enum
+  itself is `X2TOOL`-only, which is why `m_cMonsterGrade` is left at
+  `MG_NORMAL_NPC` when the offline server places monsters. Reviving that parse is
+  the prerequisite, not the Lua loader. (`DUNGEON_DAMAGE_RESULT` is the
+  exception - it computes a monster weight and never uses it, so the damage rank
+  needs only `GetTotalAttackedDamage`, `GetTotalRecoveryHP` and `GetBaseHP`.)
+- Bind all of `ResultProcess`, `KRoomUser` and `KRoomMonsterManager` per §0.3
+  point 4, and publish `DUNGEON_ID` - `WEIGHT_BY_DUNGEONID` subscripts it by name
+  for eleven Henir and secret dungeons.
+
+### And the §0.1 count is now twelve
+
+`Handler_EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ`'s "the rank thresholds live in the
+server's own Lua and are not reproduced here" - true as far as it went, and it
+implied there was nothing to reproduce *from*. The file is in the tree, and one
+`ls KncWX2Server/ServerResource/US/` says so. Same shape as the eleven before it:
+**a refusal that describes a gap without naming the file is a refusal nobody can
+check.**
+
+### Status
+
+Built and deployed 2026-09-05 (`X2/US_SERVICE/x2.exe` -> `X2_offline.exe`,
+14,324,736 bytes). **Exit test not yet run** — it needs a dungeon cleared by
+hand. What to read afterwards:
+
+```sh
+cd "F:/elsword stuff/elsword_2014/els_2014/237311/22191271/data"
+grep -a "result screen" offline_server.log | tail -6
+```
+
+Expect one `score=/combo=/tech=/hit=/hp=` line and one `N distinct item(s)
+acquired this run` line per cleared run, and expect the screen to agree with
+them. A `NOTE no play result arrived for this run` line means the deferral
+missed and the flush caught it — the screen will be scoreless, and that is the
+one failure mode this change introduces.
 
 ---
 
