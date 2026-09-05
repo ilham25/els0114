@@ -1490,11 +1490,9 @@ bool CX2OfflineServer::Handler_EGS_SUMMON_PET_REQ( KOfflineSession& kSes, const 
 		MakePetInfo( vecPet[i], kAck.m_kSummonedPetInfo );
 		kAck.m_iOK = NetError::NET_OK;
 
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 		// EGS_FEED_PETS_REQ names only the food item, not the pet - this is
 		// the only record of which one is out to feed. See KOfflineSession.
 		kSes.m_nSummonedPetUID = vecPet[i].m_nPetUID;
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 
 		break;
 	}
@@ -1515,13 +1513,6 @@ bool CX2OfflineServer::Handler_EGS_FEED_PETS_REQ( KOfflineSession& kSes, const K
 	kAck.m_iOK		= NetError::ERR_PET_00;
 	kAck.m_sSatiety	= 0;
 
-#ifndef SERV_IRUHADEV_OFFLINE_PET_FEED
-	// Feeding needs the feed table - which item raises satiety by how much -
-	// and that is AddPetCashFeedItemInfo in PetData.lua, server-side. Refusing
-	// rather than guessing a number keeps the food in the bag.
-	CX2OfflineLog::Server( L"PET      feeding refused - the satiety table lives in"
-		L" KncWX2Server/ServerResource/US/PetData.lua, which is not packed" );
-#else SERV_IRUHADEV_OFFLINE_PET_FEED
 	CX2OfflineDB*			pDB		= CX2OfflineDB::Instance();
 	CX2OfflineInventory*	pInven	= CX2OfflineInventory::Instance();
 	CX2OfflinePetData*		pData	= CX2OfflinePetData::Instance();
@@ -1621,7 +1612,6 @@ bool CX2OfflineServer::Handler_EGS_FEED_PETS_REQ( KOfflineSession& kSes, const K
 
 	CX2OfflineLog::Server( L"PET      fed pet %I64d item %d (+%d satiety, now %d/%d)",
 		(__int64)vecPet[iPetIndex].m_nPetUID, kRow.m_iItemID, iSatietyGain, iNewSatiety, MAX_SATIETY );
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 
 	return Reply( kSes, EGS_FEED_PETS_ACK, kAck );
 }

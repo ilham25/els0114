@@ -58,9 +58,7 @@ void CX2OfflineServer::Release()
 	CX2OfflineCashShop::Release();
 	CX2OfflineBattleField::Release();
 	CX2OfflineDropTable::Release();
-#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 	CX2OfflineResolveTable::Release();
-#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 	CX2OfflineStatTable::Release();
 	CX2OfflineDB::Release();
 	CX2OfflineLog::Close();
@@ -564,9 +562,7 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_REPAIR_ITEM_REQ:				return Handler_EGS_REPAIR_ITEM_REQ( kSes, kEvent );
 	case EGS_ENCHANT_ITEM_REQ:				return Handler_EGS_ENCHANT_ITEM_REQ( kSes, kEvent );
 	case EGS_SOCKET_ITEM_REQ:				return Handler_EGS_SOCKET_ITEM_REQ( kSes, kEvent );
-#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 	case EGS_RESOLVE_ITEM_REQ:				return Handler_EGS_RESOLVE_ITEM_REQ( kSes, kEvent );
-#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 
 	//////////////////////////////////////////////////////////////////////////
 	// quests, and the titles their missions award - Handlers_Quest.cpp

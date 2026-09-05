@@ -1549,7 +1549,6 @@ bool CX2OfflineDB::LoadInventorySizes( UidType nUnitUID, OUT std::map< int, int 
 	return true;
 }
 
-#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 bool CX2OfflineDB::ExpandInventorySize( UidType nUnitUID, int iCategory, int iRequestedIncrement,
 										 int iMaxSize, OUT int& iGranted )
 {
@@ -1605,7 +1604,6 @@ bool CX2OfflineDB::ExpandInventorySize( UidType nUnitUID, int iCategory, int iRe
 
 	return bOK;
 }
-#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 
 //////////////////////////////////////////////////////////////////////////
 // items

@@ -44,36 +44,17 @@ namespace
 	/// does nothing, so the purchase is refused instead and the log says why.
 	///
 	/// Every ID here is a named constant in the client's own X2Define.h, or is
-	/// named in the client's own purchase handler - none is guessed:
+	/// named in the client's own purchase handler - none is guessed. The
+	/// INVENTORY_SLOT_ADD_ITEM* cards used to sit in this list too, before
+	/// offline phase 9 made them purchasable for real - see the claim handler
+	/// below.
 	///
-	///   INVENTORY_SLOT_ADD_ITEM*   expand an inventory category. Offline
-	///                              phase 9 (SERV_IRUHADEV_OFFLINE_INVENTORY_
-	///                              EXPAND) makes these purchasable - see the
-	///                              claim handler below - so they are only
-	///                              still refused when that flag is off.
-	///   127030                     the resurrection stone. It is not an
-	///                              inventory item at all - it is a counter on
-	///                              the character (CX2Unit::GetResurrection
-	///                              StoneNum), reported as 0 since phase 4 and
-	///                              not persisted anywhere.
-	///                              X2CashShop.cpp:3508 names the ID.
+	///   127030   the resurrection stone. It is not an inventory item at all -
+	///            it is a counter on the character (CX2Unit::
+	///            GetResurrectionStoneNum), reported as 0 since phase 4 and
+	///            not persisted anywhere. X2CashShop.cpp:3508 names the ID.
 	const int NOT_MODELLED[] =
 	{
-#ifndef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
-		INVENTORY_SLOT_ADD_ITEM,
-		INVENTORY_SLOT_ADD_ITEM_EQUIP,
-		INVENTORY_SLOT_ADD_ITEM_ACCESSORY,
-		INVENTORY_SLOT_ADD_ITEM_QUICK_SLOT,
-		INVENTORY_SLOT_ADD_ITEM_MATERIAL,
-		INVENTORY_SLOT_ADD_ITEM_QUEST,
-		INVENTORY_SLOT_ADD_ITEM_SPECIAL,
-		INVENTORY_SLOT_ADD_ITEM_EQUIP_EVENT,
-		INVENTORY_SLOT_ADD_ITEM_ACCESSORY_EVENT,
-		INVENTORY_SLOT_ADD_ITEM_QUICK_SLOT_EVENT,
-		INVENTORY_SLOT_ADD_ITEM_MATERIAL_EVENT,
-		INVENTORY_SLOT_ADD_ITEM_QUEST_EVENT,
-		INVENTORY_SLOT_ADD_ITEM_SPECIAL_EVENT,
-#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 		127030,
 	};
 
@@ -88,7 +69,6 @@ namespace
 		return false;
 	}
 
-#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 	/// Every card grants this many slots per category - CXSLInventory::
 	/// SLOT_COUNT_ONE_LINE (KncWX2Server/Common/X2Data/XSLInventory.h:54).
 	/// Read for structure, same as ClassChangeTargetOf's table below: it is a
@@ -138,7 +118,6 @@ namespace
 			return CX2Inventory::ST_NONE;
 		}
 	}
-#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -446,8 +425,8 @@ bool CX2OfflineServer::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSes
 	kAck.m_iExceptionProcessItemID	= 0;
 #endif SERV_GUILD_CHANGE_NAME
 
-	// Empty unless an INVENTORY_SLOT_ADD_ITEM* card is claimed below
-	// (SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND). The client adds each entry
+	// Empty unless an INVENTORY_SLOT_ADD_ITEM* card is claimed below. The
+	// client adds each entry
 	// onto its current slot count, so a non-empty map here that the save file
 	// did not also grow would desync the two.
 	kAck.m_mapExpandedCategorySlot.clear();
@@ -591,7 +570,6 @@ bool CX2OfflineServer::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSes
 		return true;
 	}
 
-#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 	//////////////////////////////////////////////////////////////////////////
 	// Inventory expansion: claimed, not carried - same shape as the class
 	// change above and for the same reason. The card's effect is the DB row,
@@ -641,7 +619,6 @@ bool CX2OfflineServer::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSes
 			return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
 		}
 	}
-#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 
 	if( false == pInven->HasRoomFor( iItemID, iQuantity ) )
 	{

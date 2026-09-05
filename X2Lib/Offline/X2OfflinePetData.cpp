@@ -22,10 +22,8 @@ CX2OfflinePetData::CX2OfflinePetData()
 , m_iRidingPetRows( 0 )
 , m_iPetSkipped( 0 )
 , m_iRidingPetSkipped( 0 )
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 , m_dIncreaseSpecialFeedIntimacyRate( 0.0 )
 , m_dDecreaseSpecialFeedIntimacyRate( 0.0 )
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 {
 }
 
@@ -257,28 +255,19 @@ void CX2OfflinePetData::AddRandomPetCreateItemInfo_LUA( int iItemID, int iPetID,
 
 void CX2OfflinePetData::AddPetCashFeedItemInfo_LUA( int iItemID, int iIncreaseSatiety )
 {
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 	if( iItemID > 0 )
 		m_mapFeedItem[ iItemID ] = iIncreaseSatiety;
-#else SERV_IRUHADEV_OFFLINE_PET_FEED
-	// Recorded nowhere on purpose - see the header. Bound so the call does not
-	// abort PetData.lua partway through.
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 }
 
 void CX2OfflinePetData::AddSpecialFeedItemID_LUA( int iItemID )
 {
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 	if( iItemID > 0 )
 		m_setSpecialFeedItem.insert( iItemID );
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 }
 
 void CX2OfflinePetData::AddPetSatietyDecreaseFactor_LUA( int iEvolutionStep, double fFactor )
 {
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 	m_mapSatietyDecreaseFactor[ iEvolutionStep ] = fFactor;
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 }
 
 void CX2OfflinePetData::AddTransformPetItemInfo_LUA( int /*iTransformID*/, int /*iPetCreateItemID*/,
@@ -288,16 +277,12 @@ void CX2OfflinePetData::AddTransformPetItemInfo_LUA( int /*iTransformID*/, int /
 
 void CX2OfflinePetData::IncreaseSpecialFeedIntimacyRate_LUA( float fRate )
 {
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 	m_dIncreaseSpecialFeedIntimacyRate = (double)fRate;
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 }
 
 void CX2OfflinePetData::DecreaseSpecialFeedIntimacyRate_LUA( float fRate )
 {
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 	m_dDecreaseSpecialFeedIntimacyRate = (double)fRate;
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 }
 
 void CX2OfflinePetData::AddRidingPetCreateItemInfo_LUA( int iItemID, int iRidingPetID, int iPeriodDays )
@@ -413,7 +398,6 @@ bool CX2OfflinePetData::HasRidingPetRows()
 	return ( m_iRidingPetRows > 0 );
 }
 
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 bool CX2OfflinePetData::GetFeedSatietyGain( int iItemID, OUT int& iSatietyGain )
 {
 	EnsureLoaded();
@@ -444,6 +428,5 @@ bool CX2OfflinePetData::GetSatietyDecreaseFactor( int iEvolutionStep, OUT double
 	fFactor = mit->second;
 	return true;
 }
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 
 #endif SERV_IRUHADEV_OFFLINE

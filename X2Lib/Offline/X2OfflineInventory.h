@@ -193,19 +193,16 @@ public:
 	bool	SeedBeginnerGear( UidType nUnitUID, int iUnitClass );
 
 	/// Reorder one category by item attributes, for EGS_SORT_CATEGORY_ITEM_REQ -
-	/// KInventory::SortEquipCategory/SortNormalCategory/SortConsumptionCategory
-	/// under SERV_IRUHADEV_OFFLINE_INVEN_SORT (phase 11); a plain gap-compaction
-	/// otherwise, which was almost always an invisible no-op since items land in
-	/// a free slot as they arrive and there is usually no gap to close. Either
-	/// way the ACK carries bare item UIDs in slot order rather than slot infos -
-	/// CX2Inventory::UpdateCategorySlotList walks the vector and takes the index
-	/// as the slot - so that is what comes back, zero for an empty slot.
+	/// ports KInventory::SortEquipCategory/SortNormalCategory/
+	/// SortConsumptionCategory (phase 11). The ACK carries bare item UIDs in
+	/// slot order rather than slot infos - CX2Inventory::UpdateCategorySlotList
+	/// walks the vector and takes the index as the slot - so that is what
+	/// comes back, zero for an empty slot.
 	bool	SortCategory( int iCategory, OUT std::vector< UidType >& vecSlotOut );
 
 	/// Is there room for iQuantity of iItemID? The ED shop asks before charging.
 	bool	HasRoomFor( int iItemID, int iQuantity ) const;
 
-#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 	/// Grow one category by up to iRequestedIncrement slots, capped at
 	/// INVENTORY_SLOT_MAX_NUM the same way the client itself checks before
 	/// ever sending the purchase (X2CashShop.cpp). Persists through
@@ -215,7 +212,6 @@ public:
 	/// claim ACK's m_mapExpandedCategorySlot wants, and 0 is a valid,
 	/// non-error answer for a category already at the cap.
 	bool	ExpandCategorySlot( int iCategory, int iRequestedIncrement, OUT int& iGranted );
-#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 
 	//////////////////////////////////////////////////////////////////////////
 	// rules, ported from KInventory

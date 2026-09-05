@@ -122,9 +122,27 @@ The five standing facts each conversation needs, and which §1 exists to supply:
 
 1. **Branch is `mods/offline-mod-2`.** All work is client-only unless the phase
    says otherwise; nothing here should touch `KncWX2Server/Common/`.
-2. **Every edit goes behind a new `SERV_IRUHADEV_*` flag in `KTDXLIB/Always.h`**,
-   one flag per phase, house comment block, `#endif SERV_IRUHADEV_FOO` style.
-   The phase sections below each name the flag to use.
+2. **Every edit goes behind `SERV_IRUHADEV_OFFLINE` — the one flag already
+   defined in `KTDXLIB/Always.h`. MUST NOT mint a new `SERV_IRUHADEV_OFFLINE_*`
+   flag per phase.** Every file under `X2Lib/Offline/` is already wrapped
+   top-to-bottom in `#ifdef SERV_IRUHADEV_OFFLINE`, so a phase-specific
+   sub-flag nested inside it is always redundant — it can only ever be defined
+   or undefined in lockstep with the flag that already encloses it, so it
+   toggles nothing on its own and exists only to be forgotten. Phases 9-12
+   shipped four of these (`SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND`,
+   `_PET_FEED`, `_INVEN_SORT`, `_ITEM_RESOLVE`) before this rule was written;
+   they have been migrated away and must not reappear. Every phase section
+   below that still names a distinct flag is stale — treat every "**Flag:**"
+   line in this document as `SERV_IRUHADEV_OFFLINE`, regardless of what it
+   says, and do not add a new `#define` to `Always.h` for it. Use the house
+   comment block only when a phase adds genuinely new client behavior that
+   needs its own author/date/description entry; that entry documents the
+   change, it does not gate it — the gate is always `SERV_IRUHADEV_OFFLINE`.
+   The one exception is a short-lived `SERV_IRUHADEV_*_DEBUG` diagnostic flag
+   (per `CLAUDE.md`'s "when a gameplay change cannot be verified by reading
+   code" rule) — those are throwaway logging scaffolding meant to be deleted
+   after one play-test, not a feature gate, so they are not covered by this
+   rule and do not need to be `SERV_IRUHADEV_OFFLINE`-prefixed.
 3. **Build, deploy, run** — the loop from `CLAUDE.md`, in full:
    ```sh
    TRUNK="f:/elsword stuff/elsword_2014/els_2014/ElswordFiles/ready_and_built/ProjectX2_SVN/ProjectX2_SVN/source/EU_CN_US/Trunk"
@@ -209,7 +227,7 @@ smaller job, and they should be merged into one conversation at that point.
 
 # Phase 9 — Expansion card cannot be bought (`ISSUES.md` #14)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 Buying an inventory expansion card in the cash shop shows "Item cannot be
@@ -329,7 +347,7 @@ source was actually read for structure:
 
 # Phase 10 — Cannot feed pet (`ISSUES.md` #15)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_PET_FEED`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 Feeding a pet fails. The dialog reads "Failed to create the pet", which is
@@ -548,7 +566,7 @@ sitting in the shared header:
 
 # Phase 11 — Cannot sort inventory (`ISSUES.md` #7)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_INVEN_SORT`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 Pressing sort does nothing visible.
@@ -634,7 +652,9 @@ obvious without a rebuild:
   tiebreak chain at all. All three are now `std::stable_sort` comparators in
   an anonymous namespace in `X2OfflineInventory.cpp`, cited by `Inventory.cpp`
   line number, gated with the rest of the new code under
-  `SERV_IRUHADEV_OFFLINE_INVEN_SORT`.
+  `SERV_IRUHADEV_OFFLINE` (originally shipped behind a dedicated
+  `SERV_IRUHADEV_OFFLINE_INVEN_SORT` flag, migrated to the shared flag — see
+  §1 rule 2).
 
 - **Decision: reused `CX2OfflineInventory::IsAbleToEquip` (itself
   `CX2Unit::CanEquipAsParts`) for the class-usability tier instead of porting
@@ -664,7 +684,7 @@ obvious without a rebuild:
 
 # Phase 12 — Cannot dismantle equipment (`ISSUES.md` #6)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 Dismantling equipment does nothing.
@@ -800,10 +820,11 @@ undersold:
   `m_dResolveJackpotTime` (`GSUserInventory.cpp:2894-2944`), both per-connected-
   user members with no offline equivalent before this phase. Added
   `KOfflineSession::m_tNextJackpotAt` (one absolute deadline instead of an
-  elapsed/threshold pair) behind `SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE`, defaulting
-  to 0 - which is guaranteed `<=` now, so the first dismantle after any launch
-  is always a jackpot attempt, matching the live server's own default-`0.0`
-  member.
+  elapsed/threshold pair) behind `SERV_IRUHADEV_OFFLINE` (originally shipped
+  behind a dedicated `SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE` flag, migrated to the
+  shared flag — see §1 rule 2), defaulting to 0 - which is guaranteed `<=` now,
+  so the first dismantle after any launch is always a jackpot attempt,
+  matching the live server's own default-`0.0` member.
 
 - **A real bug in the studio's own code, transcribed rather than fixed.**
   `CXSLResolveItemManager::ResolveResult_EnchantStone` doubles the quantity
@@ -844,7 +865,7 @@ undersold:
 
 # Phase 13 — Cobo Express: "You cannot enter the village" (`ISSUES.md` #16)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_SQUARE_LIST`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 Using Cobo Express shows "You cannot enter the village".
@@ -899,7 +920,7 @@ offline_server.log` shows the entry; no `UNHANDLED` remains for the square famil
 
 # Phase 14 — Pet summon/unsummon "Failed to create the pet" (`ISSUES.md` #1)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_PET_SUMMON`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 The pet summon/unsummon button misbehaves and shows "Failed to create the pet".
@@ -952,7 +973,7 @@ drops from ~12,876 to a sane rate over a comparable session.
 
 # Phase 15 — Title image missing in field/dungeon (`ISSUES.md` #13)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_TITLE_IN_FIELD`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 The equipped title does not render above the character in field or dungeon. It
@@ -997,7 +1018,7 @@ a relog.
 
 # Phase 16 — PvP rank not drawn in the character list (`ISSUES.md` #19)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_PVP_RANK`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 In the character-select list, the PvP rank shows as a small black box to the left
@@ -1038,7 +1059,7 @@ characters.
 
 # Phase 17 — Result screen shows no reward (`ISSUES.md` #18)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_RESULT_REWARD`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 After a dungeon, the result screen's reward panel is blank. EXP gained, damage
@@ -1083,7 +1104,7 @@ they match the `REWARD`/`DROP` lines for that run.
 
 # Phase 18 — "Fetch aura" emptied my wallet (`ISSUES.md` #8)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_WALLET_DISPLAY`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### START HERE: the money is not gone
 `els_db.sql` right now:
@@ -1135,7 +1156,7 @@ and after.
 
 # Phase 19 — Elixir cannot be used (`ISSUES.md` #2)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_ITEM_USE_GATE`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 **Run this phase before 20, 21 and 22 — it is the one that finds the gate.**
 
@@ -1190,8 +1211,7 @@ An elixir is used from the inventory, its effect applies, the count drops, and
 
 # Phase 20 — Stamina potion not working (`ISSUES.md` #11)
 
-**Flag:** reuse phase 19's flag if it is the same gate; otherwise
-`SERV_IRUHADEV_OFFLINE_STAMINA`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 The stamina potion does not work properly.
@@ -1226,7 +1246,7 @@ a message and the potion is not consumed.
 
 # Phase 21 — "Camilla's secret manual" cannot be used (`ISSUES.md` #9)
 
-**Flag:** reuse phase 19's, or `SERV_IRUHADEV_OFFLINE_SKILL_BOOK`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 The book item cannot be used.
@@ -1265,7 +1285,7 @@ use is refused with a message and the item is intact.
 
 # Phase 22 — Skill notebook not working (`ISSUES.md` #12)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_SKILL_NOTE`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 The skill notebook does not work.
@@ -1307,7 +1327,7 @@ The notebook opens, a preset saves, and it is still there after a relog.
 
 # Phase 23 — Cannot enhance equipment (`ISSUES.md` #4)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_ENCHANT`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 **Run this before phases 24-26.** It decides whether the item workshop can be
 built at all.
@@ -1376,7 +1396,7 @@ refused with a message naming why and the item is untouched.
 
 # Phase 24 — Cannot socket equipment (`ISSUES.md` #3)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_SOCKET`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 Equipment cannot be socketed.
@@ -1407,7 +1427,7 @@ the attempt is refused with a message and the stone is not consumed.
 
 # Phase 25 — Cannot use magic amulet (`ISSUES.md` #5)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_ENCHANT_ATTACH`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 The magic amulet cannot be used.
@@ -1442,7 +1462,7 @@ amulet is intact. In neither case does the dialog hang.
 
 # Phase 26 — Cannot add equipment attributes (`ISSUES.md` #10)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_ATTRIB`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 Equipment attributes cannot be added.
@@ -1475,7 +1495,7 @@ nothing is consumed.
 
 # Phase 27 — Regular drops such as "Aqua" never drop (`ISSUES.md` #17)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE_DROP_REGULAR`
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
 
 ### Symptom
 Ordinary consumable drops — the example given is "Aqua" — never appear.

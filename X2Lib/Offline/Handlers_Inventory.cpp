@@ -661,7 +661,6 @@ bool CX2OfflineServer::Handler_EGS_SOCKET_ITEM_REQ( KOfflineSession& kSes, const
 // plus CXSLResolveItemManager::GetResultItem - rather than refusing; see
 // X2OfflineResolveTable.h for exactly which pieces live where.
 
-#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 bool CX2OfflineServer::Handler_EGS_RESOLVE_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
 {
 	KEGS_RESOLVE_ITEM_REQ kReq;
@@ -822,6 +821,5 @@ bool CX2OfflineServer::Handler_EGS_RESOLVE_ITEM_REQ( KOfflineSession& kSes, cons
 
 	return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
 }
-#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 
 #endif SERV_IRUHADEV_OFFLINE

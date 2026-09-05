@@ -29,9 +29,7 @@
 #include "X2OfflineDB.h"
 #include "X2OfflineStatTable.h"
 #include "X2OfflineDropTable.h"
-#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 #include "X2OfflineResolveTable.h"
-#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 #include "X2OfflineBattleField.h"
 #include "X2OfflineInventory.h"
 #include "X2OfflineSkill.h"
@@ -81,14 +79,11 @@ public:
 		std::wstring	m_wstrLoginID;
 		std::wstring	m_wstrPassport;
 
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 		/// Which pet EGS_SUMMON_PET_REQ last summoned - 0 when none is out.
 		/// EGS_FEED_PETS_REQ names only the food item, not the pet, so this is
 		/// the only place the offline server can look up which one to feed.
 		UidType			m_nSummonedPetUID;
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 
-#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 		/// KGSUser::m_kTimer[TM_RESOLVE_JACKPOT] / m_dResolveJackpotTime
 		/// (GSUserInventory.cpp:2894-2944), collapsed into one absolute
 		/// deadline instead of an elapsed-time/threshold pair: dismantling is
@@ -98,7 +93,6 @@ public:
 		/// first dismantle after this session starts is always a jackpot
 		/// attempt.
 		__int64			m_tNextJackpotAt;
-#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 
 		KOfflineSession()
 			: m_pSession( NULL )
@@ -110,12 +104,8 @@ public:
 			, m_iSavedMP( -1 )
 			, m_iSavedHyper( -1 )
 			, m_iSavedAbil( -1 )
-#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
 			, m_nSummonedPetUID( 0 )
-#endif SERV_IRUHADEV_OFFLINE_PET_FEED
-#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 			, m_tNextJackpotAt( 0 )
-#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 		{
 		}
 	};
@@ -658,12 +648,10 @@ private:
 	bool Handler_EGS_ENCHANT_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_SOCKET_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 
-#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 	/// Dismantling (phase 12). ResolveTable.lua is packed, so this computes
 	/// real materials through CX2OfflineResolveTable rather than refusing -
 	/// see that class's header for the algorithm and its sources.
 	bool Handler_EGS_RESOLVE_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
-#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 
 	/// Tell the client its own gear changed. The broadcast is what redraws the
 	/// character - phase 4 correction 6 again - and it is a different packet in

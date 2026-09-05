@@ -11,9 +11,7 @@
 
 #include "X2OfflineLog.h"
 
-#ifdef SERV_IRUHADEV_OFFLINE_INVEN_SORT
 #include <algorithm>
-#endif SERV_IRUHADEV_OFFLINE_INVEN_SORT
 
 CX2OfflineInventory* CX2OfflineInventory::ms_pInstance = NULL;
 
@@ -1413,7 +1411,6 @@ bool CX2OfflineInventory::HasRoomFor( int iItemID, int iQuantity ) const
 	return ( iRemaining <= 0 );
 }
 
-#ifdef SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 bool CX2OfflineInventory::ExpandCategorySlot( int iCategory, int iRequestedIncrement,
 											   OUT int& iGranted )
 {
@@ -1441,11 +1438,9 @@ bool CX2OfflineInventory::ExpandCategorySlot( int iCategory, int iRequestedIncre
 
 	return true;
 }
-#endif SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 
 //////////////////////////////////////////////////////////////////////////
 
-#ifdef SERV_IRUHADEV_OFFLINE_INVEN_SORT
 namespace
 {
 	// IG_NONE has no defined rank of its own; both real sorts fold it into the
@@ -1521,7 +1516,6 @@ namespace
 		return pA->m_iItemID < pB->m_iItemID;
 	}
 }
-#endif SERV_IRUHADEV_OFFLINE_INVEN_SORT
 
 bool CX2OfflineInventory::SortCategory( int iCategory,
 										OUT std::vector< UidType >& vecSlotOut )
@@ -1532,12 +1526,11 @@ bool CX2OfflineInventory::SortCategory( int iCategory,
 	if( iSize <= 0 )
 		return false;
 
-#ifdef SERV_IRUHADEV_OFFLINE_INVEN_SORT
 	// Reorder by item attributes - KInventory::SortEquipCategory /
 	// SortNormalCategory / SortConsumptionCategory (Inventory.cpp:17799,
-	// 18022, 17982). A plain gap-compaction was tried first and was almost
-	// always an invisible no-op, because items land in a free slot as they
-	// arrive and the bag already has none to close - see
+	// 18022, 17982). A plain gap-compaction was tried first (phase 8) and was
+	// almost always an invisible no-op, because items land in a free slot as
+	// they arrive and the bag already has none to close - see
 	// OFFLINE_MODE_PHASE9_PLAN.md phase 11.
 	std::vector< KOfflineItemRow* > vecRows;
 	for( std::map< UidType, KOfflineItemRow >::iterator it = m_mapItem.begin(); it != m_mapItem.end(); ++it )
@@ -1585,37 +1578,6 @@ bool CX2OfflineInventory::SortCategory( int iCategory,
 
 		CX2OfflineDB::Instance()->MoveItemRow( pRow->m_nItemUID, iCategory, (int)i );
 	}
-#else	SERV_IRUHADEV_OFFLINE_INVEN_SORT
-	// Compact towards slot 0, keeping the order the items are already in.
-	// KInventory::SortInventory has its own move loop commented out and only
-	// reports the category back, so the compaction here is ours - but the reply
-	// shape is the server's: every slot in the category, in order.
-	std::vector< UidType > vecPacked;
-
-	for( int iSlot = 0; iSlot < iSize; ++iSlot )
-	{
-		const UidType nItemUID = GetItemUID( iCategory, iSlot );
-		if( 0 != nItemUID )
-			vecPacked.push_back( nItemUID );
-	}
-
-	for( int iSlot = 0; iSlot < iSize; ++iSlot )
-		m_vecSlot[ iCategory ][ iSlot ] = 0;
-
-	for( size_t i = 0; i < vecPacked.size(); ++i )
-	{
-		KOfflineItemRow* pRow = FindRow( vecPacked[i] );
-		if( NULL == pRow )
-			continue;
-
-		pRow->m_iCategory	= iCategory;
-		pRow->m_iSlotID		= (int)i;
-
-		m_vecSlot[ iCategory ][ i ] = pRow->m_nItemUID;
-
-		CX2OfflineDB::Instance()->MoveItemRow( pRow->m_nItemUID, iCategory, (int)i );
-	}
-#endif	SERV_IRUHADEV_OFFLINE_INVEN_SORT
 
 	for( int iSlot = 0; iSlot < iSize; ++iSlot )
 		vecSlotOut.push_back( GetItemUID( iCategory, iSlot ) );
