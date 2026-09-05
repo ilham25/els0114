@@ -440,6 +440,14 @@ private:
 	bool Handler_EGS_UPDATE_BATTLE_FIELD_USER_POS_NOT( KOfflineSession& kSes, const KEvent& kEvent );
 
 	//////////////////////////////////////////////////////////////////////////
+	// Handlers_Square.cpp - Cobo Express, the trade square. Not a KOfflineRoom:
+	// it carries no dungeon/battlefield semantics and does not survive a relog.
+	bool Handler_EGS_SQUARE_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_JOIN_SQUARE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_LEAVE_SQUARE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SQUARE_UNIT_SYNC_DATA_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
 	// Handlers_Room.cpp - rooms, the dungeon run inside one, and its result
 
 	/// entering a room

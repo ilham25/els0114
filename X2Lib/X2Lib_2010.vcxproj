@@ -3138,6 +3138,8 @@
     <ClCompile Include="Offline\Handlers_Skill.cpp" />
     <ClCompile Include="Offline\Handlers_Login.cpp" />
     <ClCompile Include="Offline\Handlers_Room.cpp" />
+    <ClCompile Include="Offline\Handlers_Square.cpp" />
+    <ClCompile Include="Offline\X2OfflineMapData.cpp" />
     <ClCompile Include="Offline\Handlers_Shop.cpp" />
     <ClCompile Include="Offline\Handlers_Social.cpp" />
     <ClCompile Include="Offline\X2OfflineCashShop.cpp" />

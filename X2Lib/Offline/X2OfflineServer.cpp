@@ -499,6 +499,13 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_FIELD_UNIT_SYNC_DATA_NOT:		return Handler_EGS_FIELD_UNIT_SYNC_DATA_NOT( kSes, kEvent );
 
 	//////////////////////////////////////////////////////////////////////////
+	// Cobo Express, the trade square - Handlers_Square.cpp
+	case EGS_SQUARE_LIST_REQ:				return Handler_EGS_SQUARE_LIST_REQ( kSes, kEvent );
+	case EGS_JOIN_SQUARE_REQ:				return Handler_EGS_JOIN_SQUARE_REQ( kSes, kEvent );
+	case EGS_LEAVE_SQUARE_REQ:				return Handler_EGS_LEAVE_SQUARE_REQ( kSes, kEvent );
+	case EGS_SQUARE_UNIT_SYNC_DATA_REQ:	return Handler_EGS_SQUARE_UNIT_SYNC_DATA_REQ( kSes, kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
 	// rooms, the dungeon run inside one, and its result - Handlers_Room.cpp
 	case EGS_CREATE_TUTORIAL_ROOM_REQ:		return Handler_EGS_CREATE_TUTORIAL_ROOM_REQ( kSes, kEvent );
 	case EGS_CREATE_ROOM_REQ:				return Handler_EGS_CREATE_ROOM_REQ( kSes, kEvent );

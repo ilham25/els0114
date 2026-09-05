@@ -916,6 +916,94 @@ server warp table. Note it and leave it.
 Cobo Express opens the village; the character is in it; `grep SQUARE
 offline_server.log` shows the entry; no `UNHANDLED` remains for the square family.
 
+### What actually happened
+
+**The plan's diagnosis was wrong about which feature "Cobo Express" is**, and
+that cost most of the phase. §0's log evidence (two `EGS_SQUARE_LIST_REQ`
+`UNHANDLED` lines, 400ms apart) is real and was fixed, but it is the *trade
+market* the client calls `ST_TRADE` internally - not what the user meant by
+"Cobo Express". The user's own description ("bottom menu, press B, a list of
+villages/rest areas, pick one, OK, 'you cannot enter the village'") is the
+**warp-by-button** feature - `CX2StateMenu::CreateWarpDest` /
+`Handler_EGS_WARP_BY_BUTTON_REQ` - and the server's own item enum names it
+outright: `CXSLItem::SI_USE_COBO_EXPRESS_TICKET`
+(`KncWX2Server/GameServer/GSUserFunction.cpp:6656`). That packet was never
+`UNHANDLED` - it was already answered by a **deliberate refusal already sitting
+in `Handlers_Social.cpp`**, written before this phase, on the theory that
+"which warp index leads to which map, and what it costs, is server data (the
+warp table)". This phase's own "Related, same area, do NOT fold in" note saw
+that refusal in the log and explicitly said to leave it alone - which was the
+mistake to correct, not a boundary to respect.
+
+- **The square fix (`Handlers_Square.cpp`) is real and stays in**, exactly as
+  planned: `EGS_SQUARE_LIST_REQ` (offers one trade square, population 0, page
+  1/1), plus `EGS_JOIN_SQUARE_REQ`, `EGS_LEAVE_SQUARE_REQ` and
+  `EGS_SQUARE_UNIT_SYNC_DATA_REQ` - none of which the plan named, all three
+  being exactly the "second round of `UNHANDLED`" §2's phase index predicted
+  once the list request stopped timing out. This is a genuine, separate fix; it
+  is just not the one the user was asking about.
+
+- **The "warp table is server data" refusal was the same shape of mistake §0.1
+  warns about for phase 10's `PetData.lua`**, just never caught: the thing
+  said to be missing was checked by reading a comment, not by checking whether
+  the file existed. `CXSLMapData::CheckCOBOExpressTicketMapID` and
+  `ComputeCOBOExpressTicketCost` (`KncWX2Server/Common/X2Data/XSLMapData.cpp:
+  606-613`) are not a data table at all - they are two plain Lua **functions**,
+  and the file that defines them, `KncWX2Server/ServerResource/US/MapData.lua`,
+  was already sitting in this tree, ask-the-user-free. New file
+  `X2OfflineMapData.{h,cpp}` loads it through the same archive/XOR path every
+  other offline data table uses (`X2OfflineStatTable` was the template) and
+  calls the two functions directly with `lua_tinker::call<int>` rather than
+  reimplementing either - the second one especially is not something to
+  reinvent, it is a distance-based ED curve with two tuned constants.
+
+- **`MapData.lua` needed two globals nothing else had published**:
+  `VILLAGE_MAP_ID[...]` (every `VMI_*` subscript the file indexes by name) and
+  an all-caps `TRUE` (`DEFAULT = TRUE` - separate from the lowercase `True`
+  already published for `RandomItemTable.lua`). `VILLAGE_MAP_ID` is the one
+  enum table here with no client/server diff to do:
+  `KncWX2Server/Common/Enum/Enum.h` is a header **shared** between client and
+  server builds, not two independently maintained copies like
+  `PET_UNIT_ID`/`UNIT_CLASS`, so there is nothing to drift and nothing to
+  verify beyond transcribing it. Both added to
+  `X2OfflineLuaEnum`/`X2OfflineLuaEnumSeed.h`.
+
+- **The file also calls `MapData:AddMapData{...}` (~20 times) and
+  `MapData:AddLocalMapInfo(...)` (~100 times) before the two functions Cobo
+  Express needs are defined further down the same chunk.** Either one being
+  unbound raises a Lua error that stops the chunk right there, and neither
+  function would ever be defined at all - not merely under-populated. Cobo
+  Express needs neither call's data (both build a level/dungeon-clear gate for
+  entering a village by ID), so both are bound as no-op stubs: enough to let
+  the chunk finish, nothing else.
+
+- **No `CheckEnterTheVillage()` equivalent was built**, deliberately, matching
+  the precedent `Handlers_Field.cpp`'s `EGS_STATE_CHANGE_FIELD_REQ` already
+  set: `CreateWarpDest` only ever lists a village the player's own progress has
+  already unlocked, so the client is trusted rather than this build
+  re-deriving a level/dungeon-clear gate it has no data for. Same trust
+  extended to `m_bFreeWarp` (a "Cobo Express VIP" ticket being active) rather
+  than re-checking `m_trWarpVipEndDate`.
+
+- **A real bug caught by the user's own play-test, not by review**: the first
+  cut of `CX2OfflineMapData::IsLoaded()` only read a flag - it never called
+  `EnsureLoaded()`, and `Handler_EGS_WARP_BY_BUTTON_REQ` checked `IsLoaded()`
+  *before* ever calling `CheckCOBOExpressTicketMapID`, which is the only other
+  place that triggers the load. Net effect: the file was never even attempted,
+  packed or not, and the refusal read "MapData.lua not loaded" regardless.
+  Fixed by having `IsLoaded()` call `EnsureLoaded()` itself before reporting
+  status. Confirmed fixed by the user packing `MapData.lua` into `data036.kom`
+  and warping successfully on the rebuilt exe.
+
+- **Build**: `X2Lib_2010.vcxproj` then `X2_2010.vcxproj`, both `US_SERVICE`,
+  0 errors, twice (once for the square/warp implementation, once for the
+  `IsLoaded` fix). Deployed to `X2_offline.exe`; confirmed by size/mtime.
+
+- **Files**: `Handlers_Square.cpp` (new), `X2OfflineMapData.{h,cpp}` (new),
+  `Handlers_Social.cpp` (`Handler_EGS_WARP_BY_BUTTON_REQ` rewritten),
+  `X2OfflineLuaEnum.{h,cpp}`, `X2OfflineLuaEnumSeed.h`, `X2OfflineServer.{h,cpp}`
+  (dispatch + declarations for the square handlers), `X2Lib_2010.vcxproj`.
+
 ---
 
 # Phase 14 — Pet summon/unsummon "Failed to create the pet" (`ISSUES.md` #1)

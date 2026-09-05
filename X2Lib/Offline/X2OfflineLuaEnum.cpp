@@ -59,6 +59,8 @@ bool CX2OfflineLuaEnum::ms_bPublished = false;
 		ITEM_TYPE,			sizeof( ITEM_TYPE ) / sizeof( ITEM_TYPE[0] ) );
 	PublishTable( pLuaState, "ITEM_GRADE",
 		ITEM_GRADE,			sizeof( ITEM_GRADE ) / sizeof( ITEM_GRADE[0] ) );
+	PublishTable( pLuaState, "VILLAGE_MAP_ID",
+		VILLAGE_MAP_ID,		sizeof( VILLAGE_MAP_ID ) / sizeof( VILLAGE_MAP_ID[0] ) );
 
 	// RandomItemTable.lua writes `m_bGiveAll = True` - capital T, and not a Lua
 	// keyword. On the server it is a global the script environment carries;
@@ -80,16 +82,29 @@ bool CX2OfflineLuaEnum::ms_bPublished = false;
 	lua_pushnumber( pLuaState, 0 );
 	lua_setglobal( pLuaState, "False" );
 
+	// MapData.lua writes `DEFAULT = TRUE` - all caps, a separate global from the
+	// lowercase True/False above (RandomItemTable.lua's spelling). Same reasoning:
+	// pushed as a NUMBER so KLuaManager's lua_isnumber gate (LUA_GET_VALUE reads
+	// DEFAULT as an int) sees it as present, not as a Lua boolean it would read
+	// as absent.
+	lua_pushnumber( pLuaState, 1 );
+	lua_setglobal( pLuaState, "TRUE" );
+
+	lua_pushnumber( pLuaState, 0 );
+	lua_setglobal( pLuaState, "FALSE" );
+
 	ms_bPublished = true;
 
 	CX2OfflineLog::Server( L"LUA      published enum tables: UNIT_CLASS(%d) USE_CONDITION(%d)"
-		L" PET_UNIT_ID(%d) RIDING_PET_UNIT_ID(%d) ITEM_TYPE(%d) ITEM_GRADE(%d), plus True/False",
+		L" PET_UNIT_ID(%d) RIDING_PET_UNIT_ID(%d) ITEM_TYPE(%d) ITEM_GRADE(%d) VILLAGE_MAP_ID(%d),"
+		L" plus True/False and TRUE/FALSE",
 		(int)( sizeof( UNIT_CLASS ) / sizeof( UNIT_CLASS[0] ) ),
 		(int)( sizeof( USE_CONDITION ) / sizeof( USE_CONDITION[0] ) ),
 		(int)( sizeof( PET_UNIT_ID ) / sizeof( PET_UNIT_ID[0] ) ),
 		(int)( sizeof( RIDING_PET_UNIT_ID ) / sizeof( RIDING_PET_UNIT_ID[0] ) ),
 		(int)( sizeof( ITEM_TYPE ) / sizeof( ITEM_TYPE[0] ) ),
-		(int)( sizeof( ITEM_GRADE ) / sizeof( ITEM_GRADE[0] ) ) );
+		(int)( sizeof( ITEM_GRADE ) / sizeof( ITEM_GRADE[0] ) ),
+		(int)( sizeof( VILLAGE_MAP_ID ) / sizeof( VILLAGE_MAP_ID[0] ) ) );
 
 	return true;
 }

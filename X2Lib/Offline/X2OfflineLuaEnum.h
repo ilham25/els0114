@@ -14,6 +14,7 @@
 //                PetData.lua           PET_UNIT_ID[...]
 //                RidingPetData.lua     RIDING_PET_UNIT_ID[...]
 //                ResolveTable.lua      ITEM_TYPE[...], ITEM_GRADE[...] (phase 12)
+//                MapData.lua           VILLAGE_MAP_ID[...], TRUE (Cobo Express fix)
 //
 //              Nothing in the client defines them. Without them every
 //              subscript is nil, every value arrives as 0, and the files load

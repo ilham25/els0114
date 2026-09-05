@@ -38,6 +38,7 @@
 #include "X2OfflineInventory.h"
 #include "X2OfflinePetData.h"
 #include "X2OfflineRandomItem.h"
+#include "X2OfflineMapData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // guild
@@ -1950,22 +1951,89 @@ bool CX2OfflineServer::Handler_EGS_WARP_BY_BUTTON_REQ( KOfflineSession& kSes, co
 	if( false == ReadReq( kEvent, kReq ) )
 		return false;
 
-	// The village-to-village warp button. Which warp index leads to which map,
-	// and what it costs, is server data (the warp table); phase 3 moves the
-	// player between villages through EGS_STATE_CHANGE_FIELD_REQ, which is
-	// handled and which the world map uses.
-	//
-	// Refused rather than guessed: a wrong map ID here teleports the player
-	// somewhere the quest chain does not expect, and m_iED would charge them
-	// for it.
-	CX2OfflineLog::Server( L"WARP     button warp %d refused - the warp table is server data;"
-		L" use the world map, which goes through EGS_STATE_CHANGE_FIELD_REQ",
-		kReq.m_iCurrentVillageWarpIndex );
+	// Cobo Express: press B, pick a village from CX2StateMenu::CreateWarpDest's
+	// list, OK. This was refused unconditionally on the theory that "which warp
+	// index leads to which map, and what it costs" was a server-only data table -
+	// wrong on both counts. CXSLMapData::CheckCOBOExpressTicketMapID /
+	// ComputeCOBOExpressTicketCost (KncWX2Server/Common/X2Data/XSLMapData.cpp:
+	// 606-613) are plain Lua FUNCTIONS, not rows, and the file that defines them
+	// (KncWX2Server/ServerResource/US/MapData.lua) is already in this tree. See
+	// X2OfflineMapData.h for how it is loaded and why AddMapData/AddLocalMapInfo
+	// are bound as no-ops.
+	const int iDestMapID = (int)kReq.m_iCurrentVillageWarpIndex;
 
 	KEGS_WARP_BY_BUTTON_ACK kAck;
-	kAck.m_iOK				= NetError::ERR_FIELD_00;
+	kAck.m_iOK				= NetError::ERR_UNKNOWN;
 	kAck.m_iED				= 0;
 	kAck.m_iWarpPointMapID	= 0;
+
+	KOfflineUnitRow kUnit;
+	if( 0 == kSes.m_nSelectedUnitUID ||
+		false == CX2OfflineDB::Instance()->LoadUnit( kSes.m_nSelectedUnitUID, kUnit ) )
+	{
+		CX2OfflineLog::Server( L"WARP     button warp %d refused - no character selected", iDestMapID );
+		return Reply( kSes, EGS_WARP_BY_BUTTON_ACK, kAck );
+	}
+
+	// No CheckEnterTheVillage() here, for the same reason
+	// Handlers_Field.cpp's EGS_STATE_CHANGE_FIELD_REQ has none: CreateWarpDest
+	// only ever lists a village the player's own progress has already unlocked,
+	// so the client is trusted rather than this build re-deriving a level/
+	// dungeon-clear gate it has no data for.
+	int iCost = 0;
+
+	if( true == kReq.m_bFreeWarp )
+	{
+		// A "Cobo Express VIP" ticket is active. Trusted the same way - the
+		// client only sets m_bFreeWarp from its own m_bWarpVip flag - rather
+		// than re-deriving m_trWarpVipEndDate here.
+		iCost = 0;
+	}
+	else if( false == CX2OfflineMapData::Instance()->IsLoaded() )
+	{
+		CX2OfflineLog::Server( L"WARP     button warp %d refused - MapData.lua not loaded, cost unknown",
+			iDestMapID );
+		return Reply( kSes, EGS_WARP_BY_BUTTON_ACK, kAck );
+	}
+	else
+	{
+		CX2OfflineMapData* pMapData = CX2OfflineMapData::Instance();
+
+		const int iSrcZone	= pMapData->CheckCOBOExpressTicketMapID( kUnit.m_iLastPos );
+		const int iDestZone	= pMapData->CheckCOBOExpressTicketMapID( iDestMapID );
+
+		if( kUnit.m_iLastPos == iDestMapID || 0 == iSrcZone || 0 == iDestZone )
+		{
+			CX2OfflineLog::Server(
+				L"WARP     button warp %d refused - not a valid COBO Express pair (from %d)",
+				iDestMapID, kUnit.m_iLastPos );
+			return Reply( kSes, EGS_WARP_BY_BUTTON_ACK, kAck );
+		}
+
+		iCost = pMapData->ComputeCOBOExpressTicketCost( kUnit.m_iLastPos, iDestMapID, kUnit.m_iLevel );
+
+		if( kUnit.m_iED < iCost )
+		{
+			kAck.m_iOK = NetError::ERR_USE_ITEM_IN_INVENTORY_08;
+			CX2OfflineLog::Server( L"WARP     button warp %d refused - %d ED needed, %d held",
+				iDestMapID, iCost, kUnit.m_iED );
+			return Reply( kSes, EGS_WARP_BY_BUTTON_ACK, kAck );
+		}
+	}
+
+	kUnit.m_iED -= iCost;
+	CX2OfflineDB::Instance()->SaveProgress( kUnit.m_nUnitUID, kUnit.m_iLevel, kUnit.m_iEXP, kUnit.m_iED );
+
+	// Nothing to store for the destination itself: the client answers a
+	// successful ACK by sending EGS_STATE_CHANGE_FIELD_REQ (or leaving the
+	// square first, which chains into the same thing) with iWarpPointMapID,
+	// and that handler already calls SaveLastPosition - see Handlers_Field.cpp.
+	kAck.m_iOK				= NetError::NET_OK;
+	kAck.m_iED				= kUnit.m_iED;
+	kAck.m_iWarpPointMapID	= iDestMapID;
+
+	CX2OfflineLog::Server( L"WARP     unitUID=%I64d button warp %d -> %d, cost=%d, ED now %d",
+		(__int64)kUnit.m_nUnitUID, kUnit.m_iLastPos, iDestMapID, iCost, kUnit.m_iED );
 
 	return Reply( kSes, EGS_WARP_BY_BUTTON_ACK, kAck );
 }

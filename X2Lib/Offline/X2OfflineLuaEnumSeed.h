@@ -281,6 +281,80 @@ namespace X2OfflineLuaEnumSeed
 		{ "IG_LOW",                                  5 },
 	};
 
+	// SEnum::VILLAGE_MAP_ID - KncWX2Server/Common/Enum/Enum.h. Added for the
+	// Cobo Express fix (MapData.lua's VILLAGE_MAP_ID["VMI_RUBEN"] etc). This is
+	// the ONE table here with no client/server diff to do: Enum.h is a SHARED
+	// header X2Lib already compiles (X2ServerPacket.h -> CommonPacket.h:16), not
+	// two independently maintained copies, so there is nothing to drift.
+	static const CX2OfflineLuaEnum::KEntry VILLAGE_MAP_ID[] =
+	{
+		{ "VMI_INVALID",                             0 },
+
+		{ "VMI_BATTLE_FIELD_ELDER_REST_00",          1000 },
+		{ "VMI_BATTLE_FIELD_BESMA_REST_00",          1001 },
+		{ "VMI_BATTLE_FIELD_ALTERA_REST_00",         1002 },
+		{ "VMI_BATTLE_FIELD_PEITA_REST_00",          1003 },
+		{ "VMI_BATTLE_FIELD_VELDER_REST_00",         1004 },
+		{ "VMI_BATTLE_FIELD_HAMEL_REST_00",          1005 },
+		{ "VMI_BATTLE_FIELD_SANDER_REST_00",         1006 },
+		{ "VMI_BATTLE_FIELD_REST_END",               1007 },
+
+		{ "VMI_TUTORIAL",                            2000 },
+
+		{ "VMI_RUBEN",                               20000 },
+		{ "VMI_ELDER",                                20001 },
+		{ "VMI_BESMA",                                20002 },
+		{ "VMI_ALTERA",                               20003 },
+		{ "VMI_VELDER",                               20004 },
+		{ "VMI_PEITA",                                20005 },
+		{ "VMI_HAMEL",                                20006 },
+		{ "VMI_SANDER",                               20007 },
+		{ "VMI_VILLAGE_MAP_END",                      20008 },
+
+		{ "VMI_DUNGEON_GATE_RUBEN",                   10000 },
+		{ "VMI_DUNGEON_GATE_ELDER",                   10001 },
+		{ "VMI_DUNGEON_GATE_BESMA",                   10002 },
+		{ "VMI_DUNGEON_GATE_ALTERA",                  10003 },
+		{ "VMI_DUNGEON_GATE_VELDER",                  10004 },
+		{ "VMI_DUNGEON_GATE_HAMEL",                   10005 },
+
+		{ "VMI_DUNGEON_LOUNGE_RUBEN",                 30000 },
+		{ "VMI_DUNGEON_LOUNGE_ELDER",                 30001 },
+		{ "VMI_DUNGEON_LOUNGE_BESMA",                 30002 },
+		{ "VMI_DUNGEON_LOUNGE_ALTERA",                30003 },
+		{ "VMI_DUNGEON_LOUNGE_PEITA",                 30004 },
+		{ "VMI_DUNGEON_LOUNGE_VELDER",                30005 },
+		{ "VMI_DUNGEON_LOUNGE_HAMEL",                 30006 },
+
+		{ "VMI_BATTLE_FIELD_RUBEN_FIELD_01",          40000 },
+		{ "VMI_BATTLE_FIELD_ELDER_FIELD_01",          40001 },
+		{ "VMI_BATTLE_FIELD_ELDER_FIELD_02",          40002 },
+		{ "VMI_BATTLE_FIELD_BESMA_FIELD_01",          40003 },
+		{ "VMI_BATTLE_FIELD_BESMA_FIELD_02",          40004 },
+		{ "VMI_BATTLE_FIELD_BESMA_FIELD_03",          40005 },
+		{ "VMI_BATTLE_FIELD_ALTERA_FIELD_01",         40006 },
+		{ "VMI_BATTLE_FIELD_ALTERA_FIELD_02",         40007 },
+		{ "VMI_BATTLE_FIELD_ALTERA_FIELD_03",         40008 },
+		{ "VMI_BATTLE_FIELD_PEITA_FIELD_01",          40009 },
+		{ "VMI_BATTLE_FIELD_PEITA_FIELD_02",          40010 },
+		{ "VMI_BATTLE_FIELD_PEITA_FIELD_03",          40011 },
+		{ "VMI_BATTLE_FIELD_VELDER_FIELD_01",         40012 },
+		{ "VMI_BATTLE_FIELD_VELDER_FIELD_02",         40013 },
+		{ "VMI_BATTLE_FIELD_VELDER_FIELD_03",         40014 },
+		{ "VMI_BATTLE_FIELD_VELDER_FIELD_04",         40015 },
+		{ "VMI_BATTLE_FIELD_HAMEL_FIELD_01",          40016 },
+		{ "VMI_BATTLE_FIELD_HAMEL_FIELD_02",          40017 },
+		{ "VMI_BATTLE_FIELD_HAMEL_FIELD_03",          40018 },
+		{ "VMI_BATTLE_FIELD_HAMEL_FIELD_04",          40019 },
+		{ "VMI_BATTLE_FIELD_VELDER_SHIP_STAGE",       40020 },
+		{ "VMI_BATTLE_FIELD_HAMEL_SHIP_STAGE",        40021 },
+		{ "VMI_BATTLE_FIELD_SANDER_FIELD_01",         40022 },
+		{ "VMI_BATTLE_FIELD_SANDER_FIELD_02",         40023 },
+		{ "VMI_BATTLE_FIELD_SANDER_FIELD_03",         40024 },
+		{ "VMI_BATTLE_FIELD_SANDER_FIELD_04",         40025 },
+		{ "VMI_BATTLE_FIELD_END",                     40026 },
+	};
+
 }
 
 #endif SERV_IRUHADEV_OFFLINE
