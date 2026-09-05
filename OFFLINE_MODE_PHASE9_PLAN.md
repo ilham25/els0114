@@ -591,6 +591,75 @@ it. That handler is the working reference — diff the two.
 ### Exit test
 Press sort; the category visibly reorders; the order survives a relog.
 
+### What actually happened
+
+No new packets - still bucket C exactly as filed, but the plan's two candidates
+both missed the actual defect, and settling it needed no DB query because
+reading the two `SortCategory` implementations side by side made the answer
+obvious without a rebuild:
+
+- **Neither candidate 1 nor candidate 2 was it. The ACK shape was already
+  correct, and `SortCategory()` did move things - just according to the wrong
+  algorithm.** The pre-existing offline implementation compacted the category
+  toward slot 0 in whatever order the items already sat in. That is a real
+  move, not a no-op report, but items land in the first free slot as they are
+  acquired, so a freshly-played character's bag has no gaps to close - the
+  compaction had nothing to do on every press, which is indistinguishable from
+  "does nothing" without knowing what the button is supposed to do in the first
+  place.
+
+- **The phase-5 header comment cited the wrong server function, and that is
+  what pointed this phase at compaction instead of a real sort.** It said
+  `KInventory::SortInventory` "has its own move loop commented out and only
+  reports the category back" - true, but `SortInventory` (`Inventory.cpp:5549`,
+  dated 2009) is dead code; nothing calls it. The packet handler
+  (`GSUserInventory.cpp:8019`) calls a *different*, later `KInventory::SortCategory`
+  (`Inventory.cpp:17757`), which dispatches by category to `SortEquipCategory`
+  (`:17799`), `SortNormalCategory` (`:18022`) or `SortConsumptionCategory`
+  (`:17982`) - three real multi-key sorts (item ID, grade, use level, equip
+  position, set ID, class-usability, in category-dependent precedence), not a
+  stub. Reading the 2009 comment instead of the function the handler actually
+  calls is exactly the "reads consistently, still wrong" trap `CLAUDE.md`
+  warns about for `DataBase/` and `ScriptData/` - the same shape, but this
+  time inside the tree's own C++ rather than the DB snapshot.
+
+- **Ported the real three-way sort rather than approximating one client-visible
+  order.** `SortEquipCategory`'s six chained stable `multimap` passes collapse
+  to one composite comparator (most significant first): usable-by-your-class
+  before anyone-usable before everything else grouped by unit type, then set
+  ID descending, equip position ascending, use level descending, grade
+  ascending, item ID descending. `SortNormalCategory` reduces the same way to
+  item ID descending with grade/level as tiebreaks that only matter between
+  stacks sharing an ID. `SortConsumptionCategory` is item ID ascending, no
+  tiebreak chain at all. All three are now `std::stable_sort` comparators in
+  an anonymous namespace in `X2OfflineInventory.cpp`, cited by `Inventory.cpp`
+  line number, gated with the rest of the new code under
+  `SERV_IRUHADEV_OFFLINE_INVEN_SORT`.
+
+- **Decision: reused `CX2OfflineInventory::IsAbleToEquip` (itself
+  `CX2Unit::CanEquipAsParts`) for the class-usability tier instead of porting
+  `KInventory::CompareUnitClass`'s switch by hand.** The header already
+  documents this exact tradeoff for other equip checks in this file - hand-
+  porting the class-compatibility table would duplicate a table `X2Lib` has no
+  other accessor for, and `CanEquipAsParts` is the client's own equivalent
+  check, already used for the live unit. Not a byte-for-byte match (its
+  `UC_NONE` branch differs from `CompareUnitClass`'s), but that only affects
+  items with `USE_CONDITION` `UC_NONE`, an edge case with no observed instance
+  in this build's item data.
+
+- **No `Common/` change, no server rebuild.** The wire packet
+  (`KEGS_SORT_CATEGORY_ITEM_ACK`, `std::vector<UidType> m_vecUpdatedInventorySlot`
+  in slot order) was already right; only the offline server's internal
+  ordering logic changed, entirely inside `X2Lib/Offline`.
+
+- **Build**: `X2Lib_2010.vcxproj` then `X2_2010.vcxproj`, both `US_SERVICE`,
+  0 errors. Deployed to `X2_offline.exe`; confirmed by size/mtime.
+
+- **Not yet done**: the exit test is a real play-test (an inventory category
+  with mixed item types, press sort, confirm the visible reorder, relog,
+  confirm it stuck) that needs a human at the client - not run as part of this
+  phase.
+
 ---
 
 # Phase 12 — Cannot dismantle equipment (`ISSUES.md` #6)

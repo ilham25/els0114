@@ -192,8 +192,12 @@ public:
 	/// each piece came from. Both are real, citable data - neither is derived.
 	bool	SeedBeginnerGear( UidType nUnitUID, int iUnitClass );
 
-	/// Compact one category towards slot 0, for EGS_SORT_CATEGORY_ITEM_REQ.
-	/// Its ACK carries bare item UIDs in slot order rather than slot infos -
+	/// Reorder one category by item attributes, for EGS_SORT_CATEGORY_ITEM_REQ -
+	/// KInventory::SortEquipCategory/SortNormalCategory/SortConsumptionCategory
+	/// under SERV_IRUHADEV_OFFLINE_INVEN_SORT (phase 11); a plain gap-compaction
+	/// otherwise, which was almost always an invisible no-op since items land in
+	/// a free slot as they arrive and there is usually no gap to close. Either
+	/// way the ACK carries bare item UIDs in slot order rather than slot infos -
 	/// CX2Inventory::UpdateCategorySlotList walks the vector and takes the index
 	/// as the slot - so that is what comes back, zero for an empty slot.
 	bool	SortCategory( int iCategory, OUT std::vector< UidType >& vecSlotOut );

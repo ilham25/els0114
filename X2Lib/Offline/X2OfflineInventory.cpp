@@ -11,6 +11,10 @@
 
 #include "X2OfflineLog.h"
 
+#ifdef SERV_IRUHADEV_OFFLINE_INVEN_SORT
+#include <algorithm>
+#endif SERV_IRUHADEV_OFFLINE_INVEN_SORT
+
 CX2OfflineInventory* CX2OfflineInventory::ms_pInstance = NULL;
 
 CX2OfflineInventory::CX2OfflineInventory()
@@ -1441,6 +1445,84 @@ bool CX2OfflineInventory::ExpandCategorySlot( int iCategory, int iRequestedIncre
 
 //////////////////////////////////////////////////////////////////////////
 
+#ifdef SERV_IRUHADEV_OFFLINE_INVEN_SORT
+namespace
+{
+	// IG_NONE has no defined rank of its own; both real sorts fold it into the
+	// low-grade bucket rather than sorting it first.
+	int GradeSortKey( const CX2Item::ItemTemplet* pTemplet )
+	{
+		return ( CX2Item::IG_NONE == pTemplet->GetItemGrade() )
+			? ( (int)CX2Item::IG_LOW + 1 )
+			: (int)pTemplet->GetItemGrade();
+	}
+
+	// KInventory::SortEquipCategory (Inventory.cpp:17799) chains six stable
+	// multimap passes; this is the same ordering as one composite key, most
+	// significant first: usable-by-your-class items, then anyone-usable items,
+	// then everything else grouped by unit type - then by set, equip slot,
+	// level, grade, item ID.
+	bool EquipSortLess( const KOfflineItemRow* pA, const KOfflineItemRow* pB )
+	{
+		const CX2Item::ItemTemplet* pTA = CX2OfflineInventory::Templet( pA->m_iItemID );
+		const CX2Item::ItemTemplet* pTB = CX2OfflineInventory::Templet( pB->m_iItemID );
+		if( NULL == pTA || NULL == pTB )
+			return false;
+
+		const bool bUsableA = CX2OfflineInventory::IsAbleToEquip( pA->m_iItemID );
+		const bool bUsableB = CX2OfflineInventory::IsAbleToEquip( pB->m_iItemID );
+
+		const int iTierA = bUsableA ? ( ( CX2Item::UC_ANYONE != pTA->GetUseCondition() ) ? 0 : 1 ) : ( (int)pTA->GetUnitType() * 10 );
+		const int iTierB = bUsableB ? ( ( CX2Item::UC_ANYONE != pTB->GetUseCondition() ) ? 0 : 1 ) : ( (int)pTB->GetUnitType() * 10 );
+		if( iTierA != iTierB )
+			return iTierA < iTierB;
+
+		if( pTA->GetSetID() != pTB->GetSetID() )
+			return pTA->GetSetID() > pTB->GetSetID();					// descending
+
+		if( pTA->GetEqipPosition() != pTB->GetEqipPosition() )
+			return pTA->GetEqipPosition() < pTB->GetEqipPosition();	// ascending
+
+		if( pTA->GetUseLevel() != pTB->GetUseLevel() )
+			return pTA->GetUseLevel() > pTB->GetUseLevel();			// descending
+
+		const int iGradeA = GradeSortKey( pTA );
+		const int iGradeB = GradeSortKey( pTB );
+		if( iGradeA != iGradeB )
+			return iGradeA < iGradeB;									// ascending
+
+		return pA->m_iItemID > pB->m_iItemID;							// descending
+	}
+
+	// KInventory::SortNormalCategory (Inventory.cpp:18022): item ID is the
+	// dominant and final key; grade and level only ever break a tie between two
+	// stacks of the same item.
+	bool NormalSortLess( const KOfflineItemRow* pA, const KOfflineItemRow* pB )
+	{
+		if( pA->m_iItemID != pB->m_iItemID )
+			return pA->m_iItemID > pB->m_iItemID;						// descending
+
+		const CX2Item::ItemTemplet* pTA = CX2OfflineInventory::Templet( pA->m_iItemID );
+		const CX2Item::ItemTemplet* pTB = CX2OfflineInventory::Templet( pB->m_iItemID );
+		if( NULL == pTA || NULL == pTB )
+			return false;
+
+		const int iGradeA = GradeSortKey( pTA );
+		const int iGradeB = GradeSortKey( pTB );
+		if( iGradeA != iGradeB )
+			return iGradeA < iGradeB;									// ascending
+
+		return pTA->GetUseLevel() > pTB->GetUseLevel();				// descending
+	}
+
+	// KInventory::SortConsumptionCategory (Inventory.cpp:17982): item ID only.
+	bool ConsumptionSortLess( const KOfflineItemRow* pA, const KOfflineItemRow* pB )
+	{
+		return pA->m_iItemID < pB->m_iItemID;
+	}
+}
+#endif SERV_IRUHADEV_OFFLINE_INVEN_SORT
+
 bool CX2OfflineInventory::SortCategory( int iCategory,
 										OUT std::vector< UidType >& vecSlotOut )
 {
@@ -1450,6 +1532,60 @@ bool CX2OfflineInventory::SortCategory( int iCategory,
 	if( iSize <= 0 )
 		return false;
 
+#ifdef SERV_IRUHADEV_OFFLINE_INVEN_SORT
+	// Reorder by item attributes - KInventory::SortEquipCategory /
+	// SortNormalCategory / SortConsumptionCategory (Inventory.cpp:17799,
+	// 18022, 17982). A plain gap-compaction was tried first and was almost
+	// always an invisible no-op, because items land in a free slot as they
+	// arrive and the bag already has none to close - see
+	// OFFLINE_MODE_PHASE9_PLAN.md phase 11.
+	std::vector< KOfflineItemRow* > vecRows;
+	for( std::map< UidType, KOfflineItemRow >::iterator it = m_mapItem.begin(); it != m_mapItem.end(); ++it )
+	{
+		if( it->second.m_iCategory == iCategory )
+			vecRows.push_back( &it->second );
+	}
+
+	switch( iCategory )
+	{
+	case CX2Inventory::ST_EQUIP:
+	case CX2Inventory::ST_ACCESSORY:
+	case CX2Inventory::ST_AVARTA:
+	case CX2Inventory::ST_PC_BANG:
+		std::stable_sort( vecRows.begin(), vecRows.end(), EquipSortLess );
+		break;
+
+	case CX2Inventory::ST_MATERIAL:
+	case CX2Inventory::ST_SPECIAL:
+	case CX2Inventory::ST_QUEST:
+		std::stable_sort( vecRows.begin(), vecRows.end(), NormalSortLess );
+		break;
+
+	case CX2Inventory::ST_QUICK_SLOT:
+		std::stable_sort( vecRows.begin(), vecRows.end(), ConsumptionSortLess );
+		break;
+
+	default:
+		// Every other category (equipped gear, bank, temp) has no sort button
+		// on the client either; leave it in whatever order it was in.
+		break;
+	}
+
+	for( int iSlot = 0; iSlot < iSize; ++iSlot )
+		m_vecSlot[ iCategory ][ iSlot ] = 0;
+
+	for( size_t i = 0; i < vecRows.size() && (int)i < iSize; ++i )
+	{
+		KOfflineItemRow* pRow = vecRows[i];
+
+		pRow->m_iCategory	= iCategory;
+		pRow->m_iSlotID		= (int)i;
+
+		m_vecSlot[ iCategory ][ i ] = pRow->m_nItemUID;
+
+		CX2OfflineDB::Instance()->MoveItemRow( pRow->m_nItemUID, iCategory, (int)i );
+	}
+#else	SERV_IRUHADEV_OFFLINE_INVEN_SORT
 	// Compact towards slot 0, keeping the order the items are already in.
 	// KInventory::SortInventory has its own move loop commented out and only
 	// reports the category back, so the compaction here is ours - but the reply
@@ -1479,6 +1615,7 @@ bool CX2OfflineInventory::SortCategory( int iCategory,
 
 		CX2OfflineDB::Instance()->MoveItemRow( pRow->m_nItemUID, iCategory, (int)i );
 	}
+#endif	SERV_IRUHADEV_OFFLINE_INVEN_SORT
 
 	for( int iSlot = 0; iSlot < iSize; ++iSlot )
 		vecSlotOut.push_back( GetItemUID( iCategory, iSlot ) );

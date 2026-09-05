@@ -2563,3 +2563,18 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              create the pet") for a feeding refusal.
 #define SERV_IRUHADEV_OFFLINE_PET_FEED
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-05
+// Description: Offline mode - phase 11. EGS_SORT_CATEGORY_ITEM_REQ was
+//              answered by compacting the category towards slot 0 in its
+//              existing order, which is an invisible no-op whenever the bag
+//              already has no gaps - almost always, since items land in free
+//              slots as they arrive. The real sort reorders by item
+//              attributes (KncWX2Server/GameServer/Inventory.cpp's
+//              SortEquipCategory/SortNormalCategory/SortConsumptionCategory),
+//              so CX2OfflineInventory::SortCategory now ports that ordering
+//              instead.
+#define SERV_IRUHADEV_OFFLINE_INVEN_SORT
+//////////////////////////////////////////////////////////////////////////
