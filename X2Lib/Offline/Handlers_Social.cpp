@@ -1680,11 +1680,33 @@ void CX2OfflineServer::SendPendingPetRestore( KOfflineSession& kSes )
 		if( kSes.m_nSummonedPetUID != vecPet[i].m_nPetUID )
 			continue;
 
-		KEGS_SUMMON_PET_NOT kNot;
-		kNot.m_iUnitUID = kSes.m_nSelectedUnitUID;
-
 		KPetInfo kInfo;
 		MakePetInfo( vecPet[i], kInfo );
+
+		//////////////////////////////////////////////////////////////////////////
+		// Author: Iruha
+		// Date: 2026-09-05
+		// Description: Phase 28, second finding. The _NOT relay alone spawns the
+		// visible CX2PET but leaves the pet menu blank (no render, no name) and
+		// its Summon/Unsummon button reading "Summon" - both read
+		// CX2Unit::GetPetInfo() (X2UIPetInfo.cpp:1154 etc.), which
+		// Handler_EGS_SUMMON_PET_NOT only populates via SetFullPetInfo when
+		// bMyPet is false (X2PetManager.cpp:2426) - i.e. it assumes the ACK
+		// already did it for your own pet, which is true on a real summon but
+		// not here, since there was no EGS_SUMMON_PET_REQ this session to answer.
+		// Sending the ACK first - unsolicited, but UIServerEventProc dispatches
+		// it unconditionally, and CX2PetManager::Handler_EGS_SUMMON_PET_REQ
+		// never registers an AddServerPacket wait for it - reproduces the same
+		// two-packet order a live summon uses and is what actually calls
+		// SetFullPetInfo.
+		KEGS_SUMMON_PET_ACK kAck;
+		kAck.m_iOK = NetError::NET_OK;
+		kAck.m_kSummonedPetInfo = kInfo;
+		Reply( kSes, EGS_SUMMON_PET_ACK, kAck );
+		//////////////////////////////////////////////////////////////////////////
+
+		KEGS_SUMMON_PET_NOT kNot;
+		kNot.m_iUnitUID = kSes.m_nSelectedUnitUID;
 		kNot.m_vecPetInfo.push_back( kInfo );
 
 		Reply( kSes, EGS_SUMMON_PET_NOT, kNot );

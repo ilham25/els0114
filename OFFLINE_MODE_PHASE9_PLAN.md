@@ -3338,9 +3338,34 @@ three phases unnoticed.
   `WARNING` and clears `kSes.m_nSummonedPetUID` rather than silently doing
   nothing on every later village load for the rest of the session.
 
-Built (`X2Lib` then `X2.exe`, 0 errors both), deployed to `X2_offline.exe`
-(verified by size and mtime programmatically), and **play-tested** - summon a
-pet, relog, confirmed already summoned with no button press.
+**Second bug, found only by play-testing the first fix, not by reading
+code.** The pet reappeared in the 3D world correctly after a relog, but
+reopening the pet menu jumped straight to the detail view (correct - the
+client already thinks a pet is out) with no render, no name, and the button
+still reading "Summon" instead of "Unsummon" (wrong). Every one of those
+reads `CX2Unit::GetPetInfo()` (`X2UIPetInfo.cpp:1154`, `:1560`, `:1667`, ...),
+which is populated by `SetFullPetInfo` - and `Handler_EGS_SUMMON_PET_NOT`
+only calls `SetFullPetInfo` for someone *else's* pet
+(`X2PetManager.cpp:2426`, `if( false == bMyPet )`); for your own pet it
+assumes the just-received `EGS_SUMMON_PET_ACK` already did it, because on a
+real summon it did. The restore path only ever sent the `_NOT`, so that
+assumption was false the one time it mattered: `GetSummonPetUid()` (set by
+`EGS_SELECT_UNIT_3_NOT`, giving the "jump to detail view" behavior) and
+`GetPetInfo()` (never set) disagreed.
+
+**Fix:** `SendPendingPetRestore` now sends a `KEGS_SUMMON_PET_ACK` before the
+`_NOT`, reproducing the same two-packet order a live summon uses. Confirmed
+safe to send unsolicited: `UIServerEventProc`
+(`X2PetManager.cpp:401`) dispatches `EGS_SUMMON_PET_ACK` unconditionally on
+receipt, and `Handler_EGS_SUMMON_PET_REQ` (the function that sends the REQ,
+`X2PetManager.cpp:2226`) never registers an `AddServerPacket` wait for it -
+there is no pending-request check to fail.
+
+First fix (visible spawn on relog) was play-tested and confirmed working.
+Second fix (pet menu render/name/button) was built (`X2Lib` then `X2.exe`,
+0 errors both) and deployed to `X2_offline.exe`, verified by size and mtime
+programmatically - **not yet re-played** at the time of writing, only
+reasoned from the same client code the first bug was found in.
 
 ---
 
