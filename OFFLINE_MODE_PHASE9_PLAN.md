@@ -511,7 +511,7 @@ below say otherwise.
 | **24** | 3  | Cannot socket equipment | A + B | **DONE 2026-09-05** | no — `SocketItemTable.lua` is in the tree, pack it |
 | **25** | 5  | Cannot use magic amulet | A | **DONE 2026-09-05** | no — the table is inside `EnchantTable.lua` |
 | **26** | 10 | Cannot add equipment attributes | A | **DONE 2026-09-05** | no — `AttribEnchantTable.lua` + `AttribAttachTable.lua` |
-| **27** | 17 | Regular drop ("Aqua") never drops | C | HYPOTHESIS | no |
+| **27** | 17 | Regular drop ("Aqua") never drops | ~~C~~ **a missing drop *step*** | **DONE 2026-09-05** | no — `StaticDropTable.lua` is in the tree, pack it |
 | **28** | *(not in `ISSUES.md` — found 2026-09-05, after phase 14)* | Summoned pet doesn't survive relog / character switch | — | CONFIRMED | no |
 
 **~~Phases 19-22 share one root cause and probably one flag.~~ They did not.**
@@ -3291,25 +3291,91 @@ absent.
   cannot say where an item came from and that is exactly what this phase's exit
   test asks.
 
+### No packet was involved, and nothing was `UNHANDLED`
+
+Phase 27 does not fit the §0 bucket table, and the §0 one-line bucket check would
+have returned nothing useful for it. No packet is missing, no handler refused
+anything, and no ACK field was unset: `EGS_NPC_UNIT_DIE_REQ` was `HANDLED` all
+along and `EGS_DROP_ITEM_NOT` was going out correctly. **An entire drop *source*
+was absent from inside a handler that was working.** The `UNHANDLED` census
+cannot see that, and neither can the packet log - the only visible symptom was a
+player noticing an item they never saw.
+
+That is worth carrying forward as a fifth bucket: **a handler that runs, replies
+correctly, and does only part of what the real server does at that point.**
+Bucket C ("handled, replied OK, still wrong") is the closest fit but points at an
+ACK field; this one is a missing *step*. The way to find them is to read the
+server's call site top to bottom and count the steps, not to grep anything.
+`DungeonRoom.cpp`'s NPC-death path has four numbered ones - the numbers are in
+the studio's own comments (`//1.ED`, `//2.NPC ITEM`, `//3.EVENT ITEM`,
+`//4.ATTRIB NPC ITEM`) - and offline was doing one of them.
+
+### Verified in play, 2026-09-05
+
+Packed by the user, then played: dungeon 30000 (El Forest West, normal), 18
+kills. `offline_server.log`, trimmed to the load line and the Aqua trail:
+
+```
+[21:09:40.643] DROP  loaded: 80 npc-exp row(s), 2435 monster row(s),
+                     19128 item case(s) in 459 group(s), 170 static row(s) with 1241 case(s)
+[21:09:51.042] DROP  monster 625 (uid=7) is NO_DROP - no payout
+[21:09:59.074] DROP  static drop for key 30000: item 99811
+[21:09:59.074] DROP  monster 201 dropped item 99811 (dropUID=30)
+[21:10:05.527] DROP  picked up item 99811 (dropUID=30)
+```
+
+**The exit test is met literally**: Aqua dropped from a monster that should drop
+it, and picking it up put it in the bag. Totals over the run:
+
+| | count |
+|---|---|
+| kills (`KILL_BY_USER`) | 18 |
+| step-2 static drops | 9 - `99809`x2, `99810`x2, **`99811`x1**, `99812`x4 |
+| step-3 event drops | 5 - `91620`x3, `91630`x2 |
+| `NO_DROP` suppressions | 1 |
+| `UNHANDLED` / `EXCEPTION` | 0 |
+
+**`170 static row(s) with 1241 case(s)` is the number this phase predicted before
+the file was packed**, computed straight off `StaticDropTable.lua` by a script
+sharing no code with the loader. Both halves matching is what says the right
+region's file got packed *and* that every block parsed - the same free self-check
+phase 23's `21 stat rate(s) match` gives. Worth building into any future loader:
+a count the file itself implies, printed at load.
+
+**The `NO_DROP` gate earned its place on the first run.** NPC 625 is one of the
+two `INACTIVE` placements this dungeon makes (`GAME +NPC uid=7 id=625 lv=2
+startPos=12 INACTIVE`), it died like anything else, and without the gate it would
+have rolled dungeon 30000's static row and coughed up a potion. That is the
+failure the gate was added on reasoning alone to prevent, and it fired 11 seconds
+into the first play-test.
+
+### One thing the verification turned up that is NOT this phase's bug
+
+Nine static drops in 17 payable kills is 53% against a row totalling 33.6%
+(`99809..99812` at 7.5% each, plus 3 and 0.6). Small samples are noisy and 9 is
+inside the noise - but only because the true rate is not 33.6%.
+
+`CX2OfflineDropTable::Decide` rolls `(float)( rand() % 10000 ) * 0.01f`, and
+MSVC's `rand()` returns 0..32767. 32768 = 3x10000 + 2768, so residues 0..2767
+have **four** preimages and 2768..9999 have three: low rolls are
+over-represented, and since the cases accumulate from zero, *every drop rate in
+the offline server is inflated*. For this row, 33.6% nominal is 39.2% actual; for
+the event row's 12%, it is 14.7% - a 22% relative overshoot at the low end where
+the rare items live.
+
+**Pre-existing, not introduced here** - it dates from phase 5's lottery and the
+same `rand() % 10000` appears in `GetNpcReward`'s ED-property roll - and
+deliberately **not fixed in this commit**, because it changes every drop and ED
+rate in the game at once and belongs in its own phase with its own play-test.
+Recorded here because this is where it was noticed, and because it is the reason
+a future "is this rate right?" measurement will come out consistently high.
+
 ### Status
 
-Built (`X2Lib` then `X2.exe`, 0 errors) and deployed to `X2_offline.exe`,
-verified by size and mtime programmatically, and the new strings were confirmed
-present in the linked binary rather than inferred from a successful compile.
-
-**Not yet play-tested, because the file is not packed.** `data036/` does not
-contain `StaticDropTable.lua`, so on the next launch the loader will print
-
-```
-DROP     ERROR 'StaticDropTable.lua' not found in any .kom or on disk.
-DROP     XOR-encrypt KncWX2Server/ServerResource/US/StaticDropTable.lua and pack it into data036.kom.
-DROP     WARNING no static drop table - ordinary consumable drops (Aqua, Ruve Herb, ...) are OFF.
-```
-
-Once it is packed the same line reads `170 static row(s) with 1241 case(s)` -
-those two numbers were computed from the file independently of the loader, so
-they are a free check that the right file got packed and that every block
-parsed.
+Built (`X2Lib` then `X2.exe`, 0 errors), deployed to `X2_offline.exe` (verified
+by size and mtime programmatically, and by finding the new log strings in the
+linked binary rather than inferring them from a successful compile), packed by
+the user, and played. `ISSUES.md` #17 is closed.
 
 ---
 
@@ -3482,9 +3548,10 @@ reasoned from the same client code the first bug was found in.
 
 # Appendix A — Found in the logs, not in `ISSUES.md`
 
-Three more real defects turned up while gathering evidence. They are not in the
-user's list, so they are not phases; they are recorded here so they are not
-rediscovered from scratch.
+Four more real defects turned up while gathering evidence — three from the
+original `ISSUES.md` session, the fourth (#3) while verifying phase 27. They are
+not in the user's list, so they are not phases; they are recorded here so they
+are not rediscovered from scratch.
 
 1. **`EGS_GET_MY_BANK_INFO_REQ` (id=630) is `UNHANDLED`**, once, at 23:41:27. The
    bank is not implemented. `EGS_EXPAND_BANK_SLOT_NOT` exists too
@@ -3499,7 +3566,19 @@ rediscovered from scratch.
    Warp ids 1000, 20000 and 20004. A deliberate refusal blocked on the server warp
    table — another live-DB / pack-a-file candidate.
 
-3. **388 cash products are silently dropped from the catalog:**
+3. **Every drop rate in the offline server is inflated, by up to ~22% relative.**
+   `CX2OfflineDropTable::Decide` rolls `(float)( rand() % 10000 ) * 0.01f`, and
+   MSVC's `rand()` returns 0..32767. 32768 = 3x10000 + 2768, so residues 0..2767
+   get four preimages and 2768..9999 get three — low rolls are over-represented,
+   and since a lottery accumulates its cases from zero, every rate comes out
+   high. A 12% row is really 14.7%; a 33.6% row is really 39.2%. The same
+   expression is in `GetNpcReward`'s ED-property roll and in the group second
+   draw, so it is the whole drop system, not one function. Found while checking
+   phase 27's rates against the table. Dates from phase 5. The fix is one
+   rejection loop or a `RAND_MAX`-scaled draw, but it moves every drop and ED
+   rate at once, so it wants its own phase and its own play-test.
+
+4. **388 cash products are silently dropped from the catalog:**
    ```
    [23:22:53.590] CASH  catalog: 1972 product(s) from 2360 cash_product row(s);
                         388 dropped for having no item templet
