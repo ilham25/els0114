@@ -103,6 +103,24 @@ void CX2OfflineServer::MakeRoomUserInfo( const KOfflineUnitRow& kRow, OUT KRoomU
 	kOut.m_bIsGuestUser		= false;
 	kOut.m_bIsPvpNpc		= false;
 
+	// The worn title, and the reason it has to be here rather than only in
+	// KUnitInfo. CX2Unit::UnitData::SetKRoomUserInfo does
+	//     m_iTitleId = data.m_iTitleID;
+	// unconditionally ([X2Unit.cpp:3455](X2Lib/X2Unit.cpp#L3455)), and
+	// CX2Room::SlotData::Set_KRoomSlotInfoOfMine runs it against *my own*
+	// CX2Unit - the very object the village put the title on
+	// ([X2Room.cpp:2170](X2Lib/X2Room.cpp#L2170)). So a zeroed field here does
+	// not merely omit the title in the dungeon, it wipes it off the character
+	// for the rest of the session: the emblem stops drawing in the dungeon and
+	// stays gone in the village afterwards, until the next login re-reads
+	// KUnitInfo. That is ISSUES.md #13, and it is why the title looked like it
+	// was missing in "field/dungeon" rather than in one or the other.
+	//
+	// Only m_iTitleID exists: SERV_TITLE_DATA_SIZE is on, so KRoomUserInfo's
+	// short m_sTitleID is commented out ([CommonPacket.h:2200](KncWX2Server/Common/CommonPacket.h#L2200))
+	// and the client reads the int.
+	kOut.m_iTitleID			= kRow.m_iTitleID;
+
 	// No stamina pair here on purpose. SERV_DELETE_ROOM_USER_INFO_DATA is
 	// defined in this build, so KRoomUserInfo no longer carries m_iSpirit /
 	// m_iSpiritMax and the block in CX2Unit::UnitData::SetKRoomUserInfo that
@@ -289,10 +307,13 @@ bool CX2OfflineServer::Handler_EGS_CREATE_ROOM_REQ( KOfflineSession& kSes, const
 	kAck.m_vecObserverSlot.clear();
 	kAck.m_wstrCNIP = CENTER_IP;
 
-	CX2OfflineLog::Server( L"ROOM     room %I64d type=%d dungeonID=%d dif=%d for unitUID=%I64d",
+	// title= is here so a play-test can tell a slot that carried the wrong
+	// title from a client that declined to draw the right one - the two look
+	// identical on screen. See MakeRoomUserInfo.
+	CX2OfflineLog::Server( L"ROOM     room %I64d type=%d dungeonID=%d dif=%d for unitUID=%I64d title=%d",
 		(__int64)m_kRoom.m_kInfo.m_RoomUID, (int)m_kRoom.m_kInfo.m_RoomType,
 		m_kRoom.m_kInfo.m_iDungeonID, (int)m_kRoom.m_kInfo.m_DifficultyLevel,
-		(__int64)kRow.m_nUnitUID );
+		(__int64)kRow.m_nUnitUID, kRow.m_iTitleID );
 
 	return Reply( kSes, EGS_CREATE_ROOM_ACK, kAck );
 }

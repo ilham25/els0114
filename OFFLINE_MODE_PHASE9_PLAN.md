@@ -1178,6 +1178,149 @@ Confirm by reading the client's consumer, not by picking the best-matching name.
 Equip a title; enter a dungeon; the title renders above the character; it survives
 a relog.
 
+### What actually happened
+
+Nothing in the plan's three-step "What to do" survived contact, and the fix is a
+single assignment. The useful part of the section was the **Trap** and step 1's
+advice to trace back from the client's consumer rather than forward from the
+packet — that is what found it.
+
+#### What the plan got wrong
+
+**The Diagnosis was stale in the exact way §0.1 warns about.** It says "nothing
+anywhere in `X2Lib/Offline/` sets a title id on a unit-info struct", and cites a
+grep of `Handlers_Unit.cpp`. The line it was looking for is in
+`X2OfflineServer.cpp`: phase 6 already set `KUnitInfo::m_iTitleID` from the save
+in `MakeUnitInfoFromRow`, with a comment saying why — *"This travels on the unit
+rather than in the title packet, so it has to be here or a title survives a relog
+in the list and vanishes off the character."* `git log -L` dates that line to
+commit `517c1cc` (phase 6, 2026-09-04), a day **before** this document was
+written. A grep scoped to one file is not a grep of `X2Lib/Offline/`.
+
+**All three of step 3's paths were wrong, and the one that mattered was not among
+them.** Step 3 said to populate `m_iTitleID` on "field entry, character load, and
+the P2P unit sync":
+
+- *Character load* — already correct since phase 6, as above.
+- *Field entry* — not a path at all. The offline server sends no `KFieldUserInfo`
+  anywhere, and the client's only consumer of one for **my own** unit is
+  `CX2TFieldGame::JoinFieldUnit`, which ignores the packet and builds the village
+  unit from `g_pData->GetMyUser()->GetSelectUnit()`
+  ([X2TFieldGame.cpp:891-899](X2Lib/X2TFieldGame.cpp#L891)). The only caller of
+  `SetKFieldUserInfo` in the whole client is the GM-invisibility toggle
+  ([X2TFieldGame.cpp:5917](X2Lib/X2TFieldGame.cpp#L5917)).
+- *P2P unit sync* — carries no title. The emblem is built from the `CX2Unit`, in
+  `CX2GUUser::_CommonSetComponent` and `CX2SquareUnit::UpdateEquippedEmblem`;
+  nothing about it comes off the wire.
+
+**Step 2 asked a question that was already answered.** The equipped title *is*
+persisted: `unit.title_id`, written by `SaveEquippedTitle` from
+`Handler_EGS_EQUIP_TITLE_REQ` and read back at
+[X2OfflineDB.cpp:432](X2Lib/Offline/X2OfflineDB.cpp#L432). Confirmed against the
+live save rather than by reading the schema — `reyaa` (uid 12) has
+`title_id = 10` in `els_db.sql` today, and `CX2OfflineTitle::CheckEquip`
+validates against the real title table before writing, so that 10 is a title the
+character genuinely owns.
+
+**The Trap was real but bit somewhere else than advertised.** Of the five title
+members, `KRoomUserInfo` has exactly one live: with `SERV_TITLE_DATA_SIZE` on
+(`ServerDefine.h:747`) its `short m_sTitleID` is commented out outright
+([CommonPacket.h:2200](KncWX2Server/Common/CommonPacket.h#L2200)), so there is
+nothing to pick wrong. Both members exist on `KUnitInfo` — and phase 6 had
+already picked correctly there.
+
+#### The one real defect
+
+`MakeRoomUserInfo` left `KRoomUserInfo::m_iTitleID` at zero, and the damage is
+wider than the packet it rides on:
+
+- `CX2Unit::UnitData::SetKRoomUserInfo` assigns `m_iTitleId = data.m_iTitleID`
+  unconditionally ([X2Unit.cpp:3455](X2Lib/X2Unit.cpp#L3455)).
+- `CX2Room::SlotData::Set_KRoomSlotInfoOfMine` runs it against **my own**
+  `CX2Unit` — the very object the village put the title on
+  ([X2Room.cpp:2170](X2Lib/X2Room.cpp#L2170)), fetched by
+  `GetMyUser()->GetUnitByUID()`.
+
+So entering any room did not merely omit the title inside the dungeon; it
+*erased* it from the character for the rest of the session. That is why the
+symptom reads "field **and** dungeon" rather than one or the other: on a clean
+login the village emblem is fine, the first dungeon takes it away, and it never
+returns until the next `EGS_SELECT_UNIT_1_NOT`. One line fixes both halves.
+
+#### Packets involved, none of which the plan named
+
+The plan named no packet. The fix is in one helper, but that helper feeds
+`MakeRoomSlots`, which is called from **nine** handlers — every way a room can be
+entered, started, re-synced or ended:
+
+`EGS_CREATE_TUTORIAL_ROOM_REQ`, `EGS_CREATE_ROOM_REQ`,
+`EGS_QUICK_START_DUNGEON_GAME_REQ`, `EGS_JOIN_BATTLE_FIELD_REQ`,
+`EGS_STATE_CHANGE_GAME_START_REQ`, `EGS_GAME_LOADING_REQ`, `EGS_END_GAME_REQ`,
+`EGS_STATE_CHANGE_RESULT_REQ`, `EGS_RESULT_SUCCESS_REQ`.
+
+Each fills a `KRoomSlotInfo` vector on its own ACK/NOT, so all nine were sending
+title 0 and any one of them was enough to wipe the character's title. Fixing the
+shared builder fixes all nine; there was no per-packet work.
+
+Read and **ruled out** rather than changed: `EGS_SELECT_UNIT_1_NOT` (already
+right), `EGS_EQUIP_TITLE_REQ`/`_ACK` (already right, and persisting),
+`EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT` / `_IN_FIELD_NOT`, `EGS_ENTER_SQUARE_ACK`,
+`EGS_TOGGLE_INVISIBLE_NOT`.
+
+Two of those deserve their reasons recorded, because both *can* write a title
+onto a unit and neither does so wrongly:
+
+- `KEGS_CHANGE_EQUIPPED_ITEM_IN_{ROOM,FIELD}_NOT` carries `m_iEquippedTitleID`
+  and the client writes it straight onto the unit — but only when
+  `m_vecInventorySlotInfo` is empty ([X2Room.cpp:1455](X2Lib/X2Room.cpp#L1455),
+  [X2TFieldGame.cpp:2598](X2Lib/X2TFieldGame.cpp#L2598)), which is the packet's
+  own "this is a title change, not a gear change" discriminator. Ordinary equip
+  broadcasts fill that vector and so cannot clobber a title.
+- `EGS_ENTER_SQUARE_ACK`'s `m_vecUserInfo` is empty offline, so
+  `KSquareUserInfo::m_iTitleID` is never sent.
+
+#### Decisions
+
+- **No new flag, and no studio file touched.** Per §1 rule 2 the change is
+  covered by `SERV_IRUHADEV_OFFLINE`, which already wraps every file under
+  `X2Lib/Offline/`; nothing was added to `Always.h`. The client-side render
+  machinery (`CX2GUUser::_CommonSetComponent`, `CX2SquareUnit::Init` →
+  `UpdateEquippedEmblem`, `NotifyShowObjectChanged`) was read end to end to
+  confirm it needs nothing, and left alone. The entire diff is one assignment
+  plus one log field.
+- **A permanent `title=` field on the `ROOM room ...` log line, not a throwaway
+  `SERV_IRUHADEV_*_DEBUG` flag.** A slot that carried the wrong title and a
+  client that declined to draw the right one look identical on screen, and this
+  is the cheapest thing that separates them. It is one field on a line that
+  already exists and is useful for any future room-slot bug, so it is not the
+  short-lived scaffolding `CLAUDE.md`'s debug-flag rule is about.
+- **Logged in `Handler_EGS_CREATE_ROOM_REQ`, not in `MakeRoomUserInfo`.** The
+  builder runs up to nine times per dungeon run; the room-open handler runs once.
+  Same information, no noise.
+- **No `touch X2Lib/stdafx.cpp`.** The change is `.cpp`-only — no header inside
+  the PCH was edited, so the stale-PCH hazard does not apply. It would have, had
+  the fix needed a new field on a shared struct.
+
+#### Standing note: the logs in the game directory are not the `ISSUES.md` logs
+
+`CX2OfflineLog::Open` opens both files `"wb"`
+([X2OfflineLog.cpp:30-31](X2Lib/Offline/X2OfflineLog.cpp#L30)) — **every launch
+truncates them.** The 31,419-line `offline_packets.log` §0 quotes is long gone; at
+the time of this phase the file held 164 lines from an unrelated short session
+later the same morning. So §0's one-line bucket check only works against a log
+from a run that actually reproduced the issue — on any other log it returns zero
+hits for everything, which reads exactly like bucket B. Reproduce first, then
+grep; and copy a log worth keeping out of the game directory before relaunching.
+
+#### Status
+
+Built, deployed to `X2_offline.exe` (verified by size and mtime, not by eye), and
+**not yet play-tested** — the exit test needs a human. `reyaa` (uid 12) already
+carries `title_id = 10`, so it is testable immediately. If the emblem still does
+not draw, `grep "ROOM     room" offline_server.log` now says whether the server
+sent the right id, which is what separates a remaining server bug from a client
+rendering one.
+
 ---
 
 # Phase 16 — PvP rank not drawn in the character list (`ISSUES.md` #19)
