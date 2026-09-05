@@ -110,25 +110,51 @@ namespace
 		const wchar_t*		m_szNickName;
 	};
 
+	/// Phase 2 widened this from three fixed entries to the whole cast, because
+	/// which three turn up is now a random draw per auto-party press
+	/// (MakePartyBots). The unit classes are arbitrary but must stay DISTINCT:
+	/// the class is the only channel the hero selection has to the client, so
+	/// two rows sharing one would be indistinguishable there.
 	const KBotCastEntry BOT_CAST[] =
 	{
-		{ (char)CX2Unit::UC_ELSWORD_SWORDMAN,	L"Lowe" },
-		{ (char)CX2Unit::UC_ARME_VIOLET_MAGE,	L"Lime" },
-		{ (char)CX2Unit::UC_LIRE_ELVEN_RANGER,	L"Edan" },
+		{ (char)CX2Unit::UC_ELSWORD_SWORDMAN,		L"Lowe" },
+		{ (char)CX2Unit::UC_ARME_VIOLET_MAGE,		L"Lime" },
+		{ (char)CX2Unit::UC_LIRE_ELVEN_RANGER,		L"Edan" },
+		{ (char)CX2Unit::UC_RAVEN_FIGHTER,			L"Penensio" },
+		{ (char)CX2Unit::UC_EVE_NASOD,				L"Noah" },
+		{ (char)CX2Unit::UC_CHUNG_IRON_CANNON,		L"Speka" },
+		{ (char)CX2Unit::UC_ELSWORD_KNIGHT,			L"Amelia" },
+		{ (char)CX2Unit::UC_ELSWORD_MAGIC_KNIGHT,	L"Valak" },
+		{ (char)CX2Unit::UC_LIRE_COMBAT_RANGER,		L"Code: Q-Proto_00" },
+		{ (char)CX2Unit::UC_LIRE_SNIPING_RANGER,	L"Apple" },
 	};
 
 	const int BOT_CAST_NUM	= sizeof( BOT_CAST ) / sizeof( BOT_CAST[0] );
 	const int MAX_BOT		= MAX_SLOT - 1;
 
-	/// The NPC ids those three classes map to, and the only thing the server
-	/// needs the mapping for: recognising a bot spawn in
-	/// EGS_NPC_UNIT_CREATE_REQ so it can hand back the room slot's negative UID
-	/// instead of the next monster UID. Order matches BOT_CAST.
+	/// The NPC ids those classes map to, and the only thing the server needs
+	/// the mapping for: recognising a bot spawn in EGS_NPC_UNIT_CREATE_REQ so
+	/// it can hand back the room slot's negative UID instead of the next
+	/// monster UID. Order matches BOT_CAST.
+	///
+	/// All ten are the NUI_CSM_PVP_HERO_* card-summoned heroes, and all ten
+	/// were probed live and came back fully populated - templet, stat row,
+	/// skin mesh and state machine (AI_PARTY_PLAN.md phase 0). The eleventh id
+	/// in that group, NUI_PVP_RUNE_GUARD, is deliberately absent: it loads, but
+	/// with defP = defM = 0 and eight states it is a stationary guard object
+	/// rather than a fighter.
 	const int BOT_NPC_ID[] =
 	{
 		(int)CX2UnitManager::NUI_CSM_PVP_HERO_LOW,
 		(int)CX2UnitManager::NUI_CSM_PVP_HERO_LIME,
 		(int)CX2UnitManager::NUI_CSM_PVP_HERO_EDAN,
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_PENENSIO,
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_NOA,
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_SPIKA,
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_AMELIA,
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_BALAK,
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_CODE_Q_PROTO_00,
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_APPLE,
 	};
 
 	/// Compile-time proof the two tables above line up. BOT_CAST decides the
@@ -306,21 +332,50 @@ void CX2OfflineServer::MakePartyBots( const KOfflineUnitRow& kRow, int iBotCount
 	if( iBotCount > BOT_CAST_NUM )
 		iBotCount = BOT_CAST_NUM;
 
+	// WHICH heroes turn up is a random draw, made once per auto-party press.
+	//
+	// A partial Fisher-Yates shuffle over the cast INDICES rather than
+	// iBotCount independent rolls, because the draw has to be without
+	// replacement. Two bots sharing a hero would collide in
+	// FindPartyBotByNpcID - a bot is genuinely re-created once per stage and
+	// the hero id is the only thing that matches a spawn back to its slot - so
+	// the second of the pair would be handed an ordinary monster UID and
+	// IsPvpBot() would stop seeing it. Distinctness is a correctness
+	// requirement here, not a cosmetic preference.
+	//
+	// rand() is what the rest of the offline server rolls with (drop tables,
+	// enchant, the battlefield spawner) and it is seeded once at start-up by
+	// the client itself, so a party is different from run to run.
+	int aiPick[ BOT_CAST_NUM ];
+	for( int p = 0; p < BOT_CAST_NUM; ++p )
+		aiPick[p] = p;
+
+	for( int s = 0; s < iBotCount; ++s )
+	{
+		const int iSwap = s + ( rand() % ( BOT_CAST_NUM - s ) );
+		const int iTemp = aiPick[s];
+		aiPick[s]		= aiPick[iSwap];
+		aiPick[iSwap]	= iTemp;
+	}
+
 	for( int i = 0; i < iBotCount; ++i )
 	{
 		KOfflineRoom::KPartyBot kBot;
 
+		const int iCast = aiPick[i];
+
 		// -2, -3, -4. Never 0 and never -1: -1 is what KNPCUnitReq::Init uses
 		// for "the server owns this UID", and IsPvpBot() wants strictly less
-		// than -1.
+		// than -1. The UID follows the SLOT, not the cast row, so it stays
+		// contiguous however the draw came out.
 		kBot.m_nUnitUID		= (UidType)( -2 - i );
-		kBot.m_cUnitClass	= BOT_CAST[i].m_cUnitClass;
-		kBot.m_wstrNickName	= BOT_CAST[i].m_szNickName;
+		kBot.m_cUnitClass	= BOT_CAST[iCast].m_cUnitClass;
+		kBot.m_wstrNickName	= BOT_CAST[iCast].m_szNickName;
 
 		// The id the client will independently derive from m_cUnitClass. Kept
 		// here so a bot spawn can be matched back to its slot - see
 		// KPartyBot::m_iNpcID for why matching beats a one-shot claim.
-		kBot.m_iNpcID		= BOT_NPC_ID[i];
+		kBot.m_iNpcID		= BOT_NPC_ID[iCast];
 
 		// The player's own level, so the stat table gives the bot what a real
 		// party member of that level would have.

@@ -6506,10 +6506,24 @@ CX2Game::CreateNPC( CX2UnitManager::NPC_UNIT_ID unitID, int level, bool bActive,
 			// (X2DungeonGame.cpp:1116), so this is the same intent applied at
 			// creation, which that exemption does not cover.
 			if( true == pNPC->IsPvpBot() &&
-				CX2Game::GT_DUNGEON == GetGameType() &&
-				pNPC->GetCommonState().m_Wait != pNPC->GetStartState() )
+				CX2Game::GT_DUNGEON == GetGameType() )
 			{
-				pNPC->StateChangeForce( pNPC->GetCommonState().m_Wait, true );
+				if( pNPC->GetCommonState().m_Wait != pNPC->GetStartState() )
+				{
+					pNPC->StateChangeForce( pNPC->GetCommonState().m_Wait, true );
+				}
+
+				// Phase 2. A brief grace period on arrival, matching the one the
+				// studio's own bot revive gives (RebirthUserUnit's bot branch
+				// does SetForceInvincible( 5.f, 5.f ), X2Game.cpp:6199). It
+				// matters because TickOfflinePartyBots respawns a dead party
+				// member AT THE PLAYER - which is very often exactly the
+				// spot, and the moment, that killed it. Without this a bot can
+				// respawn into the same boss attack and die again on the frame
+				// it arrives, forever. Shorter than the studio's five seconds
+				// because this also fires on the ordinary per-stage spawn,
+				// where nothing is threatening it yet.
+				pNPC->SetForceInvincible( 3.f, 3.f );
 			}
 #endif SERV_IRUHADEV_OFFLINE
 
@@ -6936,6 +6950,13 @@ void CX2Game::PushCreateNPCReq( CX2UnitManager::NPC_UNIT_ID unitID, int level, b
 //              * The position is the player's own, offset sideways. A dungeon
 //                line map has no team start positions to read.
 //////////////////////////////////////////////////////////////////////////
+
+/// How long a sent-but-not-yet-arrived bot spawn request suppresses
+/// another for the same slot. Comfortably longer than the few frames a
+/// create round-trip takes, short enough that a request the offline
+/// server never answered is retried while the stage is still running.
+static const float OFFLINE_BOT_SPAWN_GRACE = 3.f;
+
 void CX2Game::CreateOfflinePartyBots()
 {
 	if( false == IsHost() )
@@ -6975,14 +6996,42 @@ void CX2Game::CreateOfflinePartyBots()
 		if( NULL != GetNPCUnitByUID( (int)npcSlot.m_iNpcUid ) )
 			continue;
 
+		// ALREADY ASKED FOR, AND NOT HERE YET. This is the other half of
+		// the idempotence and it is not optional once anything calls this
+		// more than once a second - phase 2 shipped without it and put SIX
+		// bots in the room, two of every hero.
+		//
+		// The check above is not enough on its own because a spawn is NOT
+		// synchronous. CreateNPCReq only sends EGS_NPC_UNIT_CREATE_REQ; the
+		// NPC is built later, in Handler_EGS_NPC_UNIT_CREATE_NOT, off the
+		// broadcast. The offline server answers the request inside the same
+		// call, but it answers by QUEUEING the NOT onto the session, so the
+		// unit does not exist until the client next pumps its packets -
+		// several frames. Every call landing in that window sees NULL and
+		// asks again. TickOfflinePartyBots, running per frame, made that
+		// window four requests wide; it is the same trap for any future
+		// caller, which is why the guard lives here and not there.
+		std::map< int, float >::iterator itGrace =
+			m_mapOfflineBotSpawnGrace.find( (int)npcSlot.m_iNpcUid );
+
+		if( itGrace != m_mapOfflineBotSpawnGrace.end() && itGrace->second > 0.f )
+			continue;
+
 		CX2UnitManager::NPC_UNIT_ID eNpcID = CX2UnitManager::NUI_NONE;
 
 		switch( (CX2Unit::UNIT_CLASS)npcSlot.m_cUnitClass )
 		{
-		case CX2Unit::UC_ELSWORD_SWORDMAN:	eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_LOW;	break;
-		case CX2Unit::UC_ARME_VIOLET_MAGE:	eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_LIME;	break;
-		case CX2Unit::UC_LIRE_ELVEN_RANGER:	eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_EDAN;	break;
-		default:							break;
+		case CX2Unit::UC_ELSWORD_SWORDMAN:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_LOW;				break;
+		case CX2Unit::UC_ARME_VIOLET_MAGE:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_LIME;				break;
+		case CX2Unit::UC_LIRE_ELVEN_RANGER:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_EDAN;				break;
+		case CX2Unit::UC_RAVEN_FIGHTER:			eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_PENENSIO;			break;
+		case CX2Unit::UC_EVE_NASOD:				eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_NOA;				break;
+		case CX2Unit::UC_CHUNG_IRON_CANNON:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_SPIKA;			break;
+		case CX2Unit::UC_ELSWORD_KNIGHT:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_AMELIA;			break;
+		case CX2Unit::UC_ELSWORD_MAGIC_KNIGHT:	eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_BALAK;			break;
+		case CX2Unit::UC_LIRE_COMBAT_RANGER:	eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_CODE_Q_PROTO_00;	break;
+		case CX2Unit::UC_LIRE_SNIPING_RANGER:	eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_APPLE;			break;
+		default:								break;
 		}
 
 		if( CX2UnitManager::NUI_NONE == eNpcID )
@@ -6997,11 +7046,44 @@ void CX2Game::CreateOfflinePartyBots()
 		// the 0 the dungeon path leaves here.
 		npcSlot.m_iNpcId = (int)eNpcID;
 
-		// Behind the player, spaced out. Not a line-map lookup: a dungeon line
-		// map has no team start positions, and the player is standing on valid
-		// ground by definition at play start.
+		// Fanned out around the player rather than queued up behind them,
+		// which is what phase 1's single 60-unit step reads as once there are
+		// three. Alternating sides at a widening step puts a party of three at
+		// 60 behind, 80 ahead and 100 behind, relative to the way the player
+		// is facing.
+		//
+		// NOT a team-start lookup: a dungeon line map has no team start
+		// positions, and the studio's own party fill spawns its allies at
+		// exactly pUser->GetPos() with no offset at all
+		// (CreateAllyEventMonster, X2DungeonGame.cpp:3556), so the player's
+		// position is the known-good ground here. The offset is therefore
+		// snapped back onto the line map before it is used - GetLandPosition
+		// is what CX2GUNPC::InitPosition falls back on for the same reason -
+		// so a bot placed off the edge of a narrow platform lands on it
+		// instead of beside it.
 		D3DXVECTOR3 vPos = vMyPos;
-		vPos.x += ( true == bRight ? -1.f : 1.f ) * ( 60.f * ( i + 1 ) );
+		vPos.x += ( true == bRight ? -1.f : 1.f ) *
+			( 0 == ( i % 2 ) ? 1.f : -1.f ) * ( 60.f + 20.f * i );
+
+		if( NULL != GetWorld() && NULL != GetWorld()->GetLineMap() )
+		{
+			int iLineIndex = 0;
+			const D3DXVECTOR3 vLanded =
+				GetWorld()->GetLineMap()->GetLandPosition( vPos, LINE_RADIUS, &iLineIndex );
+
+			// Only if it found something NEAR the offset. With no line under
+			// the point - which happens at a stage start, before the player
+			// has been placed - GetLandPosition answers with a far-away
+			// fallback, the same one for every input, and the fan-out
+			// collapses into a single stack of bots. The raw offset is the
+			// better answer in that case: it is the player's own position,
+			// which the studio's ally spawn uses unmodified anyway.
+			if( fabsf( vLanded.x - vPos.x ) < 200.f &&
+				fabsf( vLanded.y - vPos.y ) < 200.f )
+			{
+				vPos = vLanded;
+			}
+		}
 
 		// CreateNPCReq, not PushCreateNPCReq, and the difference is the whole
 		// reason a bot could swing at a monster and take nothing off it.
@@ -7029,6 +7111,12 @@ void CX2Game::CreateOfflinePartyBots()
 
 		++numNpc;
 
+		// Arm the in-flight guard above. TickOfflinePartyBots counts it
+		// down and drops it the moment the NPC actually turns up, so a
+		// request that is simply lost is retried when it lapses rather than
+		// leaving the slot empty for the rest of the stage.
+		m_mapOfflineBotSpawnGrace[ (int)npcSlot.m_iNpcUid ] = OFFLINE_BOT_SPAWN_GRACE;
+
 		CX2OfflineLog::Server( L"AIPARTY  spawning bot \"%s\" npcID=%d level=%d slotUID=%I64d at (%.0f, %.0f, %.0f) ally of %I64d",
 			npcSlot.m_wstrNpcName.c_str(), (int)eNpcID, npcSlot.m_iLevel,
 			(__int64)npcSlot.m_iNpcUid, vPos.x, vPos.y, vPos.z, (__int64)myUID );
@@ -7038,6 +7126,123 @@ void CX2Game::CreateOfflinePartyBots()
 	if( numNpc > 0 )
 	{
 		CX2OfflineLog::Server( L"AIPARTY  %d bot spawn request(s) sent", numNpc );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-06
+// Description: AI_PARTY_PLAN.md phase 2 - bring a dead AI party member back.
+//
+//              NOTHING IN AN OFFLINE DUNGEON REVIVES A BOT, and the plan
+//              expected otherwise. CX2Game::RebirthUserUnit does have a bot
+//              branch (X2Game.cpp:6179), but the only two things that call it
+//              are CX2Game::Handler_EGS_RESURRECT_TO_CONTINUE_DUNGEON_NOT and
+//              the PvP state's rebirth handler (X2StatePVPGame.cpp:2375). The
+//              first is never sent offline - the offline server refuses
+//              EGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ with ERR_RESURRECT_00
+//              because there are no resurrection stones - and the second is
+//              not on the dungeon path. So the branch sits unreachable here.
+//
+//              Nor does a dead bot go away on its own and get re-spawned by
+//              CreateOfflinePartyBots: the per-frame cleanup that removes
+//              dead NPCs explicitly skips PvP bots (X2Game.cpp:3014), which is
+//              what the PvP revive relies on. The corpse therefore stays in
+//              the world with 0 HP, GetNPCUnitByUID keeps answering, and the
+//              idempotence check in CreateOfflinePartyBots skips it forever.
+//              Left alone a bot that dies is gone until the next STAGE change
+//              rebuilds the world.
+//
+//              This closes that: after RESPAWN_DELAY seconds dead, the bot's
+//              NPC is deleted and the ordinary spawn path re-creates it.
+//              Deliberately not RebirthUserUnit's branch, for two reasons:
+//              it calls InitPosition( false, -1 ), which in a dungeon picks a
+//              RANDOM line-map start position rather than somewhere near the
+//              player, and it forces GetStartState(), which for this cast is
+//              the card-summon entrance that phase 1 defect 3 removed. Delete
+//              and re-create reuses the path that already runs at every stage
+//              change, so the bot comes back at the player, at slot stats,
+//              with its UID handed back by the offline server, and in the
+//              wait state.
+//////////////////////////////////////////////////////////////////////////
+void CX2Game::TickOfflinePartyBots( float fElapsedTime )
+{
+	if( false == IsHost() )
+		return;
+
+	std::vector< CX2Room::RoomNpcSlot >& vecNpcSlot = g_pX2Room->GetNpcSlot();
+	if( true == vecNpcSlot.empty() )
+		return;			///< a solo room has no bot slots - the whole scope guard
+
+	/// How long a party member stays down. Long enough to read as a death
+	/// rather than a stumble, short enough that a wiped party is not a solo
+	/// run for the rest of the stage.
+	const float RESPAWN_DELAY = 8.f;
+
+	bool bAnyDue = false;
+
+	for( int i = 0; i < (int)vecNpcSlot.size(); ++i )
+	{
+		CX2Room::RoomNpcSlot& npcSlot = vecNpcSlot[i];
+
+		CX2GUNPC* pNpc = GetNPCUnitByUID( (int)npcSlot.m_iNpcUid );
+		if( NULL == pNpc )
+		{
+			// Not in the world. Either a spawn is still in flight - the NPC
+			// is built several frames after the request, off the offline
+			// server's queued EGS_NPC_UNIT_CREATE_NOT - or it is genuinely
+			// missing and wants re-requesting. The grace timer is what tells
+			// those apart. Asking again while one is in flight is exactly how
+			// phase 2's first build produced six bots.
+			std::map< int, float >::iterator itGrace =
+				m_mapOfflineBotSpawnGrace.find( (int)npcSlot.m_iNpcUid );
+
+			if( itGrace != m_mapOfflineBotSpawnGrace.end() )
+			{
+				itGrace->second -= fElapsedTime;
+
+				if( itGrace->second > 0.f )
+					continue;			///< still on its way
+
+				CX2OfflineLog::Server( L"AIPARTY  bot \"%s\" (uid=%I64d) never arrived after %.0fs - asking again",
+					npcSlot.m_wstrNpcName.c_str(), (__int64)npcSlot.m_iNpcUid,
+					OFFLINE_BOT_SPAWN_GRACE );
+
+				m_mapOfflineBotSpawnGrace.erase( itGrace );
+			}
+
+			bAnyDue = true;
+			continue;
+		}
+
+		// It arrived. Drop the guard so a later death is free to respawn it
+		// the moment its own timer says so.
+		m_mapOfflineBotSpawnGrace.erase( (int)npcSlot.m_iNpcUid );
+
+		if( pNpc->GetNowHp() > 0.f )
+		{
+			m_mapOfflineBotDeadTime.erase( (int)npcSlot.m_iNpcUid );
+			continue;
+		}
+
+		float& fDead = m_mapOfflineBotDeadTime[ (int)npcSlot.m_iNpcUid ];
+		fDead += fElapsedTime;
+
+		if( fDead < RESPAWN_DELAY )
+			continue;
+
+		CX2OfflineLog::Server( L"AIPARTY  bot \"%s\" (uid=%I64d) was down %.0fs - respawning",
+			npcSlot.m_wstrNpcName.c_str(), (__int64)npcSlot.m_iNpcUid, fDead );
+
+		m_mapOfflineBotDeadTime.erase( (int)npcSlot.m_iNpcUid );
+		DeleteNPCUnitByUID( (UINT)npcSlot.m_iNpcUid );
+
+		bAnyDue = true;
+	}
+
+	if( true == bAnyDue )
+	{
+		CreateOfflinePartyBots();
 	}
 }
 #endif SERV_IRUHADEV_OFFLINE

@@ -611,11 +611,37 @@ class CX2Game : public CKTDXStage
 #ifdef SERV_IRUHADEV_OFFLINE
 		/// AI_PARTY_PLAN.md phase 1. Spawn the AI party members the offline
 		/// server put in this dungeon room's bot slots, on the player's team
-		/// with ally AI. Called from Handler_EGS_PLAY_START_NOT in place of
-		/// the PvP arena spawn loop, which places bots on the enemy side of a
-		/// versus map. A dungeon room with no bot slots spawns nothing, which
-		/// is what keeps the solo button solo.
+		/// with ally AI. Called from CX2DungeonGame::SubStageStart(), beside
+		/// the studio's own CreateAllyEventMonster() - NOT from
+		/// Handler_EGS_PLAY_START_NOT, which a dungeon never reaches. A
+		/// dungeon room with no bot slots spawns nothing, which is what keeps
+		/// the solo button solo. Idempotent: it re-spawns only the bots that
+		/// are not in the world.
 		void						CreateOfflinePartyBots();
+
+		/// AI_PARTY_PLAN.md phase 2. Bring a dead AI party member back after
+		/// a delay. Called every frame from CX2DungeonGame::OnFrameMove while
+		/// the dungeon is in GS_PLAY. Needed because nothing else in an
+		/// offline dungeon ever revives a bot - see the comment on the
+		/// definition for why RebirthUserUnit's own bot branch is unreachable
+		/// on this path.
+		void						TickOfflinePartyBots( float fElapsedTime );
+
+		/// Seconds each bot has been at 0 HP, keyed by its negative room-slot
+		/// UID. Only TickOfflinePartyBots reads or writes it; an entry is
+		/// erased the moment the bot is alive again, so the map is empty for
+		/// a party that is not currently down and absent entirely for a solo
+		/// run.
+		std::map< int, float >		m_mapOfflineBotDeadTime;
+
+		/// Seconds left on a spawn request that has been sent but whose NPC
+		/// has not turned up yet, keyed the same way. A spawn is not
+		/// synchronous - CreateNPCReq sends a packet and the unit is built
+		/// several frames later off the offline server's queued
+		/// EGS_NPC_UNIT_CREATE_NOT - so "GetNPCUnitByUID returned NULL" does
+		/// not mean "ask again". Without this, the per-frame tick asked four
+		/// times over and put six bots in the room.
+		std::map< int, float >		m_mapOfflineBotSpawnGrace;
 #endif SERV_IRUHADEV_OFFLINE
 
 #ifdef CREATE_NPC_REQ_FULL_ARGUMENTS

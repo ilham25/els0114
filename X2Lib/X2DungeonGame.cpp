@@ -179,6 +179,17 @@ HRESULT CX2DungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 		TutorialFrameMove( fTime, fElapsedTime );
 #endif //REFORM_TUTORIAL
 
+#ifdef SERV_IRUHADEV_OFFLINE
+		// AI_PARTY_PLAN.md phase 2. Bring a dead AI party member back.
+		//
+		// Per frame rather than per sub-stage because a bot dies mid-fight,
+		// and SubStageStart - where CreateOfflinePartyBots hangs - may not
+		// come round again for minutes. The method's own guards make this
+		// free on the solo path: it returns immediately when the room has no
+		// bot slots, which is every room the normal start button opens.
+		TickOfflinePartyBots( fElapsedTime );
+#endif SERV_IRUHADEV_OFFLINE
+
 		if( m_pDungeon != NULL )
 			m_pDungeon->OnFrameMove( fTime, fElapsedTime );
 

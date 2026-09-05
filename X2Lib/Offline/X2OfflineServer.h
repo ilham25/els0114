@@ -663,15 +663,17 @@ private:
 	void MakeRoomSlots( const KOfflineUnitRow& kRow, int iSlotState,
 						OUT std::vector< KRoomSlotInfo >& vecOut );
 
-	/// How many slots the auto-party button fills. Phase 1 proves the pipeline
-	/// with one; phase 2 raises it to three. Here rather than in
+	/// How many slots the auto-party button fills. Phase 1 proved the pipeline
+	/// with one; phase 2 fills the room. Here rather than in
 	/// Handlers_Room.cpp's anonymous namespace only because the caller is in
-	/// Handlers_Social.cpp.
-	static const int AUTO_PARTY_BOT_NUM = 1;
+	/// Handlers_Social.cpp. MakePartyBots clamps it to the three free slots and
+	/// to the size of the cast, so this cannot overfill the room.
+	static const int AUTO_PARTY_BOT_NUM = 3;
 
 	/// Fill m_kRoom.m_vecBot with iBotCount AI party members at the player's
-	/// level. Called only by the auto-party handler; every other way into a
-	/// room leaves the vector empty, which is what keeps the solo button solo.
+	/// level, drawn at random - and without replacement - from BOT_CAST.
+	/// Called only by the auto-party handler; every other way into a room
+	/// leaves the vector empty, which is what keeps the solo button solo.
 	void MakePartyBots( const KOfflineUnitRow& kRow, int iBotCount );
 
 	/// The bot in this room whose hero id is iNpcID, or NULL. Used by
