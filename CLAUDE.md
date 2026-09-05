@@ -57,7 +57,15 @@ Do:
 
 1. **Name the file and stop.** Give the exact path
    (`KncWX2Server/ServerResource/US/<name>.lua`), say it needs XOR-encrypting and
-   packing into `data036.kom`, and let the user do it.
+   packing into `data036.kom`, and let the user do it. Do this **before** settling
+   for a permanent refusal ACK or an ignore-list entry — a feature that only
+   "can't be done" for lack of a packed file is not the same as a feature that
+   doesn't exist, and the ask is cheap. This applies even when some other
+   document (a phase plan, an issue writeup, your own earlier diagnosis) frames
+   "refuse and log why" as an acceptable stopping point for the *current* task —
+   this rule is the standing override: ask whether packing the file is on the
+   table before writing the refusal as final, don't decide on the user's behalf
+   that it isn't worth asking.
 2. **Load it the shipped way.**
    `g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( name )` for
    the `.kom` container, then `GetLuaBinder()->DoMemory( ... )` for the XOR, with a

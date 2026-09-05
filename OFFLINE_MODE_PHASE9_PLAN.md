@@ -689,10 +689,14 @@ not implemented offline" }`, added in phase 5. The dispatch has no handler, so
 2. If the yield is client-side data: implement `Handler_EGS_RESOLVE_ITEM_REQ`,
    remove the ignore rule, consume the item, insert the materials, and reply with
    the updated slots.
-3. If it is server data: **keep the ignore rule** but make the client show
-   something. An `IGNORED` packet produces no reply, and the UI hangs waiting; a
-   refusal ACK with an error code at least closes the dialog. That is a real
-   improvement and a legitimate outcome for this phase.
+3. If it is server data: **ask the user whether it can be packed** before
+   writing a refusal as final - name the exact file, same shape as the
+   Lua-packing rule in `CLAUDE.md`, and wait for an answer. Only once packing is
+   declined or deferred does "keep the ignore rule but make the client show
+   something" become the right stopping point: an `IGNORED` packet produces no
+   reply and the UI hangs waiting, so a refusal ACK with an error code at least
+   closes the dialog. That is a real improvement, but it is not a substitute for
+   the ask - see the correction in "What actually happened" below.
 
 ### Trap
 The `NOT DRIVEN OFFLINE` census line at 23:19:42 flags two title sub-quests
@@ -728,6 +732,21 @@ Verified end to end: `offline_packets.log` shows `EGS_RESOLVE_ITEM_REQ ...
 HANDLED` followed by `EGS_RESOLVE_ITEM_ACK` (previously `--- IGNORED ---` with
 no ACK at all), `offline_server.log` logs the refusal line, and in play the
 client showed an "Unable to dismantle" dialog with the item left in the bag.
+
+**Correction, same session:** the refusal above was written and shipped
+without ever asking whether `ResolveTable.lua` could be packed - this plan's
+own step 3 said a refusal was "a legitimate outcome for this phase" and that
+framing was followed instead of `CLAUDE.md`'s server-Lua rule, which the user
+caught. `CLAUDE.md`'s rule now says explicitly that the ask comes first even
+when a phase plan frames refusal as acceptable; step 3 above is corrected to
+match. The ask for this phase specifically: **pack
+`KncWX2Server/ServerResource/US/ResolveTable.lua`** (XOR-encrypt, add to
+`data036.kom`) and real materials become implementable - the yield algorithm
+in `CXSLResolveItemManager::GetResultItem` is fully read and ready to port into
+a new `X2OfflineResolveTable` module (same shape as `X2OfflineDropTable` /
+`X2OfflineStatTable`) once the table is loadable. Until then the refusal
+committed above stands, but it is a "not yet asked to be enabled" state, not a
+"can't be done" one.
 
 ---
 
