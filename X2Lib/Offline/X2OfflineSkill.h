@@ -90,6 +90,52 @@ public:
 	int		GetSlotOfSkill( int iSkillID ) const;
 
 	//////////////////////////////////////////////////////////////////////////
+	// skill unsealing (phase 21)
+
+	/// EGS_SELECT_UNIT_1_NOT::m_vecSkillUnsealed. short, not int, because that
+	/// is what the packet carries.
+	void	GetUnsealedSkills( OUT std::vector< short >& vecOut ) const;
+
+	bool	IsSkillUnsealed( int iSkillID ) const;
+
+	/// Unlock one skill and persist it. False when it was already unlocked, so
+	/// the caller can refuse the item instead of eating it for nothing.
+	bool	UnsealSkill( int iSkillID );
+
+	/// Which skill a "secret manual" unlocks for this character, or 0. This is
+	/// the client's own CX2SkillTree::GetUnsealSkillItemInfo - SkillData.lua's
+	/// AddSealSkillInfo rows are client data, so nothing here is invented. It
+	/// resolves against the *currently selected* unit's class, exactly as the
+	/// client did a moment earlier when it decided to send the packet.
+	static int	SkillForUnsealItem( int iItemID );
+
+	//////////////////////////////////////////////////////////////////////////
+	// the skill note (phase 22)
+
+	/// EGS_SELECT_UNIT_1_NOT::m_cSkillNoteMaxPageNum - how many memo pages this
+	/// character owns. 0 until it uses a skill note, which is the state the
+	/// client reads as "no note" and hides the UI for.
+	char	GetSkillNoteMaxPage() const			{ return m_cSkillNoteMaxPage; }
+
+	/// EGS_SELECT_UNIT_1_NOT::m_mapSkillNote - page index -> memo item ID.
+	const std::map< char, int >&	GetSkillNotes() const	{ return m_mapSkillNote; }
+
+	/// KUserSkillTree::GetExpandSkillNotePage (UserSkillTree.cpp:907), verbatim:
+	/// the page count is a function of level alone - level/10 of 2..6 gives 1..5
+	/// pages and anything below level 20 gives none. Returns 0 when the level is
+	/// too low, which is the same "false" the server returns.
+	static char	ExpandSkillNotePageForLevel( int iLevel );
+
+	/// Absolute set, matching KUserSkillTree::UpdateSkillNoteMaxPageNum. False
+	/// when it would not actually grow, so a second note is not eaten.
+	bool	SetSkillNoteMaxPage( char cMaxPage );
+
+	/// EGS_REG_SKILL_NOTE_MEMO_REQ. Returns a NetError code; NET_OK on success,
+	/// and the page has to already exist and the memo not already be registered,
+	/// the same two checks GSUserGameCommon.cpp:7275-7298 makes.
+	int		RegisterSkillNoteMemo( int iPage, int iMemoID );
+
+	//////////////////////////////////////////////////////////////////////////
 	// writes
 
 	/// EGS_GET_SKILL_REQ. mapInOut is the client's requested end state; on
@@ -168,6 +214,9 @@ private:
 
 	UidType								m_nUnitUID;
 	std::map< int, KSkillState >		m_mapSkill;
+	std::set< int >					m_setUnsealedSkill;
+	std::map< char, int >			m_mapSkillNote;
+	char							m_cSkillNoteMaxPage;
 	int									m_aiSkillSlot[ CX2UserSkillTree::MAX_SKILL_SLOT ];
 };
 

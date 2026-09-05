@@ -620,6 +620,84 @@ bool CX2OfflineServer::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSes
 		}
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// The cash skill note: claimed, not carried - the third of these, and the
+	// same shape as the class change and the slot expansion above.
+	//
+	// Phase 22 first implemented this on the *bag* path, which was wrong for
+	// this id. The live server handles CXSLItem::CI_CASH_SKILL_NOTE_ITEM inside
+	// EGS_GET_PURCHASED_CASH_ITEM_REQ (GSUserCashShop.cpp:1585), not inside the
+	// use-item switch: picking it out of the cash deposit is what expands the
+	// pages, and the item never becomes an inventory item at all. Claiming it
+	// into the bag - which is what this handler used to do - produced exactly
+	// what ISSUES.md #12 describes: an item that sits there and cannot be used,
+	// because CX2UIInventory::OnRClickedItem has no path for it either.
+	//
+	// The plain SKILL_NOTE_ITEM_ID (99600) is deliberately NOT handled here.
+	// That one really is a bag item on live - CXSLItem::SI_SKILL_NOTE_ITEM in
+	// the use-item switch, GSUserInventory.cpp:4610 - and the bag path added in
+	// phase 22 covers it. The offline shop does not sell it, so this branch
+	// would never see it anyway.
+	if( CASH_SKILL_NOTE_ITEM_ID == iItemID )
+	{
+		KOfflineUnitRow kUnit;
+		if( false == pDB->LoadUnit( kSes.m_nSelectedUnitUID, kUnit ) )
+			return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+
+		const char cNewPage = CX2OfflineSkill::ExpandSkillNotePageForLevel( kUnit.m_iLevel );
+
+		if( 0 == cNewPage )
+		{
+			CX2OfflineLog::Server( L"CASH     skill note refused: it needs level 20-69, this"
+				L" character is level %d (the deposit line is left in place)", kUnit.m_iLevel );
+
+			kAck.m_iOK = NetError::ERR_SKILL_NOTE_07;
+			return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+		}
+
+		CX2OfflineSkill* pSkill = CX2OfflineSkill::Instance();
+		pSkill->Load( kSes.m_nSelectedUnitUID );
+
+		if( cNewPage <= pSkill->GetSkillNoteMaxPage() )
+		{
+			CX2OfflineLog::Server( L"CASH     skill note refused: it would give %d page(s) and this"
+				L" character already has %d (the deposit line is left in place)",
+				(int)cNewPage, (int)pSkill->GetSkillNoteMaxPage() );
+
+			kAck.m_iOK = NetError::ERR_SKILL_NOTE_06;
+			return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+		}
+
+		// Line out first, same ordering rule as the two branches above.
+		if( false == pDB->DeleteCashOrder( kSes.m_nUserUID, pRow->m_nTransNo ) )
+		{
+			CX2OfflineLog::Server( L"CASH     skill note refused: deposit line %I64d could not be"
+				L" removed", pRow->m_nTransNo );
+
+			return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+		}
+
+		pSkill->SetSkillNoteMaxPage( cNewPage );
+
+		kAck.m_iOK = NetError::NET_OK;
+		Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+
+		// The ACK carries no page count, so the _NOT is what tells the client.
+		// CX2State::Handler_EGS_EXPAND_SKILL_NOTE_PAGE_NUM_NOT is the only
+		// caller of SetSkillNoteMaxPage *and* of HideSkillNote( false ), which
+		// is what makes the skill-note button appear in the inventory
+		// (X2State.cpp:9087-9110).
+		KEGS_EXPAND_SKILL_NOTE_PAGE_NUM_NOT kNot;
+		kNot.m_cExpandedPageNum = cNewPage;
+
+		Reply( kSes, EGS_EXPAND_SKILL_NOTE_PAGE_NUM_NOT, kNot );
+
+		CX2OfflineLog::Server( L"CASH     claimed line %I64d: item %d gave the skill note %d page(s)",
+			pRow->m_nTransNo, iItemID, (int)cNewPage );
+
+		return true;
+	}
+
 	if( false == pInven->HasRoomFor( iItemID, iQuantity ) )
 	{
 		CX2OfflineLog::Server( L"CASH     claim refused: no room for %d x item %d - the deposit"

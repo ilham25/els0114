@@ -12,7 +12,7 @@ CX2OfflineDB* CX2OfflineDB::ms_pInstance = NULL;
 /*static*/ const char* CX2OfflineDB::UNIT_COLUMNS =
 	"unit_uid, user_uid, unit_class, nickname, level, exp, ed, sp, spirit, "
 	"last_pos, last_line_index, last_pos_value, cur_hp, cur_mp, hyper_gage, abil_count, "
-	"reg_date, del_date, last_date, csp, title_id";
+	"reg_date, del_date, last_date, csp, title_id, skill_note_page";
 
 /*static*/ const char* CX2OfflineDB::ITEM_COLUMNS =
 	"item_uid, unit_uid, category, slot, item_id, count, "
@@ -300,6 +300,35 @@ namespace
 		"  is_event   INTEGER NOT NULL DEFAULT 0 );"
 		"CREATE INDEX IF NOT EXISTS ix_cash_product_item ON cash_product( item_id );"
 		;
+
+	//////////////////////////////////////////////////////////////////////////
+	// v10 - skill unsealing (phase 21) and the skill note (phase 22).
+	//
+	// Two separate things that both hang off the skill tree and both ride on
+	// EGS_SELECT_UNIT_1_NOT, so they land together:
+	//
+	//   * `unit_skill_unsealed` is m_vecSkillUnsealed - the skills a
+	//     "secret manual" has unlocked. dbo.GUnsealSkill on live.
+	//   * `unit.skill_note_page` is m_cSkillNoteMaxPageNum and
+	//     `unit_skill_note` is m_mapSkillNote - the two the server reads back
+	//     with gup_get_notecnt and gup_get_note respectively
+	//     (GSGameDBThread.cpp:1822-1845).
+	//
+	// The page count defaults to 0 on purpose: a character does not own the
+	// skill note until it uses one, which is what
+	// KUserSkillTree::GetExpandSkillNotePage refusing below level 20 means.
+	const char* const SCHEMA_V10 =
+		"CREATE TABLE IF NOT EXISTS unit_skill_unsealed ("
+		"  unit_uid INTEGER NOT NULL,"
+		"  skill_id INTEGER NOT NULL,"
+		"  PRIMARY KEY( unit_uid, skill_id ) );"
+		"CREATE TABLE IF NOT EXISTS unit_skill_note ("
+		"  unit_uid INTEGER NOT NULL,"
+		"  page     INTEGER NOT NULL,"
+		"  memo_id  INTEGER NOT NULL,"
+		"  PRIMARY KEY( unit_uid, page ) );"
+		"ALTER TABLE unit ADD COLUMN skill_note_page INTEGER NOT NULL DEFAULT 0;"
+		;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -430,6 +459,7 @@ sqlite3_stmt* CX2OfflineDB::Prepare( const char* szSQL )
 	kOut.m_tLastDate	= (__int64)sqlite3_column_int64( pStmt, 18 );
 	kOut.m_iCSP			= sqlite3_column_int( pStmt, 19 );
 	kOut.m_iTitleID		= sqlite3_column_int( pStmt, 20 );
+	kOut.m_iSkillNotePage	= sqlite3_column_int( pStmt, 21 );
 }
 
 /*static*/ void CX2OfflineDB::ReadItemRow( sqlite3_stmt* pStmt, OUT KOfflineItemRow& kOut )
@@ -901,6 +931,15 @@ bool CX2OfflineDB::Migrate()
 
 		CX2OfflineLog::Server( L"DB       schema upgraded to v9 (cash catalog: %d of %d rows seeded)",
 			iSeeded, (int)X2OfflineCashSeed::ROW_COUNT );
+	}
+
+	if( iFrom < 10 )
+	{
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( SCHEMA_V10 ) )		{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v10 (skill unsealing, skill note)" );
 	}
 
 	char szSetVersion[64];
@@ -1907,6 +1946,127 @@ bool CX2OfflineDB::SetSkillSlot( UidType nUnitUID, int iSlot, int iSkillID )
 	sqlite3_bind_int(   pStmt, 3, iSkillID );
 
 	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// skill unsealing (phase 21) and the skill note (phase 22)
+
+bool CX2OfflineDB::LoadUnsealedSkills( UidType nUnitUID, OUT std::vector< int >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT skill_id FROM unit_skill_unsealed WHERE unit_uid = ?1 ORDER BY skill_id;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+		vecOut.push_back( sqlite3_column_int( pStmt, 0 ) );
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+
+bool CX2OfflineDB::SaveUnsealedSkill( UidType nUnitUID, int iSkillID )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT OR IGNORE INTO unit_skill_unsealed( unit_uid, skill_id ) VALUES( ?1, ?2 );" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iSkillID );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"save unsealed skill" );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::LoadSkillNotes( UidType nUnitUID, OUT std::map< char, int >& mapOut )
+{
+	KLocker lock( m_cs );
+
+	mapOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT page, memo_id FROM unit_skill_note WHERE unit_uid = ?1 ORDER BY page;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+		mapOut[ (char)sqlite3_column_int( pStmt, 0 ) ] = sqlite3_column_int( pStmt, 1 );
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+
+bool CX2OfflineDB::SaveSkillNote( UidType nUnitUID, int iPage, int iMemoID )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT OR REPLACE INTO unit_skill_note( unit_uid, page, memo_id ) VALUES( ?1, ?2, ?3 );" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iPage );
+	sqlite3_bind_int(   pStmt, 3, iMemoID );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"save skill note memo" );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::SaveSkillNotePage( UidType nUnitUID, int iMaxPage )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare( "UPDATE unit SET skill_note_page = ?2 WHERE unit_uid = ?1;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iMaxPage );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	if( false == bOK )
+		LogError( L"save skill note page count" );
 
 	sqlite3_finalize( pStmt );
 	return bOK;

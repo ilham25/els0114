@@ -17,6 +17,7 @@ CX2OfflineSkill* CX2OfflineSkill::ms_pInstance = NULL;
 
 CX2OfflineSkill::CX2OfflineSkill()
 : m_nUnitUID( 0 )
+, m_cSkillNoteMaxPage( 0 )
 {
 	for( int i = 0; i < MAX_SKILL_SLOT; ++i )
 		m_aiSkillSlot[i] = 0;
@@ -117,10 +118,30 @@ bool CX2OfflineSkill::Load( UidType nUnitUID )
 			m_aiSkillSlot[ kRow.m_iSlot ] = kRow.m_iSkillID;
 	}
 
+	// Phase 21 / 22: the two sidecar tables, plus the page count that lives on
+	// the unit row. Loaded here rather than at the packet handlers so every
+	// reader gets them from one place, the way m_mapSkill already works.
+	std::vector< int > vecUnsealed;
+	CX2OfflineDB::Instance()->LoadUnsealedSkills( nUnitUID, vecUnsealed );
+
+	for( size_t u = 0; u < vecUnsealed.size(); ++u )
+		m_setUnsealedSkill.insert( vecUnsealed[u] );
+
+	CX2OfflineDB::Instance()->LoadSkillNotes( nUnitUID, m_mapSkillNote );
+
+	{
+		KOfflineUnitRow kUnitRow;
+		if( true == CX2OfflineDB::Instance()->LoadUnit( nUnitUID, kUnitRow ) )
+			m_cSkillNoteMaxPage = (char)kUnitRow.m_iSkillNotePage;
+	}
+
 	m_nUnitUID = nUnitUID;
 
-	CX2OfflineLog::Server( L"SKILL    loaded for unitUID=%I64d: %u skill row(s)",
-		(__int64)nUnitUID, (unsigned int)vecRow.size() );
+	CX2OfflineLog::Server( L"SKILL    loaded for unitUID=%I64d: %u skill row(s),"
+		L" %u unsealed, %d note page(s) holding %u memo(s)",
+		(__int64)nUnitUID, (unsigned int)vecRow.size(),
+		(unsigned int)m_setUnsealedSkill.size(), (int)m_cSkillNoteMaxPage,
+		(unsigned int)m_mapSkillNote.size() );
 
 	return true;
 }
@@ -129,6 +150,9 @@ void CX2OfflineSkill::Clear()
 {
 	m_nUnitUID = 0;
 	m_mapSkill.clear();
+	m_setUnsealedSkill.clear();
+	m_mapSkillNote.clear();
+	m_cSkillNoteMaxPage = 0;
 
 	for( int i = 0; i < MAX_SKILL_SLOT; ++i )
 		m_aiSkillSlot[i] = 0;
@@ -618,6 +642,142 @@ bool CX2OfflineSkill::SeedDefaultSkills( UidType nUnitUID, int iUnitClass )
 		(unsigned int)vecSkillID.size(), iUnitClass, (__int64)nUnitUID );
 
 	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// skill unsealing (phase 21)
+//
+// A "secret manual" (Camilla's Secret Manual, 270970-270973) unlocks one skill
+// on a character whose class has it. The mapping item -> class type -> skill
+// list is SkillData.lua's AddSealSkillInfo, which is *client* data and is
+// already parsed into CX2SkillTree::m_mapSealSkillItemTemplet - so the offline
+// server resolves it through the client's own accessor rather than carrying a
+// table of its own. Nothing here is a guess.
+//
+// The live path is: EGS_USE_ITEM_IN_INVENTORY_ACK, then DBE_UNSEAL_SKILL_ACK
+// pushes EGS_UNSEAL_SKILL_NOT { m_iSkillID } (GSUserGameCommon.cpp:6716-6730).
+// The ACK alone does not unlock anything; the NOT is what calls
+// CX2UserSkillTree::AddSkillUnsealed and opens the "skill unsealed" dialog.
+
+void CX2OfflineSkill::GetUnsealedSkills( OUT std::vector< short >& vecOut ) const
+{
+	vecOut.clear();
+
+	std::set< int >::const_iterator sit;
+	for( sit = m_setUnsealedSkill.begin(); sit != m_setUnsealedSkill.end(); ++sit )
+		vecOut.push_back( (short)( *sit ) );
+}
+
+bool CX2OfflineSkill::IsSkillUnsealed( int iSkillID ) const
+{
+	return ( m_setUnsealedSkill.find( iSkillID ) != m_setUnsealedSkill.end() );
+}
+
+bool CX2OfflineSkill::UnsealSkill( int iSkillID )
+{
+	if( iSkillID <= 0 || 0 == m_nUnitUID )
+		return false;
+
+	if( true == IsSkillUnsealed( iSkillID ) )
+		return false;
+
+	m_setUnsealedSkill.insert( iSkillID );
+
+	CX2OfflineDB::Instance()->SaveUnsealedSkill( m_nUnitUID, iSkillID );
+
+	return true;
+}
+
+/*static*/ int CX2OfflineSkill::SkillForUnsealItem( int iItemID )
+{
+	if( NULL == g_pData || NULL == g_pData->GetSkillTree() )
+		return 0;
+
+	if( false == g_pData->GetSkillTree()->IsUnsealSkillItemID( iItemID ) )
+		return 0;
+
+	// Resolves against the selected unit's class and returns SI_NONE when this
+	// character's tree has none of the item's skills - the same call, and the
+	// same answer, the client used a moment ago to decide whether to send.
+	const CX2SkillTree::SKILL_ID eSkillID =
+		g_pData->GetSkillTree()->GetUnsealSkillItemInfo( iItemID );
+
+	if( CX2SkillTree::SI_NONE == eSkillID )
+		return 0;
+
+	return (int)eSkillID;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// the skill note (phase 22)
+
+/*static*/ char CX2OfflineSkill::ExpandSkillNotePageForLevel( int iLevel )
+{
+	// KUserSkillTree::GetExpandSkillNotePage, UserSkillTree.cpp:907-940, copied
+	// rather than approximated: it switches on level/10 and returns false below
+	// 20 and above 69. Transcribed as a table because that is what it is.
+	if( iLevel < 0 )
+		return 0;
+
+	switch( iLevel / 10 )
+	{
+	case 2:		return 1;
+	case 3:		return 2;
+	case 4:		return 3;
+	case 5:		return 4;
+	case 6:		return 5;		///< added 2011.07.13 by the same file's comment
+	}
+
+	return 0;
+}
+
+bool CX2OfflineSkill::SetSkillNoteMaxPage( char cMaxPage )
+{
+	if( 0 == m_nUnitUID )
+		return false;
+
+	// UpdateSkillNoteMaxPageNum assigns, but the caller only ever hands it the
+	// count for the current level - so a note used twice, or used after the
+	// character out-levelled it, must not shrink what it already owns.
+	if( cMaxPage <= m_cSkillNoteMaxPage )
+		return false;
+
+	m_cSkillNoteMaxPage = cMaxPage;
+
+	CX2OfflineDB::Instance()->SaveSkillNotePage( m_nUnitUID, (int)cMaxPage );
+
+	return true;
+}
+
+int CX2OfflineSkill::RegisterSkillNoteMemo( int iPage, int iMemoID )
+{
+	if( 0 == m_nUnitUID )
+		return NetError::ERR_SKILL_NOTE_00;
+
+	// KUserSkillTree::IsHaveSkillNote - no pages means no note at all.
+	if( m_cSkillNoteMaxPage <= 0 )
+		return NetError::ERR_SKILL_NOTE_04;
+
+	// KUserSkillTree::IsExistSkillNotePage: m_cSkillNoteMaxPageNum > cPageNum,
+	// so pages are zero-based and the last valid one is max-1.
+	if( iPage < 0 || iPage >= (int)m_cSkillNoteMaxPage )
+		return NetError::ERR_SKILL_NOTE_01;
+
+	// KUserSkillTree::IsExistSkillNoteMemoID - the same memo cannot sit on two
+	// pages. Checked against the memo *item ID*, which is what the server
+	// stores (GSUserGameCommon.cpp:7260).
+	std::map< char, int >::const_iterator mit;
+	for( mit = m_mapSkillNote.begin(); mit != m_mapSkillNote.end(); ++mit )
+	{
+		if( mit->second == iMemoID )
+			return NetError::ERR_SKILL_NOTE_02;
+	}
+
+	m_mapSkillNote[ (char)iPage ] = iMemoID;
+
+	CX2OfflineDB::Instance()->SaveSkillNote( m_nUnitUID, iPage, iMemoID );
+
+	return NetError::NET_OK;
 }
 
 #endif SERV_IRUHADEV_OFFLINE

@@ -52,6 +52,12 @@ loop three times. Before touching `X2Lib/Offline/` for any of those, confirm the
 event name's absence from the `C->S` census and go straight to the client UI code
 that would have sent it.
 
+> **Correction, 2026-09-05: bucket B is a trap in the other direction too.** Four
+> of those six — issues 2, 9, 11 and 12, phases 19-22 — were **not** bucket B.
+> They rode on packets whose names nobody thought to grep for, or sent the
+> expected packet successfully in a session the census does not cover. All four
+> are now done. **Read §0.2 before acting on any bucket call in this table.**
+
 The one-line check that tells you which bucket an issue is in:
 
 ```sh
@@ -96,27 +102,130 @@ Only if all three still point at missing data is the ask-the-user rule in play.
 
 ---
 
+## 0.2 What phases 19-22 actually taught — read this before 23-27
+
+Written 2026-09-05, after all four shipped and were verified in play. Six things,
+in the order they will cost you time.
+
+### 1. Bucket B is a weak test. Absence of *a* packet is not absence of *the* packet.
+
+§0 classified issues 2, 9, 11 and 12 as "the client never sent a byte" because no
+`EGS_USE_ITEM_*` / `EGS_*STAMINA*` name appears in the `C->S` census. **All four
+were wrong.** Two rode on a packet nobody thought to grep for — the stamina potion
+is a *cube* (`EGS_OPEN_RANDOM_ITEM_REQ`) and the skill notebook is a *cash claim*
+(`EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ`) — and the other two sent exactly the
+expected packet and got `NET_OK` back, in an earlier session than the one the
+census covered.
+
+Before trusting a bucket-B reading:
+
+- **grep the census for the item id, not the event name.** The offline log prints
+  item ids on most lines.
+- **check the item's own counts.** A stack that has gone down proves the packet
+  was sent and succeeded, whatever the census for one session says. This is what
+  revealed both the elixir (100 → 94) and the stamina potion (100 → 96).
+- **remember the census is one session.** `ISSUES.md` covers weeks of play.
+
+### 2. The ACK is bookkeeping; the `_NOT` is the effect. This is now five for five.
+
+Every "the item is consumed and nothing happens" defect in this project has been
+the same shape, and it caught phases 19 and 21 as well:
+
+| effect | ACK does | the `_NOT` that actually does it |
+|---|---|---|
+| potion / elixir buff | bag, ED, sort order | `EGS_USE_QUICK_SLOT_NOT` → `ApplyBuffFactorToGUUser` |
+| skill unseal | bag | `EGS_UNSEAL_SKILL_NOT` → `AddSkillUnsealed` |
+| skill-note pages | nothing | `EGS_EXPAND_SKILL_NOTE_PAGE_NUM_NOT` → `SetSkillNoteMaxPage` + `HideSkillNote(false)` |
+
+**Method:** find the client function that performs the effect, then find its
+*callers*. If the only caller is a `_NOT` handler, the ACK alone will never work,
+no matter how correct it looks. Do not trace forward from the request.
+
+### 3. A field named `m_iRestoreX` may be an absolute, not a delta.
+
+`KEGS_OPEN_RANDOM_ITEM_ACK::m_iRestoreSpirit` is the **new total**, because the
+server assigns it from a function that returns the post-clamp value. Passing the
+table value through set stamina to 4.4% and printed "-95%". The same shape is
+still live and unfixed on `m_iRessurectionCount` beside it, harmless only while
+the character owns no resurrection stones.
+
+**Before copying any ACK field from a data table, read the server's assignment to
+it**, not just the field name and not just the client's read of it.
+
+### 4. Name the item before theorising. Both tools were available all along.
+
+- **`data036/` in the game directory** holds the client's own scripts, XOR'd with
+  a repeating 12-byte key (see phase 19). Decrypting `ItemTrans.lua` gives ~43,577
+  **item id → live English name** pairs; `Item.lua` gives an item's icon and its
+  `BFI_BUFF_*` / ability names; `SkillData.lua` gave phase 21 its entire
+  item→class→skill mapping. `ScriptData/ItemTemplet.xlsx` contains **none** of the
+  ids in this batch.
+- **`db_backup/` in the game directory** holds dated saves. The one from 20:03 on
+  2026-09-04 — three hours before the session that produced `ISSUES.md` — named
+  both phase 19's and phase 20's items in a single diff against the live save.
+
+### 5. Resolve ids; do not pattern-match names.
+
+Phase 22's first pass declared "the cash shop seeds no memo cards" after grepping
+2,360 product names for "Note"/"Memo"/"Manual". There are fifteen, products
+184-198 — **named after the skill they teach** (`603002 Phoenix's Affinity`), not
+after what they are. The play-test found them in under a minute.
+
+A name search answers "is there an item called X". That is a different question
+from "is there an item that does X".
+
+### 6. Some cash items are "claimed, not carried".
+
+`Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ` now has three branches that apply
+an effect and never create an inventory item: the class-change ticket, the
+inventory-expansion card, and (phase 22) the cash skill note. The tell is that the
+live server handles the id inside `EGS_GET_PURCHASED_CASH_ITEM_REQ`
+(`GSUserCashShop.cpp`) rather than in the use-item switch (`GSUserInventory.cpp`).
+
+**If a cash item ends up sitting inertly in the bag, check which of those two
+files handles it before assuming the bag path is broken.** Note that some ids
+exist in both forms — `99600 SI_SKILL_NOTE_ITEM` is a real bag item,
+`221600 CI_CASH_SKILL_NOTE_ITEM` is claim-time only, and they do the same thing.
+
+### And the §0.1 count is now seven
+
+Stale refusal comments found and corrected in this batch alone: the bag path's
+"its effect is not implemented offline" (it was, via the `_NOT`), the cube's
+"carried through untouched … so dropping them would empty those two cubes" (it
+was destroying the gauge), `m_vecSkillUnsealed`'s "Nothing offline seals or
+unseals anything" (nothing did, then something did), and
+`EGS_REG_SKILL_NOTE_MEMO_REQ`'s "the memo IDs come from a server table" (they are
+`GetItemID( itemUID )`; there was never a table). **§0.1 is not a caveat about
+one pet message. Assume every self-describing refusal in `X2Lib/Offline/` is as
+old as the phase that wrote it.**
+
+---
+
 ## 1. Shared preamble — paste this into every phase conversation
 
 Each phase below is meant to open a fresh conversation. That conversation gets
 `CLAUDE.md` automatically and this file is in the repo, so it does not need
 pasting — one line starts a phase:
 
-> Read §0, §0.1, §1 and the Phase N section of `OFFLINE_MODE_PHASE9_PLAN.md`, then
-> do Phase N. Don't read the other phase sections — the file is ~1200 lines.
+> Read §0, §0.1, §0.2, §1 and the Phase N section of
+> `OFFLINE_MODE_PHASE9_PLAN.md`, then do Phase N. Don't read the other phase
+> sections — the file is long.
 
 Substitute the phase number. Naming the sections matters: §0 is the bucket
-triage, §0.1 is the stale-refusal check, §1 is this preamble, and skipping them is
-how a phase gets debugged with the wrong technique.
+triage, §0.1 is the stale-refusal check, **§0.2 is what phases 19-22 turned up
+and is the one that would have saved the most time**, §1 is this preamble, and
+skipping them is how a phase gets debugged with the wrong technique.
 
 Two useful variants:
 
 - **To plan before building:** append *"Investigate and confirm the diagnosis
   first — don't edit anything until you've shown me what you found."* Worth doing
   for the phases marked HYPOTHESIS (14, 17, 18, 27).
-- **To carry a finding forward:** phases 19-22 and 23-26 share root causes, so
-  start the follow-up with *"Phase 19 found <the gate>; check whether Phase 20 is
-  the same gate before implementing anything."*
+- **To carry a finding forward:** phases 23-26 are expected to share root causes,
+  so start the follow-up with *"Phase 23 found <the gate>; check whether Phase 24
+  is the same gate before implementing anything."* Phases 19-22 were predicted to
+  share one and did not — see §0.2 — so treat the prediction as a hint, not a
+  premise.
 
 The five standing facts each conversation needs, and which §1 exists to supply:
 
@@ -200,22 +309,36 @@ below say otherwise.
 | **16** | 19 | PvP rank not drawn in character list | C | CONFIRMED | no |
 | **17** | 18 | Result screen shows no reward | C | HYPOTHESIS | no |
 | **18** | 8  | "Fetch aura" emptied my wallet | C | HYPOTHESIS — **and the ED is intact** | no |
-| **19** | 2  | Elixir cannot be used | B | CONFIRMED (bucket) | no |
-| **20** | 11 | Stamina potion not working | B | CONFIRMED (bucket) | no |
-| **21** | 9  | "Camilla's secret manual" unusable | B | CONFIRMED (bucket) | no |
-| **22** | 12 | Skill notebook not working | B | CONFIRMED (bucket) | no |
+| **19** | 2  | Elixir cannot be used | ~~B~~ **C** | **DONE 2026-09-05** | no |
+| **20** | 11 | Stamina potion not working | ~~B~~ **C** | **DONE 2026-09-05** | no |
+| **21** | 9  | "Camilla's secret manual" unusable | ~~B~~ **C** | **DONE 2026-09-05** | no |
+| **22** | 12 | Skill notebook not working | ~~B~~ **C** | **DONE 2026-09-05** | no |
 | **23** | 4  | Cannot enhance equipment | A + B | CONFIRMED | **yes — enchant tables** |
 | **24** | 3  | Cannot socket equipment | A + B | CONFIRMED | **yes — socket tables** |
 | **25** | 5  | Cannot use magic amulet | A | CONFIRMED | **yes — attach tables** |
 | **26** | 10 | Cannot add equipment attributes | A | CONFIRMED | **yes — attrib tables** |
 | **27** | 17 | Regular drop ("Aqua") never drops | C | HYPOTHESIS | no |
 
-**Phases 19-22 share one root cause and probably one flag.** They are four
-symptoms of the same bucket-B gate. Run **phase 19 first**; it is the one that
-identifies the gate. Phases 20-22 then become "does the same fix cover this item
-too?" and may collapse into a single follow-up conversation. They are numbered
-separately so that if they turn out to be four different gates you have four
-slots.
+**~~Phases 19-22 share one root cause and probably one flag.~~ They did not.**
+All four are done (2026-09-05) and they were four unrelated defects in four
+different packets. Keeping the prediction here because being wrong about it cost
+nothing — the phases were numbered separately "so that if they turn out to be
+four different gates you have four slots", which is exactly what happened — but
+the reasoning behind it is worth not repeating:
+
+| Phase | The packet it actually was | The defect |
+|---|---|---|
+| 19 | `EGS_USE_ITEM_IN_INVENTORY_REQ` | ACK sent, no `_NOT`, so the buff never applied |
+| 20 | `EGS_OPEN_RANDOM_ITEM_REQ` | ACK field passed through raw; it is an absolute, so the potion *emptied* the bar |
+| 21 | `EGS_USE_ITEM_IN_INVENTORY_REQ` | ACK sent, no `EGS_UNSEAL_SKILL_NOT`, and the load path re-sealed it |
+| 22 | `EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ` | claim-time item claimed into the bag instead of being applied |
+
+**And none of the four was bucket B.** §0 put all four there on the strength of
+"the event name is absent from the `C->S` census". That test has a blind spot:
+absence of a *use* packet does not mean absence of a packet. Two of the four rode
+on a packet nobody thought to look for (the cube open, the cash claim), and the
+other two sent the expected packet and got a successful ACK back — bucket C — in
+a *different session* from the one the census covered. See §0.2.
 
 **Phases 23-26 are one feature** — the item workshop — split four ways because
 each needs a different table from the user. **Run phase 23 first**; it establishes
@@ -1514,6 +1637,188 @@ into `MODS.md` or a note the next conversation can read.
 An elixir is used from the inventory, its effect applies, the count drops, and
 `offline_server.log` shows `ITEM used item <id> from the bag`.
 
+### What actually happened
+
+The plan's step 3 — instrument every early return and settle it in one play-test —
+was never needed, because the item turned out to be identifiable from data
+already on disk, and once it was named the gate fell out of the code in one read.
+
+#### First: the item is `78894`, `Giant Potion (Elixir)`
+
+The session that produced `ISSUES.md` ran 23:19–00:06 on 2026-09-04/05.
+`db_backup/els_db.sql` in the game directory is a snapshot of the save from
+**20:03 that same evening**, three hours before it. Diffing that snapshot against
+today's `els_db.sql` shows what unit 12 was carrying when the defects were
+written:
+
+```
+(4, 4) OLD (78894, 30) Giant Potion (Elixir)   NEW (109999, 1) The First Job Change Promotion Cube
+(4, 5) OLD (78894, 30) Giant Potion (Elixir)   NEW (110850, 1) The Second Job Change Promotion Cube
+(4, 6) OLD (78894, 30) Giant Potion (Elixir)   NEW (135184, 100) Sage's Magic Stone
+(4, 7) OLD (78894,  4) Giant Potion (Elixir)   NEW (221600, 1) ?
+(4, 8) OLD (77200, 96) Stamina Potion          NEW (130079, 2) Weapon Enhancement Stone Lv.3
+```
+
+Category 4 is `CX2Inventory::ST_SPECIAL`. Four stacks of `78894` totalling 94 of
+the 100 the offline cash shop grants (`X2OfflineCashSeed.h:75`) — so six had
+already been consumed — and, for free, **phase 20's item as well**:
+`77200 Stamina Potion`, 96 of 100. Both are gone from the save today, which is
+why reading only the current `els_db.sql` finds neither.
+
+`78894` is `ELIXIR_GIANT_POTION` ([X2Define.h:1458](X2Lib/X2Define.h#L1458)), one
+of the eight `SERV_NEW_DEFENCE_DUNGEON` elixirs. It is **not** `215680 Mana
+Elixir`, the quick-bar item that also survives in the save and that a name-guess
+lands on first.
+
+#### How the names were read — this is reusable, and it is new
+
+`ScriptData/ItemTemplet.xlsx` is useless here: none of `78894`, `77200`,
+`215680`, `500040` or `500720` exists in it, exactly as `CLAUDE.md`'s *stale
+snapshot* rule warns. The client's own item table was read instead.
+
+The game directory holds an unpacked `data036/` beside the `.kom` files, and
+every `.lua` in it is XOR-encrypted with a **repeating 12-byte key**:
+
+```
+02 AA F8 C6 DC AB 47 26 EF BB 00 98
+```
+
+Recovered as known-plaintext against the Lua 5.1 header (`1B 4C 75 61 51 00 01 04
+04 04 08 00`); the period was confirmed independently by autocorrelation over
+200 KB of `Item.lua` — peak at displacement 12, with 24/36/288/300 as harmonics.
+XOR the file with that key and out comes ordinary `luac` 5.1 bytecode
+(`@Item.lua`, `@ItemTrans.lua`, …). `ItemTrans.lua`'s constant pool is a flat
+`number, name, description` run, so a 20-line scan for a `TNUMBER` followed by a
+`TSTRING` yields **43,577 item id → English name pairs** — the live US names, not
+the KR spreadsheet's. That is also why `221600` prints as `?` above: it is absent
+from `ItemTrans.lua` too.
+
+It settles the buff question directly as well. Dumping the strings around the
+`78894` constant in `Item.lua` gives:
+
+```
+'Giant Potion (Elixir)', 'HQ_Shop_Item_78894.dds', 'BFI_BUFF_ELIXIR_GIANT_POTION'
+```
+
+— the client's own row for the item carries a `BUFF_FACTOR` entry. So
+`pItemTemplet->GetNumBuffFactorPtr()` is non-zero for it, and
+`CX2Game::ApplyBuffFactorToGUUser` can apply the real effect with no server data
+at all.
+
+#### The gate, in two halves
+
+**Half one is stock client behaviour, not an offline defect.** In
+`CX2UIInventory::OnRClickedItem` the eight `SERV_NEW_DEFENCE_DUNGEON` elixirs and
+the four `BELSSING_OF_*` blessings share one `case`
+([X2UIInventory.cpp:6723-6771](X2Lib/X2UIInventory.cpp#L6723)):
+
+```c
+switch ( g_pMain->GetNowStateID() )
+{
+case CX2Main::XS_DUNGEON_GAME:
+case CX2Main::XS_BATTLE_FIELD:
+    Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( m_DefencedungeonPotion, 1, m_DefencedungeonPotionID );
+    break;
+default:
+    KTDGUIOKMsgBox( ... GET_STRING( STR_ID_16529 ) ... );   // no packet, ever
+    return true;
+}
+```
+
+Right-clicked in a village or a field, the elixir puts **no byte on the wire** —
+exactly the §0 bucket-B signature the plan measured, and it would look identical
+against the live server. Nothing to fix.
+
+#### Half two is the real defect
+
+The plan's evidence could not see it, because it happened in an *earlier*
+session: those six missing elixirs. Inside a dungeon the packet **is** sent, and
+`CX2OfflineServer::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ` consumed the item,
+replied `NET_OK`, logged `ITEM used item ... from the bag` — and applied nothing.
+The client's ACK handler
+([X2UIInventory.cpp:8908](X2Lib/X2UIInventory.cpp#L8908)) only refreshes the bag,
+the ED and the sort order; it never touches the unit. So the elixir was eaten and
+did nothing, six times over.
+
+This is **phase 4's correction 6 for the fifth time**: the `_NOT` is what applies
+an item, the ACK only bookkeeps. `Handlers_Inventory.cpp` already carried that
+comment — on the quick-slot handler, twenty lines below the bag handler that
+needed it too.
+
+#### The fix
+
+One block in `Handler_EGS_USE_ITEM_IN_INVENTORY_REQ`: after the consume succeeds
+and the ACK is away, if the session is in `S_ROOM` and the item templet has a
+special ability or a buff factor, send `EGS_USE_QUICK_SLOT_NOT` with the item id
+and the unit uid. `CX2UIQuickSlot::Handler_EGS_USE_QUICK_SLOT_NOT`
+([X2UIQuickSlot.cpp:1003-1077](X2Lib/X2UIQuickSlot.cpp#L1003)) is the client's
+**only** caller of `UseItemSpecialAbility` and `ApplyBuffFactorToGUUser`, and it
+works off the item id alone — it does not care that the item came from a quick
+slot. Both guards matter: its `default:` branch is an
+`ASSERT( !L"Can not use this item in this State" )`, and an item with neither an
+ability nor a buff factor would only add a spurious "you used X" chat line.
+
+**Deliberately not done: the live server's own mechanism.**
+`KGSUser::ActivateItemBuff`
+([GSUserFunction.cpp:15978](KncWX2Server/GameServer/GSUserFunction.cpp#L15978))
+maps the item to a `CXSLBuffManager::BTI_*` id, activates a server-owned buff
+with a wall-clock duration, and pushes the whole world-buff list back as
+`EGS_UPDATE_BUFF_INFO_IN_ROOM_NOT`. Reproducing that needs a **buff factor id**,
+and the client cannot derive one from a buff templet id — `CX2BuffTemplet` does
+not store its factor list, and `CX2BuffTempletManager::GetBuffFactorPtr` is
+indexed, not keyed. It would also need a persisted buff table. The item's own
+`BUFF_FACTOR` reaches the same factor by the path the quick-slot potions already
+use offline. **The behavioural difference to know about:** the buff lasts the run
+rather than a wall-clock duration across rooms, and it draws no buff icon in the
+village.
+
+#### Hand off to phases 20-22
+
+- **Phase 20's item is `77200 Stamina Potion`** — 96 of them in the special tab
+  at 20:03, in the diff above. Check its `Item.lua` row for a `BUFF_FACTOR` or a
+  special ability before assuming anything. If it has one and is used inside a
+  dungeon, **this phase's fix already covers it** and phase 20 may be a
+  five-minute confirmation. If it is meant to be used in a village, it is a
+  different path: `Handler_EGS_USE_QUICK_SLOT_NOT` asserts outside a room, and
+  `CX2GageData::UseSpecialAbilityInVillage` (`X2UIQuickSlot.cpp:975`) is the
+  village equivalent.
+- **The gate to read first for any "cannot use item X" defect** is
+  `CX2UIInventory::OnRClickedItem`'s giant item-id `switch`
+  (X2UIInventory.cpp:6214-6900). Most items fall through its `default:` and send
+  the packet; the ones that do not are gated on game state, on some other UI
+  being open, or on a confirm dialog — and none of those gates ever reaches the
+  offline server.
+- **Name the item before theorising.** The `data036/` XOR key above turns "the
+  elixir" into `78894` in about a minute, and the pre-session
+  `db_backup/els_db.sql` says what the character was actually holding when the
+  defect was written. Both were available to every earlier phase and neither was
+  used.
+
+**How this hand-off actually fared:** the item ids were right and saved phase 20
+its whole diagnosis. The *prediction* was wrong — the Stamina Potion is a cube on
+`EGS_OPEN_RANDOM_ITEM_REQ`, so this phase's fix does not touch it and phase 20
+was not a five-minute confirmation. Neither phase 21 nor 22 shared this gate
+either. The second and third bullets, which are technique rather than prediction,
+both paid off. See §0.2.
+
+#### Exit test status
+
+**Verified in play, 2026-09-05.** The test has to be run *inside a dungeon or a
+battlefield* — that is the only place the stock client will send the packet at
+all. `offline_server.log`, on two different elixirs:
+
+```
+[12:28:29.429] ITEM     used item 78894 from the bag
+[12:28:29.429] ITEM     item 78894 has 0 ability / 1 buff factor(s) - sent USE_QUICK_SLOT_NOT so the effect applies
+[12:29:11.196] ITEM     used item 78896 from the bag
+[12:29:11.196] ITEM     item 78896 has 0 ability / 1 buff factor(s) - sent USE_QUICK_SLOT_NOT so the effect applies
+```
+
+`0 ability / 1 buff factor` is the confirmation that mattered: it is the client's
+own `Item.lua` row for the item reporting exactly one `BFI_BUFF_*` entry and no
+special ability, which is what `ApplyBuffFactorToGUUser` needs and what the
+static read of the bytecode predicted.
+
 ---
 
 # Phase 20 — Stamina potion not working (`ISSUES.md` #11)
@@ -1548,6 +1853,105 @@ column and whether anything decrements it.
 ### Exit test
 Either the potion restores stamina and the bar moves, or using it is refused with
 a message and the potion is not consumed.
+
+### What actually happened
+
+Phase 19's hand-off named the item (`77200 Stamina Potion`, 96 of them in the
+special tab at 20:03) and guessed it might be covered by phase 19's fix. It is
+not — it is a different packet entirely, and the defect is worse than "does
+nothing": **the potion was emptying the stamina bar.**
+
+#### The potion is a cube, not a bag item
+
+`77200` is `SPIRIT_POTION_ITEM_ID` ([X2Define.h:932](X2Lib/X2Define.h#L932)) and
+it has a row in `RandomItemTable.lua`, so `CX2UIInventory::OnRClickedItem` falls
+past the whole `GetCanUseInventory()` block into the random-item path and sends
+`EGS_OPEN_RANDOM_ITEM_REQ`. It is also in `NO_CUBE_OPEN_ITEM_ID[]`, which only
+picks the plain confirm dialog over the cube-opening animation. So this was never
+`EGS_USE_ITEM_IN_INVENTORY_REQ` and phase 19's `_NOT` does not touch it.
+
+#### `m_iRestoreSpirit` is not the amount to restore
+
+That is the whole defect, and the field name is the trap. On the live server:
+
+```c
+iRestoreSpirit = m_kUserSpiritManager.RestoreSpirit( iRestoreSpirit );
+```
+[GSUserInventory.cpp:2099](KncWX2Server/GameServer/GSUserInventory.cpp#L2099) —
+and `KUserSpiritManager::RestoreSpirit` adds, clamps to the max, and **returns the
+new absolute spirit** ([UserSpiritManager.cpp:40](KncWX2Server/GameServer/UserSpiritManager.cpp#L40)).
+The client then assigns it straight onto the unit:
+
+```c
+int getSpirit = ack.m_iRestoreSpirit - unit->m_iSpirit;
+getSpirit = (int)( getSpirit / (float)unit->m_iSpiritMax * 100.0f );   // shown as "+N%"
+unit->m_iSpirit = ack.m_iRestoreSpirit;                                // absolute
+```
+[X2UIInventory.cpp:9690-9697](X2Lib/X2UIInventory.cpp#L9690).
+
+The offline handler passed the raw table value through:
+
+```c
+kAck.m_iRestoreSpirit = pData->m_iRestoreSpirit;
+```
+
+with a comment saying it was "carried through untouched … what a stamina cube
+exists to hand over". `RandomItemTable.lua`'s row for `77200` is
+`m_iRestoreSpirit = 1440` (also
+[KncWX2Server/ServerResource/US/RandomItemTable.lua:229-236](KncWX2Server/ServerResource/US/RandomItemTable.lua#L229)),
+and offline pins spirit to `SHRT_MAX` in `CX2OfflineServer::FillSpirit`. So
+drinking a Stamina Potion set the gauge to **1440/32767 = 4.4%** and popped a
+message box reading **"stamina restored by -95%"**. Four of them were drunk before
+the `ISSUES.md` session, which is why the count had gone 100 → 96.
+
+#### Why the plan's bucket-B reading was wrong
+
+§0 put this in bucket B ("the client never sent the packet") on the grounds that
+no `EGS_*STAMINA*` or `EGS_*VITAL*` event id exists. Neither does — the system is
+spelled **SPIRIT** in this codebase (`EGS_RESTORE_SPIRIT_NOT`,
+`EGS_DECREASE_SPIRIT_NOT`, `m_iSpirit`, `KSpiritTable`), and the potion rides on
+`EGS_OPEN_RANDOM_ITEM_REQ` regardless. A grep for the English word the UI shows
+missed a subsystem the offline server had already half-implemented.
+
+#### The fix: model it, then refuse the no-op
+
+The offline server pins spirit full on purpose — `FillSpirit` returns `SHRT_MAX`
+for both current and max, with a comment explaining that `SHRT_MAX` is the
+largest value `dbo.GSpirit`'s `smallint` column can hold and therefore clears
+every dungeon's `m_RequireSpirit` entry check. Nothing offline ever decrements
+it, so there is genuinely nothing for a potion to restore.
+
+So the handler now does the arithmetic the server does — `min( max, spirit +
+restore )` — **before** the cube is consumed, and refuses with
+`ERR_RANDOM_ITEM_05` ("The cube cannot be opened") plus a log line when the
+answer is a no-op. The potion stays in the bag. Written as a real clamp rather
+than an unconditional refusal so that if spirit is ever modelled properly the
+potion starts working with no further change.
+
+This is the plan's second exit-test branch, taken deliberately: "*or using it is
+refused with a message and the potion is not consumed*". Modelling stamina for
+real would need `MAX_SPIRIT` out of `SpiritTable.lua`, which is **not** in
+`KncWX2Server/ServerResource/US/` — and it would make offline play strictly worse
+by gating dungeon rewards behind a daily counter nobody can refill.
+
+#### Also found, not fixed
+
+`m_iRessurectionCount` on the same ACK has the identical absolute-vs-delta shape
+(`SetResurrectionStoneNum( ack.m_iRessurectionCount )`,
+[X2UIInventory.cpp:9656](X2Lib/X2UIInventory.cpp#L9656)) and is still passed
+through raw. That is harmless only while the character holds no resurrection
+stones, which offline it always does — `EGS_SELECT_UNIT_1_NOT` sends
+`m_iNumResurrectionStone = 0`. A comment now says so at the call site.
+
+#### Exit test status
+
+**Verified in play, 2026-09-05.** The Stamina Potion is cash product 56 (100 for
+the seeded price). Right-clicked twice, refused twice, stack intact:
+
+```
+[13:02:06.848] CUBE     refused - item 77200 restores 1440 stamina but stamina is already 32767/32767 offline, so it would be spent for nothing (the potion is left in the bag)
+[13:02:09.385] CUBE     refused - item 77200 restores 1440 stamina but stamina is already 32767/32767 offline, so it would be spent for nothing (the potion is left in the bag)
+```
 
 ---
 
@@ -1587,6 +1991,105 @@ the skill lands first and the item is consumed only on success.
 ### Exit test
 Use the manual: the skill appears in the skill window and survives a relog; or the
 use is refused with a message and the item is intact.
+
+### What actually happened
+
+The plan's guess — "a skill-unlock book … very likely exactly that case, and the
+current behaviour is a deliberate safety refusal" — was right about *what the
+item is* and wrong about *why nothing happened*. The item never reached the
+`GetCanUseInventory()` refusal, because the mapping it needed turned out to be
+client data that was sitting in `data036/` all along.
+
+#### The item, and where its skill list lives
+
+`Camilla's Secret Manual` is four items, `270970`–`270973`
+(Basic / Intermediate / Advanced / Expert), all four sold by the offline cash
+shop (`X2OfflineCashSeed.h:116-119`). `ItemTrans.lua`'s description settles what
+they do with no ambiguity:
+
+> Camilla's Secret Manual that contains information on a Basic skill.
+> Use this item to learn your character's **sealed** Basic skill.
+
+They are `AddSealSkillInfo` rows in **`SkillData.lua`** — a client script, packed
+in `data036`, already parsed into `CX2SkillTree::m_mapSealSkillItemTemplet` at
+startup. Decrypted (see phase 19 for the key), `270970`'s row reads:
+
+```
+m_iItemID = 270970, m_eUnitClassType = UCT_FIRST_CLASS,
+m_SkillID = { 1209, 1214, 1223, 2006, 2407, 2414, 3208, 3214, 3225, 4005,
+              4215, 4220, 5209, 5011, 5018, 6005, 6012, 6222, 7211, 7215 }
+```
+
+— twenty skills, one per class-and-tier, and `270972`/`270973` carry the
+`UCT_SECOND_CLASS` set. So there was never any server data to ask for: the
+item → class → skill mapping ships with the client.
+
+#### What the client already does, and what it needs back
+
+`CX2UIInventory::OnRClickedItem` recognises the manual at
+[X2UIInventory.cpp:6161](X2Lib/X2UIInventory.cpp#L6161), resolves the one skill
+of the twenty that is in *this* character's tree with
+`CX2SkillTree::GetUnsealSkillItemInfo`, refuses with `STR_ID_3856` and **no
+packet** if none is (that is the bucket-B half, and it is stock behaviour), and
+otherwise pops a confirm box and sends `EGS_USE_ITEM_IN_INVENTORY_REQ`.
+
+Past that point it is phase 19's shape again: **the ACK unlocks nothing.** The
+live server replies OK and then, out of `DBE_UNSEAL_SKILL_ACK`, pushes a separate
+`EGS_UNSEAL_SKILL_NOT { m_iSkillID }`
+([GSUserGameCommon.cpp:6716-6730](KncWX2Server/GameServer/GSUserGameCommon.cpp#L6716)).
+`CX2SkillTree::Handler_EGS_UNSEAL_SKILL_NOT` is the only thing in the client that
+calls `AddSkillUnsealed`, redraws the tree and opens the "skill unsealed" dialog.
+Offline sent no such packet, so the manual was consumed and the skill stayed
+sealed.
+
+#### And it had to survive a relog
+
+`CX2UserSkillTree::SetUnsealedSkill` **replaces** the whole set from
+`EGS_SELECT_UNIT_1_NOT::m_vecSkillUnsealed`, which the offline server was
+clearing unconditionally — with a comment reading *"Nothing offline seals or
+unseals anything, and an empty list reads as 'no skill has been unsealed', which
+is correct rather than a stub."* True when it was written; it would have re-sealed
+the skill on the next login the moment the unseal worked. This is the §0.1
+pattern for the third time in this batch.
+
+#### The fix
+
+- **Schema v10**, `unit_skill_unsealed( unit_uid, skill_id )` — `dbo.GUnsealSkill`
+  on live. Additive rung, so existing saves upgrade.
+- `CX2OfflineSkill` grows the unsealed set, loads it in `Load()`, and gets
+  `SkillForUnsealItem()` — a thin wrapper over the client's own
+  `IsUnsealSkillItemID` / `GetUnsealSkillItemInfo`, so the resolution is the same
+  call, on the same data, as the client made a moment earlier.
+- `Handler_EGS_USE_ITEM_IN_INVENTORY_REQ` refuses **before consuming** when the
+  item unseals nothing for this class or the skill is already unsealed
+  (`ERR_USE_ITEM_IN_INVENTORY_00`, the code the live server uses for the class
+  mismatch at [GSUserInventory.cpp:5596](KncWX2Server/GameServer/GSUserInventory.cpp#L5596)),
+  and after consuming sends `EGS_UNSEAL_SKILL_NOT`. That order is the plan's
+  Trap, honoured: the manual is never spent on a grant that cannot land.
+- `EGS_SELECT_UNIT_1_NOT` now fills `m_vecSkillUnsealed` from the save.
+
+#### Exit test status
+
+**Verified in play, 2026-09-05.** All four manuals used on a Rena, each
+resolving to a different skill, and the unlocked one then learned and slotted:
+
+```
+[12:59:05.289] ITEM     used item 270970 from the bag
+[12:59:05.289] SKILL    item 270970 unsealed skill 3214
+[12:59:07.408] SKILL    item 270971 unsealed skill 3013
+[12:59:08.973] SKILL    item 270972 unsealed skill 3222
+[13:00:39.193] SKILL    item 270973 unsealed skill 3409
+[12:59:26.634] SKILL    skill 3013: level 0 -> 5
+```
+
+Persistence confirmed on the next launch —
+`SKILL loaded for unitUID=12: 18 skill row(s), 4 unsealed, …` — and in the save
+itself, `unit_skill_unsealed` holding `(12, 3214) (12, 3013) (12, 3222)
+(12, 3409)`.
+
+Note the tier rule: `270970`/`270971` are `UCT_FIRST_CLASS` and
+`270972`/`270973` are `UCT_SECOND_CLASS`, and a manual with nothing for the
+current class is refused by the *client*, before the server sees it.
 
 ---
 
@@ -1629,6 +2132,186 @@ cheap to check.
 
 ### Exit test
 The notebook opens, a preset saves, and it is still there after a relog.
+
+### What actually happened
+
+The plan's hypothesis was right in substance and wrong about the packet. It said
+the client "likely believes it has **zero pages** and disables the UI", and named
+`EGS_EXPAND_SKILL_NOTE_PAGE_NUM_NOT` as the thing nothing offline originates.
+The zero was real; it was arriving on a different packet, and it was a literal in
+our own code:
+
+```c
+kNot.m_cSkillNoteMaxPageNum         = 0;
+kNot.m_mapSkillNote.clear();
+```
+`Handlers_Unit.cpp`, inside `EGS_SELECT_UNIT_1_NOT`. Both fields ride on the
+character-load packet (`KEGS_SELECT_UNIT_ACK` / `_1_NOT`,
+[CommonPacket.h:8178](KncWX2Server/Common/CommonPacket.h#L8178)), and the `_NOT`
+the plan named is only the *later* push for when the count changes mid-session.
+
+With the count at 0, `CX2UIInventory::OnRClickedItem`'s `IT_SKILL_MEMO` branch
+hits `GetMaxSkillNoteSlot() <= 0`, shows `STR_ID_4988` and returns without
+sending — bucket B, exactly as described.
+
+#### 0 is the right default, and the note is what changes it
+
+The page count is not a constant to be looked up; it is *earned*. Two items grant
+it and both call the same function:
+
+- `CXSLItem::SI_SKILL_NOTE_ITEM` = **99600**, "Skill Notebook"
+  ([GSUserInventory.cpp:4610](KncWX2Server/GameServer/GSUserInventory.cpp#L4610))
+- `CXSLItem::CI_CASH_SKILL_NOTE_ITEM` = **221600**, the cash version
+  ([GSUserCashShop.cpp:1585](KncWX2Server/GameServer/GSUserCashShop.cpp#L1585))
+
+Both do `GetExpandSkillNotePage( GetLevel(), n )` then
+`UpdateSkillNoteMaxPageNum( n )`. And `GetExpandSkillNotePage` is a plain C++
+table in the repo, not server Lua —
+[UserSkillTree.cpp:907-940](KncWX2Server/GameServer/UserSkillTree.cpp#L907):
+
+| level | pages |
+|---|---|
+| below 20 | none (returns false) |
+| 20-29 | 1 |
+| 30-39 | 2 |
+| 40-49 | 3 |
+| 50-59 | 4 |
+| 60-69 | 5 |
+
+So the plan's "find that default in the client's own constants or in
+`KncWX2Server/`; do not pick a number" is satisfied by transcribing that switch.
+`221600`'s own item description agrees: *"Level Requirement: 20 or higher"*.
+
+**`221600` is the one that matters here**: it is cash product 65 in
+`X2OfflineCashSeed.h` and `99600` is not in the seed at all, so the cash note is
+the only route to a page offline — and it is the item `reyaa` was already
+carrying in special slot 7 when `ISSUES.md` was written. (It shows as `???` in
+phase 19's inventory dump because `ItemTrans.lua` has no name row for it.)
+
+#### The fix
+
+- **Schema v10** (shared with phase 21): `unit.skill_note_page` for the count and
+  `unit_skill_note( unit_uid, page, memo_id )` for the memos — two separate
+  things, the way the server reads them back with two separate procedures,
+  `gup_get_notecnt` and `gup_get_note`
+  ([GSGameDBThread.cpp:1822-1845](KncWX2Server/GameServer/GSGameDBThread.cpp#L1822)).
+- `CX2OfflineSkill` loads both in `Load()` and gains
+  `ExpandSkillNotePageForLevel()` (the table above, verbatim),
+  `SetSkillNoteMaxPage()` and `RegisterSkillNoteMemo()`.
+- `Handler_EGS_USE_ITEM_IN_INVENTORY_REQ` accepts either note id: refuses before
+  consuming with `ERR_SKILL_NOTE_07` below level 20 and `ERR_SKILL_NOTE_06` when
+  it would not grow what the character owns, and otherwise consumes and sends
+  `EGS_EXPAND_SKILL_NOTE_PAGE_NUM_NOT`. That is the packet that calls
+  `SetSkillNoteMaxPage` **and** `HideSkillNote( false )`, which is what makes the
+  skill-note button appear in the inventory.
+- `EGS_SELECT_UNIT_1_NOT` fills both fields from the save, so a page survives a
+  relog.
+- `Handler_EGS_REG_SKILL_NOTE_MEMO_REQ` is implemented properly. Its stub said
+  *"the memo IDs come from a server table"* — they do not. `KGSUser` reads the
+  memo ID straight off the item being spent:
+  `const int iMemoID = m_kInventory.GetItemID( m_iItemUID )`
+  ([GSUserGameCommon.cpp:7260](KncWX2Server/GameServer/GSUserGameCommon.cpp#L7260)).
+  There was never a table to be missing — a fourth §0.1 case. The handler now
+  makes the same three checks in the same order (item exists, page exists, memo
+  not already registered), consumes the memo only after they pass, and returns
+  `m_vecSkillNote` so `SetEqipSkillMemo` applies the memo's effect.
+
+#### A claim made here was wrong: the shop *does* sell memo cards
+
+The first pass said "A preset saves" could not be tested because the offline cash
+shop seeds no `IT_SKILL_MEMO` card. **That was wrong**, and the play-test found it
+within a minute — three memos were registered on the first try.
+
+The search that produced the claim was the mistake: it grepped the 2,360 seeded
+product names for "Note", "Memo" or "Manual". **Memo cards are named after the
+skill they teach**, not after what they are — `603002 Phoenix's Affinity`,
+`603004 Easy Catch`, `603010 Concentrated Air Technique`. There are fifteen of
+them in `X2OfflineCashSeed.h`, products 184-198, ids `603001`-`603015`, and they
+were sitting in the seed the whole time.
+
+The general lesson is the same one phase 19 wrote down and this phase then
+ignored: **resolve ids, do not pattern-match names.** A name search answers
+"is there an item called X", which is a different question from "is there an item
+that does X".
+
+#### Exit test status
+
+**Failed in play** — see the second pass below. The play-test produced one line
+about `221600` and it was `ITEM discarded`, not `ITEM used`: the client never sent
+a use packet for it at all, so the bag branch this pass added could not fire.
+
+#### Second pass — it is a claim-time item, not a bag item
+
+The first pass got the page table and the persistence right and the **packet
+wrong**, and the play-test said so immediately. `offline_server.log`:
+
+```
+[13:00:11.450] ITEM     discarded 1 x item 221600 (itemUID=169)
+```
+
+A discard, and nothing else. No `ITEM used item 221600 from the bag`, no refusal —
+so the client never sent `EGS_USE_ITEM_IN_INVENTORY_REQ` for it at all, and the
+bag branch that pass added could not fire.
+
+**221600 is never a bag item on the live server.** The two note ids are handled in
+two different places, and only one of them is the use-item switch:
+
+| id | server handler | when |
+|---|---|---|
+| `99600` `SI_SKILL_NOTE_ITEM` | [GSUserInventory.cpp:4610](KncWX2Server/GameServer/GSUserInventory.cpp#L4610) | used from the bag |
+| `221600` `CI_CASH_SKILL_NOTE_ITEM` | [GSUserCashShop.cpp:1585](KncWX2Server/GameServer/GSUserCashShop.cpp#L1585) | **claimed out of the cash deposit** |
+
+Both call `GetExpandSkillNotePage` then `UpdateSkillNoteMaxPageNum`; the cash one
+does it inside `EGS_GET_PURCHASED_CASH_ITEM_REQ`, so the note is spent at the
+moment it is picked out of the deposit window and no inventory item is ever
+created. The offline claim handler had no branch for it, so it fell to the
+generic "insert into the bag" tail and produced an item that sits there and
+cannot be used — which is precisely `ISSUES.md` #12.
+
+And 221600 is the only route offline: `99600` is not in `X2OfflineCashSeed.h`.
+
+#### The corrected fix
+
+`Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ` now has a **claimed, not carried**
+branch for `CASH_SKILL_NOTE_ITEM_ID`, the third of that shape in the same handler
+after the class-change ticket and the inventory-expansion card, and written to
+match them: both refusals (level below 20, or no more pages than the character
+already has) happen *before* `DeleteCashOrder`, so a refused note stays claimable
+in the deposit rather than vanishing.
+
+`99600` is deliberately left on the bag path — that one really is a bag item on
+live, and the branch the first pass added is correct for it.
+
+#### What the first pass got right and keeps
+
+Everything except the packet: schema v10's `unit.skill_note_page` and
+`unit_skill_note`, `ExpandSkillNotePageForLevel` transcribed from
+[UserSkillTree.cpp:907](KncWX2Server/GameServer/UserSkillTree.cpp#L907), the
+`EGS_SELECT_UNIT_1_NOT` fill so a page survives a relog, and the real
+`EGS_REG_SKILL_NOTE_MEMO_REQ` handler. The v10 migration is already proven on the
+live save — `pragma user_version` reads 10 and phase 21's four unsealed skills
+are sitting in `unit_skill_unsealed`.
+
+#### Exit test status, second pass
+
+**Verified in play, 2026-09-05 — both halves.** The note claimed out of the
+deposit window at level 50 gave 4 pages, and three memo cards were then
+registered into them:
+
+```
+[13:08:50.622] CASH     claimed line 50: item 221600 gave the skill note 4 page(s)
+[13:09:19.735] SKILL    memo 603002 registered on page 0 (1 memo(s) now)
+[13:09:28.089] SKILL    memo 603010 registered on page 1 (2 memo(s) now)
+[13:09:32.504] SKILL    memo 603004 registered on page 2 (3 memo(s) now)
+```
+
+All of it in the save afterwards: `unit.skill_note_page = 4` for unit 12, and
+`unit_skill_note` holding `(12, 0, 603002) (12, 1, 603010) (12, 2, 603004)`.
+
+Buy the note from the cash shop and **claim it out of the deposit window** rather
+than looking for it in the bag. A `221600` already sitting in a bag from an
+earlier claim is stranded — the client has no path for it there. Discard it and
+buy a fresh one.
 
 ---
 

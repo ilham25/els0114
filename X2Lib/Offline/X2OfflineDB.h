@@ -344,6 +344,7 @@ struct KOfflineUnitRow
 	int				m_iHyperGage;
 	int				m_iAbilCount;		///< WSP / cannonballs / force, per unit type
 	int				m_iTitleID;			///< the worn title, KUnitInfo::m_iTitleID; 0 = none
+	int				m_iSkillNotePage;	///< skill-note pages owned (phase 22); 0 = the note is not owned yet
 	__int64			m_tRegDate;
 	__int64			m_tDelDate;
 	__int64			m_tLastDate;
@@ -370,6 +371,7 @@ struct KOfflineUnitRow
 		, m_iHyperGage( 0 )
 		, m_iAbilCount( 0 )
 		, m_iTitleID( 0 )
+		, m_iSkillNotePage( 0 )
 		, m_tRegDate( 0 )
 		, m_tDelDate( 0 )
 		, m_tLastDate( 0 )
@@ -386,7 +388,7 @@ public:
 	{
 		/// Schema revision. Bump it and add a rung to Migrate() when a later
 		/// phase needs a new table, so existing saves are not wiped.
-		SCHEMA_VERSION			= 9,
+		SCHEMA_VERSION			= 10,
 
 		/// How long after a soft delete the final delete becomes possible.
 		/// Zero: a solo save has nobody to protect a character from, so the
@@ -594,6 +596,25 @@ public:
 	/// slot rather than the skill so an emptied slot can be cleared without
 	/// knowing what used to be in it.
 	bool	SetSkillSlot( UidType nUnitUID, int iSlot, int iSkillID );
+
+	/// Skills the character has unsealed (phase 21). One row per unlocked skill;
+	/// EGS_SELECT_UNIT_1_NOT::m_vecSkillUnsealed is rebuilt from this at load.
+	bool	LoadUnsealedSkills( UidType nUnitUID, OUT std::vector< int >& vecOut );
+
+	/// Idempotent - INSERT OR IGNORE, so using a second manual that resolves to
+	/// the same skill cannot double up a row.
+	bool	SaveUnsealedSkill( UidType nUnitUID, int iSkillID );
+
+	/// The skill-note memo pages (phase 22), page index -> memo item ID. The page
+	/// *count* is `unit.skill_note_page` and rides on KOfflineUnitRow instead;
+	/// the two are separate on the server too (gup_get_notecnt vs gup_get_note).
+	bool	LoadSkillNotes( UidType nUnitUID, OUT std::map< char, int >& mapOut );
+
+	bool	SaveSkillNote( UidType nUnitUID, int iPage, int iMemoID );
+
+	/// Absolute, not incremental - KUserSkillTree::UpdateSkillNoteMaxPageNum is
+	/// an assignment, and GetExpandSkillNotePage returns the total for a level.
+	bool	SaveSkillNotePage( UidType nUnitUID, int iMaxPage );
 
 	//////////////////////////////////////////////////////////////////////////
 	// quests (phase 6)

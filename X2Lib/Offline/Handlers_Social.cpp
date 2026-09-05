@@ -39,6 +39,7 @@
 #include "X2OfflinePetData.h"
 #include "X2OfflineRandomItem.h"
 #include "X2OfflineMapData.h"
+#include "X2OfflineSkill.h"
 
 //////////////////////////////////////////////////////////////////////////
 // guild
@@ -2158,13 +2159,73 @@ bool CX2OfflineServer::Handler_EGS_REG_SKILL_NOTE_MEMO_REQ( KOfflineSession& kSe
 	if( false == ReadReq( kEvent, kReq ) )
 		return false;
 
-	// Writing a skill note into a page of the skill-note book. The memo IDs
-	// come from a server table and nothing offline persists a page, so the
-	// note item is left in the bag.
+	// Phase 22. The stub this replaces said "the memo IDs come from a server
+	// table" - they do not. KGSUser reads the memo ID straight off the item
+	// being spent: `const int iMemoID = m_kInventory.GetItemID( m_iItemUID )`
+	// (GSUserGameCommon.cpp:7260). There was never a table to be missing.
+	//
+	// Order matches the live handler exactly: every check first, then the item
+	// is consumed, then the page is written. A memo registered against an item
+	// that failed to leave the bag would be free.
+	CX2OfflineInventory* pInven = CX2OfflineInventory::Instance();
+	CX2OfflineSkill*	 pSkill = CX2OfflineSkill::Instance();
+
 	KEGS_REG_SKILL_NOTE_MEMO_ACK kAck;
-	kAck.m_iOK					= NetError::ERR_SKILL_00;
+	kAck.m_iOK					= NetError::ERR_SKILL_NOTE_00;
 	kAck.m_cSkillNotePageNum	= kReq.m_cSkillNotePageNum;
 	kAck.m_iMemoID				= 0;
+
+	pSkill->Load( kSes.m_nSelectedUnitUID );
+
+	KOfflineItemRow kRow;
+	if( false == pInven->GetItemRow( kReq.m_iItemUID, kRow ) )
+	{
+		CX2OfflineLog::Server( L"SKILL    memo refused - itemUID=%I64d is not in the bag",
+			(__int64)kReq.m_iItemUID );
+
+		return Reply( kSes, EGS_REG_SKILL_NOTE_MEMO_ACK, kAck );
+	}
+
+	const int iMemoID = kRow.m_iItemID;
+
+	const int iCheck = pSkill->RegisterSkillNoteMemo( (int)kReq.m_cSkillNotePageNum, iMemoID );
+	if( NetError::NET_OK != iCheck )
+	{
+		kAck.m_iOK = iCheck;
+
+		CX2OfflineLog::Server( L"SKILL    memo %d refused for page %d - error %d"
+			L" (%d page(s) owned)",
+			iMemoID, (int)kReq.m_cSkillNotePageNum, iCheck,
+			(int)pSkill->GetSkillNoteMaxPage() );
+
+		return Reply( kSes, EGS_REG_SKILL_NOTE_MEMO_ACK, kAck );
+	}
+
+	KInventoryItemInfo kSlotInfo;
+	if( false == pInven->ConsumeOne( kReq.m_iItemUID, kSlotInfo ) )
+	{
+		kAck.m_iOK = NetError::ERR_SKILL_NOTE_03;
+		return Reply( kSes, EGS_REG_SKILL_NOTE_MEMO_ACK, kAck );
+	}
+
+	kAck.m_iOK		= NetError::NET_OK;
+	kAck.m_iMemoID	= iMemoID;
+	kAck.m_vecInventorySlotInfo.push_back( kSlotInfo );
+
+	// KUserSkillTree::GetSkillNote - every registered memo, in page order. The
+	// client feeds it to SetEqipSkillMemo, which is what makes a memo's passive
+	// actually apply.
+	{
+		const std::map< char, int >& mapNote = pSkill->GetSkillNotes();
+
+		std::map< char, int >::const_iterator mit;
+		for( mit = mapNote.begin(); mit != mapNote.end(); ++mit )
+			kAck.m_vecSkillNote.push_back( mit->second );
+	}
+
+	CX2OfflineLog::Server( L"SKILL    memo %d registered on page %d (%u memo(s) now)",
+		iMemoID, (int)kReq.m_cSkillNotePageNum,
+		(unsigned int)kAck.m_vecSkillNote.size() );
 
 	return Reply( kSes, EGS_REG_SKILL_NOTE_MEMO_ACK, kAck );
 }
@@ -2311,6 +2372,52 @@ bool CX2OfflineServer::Handler_EGS_OPEN_RANDOM_ITEM_REQ( KOfflineSession& kSes, 
 		}
 	}
 
+	// Phase 20: the stamina cube, checked before anything is destroyed.
+	//
+	// KEGS_OPEN_RANDOM_ITEM_ACK::m_iRestoreSpirit is **not** the amount to
+	// restore, whatever its name suggests. The live server computes
+	// `iRestoreSpirit = m_kUserSpiritManager.RestoreSpirit( iRestoreSpirit )`
+	// (GSUserInventory.cpp:2099) - that call adds and clamps, and *returns the
+	// new absolute spirit* - and the client assigns it straight onto the unit:
+	// `m_iSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit`
+	// (X2UIInventory.cpp:9697), printing ( new - old ) / max * 100 as the
+	// percentage gained.
+	//
+	// So passing RandomItemTable.lua's raw `m_iRestoreSpirit = 1440` through was
+	// actively destructive: offline pins spirit to SHRT_MAX in FillSpirit, so
+	// the potion set the gauge to 1440/32767 and the popup read "-95%". That is
+	// ISSUES.md #11, and it was the item 77200 "Stamina Potion".
+	//
+	// Modelled the way the server does it, then refused when the answer is a
+	// no-op. Spirit is pinned full offline (see FillSpirit for why), so there is
+	// never anything to restore and the potion is left in the bag with a message
+	// rather than eaten for nothing. Written as a real min-with-max rather than
+	// an unconditional refusal so that if spirit is ever modelled properly the
+	// potion starts working with no further change here.
+	if( pData->m_iRestoreSpirit > 0 )
+	{
+		int iSpirit		= 0;
+		int iSpiritMax	= 0;
+		FillSpirit( iSpirit, iSpiritMax );
+
+		int iNewSpirit = iSpirit + pData->m_iRestoreSpirit;
+		if( iNewSpirit > iSpiritMax )
+			iNewSpirit = iSpiritMax;
+
+		if( iNewSpirit <= iSpirit )
+		{
+			CX2OfflineLog::Server( L"CUBE     refused - item %d restores %d stamina but stamina is"
+				L" already %d/%d offline, so it would be spent for nothing"
+				L" (the potion is left in the bag)",
+				kRow.m_iItemID, pData->m_iRestoreSpirit, iSpirit, iSpiritMax );
+
+			kAck.m_iOK = NetError::ERR_RANDOM_ITEM_05;
+			return Reply( kSes, EGS_OPEN_RANDOM_ITEM_ACK, kAck );
+		}
+
+		kAck.m_iRestoreSpirit = iNewSpirit;
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// Past here the cube is spent. Consume first, hand over second.
 
@@ -2382,12 +2489,19 @@ bool CX2OfflineServer::Handler_EGS_OPEN_RANDOM_ITEM_REQ( KOfflineSession& kSes, 
 		}
 	}
 
-	// Carried through untouched. Nothing offline consumes either counter - the
-	// resurrection stone count and the stamina restore are read by the client's
-	// own popup - but they are what a resurrection or stamina cube exists to
-	// hand over, so dropping them would empty those two cubes.
+	// Carried through untouched, and it is the resurrection stone count only -
+	// m_iRestoreSpirit was already computed above, because unlike this one it
+	// cannot be a straight copy (see the phase 20 block). Nothing offline
+	// consumes the stone count; the client's own popup reads it, and it is what
+	// a resurrection cube exists to hand over, so dropping it would empty that
+	// cube.
+	//
+	// Note for whoever meets the resurrection cube: the client treats this field
+	// as an absolute total too - `SetResurrectionStoneNum( ack.m_iRessurectionCount )`
+	// at X2UIInventory.cpp:9656, with ( new - old ) shown as the gain. Passing
+	// the table value straight through is right only while the character holds
+	// no stones, which is the offline case today.
 	kAck.m_iRessurectionCount	= pData->m_iRessurectionCount;
-	kAck.m_iRestoreSpirit		= pData->m_iRestoreSpirit;
 
 	kAck.m_iOK = NetError::NET_OK;
 

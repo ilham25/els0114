@@ -554,13 +554,21 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 		pSkill->Load( kRow.m_nUnitUID );
 		pSkill->GetAcquiredSkills( kNot.m_vecSkillAcquired );
 
-		// Skill unsealing is a cash item that lifts the level cap on one skill.
-		// Nothing offline seals or unseals anything, and an empty list reads as
-		// "no skill has been unsealed", which is correct rather than a stub.
-		kNot.m_vecSkillUnsealed.clear();
+		// Phase 21: the skills a "secret manual" has unlocked. This used to be a
+		// hard clear with a comment saying nothing offline unseals anything -
+		// true when it was written, wrong since. Reading it back matters as much
+		// as writing it: CX2UserSkillTree::SetUnsealedSkill *replaces* the set,
+		// so an empty vector here re-seals every skill on the next login.
+		pSkill->GetUnsealedSkills( kNot.m_vecSkillUnsealed );
 
-		kNot.m_cSkillNoteMaxPageNum			= 0;
-		kNot.m_mapSkillNote.clear();
+		// Phase 22: the skill note. Two independent things, the way the server
+		// reads them back with two separate procedures - the page count
+		// (gup_get_notecnt) and the memos written into those pages
+		// (gup_get_note), GSGameDBThread.cpp:1822-1845. Zero pages is the
+		// correct state for a character that has never used a skill note, and
+		// the client draws it as "no note" rather than as an error.
+		kNot.m_cSkillNoteMaxPageNum			= pSkill->GetSkillNoteMaxPage();
+		kNot.m_mapSkillNote					= pSkill->GetSkillNotes();
 
 		// Trade block is the new-character restriction. Off: it exists to stop
 		// gold sellers, and there is nobody to trade with offline. Leaving it

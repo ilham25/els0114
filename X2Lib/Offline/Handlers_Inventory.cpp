@@ -28,6 +28,7 @@
 #ifdef SERV_IRUHADEV_OFFLINE
 
 #include "X2OfflineInventory.h"
+#include "X2OfflineSkill.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -220,6 +221,85 @@ bool CX2OfflineServer::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( KOfflineSession& k
 		return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
 	}
 
+	CX2OfflineSkill* pSkill = CX2OfflineSkill::Instance();
+	pSkill->Load( kSes.m_nSelectedUnitUID );
+
+	// Phase 21: "Camilla's Secret Manual" (270970-270973) and every other
+	// unseal item. Checked before anything is consumed - the live server refuses
+	// with ERR_USE_ITEM_IN_INVENTORY_00 and keeps the item when the character's
+	// class does not match (GSUserInventory.cpp:5596-5608), and a manual eaten
+	// for a skill this character cannot learn is unrecoverable.
+	const int iUnsealSkillID = CX2OfflineSkill::SkillForUnsealItem( kRow.m_iItemID );
+	const bool bIsUnsealItem =
+		( NULL != g_pData && NULL != g_pData->GetSkillTree() &&
+		  true == g_pData->GetSkillTree()->IsUnsealSkillItemID( kRow.m_iItemID ) );
+
+	if( true == bIsUnsealItem )
+	{
+		if( 0 == iUnsealSkillID )
+		{
+			kAck.m_iOK = NetError::ERR_USE_ITEM_IN_INVENTORY_00;
+
+			CX2OfflineLog::Server( L"SKILL    refused - item %d unseals no skill this class has"
+				L" (the manual is left in the bag)", kRow.m_iItemID );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+
+		if( true == pSkill->IsSkillUnsealed( iUnsealSkillID ) )
+		{
+			kAck.m_iOK = NetError::ERR_USE_ITEM_IN_INVENTORY_00;
+
+			CX2OfflineLog::Server( L"SKILL    refused - item %d unseals skill %d, which is already"
+				L" unsealed (the manual is left in the bag)",
+				kRow.m_iItemID, iUnsealSkillID );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+	}
+
+	// Phase 22: the skill note. Both ids do the same thing on the live server -
+	// CXSLItem::SI_SKILL_NOTE_ITEM (GSUserInventory.cpp:4610) and
+	// CXSLItem::CI_CASH_SKILL_NOTE_ITEM (GSUserCashShop.cpp:1585) both call
+	// GetExpandSkillNotePage and UpdateSkillNoteMaxPageNum. The cash one is the
+	// only one the offline shop sells, so both are accepted from the bag.
+	const bool bIsSkillNoteItem =
+		( SKILL_NOTE_ITEM_ID == kRow.m_iItemID || CASH_SKILL_NOTE_ITEM_ID == kRow.m_iItemID );
+
+	char cNewSkillNotePage = 0;
+
+	if( true == bIsSkillNoteItem )
+	{
+		KOfflineUnitRow kUnitRow;
+		CX2OfflineDB::Instance()->LoadUnit( kSes.m_nSelectedUnitUID, kUnitRow );
+
+		cNewSkillNotePage = CX2OfflineSkill::ExpandSkillNotePageForLevel( kUnitRow.m_iLevel );
+
+		if( 0 == cNewSkillNotePage )
+		{
+			// The server logs this as "should never happen" because its shop
+			// refuses the purchase below level 20 first. Offline the shop does
+			// not, so it is a real case and the note stays in the bag.
+			kAck.m_iOK = NetError::ERR_SKILL_NOTE_07;
+
+			CX2OfflineLog::Server( L"SKILL    refused - the skill note needs level 20-69, this"
+				L" character is level %d (the note is left in the bag)", kUnitRow.m_iLevel );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+
+		if( cNewSkillNotePage <= pSkill->GetSkillNoteMaxPage() )
+		{
+			kAck.m_iOK = NetError::ERR_SKILL_NOTE_06;
+
+			CX2OfflineLog::Server( L"SKILL    refused - the skill note would give %d page(s) and"
+				L" this character already has %d (the note is left in the bag)",
+				(int)cNewSkillNotePage, (int)pSkill->GetSkillNoteMaxPage() );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+	}
+
 	KInventoryItemInfo kSlotInfo;
 	if( false == pInven->ConsumeOne( kReq.m_iItemUID, kSlotInfo ) )
 		return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
@@ -231,6 +311,78 @@ bool CX2OfflineServer::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( KOfflineSession& k
 	CX2OfflineLog::Server( L"ITEM     used item %d from the bag", kRow.m_iItemID );
 
 	Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+
+	// Phase 19: the bag path needs the same _NOT the quick-slot path needs, and
+	// for the same reason - CX2UIInventory::Handler_EGS_USE_ITEM_IN_INVENTORY_ACK
+	// only updates the bag, the ED and the sort order (X2UIInventory.cpp:8908),
+	// it never touches the unit. The one client handler that calls
+	// UseItemSpecialAbility / ApplyBuffFactorToGUUser is
+	// CX2UIQuickSlot::Handler_EGS_USE_QUICK_SLOT_NOT (X2UIQuickSlot.cpp:1032-1036),
+	// and it works off the item ID alone - it does not care that the item came
+	// from a quick slot. Without it "Giant Potion (Elixir)" (78894) and its seven
+	// siblings are eaten by the bag and do nothing at all, which is ISSUES.md #2.
+	//
+	// The live server does this differently: it owns the buff (KGSUser::
+	// ActivateItemBuff, GSUserFunction.cpp:15978) and pushes the whole world-buff
+	// list back as EGS_UPDATE_BUFF_INFO_IN_ROOM_NOT. That needs a buff-factor ID
+	// the client cannot look up from a buff templet ID, plus a persisted buff
+	// table; the item's own BUFF_FACTOR entry in the client's Item.lua carries
+	// the same effect (78894's row names BFI_BUFF_ELIXIR_GIANT_POTION), so the
+	// _NOT applies the real factor. The difference is that the buff lives for
+	// the run rather than for a wall-clock duration across rooms.
+	//
+	// Only inside a room, and only for an item that actually has an in-game
+	// effect: Handler_EGS_USE_QUICK_SLOT_NOT's default branch is an
+	// ASSERT( !L"Can not use this item in this State" ), and an item with no
+	// ability and no buff factor would only add a "you used X" chat line.
+	if( S_ROOM == kSes.m_eState && NULL != pTemplet &&
+		( 0 < pTemplet->GetNumSpecialAbility() || 0 < pTemplet->GetNumBuffFactorPtr() ) )
+	{
+		KEGS_USE_QUICK_SLOT_NOT kNot;
+		kNot.m_UnitUID				= kSes.m_nSelectedUnitUID;
+		kNot.m_ItemID				= kRow.m_iItemID;
+		kNot.m_bUseItemNeedPayment	= false;
+
+		Reply( kSes, EGS_USE_QUICK_SLOT_NOT, kNot );
+
+		CX2OfflineLog::Server( L"ITEM     item %d has %u ability / %u buff factor(s) -"
+			L" sent USE_QUICK_SLOT_NOT so the effect applies",
+			kRow.m_iItemID, pTemplet->GetNumSpecialAbility(), pTemplet->GetNumBuffFactorPtr() );
+	}
+
+	// Phase 21: the unseal, which is a _NOT of its own. The live server sends it
+	// out of DBE_UNSEAL_SKILL_ACK (GSUserGameCommon.cpp:6716-6730); the client's
+	// CX2SkillTree::Handler_EGS_UNSEAL_SKILL_NOT is what actually calls
+	// AddSkillUnsealed, redraws the tree and opens the "skill unsealed" dialog.
+	// The ACK above carries nothing about it.
+	if( true == bIsUnsealItem && 0 != iUnsealSkillID )
+	{
+		pSkill->UnsealSkill( iUnsealSkillID );
+
+		KEGS_UNSEAL_SKILL_NOT kNot;
+		kNot.m_iSkillID = iUnsealSkillID;
+
+		Reply( kSes, EGS_UNSEAL_SKILL_NOT, kNot );
+
+		CX2OfflineLog::Server( L"SKILL    item %d unsealed skill %d", kRow.m_iItemID, iUnsealSkillID );
+	}
+
+	// Phase 22: the page count, likewise a _NOT. Without it the client leaves
+	// GetMaxSkillNoteSlot() at zero, keeps the skill-note button hidden
+	// (HideSkillNote( true )) and refuses every memo with STR_ID_4988 before it
+	// puts a byte on the wire - which is what ISSUES.md #12 was.
+	if( true == bIsSkillNoteItem && 0 != cNewSkillNotePage )
+	{
+		pSkill->SetSkillNoteMaxPage( cNewSkillNotePage );
+
+		KEGS_EXPAND_SKILL_NOTE_PAGE_NUM_NOT kNot;
+		kNot.m_cExpandedPageNum = cNewSkillNotePage;
+
+		Reply( kSes, EGS_EXPAND_SKILL_NOTE_PAGE_NUM_NOT, kNot );
+
+		CX2OfflineLog::Server( L"SKILL    item %d gave the skill note %d page(s)",
+			kRow.m_iItemID, (int)cNewSkillNotePage );
+	}
 
 	// Phase 6: TMCT_USE_ITEM title missions, and the collection steps the item
 	// leaving the bag may have just broken or completed.
