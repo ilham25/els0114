@@ -1475,6 +1475,65 @@ bool CX2OfflineServer::Handler_EGS_SUMMON_PET_REQ( KOfflineSession& kSes, const 
 	KEGS_SUMMON_PET_ACK kAck;
 	kAck.m_iOK = NetError::ERR_PET_00;
 
+	//////////////////////////////////////////////////////////////////////////
+	// Author: Iruha
+	// Date: 2026-09-05
+	// Description: Phase 14. m_iSummonPetUID == 0 means "unsummon", the same
+	// way UserPetManager.cpp:944 reads it on live - not "summon pet id 0". Left
+	// to fall into the vecPet search below this always missed (no real pet has
+	// UID 0) and answered ERR_PET_00, which the client shows as "Failed to
+	// create the pet" for what was actually just the unsummon button.
+	if( 0 == kReq.m_iSummonPetUID )
+	{
+		if( 0 == kSes.m_nSummonedPetUID )
+		{
+			kAck.m_iOK = NetError::ERR_PET_06; // no summoned pet
+
+			CX2OfflineLog::Server( L"PET      unsummon refused - nothing is summoned"
+				L" (kSes.m_nSummonedPetUID==0)" );
+		}
+		else
+		{
+			CX2OfflineLog::Server( L"PET      unsummoned petUID=%I64d",
+				(__int64)kSes.m_nSummonedPetUID );
+
+			kSes.m_nSummonedPetUID = 0;
+			kAck.m_iOK = NetError::NET_OK;
+			// kAck.m_kSummonedPetInfo is left default-constructed (m_iPetUID
+			// == 0), which is what Handler_EGS_SUMMON_PET_ACK reads as "no pet
+			// summoned" and clears the local pet on.
+		}
+
+		Reply( kSes, EGS_SUMMON_PET_ACK, kAck );
+
+		//////////////////////////////////////////////////////////////////////////
+		// Author: Iruha
+		// Date: 2026-09-05
+		// Description: Phase 14, second finding. The ACK only stores pet info on
+		// the unit (see Handler_EGS_SUMMON_PET_ACK) - it never spawns or removes
+		// the visible CX2PET. That happens in Handler_EGS_SUMMON_PET_NOT
+		// (CreateGamePet / RemovePet), which live's DBE_SUMMON_PET_ACK always
+		// relays back to the summoning player too (GSUserPet.cpp:367, solo-field
+		// branch), but only after a successful summon change - never on the
+		// ERR_PET_06 refusal above, which live's own handler returns out of
+		// before ever reaching that relay. Without this the ACK alone explains
+		// "pressed summon repeatedly, nothing happened" - NET_OK every time, no
+		// dialog, but no pet either, because CreateGamePet() was never reached.
+		// An empty m_vecPetInfo here is exactly what the client reads as
+		// "unsummon" (X2PetManager.cpp:2324).
+		if( NetError::NET_OK == kAck.m_iOK )
+		{
+			KEGS_SUMMON_PET_NOT kNot;
+			kNot.m_iUnitUID = kSes.m_nSelectedUnitUID;
+
+			return Reply( kSes, EGS_SUMMON_PET_NOT, kNot );
+		}
+
+		return true;
+		//////////////////////////////////////////////////////////////////////////
+	}
+	//////////////////////////////////////////////////////////////////////////
+
 	std::vector< KOfflinePetRow > vecPet;
 	pDB->LoadPets( kSes.m_nSelectedUnitUID, vecPet );
 
@@ -1498,10 +1557,29 @@ bool CX2OfflineServer::Handler_EGS_SUMMON_PET_REQ( KOfflineSession& kSes, const 
 		break;
 	}
 
-	// m_vecPetInventorySlotInfo stays empty: pet inventories are one of the
-	// things phase 5 left out (see X2OfflineInventory.h), and an empty list is
-	// what a pet whose templet has no inventory sends.
-	return Reply( kSes, EGS_SUMMON_PET_ACK, kAck );
+	if( NetError::NET_OK != kAck.m_iOK )
+	{
+		// This is the one path Phase 14 left uninstrumented and it is the one
+		// that matters: requested a UID that matched nothing in vecPet. Log the
+		// UID so a repeat of "Failed to create the pet" is provably this branch
+		// and not the unsummon one above.
+		CX2OfflineLog::Server( L"PET      summon refused - petUID=%I64d matches none of this"
+			L" character's pets", (__int64)kReq.m_iSummonPetUID );
+
+		// m_vecPetInventorySlotInfo stays empty: pet inventories are one of the
+		// things phase 5 left out (see X2OfflineInventory.h), and an empty list is
+		// what a pet whose templet has no inventory sends.
+		return Reply( kSes, EGS_SUMMON_PET_ACK, kAck );
+	}
+
+	Reply( kSes, EGS_SUMMON_PET_ACK, kAck );
+
+	// See the Phase 14 comment above: the actual spawn happens in
+	// Handler_EGS_SUMMON_PET_NOT, driven by this relay-to-self.
+	KEGS_SUMMON_PET_NOT kNot;
+	kNot.m_iUnitUID = kSes.m_nSelectedUnitUID;
+	kNot.m_vecPetInfo.push_back( kAck.m_kSummonedPetInfo );
+	return Reply( kSes, EGS_SUMMON_PET_NOT, kNot );
 }
 
 bool CX2OfflineServer::Handler_EGS_FEED_PETS_REQ( KOfflineSession& kSes, const KEvent& kEvent )
@@ -1629,7 +1707,27 @@ bool CX2OfflineServer::Handler_EGS_COMMANDS_FOR_PETS_REQ( KOfflineSession& kSes,
 	KEGS_COMMANDS_FOR_PETS_ACK kAck;
 	kAck.m_iOK = NetError::NET_OK;
 
-	return Reply( kSes, EGS_COMMANDS_FOR_PETS_ACK, kAck );
+	Reply( kSes, EGS_COMMANDS_FOR_PETS_ACK, kAck );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Author: Iruha
+	// Date: 2026-09-05
+	// Description: Phase 14. The ACK above only carries m_iOK -
+	// Handler_EGS_COMMANDS_FOR_PETS_ACK does nothing with it but validate
+	// that. The pet's actual state change (StateChange -> resets
+	// m_fNowStateTimer) only happens in PlayEmotion, called from
+	// Handler_EGS_PET_ACTION_NOT. Live relays this back to the sender too
+	// (GSUserFunction.cpp's SendPetAction, solo-field branch) - "the other
+	// players in the room, and there are none" above missed that the room
+	// always includes yourself. Without it, CX2Pet::OnFrameMove's idle-90s
+	// check (nowState stuck at m_WaitState) never clears and re-sends this
+	// same REQ every frame - the 12,876x retry storm from the Phase 14 log.
+	KEGS_PET_ACTION_NOT kNot;
+	kNot.m_iUnitUID		= kSes.m_nSelectedUnitUID;
+	kNot.m_cActionType	= kReq.m_cActionType;
+
+	return Reply( kSes, EGS_PET_ACTION_NOT, kNot );
+	//////////////////////////////////////////////////////////////////////////
 }
 
 bool CX2OfflineServer::Handler_EGS_PET_EVOLUTION_REQ( KOfflineSession& kSes, const KEvent& kEvent )

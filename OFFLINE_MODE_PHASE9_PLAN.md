@@ -1057,6 +1057,82 @@ not in it.
 Summon a pet: it appears, follows, and unsummons; `EGS_COMMANDS_FOR_PETS_REQ`
 drops from ~12,876 to a sane rate over a comparable session.
 
+### What actually happened
+
+None of the three ranked candidates was it, and the real bug was two missing
+relays of the same shape - not a wrong field, not a missing enum, not a
+mismapped string.
+
+- **Candidates 2 and 3 both ruled out by reading code, not by the play-test the
+  plan proposed.** Pet 99 is `PUI_PANDA_STICK_BLUE_F` (`X2PetManager.h:66`), a
+  real enum entry - candidate 2's missing-mesh theory doesn't hold, and the
+  summon-ACK path never even consults the pet templet before showing anything.
+  Candidate 3 doesn't hold either: `NetError_def_US.h`'s English string table
+  (`szErrorStrF`) gives every `ERR_PET_*` code its own distinct, correct text
+  (`ERR_PET_00` = "Failed to create the pet.", `ERR_PET_06` = "You do not have
+  a summoned pet.", ...), and `IsValidPacket`'s default case
+  (`X2Main.cpp:7136`) already prints `GetErrStrF(enumID)` generically and
+  correctly for any code that reaches it - there is no shared/generic string
+  bug to fix. This made the temporary-debug-flag plan (candidate 2's
+  discriminator) unnecessary; the ranked list was resolved by reading, not by
+  the proposed play-test.
+
+- **The dialog's actual cause was `Handler_EGS_SUMMON_PET_REQ` never
+  special-casing `m_iSummonPetUID == 0`.** Exactly phase 10's "left alone on
+  purpose" paragraph, now paid off: the unsummon button
+  (`PCUM_SUMMON_CANCEL`, `X2UIPetInfo.cpp`'s `PLUCM_INFO_SUMMON_CANCEL`, and
+  `X2UIInventory.cpp:2724` all call `Handler_EGS_SUMMON_PET_REQ( 0 )`) fell into
+  the same `vecPet` UID search real pets use, found nothing (no real pet has UID
+  0), and kept the handler's default `ERR_PET_00` - "Failed to create the pet"
+  for what was only ever the unsummon click. Fixed the same way live's
+  `UserPetManager.cpp:944` reads it: UID 0 means "release", answered from
+  `kSes.m_nSummonedPetUID` (the field phase 10 added) - `NET_OK` if something
+  was out, `ERR_PET_06` if not.
+
+- **Fixing the dialog was not enough - "press summon, nothing happens" was a
+  second, separate bug**, found only after the first fix was play-tested and
+  reported back. The summon/unsummon ACK - like the `COMMANDS_FOR_PETS` ACK -
+  only carries a result code; it never spawns or removes anything. On the
+  client, `CreateGamePet()` / `RemovePet()` (pet appearing or disappearing) and
+  `PlayEmotion()` → `StateChange()` (pet animation, and the thing that resets
+  `CX2Pet::OnFrameMove`'s stuck-idle timer) live **only** inside the `_NOT`
+  handlers (`Handler_EGS_SUMMON_PET_NOT`, `Handler_EGS_PET_ACTION_NOT`), never
+  inside the `_ACK` handlers. Live's GameServer always relays that `_NOT` packet
+  back to the acting player too, even solo: `GSUserFunction.cpp:8803`'s
+  `SendPetAction` and `GSUserPet.cpp:363`'s `DBE_SUMMON_PET_ACK` both have a
+  `GetFieldUID() <= 0` branch that `SendPacket`s the `_NOT` to the sender, not
+  just to other players in the room - the comment already in this file
+  ("the server only relays the command to the other players in the room, and
+  there are none") was the exact wrong assumption, missing that the room always
+  includes yourself. So this was the same missing-relay-to-self shape twice
+  over:
+  - `Handler_EGS_COMMANDS_FOR_PETS_REQ` now also sends `EGS_PET_ACTION_NOT` to
+    the session after the ACK, using the request's own `m_cActionType` - this is
+    what actually explains the 12,876x retry storm (`PlayEmotion` never ran, so
+    the idle timer never reset, so `CX2Pet::OnFrameMove` asked again every
+    frame).
+  - `Handler_EGS_SUMMON_PET_REQ` now also sends `EGS_SUMMON_PET_NOT` after a
+    successful ACK (both the unsummon branch, empty `m_vecPetInfo`, and the
+    normal-summon branch, `m_vecPetInfo` holding the same `KPetInfo` the ACK
+    carries) - never on the `ERR_PET_06`/no-match refusal branches, matching
+    live's early-return-before-relay shape.
+
+- **The packet log's payload-size column was not enough to tell success from
+  failure while narrowing this down**, and `Handler_EGS_SUMMON_PET_REQ` had zero
+  `CX2OfflineLog::Server` lines to begin with - unlike its sibling `CREATE_PET`
+  and `FEED_PETS` handlers, which log every outcome. Added one line per branch
+  (unsummon success, unsummon-refused, summon-refused) so a repeat of this
+  symptom is diagnosable from `offline_server.log` alone next time, without
+  needing to add a throwaway debug flag first.
+
+- **Deploy-loop hazard, not code**: redeploying `X2_offline.exe` while the game
+  built from the previous copy is still running fails with "the process cannot
+  access the file" - the running exe holds its own file locked. The fix is
+  closing the game first, not force-copying over it.
+
+- One flag throughout, per §1 rule 2 - no new `SERV_IRUHADEV_OFFLINE_*`
+  sub-flag was added for either fix.
+
 ---
 
 # Phase 15 — Title image missing in field/dungeon (`ISSUES.md` #13)
