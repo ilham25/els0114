@@ -689,14 +689,12 @@ not implemented offline" }`, added in phase 5. The dispatch has no handler, so
 2. If the yield is client-side data: implement `Handler_EGS_RESOLVE_ITEM_REQ`,
    remove the ignore rule, consume the item, insert the materials, and reply with
    the updated slots.
-3. If it is server data: **ask the user whether it can be packed** before
-   writing a refusal as final - name the exact file, same shape as the
-   Lua-packing rule in `CLAUDE.md`, and wait for an answer. Only once packing is
-   declined or deferred does "keep the ignore rule but make the client show
-   something" become the right stopping point: an `IGNORED` packet produces no
-   reply and the UI hangs waiting, so a refusal ACK with an error code at least
-   closes the dialog. That is a real improvement, but it is not a substitute for
-   the ask - see the correction in "What actually happened" below.
+3. If it is server data: **implement the real feature now**, on the assumption
+   the file will be (or already is) packed - loader, yield logic, and a
+   degrade-to-refusal path if the file turns out to be missing, all in the same
+   pass, same shape as the Lua-packing rule in `CLAUDE.md`. Name the exact file
+   when you report the work done, not before starting. Do not stop and wait for
+   packing confirmation - see the correction in "What actually happened" below.
 
 ### Trap
 The `NOT DRIVEN OFFLINE` census line at 23:19:42 flags two title sub-quests

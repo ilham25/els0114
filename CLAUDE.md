@@ -51,21 +51,23 @@ If an edit touches `KncWX2Server/Common/` (packet structs, event IDs, shared enu
 Some data only ever existed on the server: per-level stat tables, drop tables,
 field tuning. When client-side code needs one of those files, it has to be
 XOR-encrypted and packed into `data036.kom` alongside every other client script,
-and **the user does that step.** Ask, then wait.
+and **the user does that step.** Do not stop and wait for confirmation before
+building the feature that needs it — implement it now, on the assumption that
+the file will be (or already is) packed, and name the file when you report the
+work as done rather than before you start it. The user has said explicitly not
+to block work on this: packing is fast on their end, and the degrade path below
+means the feature just stays off with a clear log line until it's in — nothing
+is lost by finishing the implementation first.
 
 Do:
 
-1. **Name the file and stop.** Give the exact path
-   (`KncWX2Server/ServerResource/US/<name>.lua`), say it needs XOR-encrypting and
-   packing into `data036.kom`, and let the user do it. Do this **before** settling
-   for a permanent refusal ACK or an ignore-list entry — a feature that only
+1. **Implement the whole feature in one pass**: the loader, the logic that
+   consumes the table, and the degrade-if-missing path (step 3 below) all
+   together. Do this even when some other document (a phase plan, an issue
+   writeup, your own earlier diagnosis) frames "refuse and log why" as an
+   acceptable stopping point for the *current* task — a feature that only
    "can't be done" for lack of a packed file is not the same as a feature that
-   doesn't exist, and the ask is cheap. This applies even when some other
-   document (a phase plan, an issue writeup, your own earlier diagnosis) frames
-   "refuse and log why" as an acceptable stopping point for the *current* task —
-   this rule is the standing override: ask whether packing the file is on the
-   table before writing the refusal as final, don't decide on the user's behalf
-   that it isn't worth asking.
+   doesn't exist, and finishing it costs nothing thanks to the degrade path.
 2. **Load it the shipped way.**
    `g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( name )` for
    the `.kom` container, then `GetLuaBinder()->DoMemory( ... )` for the XOR, with a
@@ -74,7 +76,15 @@ Do:
    `X2OfflineDropTable.cpp` or `X2OfflineBattleField.cpp`.
 3. **Degrade visibly.** If the file is not there, turn the feature off and log
    which file is missing and what to do about it. A feature that is off and says
-   so is debuggable; one that silently guesses is not.
+   so is debuggable; one that silently guesses is not. This is also what makes
+   rule 1 safe: build against the assumption the file is packed, and an
+   unpacked file fails into this path instead of into a guess.
+4. **Name the file when you report the work as done, not before.** Give the
+   exact path (`KncWX2Server/ServerResource/US/<name>.lua`) and say it needs
+   XOR-encrypting and packing into `data036.kom` if it isn't already. If the
+   file turns out to already be packed, confirm that from the log (the loader's
+   own "loaded N row(s)" line) rather than assuming — don't report success on
+   the strength of the code compiling alone.
 
 Do not:
 
