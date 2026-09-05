@@ -25,6 +25,7 @@ column.
 | `SERV_IRUHADEV_NO_PATCHER_TOKEN` | 2026-09-04 | `KTDXLIB/Always.h:2525` | `X2/X2.cpp:805` | -- |
 | `SERV_IRUHADEV_JOBCHANGE_PORTRAIT` | 2026-09-04 | `KTDXLIB/Always.h:2513` | `X2Lib/X2UIQuestNew.cpp:8`, `X2Lib/X2UIQuestNew.cpp:1516`, `X2Lib/X2UIQuestNew.cpp:2043` | -- |
 | `SERV_IRUHADEV_MP_REGEN_BOOST` | 2026-09-04 | `KTDXLIB/Always.h:2538` (rate constant in `X2Lib/X2Define.h:1802`) | `X2Lib/X2GUUser.cpp:1829`, `X2Lib/X2GUUser.cpp:3654`, `X2Lib/X2GUUser.cpp:3726`, `X2Lib/X2GageManager.cpp:50` | -- |
+| `SERV_IRUHADEV_AIPARTY_PERSIST` | 2026-09-06 | `KTDXLIB/Always.h:2560` (nested under `SERV_IRUHADEV_OFFLINE`) | `X2Lib/X2Game.h:660-675`, `X2Lib/X2Game.cpp:197-199`, `X2Lib/X2Game.cpp:4958-4999`, `X2Lib/X2Game.cpp:7234` (`GetOfflinePartyBotPos`), `X2Lib/X2Game.cpp:7306` (`IsOfflinePartyBotUID`), `X2Lib/X2Game.cpp:7347` (`RepositionOfflinePartyBots`), `X2Lib/X2DungeonGame.cpp:685-707`, `X2Lib/X2DungeonGame.cpp:878-885` | -- |
 
 What each one does:
 
@@ -86,6 +87,30 @@ What each one does:
   the 3D square unit but never the gage, so the HUD kept drawing the old class
   until the gage was rebuilt on a state change; every other class-change path
   in the client already refreshes it.
+- **`SERV_IRUHADEV_AIPARTY_PERSIST`** -- the offline AI party survives a stage
+  change instead of being rebuilt at every one of them. Requires
+  `SERV_IRUHADEV_OFFLINE` and is defined under it.
+
+  `CX2DungeonGame::StageLoading` calls `DeleteAllNPCUnit()`, which used to
+  sweep the three bots away with the stage's monsters; `CreateOfflinePartyBots`
+  then had to spawn all three again at `SubStageStart`, which costs a packet
+  round trip plus three `CX2GUNPC` constructions and lands after the loading
+  curtain has already lifted -- so the player fought alone for a moment at
+  every stage and then watched three heroes pop in.
+
+  A real multiplayer party never pays that: `CX2GUUser` units are built once in
+  `CX2Game::UnitLoading` and `StageLoading` merely repositions them. This flag
+  gives a bot the same lifetime. `DeleteAllNPCUnit` spares a *living* party bot
+  while `m_bOfflineKeepPartyBots` is set (only around that one call), the way it
+  already spares monster-card summons, and `RepositionOfflinePartyBots` places
+  the survivors on the new stage's line map beside the user-unit loop. A dead
+  bot is deliberately not spared -- letting it go means the ordinary spawn path
+  rebuilds it whole on the new stage, which is a free revive while the stage is
+  loading anyway.
+
+  Reverting it restores per-stage respawning, which still works; the placement
+  helper `GetOfflinePartyBotPos` is shared by both paths and is not gated.
+
 - **`SERV_IRUHADEV_MP_REGEN_BOOST`** -- quality of life: raises the base MP
   regeneration rate for player units from 1 MP/s to
   `SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC` (50 MP/s), the single tuning knob, in

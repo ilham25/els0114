@@ -682,7 +682,29 @@ void CX2DungeonGame::StageLoading( int stageNum )
 
 	m_CreateNPCDataList.resize(0);
 
+#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
+	// AI_PARTY_PLAN.md phase 2. THIS SWEEP IS WHAT KILLED THE AI PARTY AT
+	// EVERY STAGE, and the flag below is the only thing that stops it.
+	//
+	// A real party member is never rebuilt here: CX2GUUser units are built
+	// once in CX2Game::UnitLoading and this function merely repositions them,
+	// a few dozen lines down. Our bots are NPCs, so they were swept away with
+	// the stage's monsters and CreateOfflinePartyBots had to spawn all three
+	// again at SubStageStart - a packet round trip plus three CX2GUNPC
+	// constructions, which land after the loading curtain has already
+	// lifted. Hence "I solo for a few seconds at every stage change".
+	//
+	// Scoped to this one call rather than made a property of a bot, so
+	// every other caller of DeleteAllNPCUnit still means all of them.
+	// Only LIVING bots are spared; a dead one is let go here and rebuilt
+	// whole by the spawn path, which is the cheapest revive available and
+	// costs nothing extra while the stage is loading anyway.
+	m_bOfflineKeepPartyBots = true;
 	DeleteAllNPCUnit();
+	m_bOfflineKeepPartyBots = false;
+#else
+	DeleteAllNPCUnit();
+#endif SERV_IRUHADEV_AIPARTY_PERSIST
 	m_pDropItemManager->DeleteAllItem();
 
 #ifdef DUNGEON_ITEM
@@ -852,6 +874,15 @@ void CX2DungeonGame::StageLoading( int stageNum )
 #ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 	::LeaveCriticalSection( &m_csGameIntruder );
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
+
+#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
+	// AI_PARTY_PLAN.md phase 2. The AI party gets exactly what the loop
+	// above just gave the user units: a position on the new stage and its
+	// wait state. Here rather than in StageStart because m_pWorld and its
+	// line map are new as of a few lines up, and SetPosition re-derives the
+	// unit's line index from whatever map is current.
+	RepositionOfflinePartyBots();
+#endif SERV_IRUHADEV_AIPARTY_PERSIST
 
 	m_pCamera->SetLandHeight( m_pWorld->GetLineMap()->GetLandHeight() );
 	m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption()->GetCameraDistance() );

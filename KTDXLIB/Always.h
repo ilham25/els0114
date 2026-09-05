@@ -2537,3 +2537,26 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              of it and a class whose Lua already asks for more keeps it.
 #define SERV_IRUHADEV_MP_REGEN_BOOST
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-06
+// Description: AI_PARTY_PLAN.md phase 2. Keep the AI party ACROSS a stage
+//              change instead of rebuilding it, which is what a real
+//              multiplayer party does: party members are built once at
+//              dungeon entry and every later stage only repositions them
+//              (CX2DungeonGame::StageLoading walks m_UserUnitList calling
+//              InitPosition). Our bots are NPCs, so StageLoading's
+//              DeleteAllNPCUnit killed all three at every stage and the
+//              spawn had to run again - a packet round trip plus three
+//              CX2GUNPC constructions, landing after the loading curtain
+//              had already lifted. With this defined a living bot survives
+//              that sweep, the way a monster-card summon already does, and
+//              is repositioned onto the new stage's line map instead.
+//              Meaningless without SERV_IRUHADEV_OFFLINE - the AI party
+//              only exists there - so it is defined under it rather than
+//              beside it, and the call sites can test this one alone.
+#ifdef SERV_IRUHADEV_OFFLINE
+#define SERV_IRUHADEV_AIPARTY_PERSIST
+#endif SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////

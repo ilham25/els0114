@@ -705,7 +705,10 @@ stage 1 of three.
 
 # Phase 2 — Three bots, placement, death and revive
 
-> **Implemented 2026-09-06, played twice, NOT closed - defect 2 is open.** The
+> **Implemented and closed 2026-09-06.** Defect 2 is fixed, and the per-stage
+> respawn it lived on is gone entirely - the party now survives a stage change.
+> Two items are still unexercised rather than unbuilt: a bot death and the
+> EXP/ED comparison. See *The party now survives a stage change* below. The
 > five numbered steps below are the plan **as written beforehand**, and steps 2,
 > 4 and 5 did not survive contact - one precedent it names does not exist, one
 > check turned out to be a build, and one needed no code at all. They are kept
@@ -779,16 +782,21 @@ spawn *plumbing* is not finished, and phase 2 is **not closed**.
 |---|---|
 | Three bots, three different heroes, redrawn per press | **PASS.** `AIPARTY bot slot 1..3` names a different trio on each auto-party press - `Valak/Noah/Lowe`, then `Apple/Lowe/Valak`, then `Noah/Valak/Code: Q-Proto_00` |
 | They fan out rather than queue up | **PASS**, and now superseded: placement comes from the line map's party start slots rather than an offset off the player |
-| No stutter at a stage change | **CHANGED, UNVERIFIED.** The party spawns one member at a time, 0.5 s apart, instead of three on one frame |
+| No stutter at a stage change | **PASS**, and by a different route than this row assumed. The stagger is still there but a stage change no longer spawns anything at all - see *The party now survives a stage change* |
 | Sub-stages clear, dungeon finishes | **PASS** - the 05:29 run reached `SHUTDOWN clean` through a full dungeon |
 | Six bots instead of three | **WAS FAILING, now fixed** - defect 1 |
-| **Bots present at stage start** | **FIXED, UNVERIFIED.** Defect 2's root cause is found and fixed; needs one run to confirm. Was: two bursts per stage from stage 1 on, and a few seconds fighting alone after every stage change |
+| **Bots present at stage start** | **PASS** (2026-09-06). Defect 2 is closed twice over: the stale-position fix, and then the removal of the per-stage spawn it lived on |
 | A dead bot comes back | **UNPROVEN, and assumed working by decision.** No `was down` line in any run - the mobs at this level cannot kill a bot carrying the player's stat line, so it could not be provoked. See *Revive is unproven and coupled to defect 2* below before relying on it |
 | **The normal start button spawns nobody** | **PASS** (2026-09-06). The standing regression check, re-run after the count went to three |
 | Reward path is clean | **NOT YET RUN.** Still wants the before/after `els_db.sql` comparison |
 | No new failures | **PASS for this feature.** One `UNHANDLED`, `EGS_SECRET_STAGE_LOAD_REQ` (id=1197), unrelated to the AI party - it is a dungeon feature offline mode has never handled |
 
 ### Picking phase 2 up in a new conversation (as of 2026-09-06)
+
+> **Superseded.** Both changes this section says to start by testing were tested
+> and passed, and the per-stage spawn it is written around no longer exists.
+> Kept for the reasoning; for the current shape read *The party now survives a
+> stage change* below.
 
 **Everything below the line is committed and the exe in the game directory is
 current** (`X2_offline.exe`, 14,336,000 bytes, 06:14). Two changes are in that
@@ -946,6 +954,124 @@ loot like a monster, and its hits would pass through every enemy again. That is
 phase 1 defect 2 exactly — a struct that quietly does not carry a field — and it
 would have read as the AI being broken. The reasoning sits in a comment on
 `OFFLINE_BOT_SPAWN_INTERVAL` so it is not "simplified" back later.
+
+### The party now survives a stage change, so most of the above stops applying
+
+**2026-09-06. Built, deployed, played, PASSED - and this is what closed defect
+2.** Asked for after the staggered spawn: *"why can't we use the same logic as
+multiplayer party spawn"* -- the observation being that the loading screen stays
+up for a while after the stage BGM has started, so the party could be put in
+place under it.
+
+The observation is right and the code says exactly where the window is:
+`StageStart` plays the BGM and then calls `StartFadeIn( 99999 )`
+([X2DungeonGame.cpp:874](X2Lib/X2DungeonGame.cpp#L874)), which pins the fade
+alpha at 1.0 -- fully black -- indefinitely. What lifts it is a second
+`StartFadeIn()` with its 0.5 s default, on the line **after** `SubStageStart()`
+in `Handler_EGS_DUNGEON_SUB_STAGE_START_NOT`
+([X2DungeonGame.cpp:2028](X2Lib/X2DungeonGame.cpp#L2028)). So the spawn was
+being fired at the exact instant the curtain began to rise, and a spawn costs a
+packet round trip plus three `CX2GUNPC` builds. It could never land in time.
+
+**But the multiplayer party spawn it was compared to does not exist as a
+per-stage burst.** Real party members are `CX2GUUser`, built **once** at dungeon
+entry in `CX2Game::UnitLoading` ([X2Game.cpp:1677](X2Lib/X2Game.cpp#L1677)) ->
+`AddUserUnit()` -> `CreateGUUser`, synchronously, inside the 10/30/80 % loading
+screen and with no packet involved. At a stage change they are not re-created at
+all: `StageLoading` deletes the world, calls `DeleteAllNPCUnit()`
+([X2DungeonGame.cpp:685](X2Lib/X2DungeonGame.cpp#L685)) -- which is what killed
+our bots -- and then just walks `m_UserUnitList` calling `InitPosition( true )`
+([X2DungeonGame.cpp:814](X2Lib/X2DungeonGame.cpp#L814)). **Multiplayer pays a
+reposition per stage, never a construction.** That is why it has no hitch and no
+gap to hide in the first place.
+
+So the answer was not to burst inside the window but to stop respawning.
+`SERV_IRUHADEV_AIPARTY_PERSIST` (`KTDXLIB/Always.h:2560`, nested under
+`SERV_IRUHADEV_OFFLINE`) does three things:
+
+1. **`DeleteAllNPCUnit` spares a living party bot**
+   ([X2Game.cpp:4958](X2Lib/X2Game.cpp#L4958)) while `m_bOfflineKeepPartyBots`
+   is set, which `StageLoading` sets around that one call and clears
+   immediately after. Not a blanket exemption: every other caller still means
+   all of them. The precedent is directly below it in the same loop -- the
+   studio already spares monster-card summons from the same sweep, and those
+   are the same class with the same ally AI, so outliving `m_pWorld` is a path
+   it already relies on.
+2. **`RepositionOfflinePartyBots`** ([X2Game.cpp:7347](X2Lib/X2Game.cpp#L7347))
+   places the survivors on the new stage's line map, resets the AI's target and
+   drops them into the wait state -- deliberately a mirror of the
+   `m_UserUnitList` loop it is called beside. It runs from `StageLoading` after
+   the new world exists, which is load-bearing: `SetPosition` re-derives the
+   unit's line index from whatever line map is current, so any earlier and it
+   would place the party on a map about to be deleted.
+3. **Placement moved into `GetOfflinePartyBotPos`**
+   ([X2Game.cpp:7234](X2Lib/X2Game.cpp#L7234)), shared by the spawn and the
+   reposition so a kept bot lands exactly where a fresh one would.
+
+**A dead bot is deliberately not spared.** Letting the corpse go means the
+ordinary spawn path rebuilds it whole on the new stage -- the cheapest revive
+available, and free while the stage is loading anyway.
+
+Why this is safe against the obvious worry, a unit outliving the world it was
+standing in: nothing it holds across the boundary is a raw pointer into the old
+stage. The AI's target and attacker are `KObserverPtr`
+([X2NPCAI.h:145](X2Lib/X2NPCAI.h#L145)) and so is the grab list
+(`SetUserGrapReset`), so the monsters being deleted around it null themselves
+out; and units read the world through `GetWorld()` on demand rather than caching
+a pointer.
+
+What this changes about everything written above:
+
+- **The staggered spawn and the 1.5 s retry grace stay, and stop mattering at
+  stage changes.** What is left for `CreateOfflinePartyBots` is dungeon entry, a
+  bot that died, and a bot that could not be placed on a new stage.
+- **Defect 2 cannot recur.** There is no stage-change spawn left to place at a
+  stale player position. The `GetOfflinePartyBotPos` fallback and its
+  `NOTE line map has %d start slot(s)` line are still there for the entry spawn.
+- **Bots keep their HP across a stage** now, as a real party member does,
+  instead of being silently restored by being rebuilt. This is a behaviour
+  change and worth watching in the play-test: a party that arrives at stage 3
+  half dead is correct, not a bug.
+
+**The one risk worth having worried about, now answered: bots do not fall
+through the disabled-line window.** `StageStart` calls `DisableAllLineData()`
+right after `StageLoading` returns and the sub-stage's line set is not enabled
+again until `SubStageOpen`, so a bot spends a few frames standing on a disabled
+line -- exactly as a user unit does. The play-test says it survives that, as
+users do. Recorded because the reasoning still holds if anything here moves:
+placing the party at `SubStageStart` *instead* is not an option, because with
+every line disabled `SetPosition` can fail outright and this code deletes a bot
+it cannot place. `StageLoading` is the only moment the whole line map is
+available, which is exactly why the studio places the user units there too.
+
+#### What the run said
+
+One full dungeon, 06:49-06:51, six stage changes. The counts are the whole
+result and they are exactly the predicted signature:
+
+| `grep` in `offline_server.log` | Expected | Got |
+|---|---|---|
+| `spawning bot` | 3, once per **dungeon** | **3** -- at 06:49:09, :09.5, :10, the 0.5 s stagger, and never again |
+| `kept across the stage change` | 3 per stage change | **18** = 6 x 3 |
+| `could not be placed` | none | **0** |
+| `never arrived` | none | **0** |
+| `NOTE line map has` | none | **0** |
+| `UNHANDLED` / `EXCEPTION` in `offline_packets.log` | none | **0** -- including the `EGS_SECRET_STAGE_LOAD_REQ` the previous run hit |
+| `SHUTDOWN clean` | 1 | **1** |
+
+The placement lines show three distinct, spread positions at every stage
+(`(-1082, 117, -580)`, `(-972, 60, -580)`, `(-865, 5, -580)` and so on), so the
+line map's start slots are being read correctly on every map in the dungeon,
+not just the first.
+
+The three spawn lines being the *only* three is the point of the whole change:
+before this, that block repeated at every stage, and the repeat was what the
+player saw as fighting alone and then having three heroes pop in.
+
+**Still never exercised, and still play-test work rather than code work:** a bot
+death (nothing at this level hits hard enough -- `was down` is still empty
+across every run) and the EXP/ED comparison between an auto-party run and a solo
+run.
 
 ### Revive is still unproven
 

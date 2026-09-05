@@ -194,6 +194,9 @@ m_bBGMOn( true ),
 m_bLastKillCheck( false ),
 #ifdef SERV_IRUHADEV_OFFLINE
 m_fOfflineBotSpawnCooldown( 0.f ),		///< AI_PARTY_PLAN.md phase 2 - stagger the party spawn
+#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
+m_bOfflineKeepPartyBots( false ),		///< AI_PARTY_PLAN.md phase 2 - keep the party across a stage change
+#endif SERV_IRUHADEV_AIPARTY_PERSIST
 #endif SERV_IRUHADEV_OFFLINE
 m_fLastKillWaitTime( 0.05f ),
 m_fLastKillWaitTimeAfterRebirth( 1.f ), 
@@ -4952,6 +4955,49 @@ bool CX2Game::DeleteAllNPCUnit()
 		if( NULL == pCX2GUNPC )
 			continue;
 
+#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
+		// A LIVING AI PARTY MEMBER SURVIVES A STAGE CHANGE, the way every
+		// real party member does. This is the whole of that change.
+		//
+		// The only caller of this in a shipped dungeon build is
+		// CX2DungeonGame::StageLoading (X2DungeonGame.cpp:685) - the other
+		// two are X2TOOL and the PvP/battlefield states - and it is what
+		// used to kill the party at every stage. The spawn then had to run
+		// again from SubStageStart, which costs a packet round trip plus
+		// three CX2GUNPC constructions and lands well after the loading
+		// curtain has lifted, so the player fights alone for a moment and
+		// then watches three heroes pop in.
+		//
+		// A multiplayer party never pays that: CX2GUUser units are built
+		// once in CX2Game::UnitLoading (X2Game.cpp:1677) and StageLoading
+		// merely walks m_UserUnitList calling InitPosition. Sparing the bot
+		// here and repositioning it in RepositionOfflinePartyBots gives it
+		// exactly that lifetime.
+		//
+		// Not a new idea in this engine and not a risky one: the block
+		// directly below already spares monster-card summons from the same
+		// sweep, and they are the same class with the same ally AI, so
+		// outliving m_pWorld is a path the studio already relies on. Nothing
+		// a unit holds across it is a raw pointer into the old stage - the
+		// AI's target and attacker are KObserverPtr (X2NPCAI.h:145) and so
+		// is the grab list, so the monsters being deleted around it null
+		// themselves out.
+		//
+		// Guarded by m_bOfflineKeepPartyBots rather than applied always, so
+		// this is an exemption for the stage-change sweep specifically and
+		// every other caller still means all of them. A DEAD bot is not
+		// spared: letting the corpse go lets the ordinary spawn path bring
+		// it back whole on the new stage, which is the cheapest possible
+		// revive and is free here because the stage is loading anyway.
+		if( true == m_bOfflineKeepPartyBots &&
+			true == pCX2GUNPC->IsPvpBot() &&
+			pCX2GUNPC->GetNowHp() > 0.f &&
+			true == IsOfflinePartyBotUID( (int)pCX2GUNPC->GetUnitUID() ) )
+		{
+			continue;
+		}
+#endif SERV_IRUHADEV_AIPARTY_PERSIST
+
 		//{{ mauntain : 김태환 [2012.06.14] 몬스터 카드 소환 기능 - 소환 몬스터에 한해 삭제 Pass
 #ifdef SUMMON_MONSTER_CARD_SYSTEM
 
@@ -6496,11 +6542,16 @@ CX2Game::CreateNPC( CX2UnitManager::NPC_UNIT_ID unitID, int level, bool bActive,
 			//
 			// Every NPC is put into its lua START state when it is built
 			// (CX2GUNPC, X2GUNPC.cpp:2621), and for this cast that state is a
-			// card-summon entrance. A bot is rebuilt once per STAGE - the world
-			// is torn down and every NPC with it, so CreateOfflinePartyBots
-			// re-spawns it at the next sub-stage start - and playing an
-			// entrance animation at each of those reads as a summon rather than
-			// as a party member who was with you all along.
+			// card-summon entrance, and playing it reads as a summon rather
+			// than as a party member who was with you all along.
+			//
+			// This used to fire at every STAGE, because the world was torn
+			// down with every NPC in it and CreateOfflinePartyBots re-spawned
+			// the party at the next sub-stage start. Under
+			// SERV_IRUHADEV_AIPARTY_PERSIST a living bot survives that sweep,
+			// so a build now only happens at dungeon entry and after a death
+			// - which makes this matter less often and matter more, since the
+			// two occasions left are the ones the player is watching.
 			//
 			// Dropping straight into the wait state is the whole fix: the ally
 			// AI takes over from there on its next tick. Note the studio
@@ -6927,11 +6978,13 @@ void CX2Game::PushCreateNPCReq( CX2UnitManager::NPC_UNIT_ID unitID, int level, b
 //
 //              Being called once per sub-stage, this has to be idempotent,
 //              and is: a bot whose NPC is already in the world is skipped.
-//              An ally survives a sub-stage change - DeleteAllNPCUnit()
-//              only removes the sub-stage's own NPC list - so in practice
-//              it spawns on the first sub-stage and is skipped thereafter,
-//              with the later calls standing as the recovery path if a bot
-//              is ever lost.
+//              In practice it spawns the party on the very first sub-stage
+//              of the dungeon and is skipped at every call thereafter - a
+//              sub-stage change never removed a bot, and under
+//              SERV_IRUHADEV_AIPARTY_PERSIST a stage change no longer does
+//              either. What is left for it is dungeon entry, a bot that
+//              died, and one that could not be placed on a new stage; the
+//              rest of its calls stand as the recovery path.
 //
 //              Four things here are load-bearing rather than tuning:
 //
@@ -7012,44 +7065,13 @@ void CX2Game::CreateOfflinePartyBots()
 		return;
 	}
 
-	const D3DXVECTOR3	vMyPos	= pMyUnit->GetPos();
-	const bool			bRight	= pMyUnit->GetIsRight();
 	const UidType		myUID	= pMyUnit->GetUnitUID();
 
-	// THE LINE MAP'S OWN START SLOTS, and preferring them over an offset
-	// from the player is what stopped the bots being silently dropped at
-	// every stage change.
-	//
-	// CX2Game::CreateNPC builds the unit, calls SetPosition, and if that
-	// cannot find ground under the point it DELETES the unit and returns -
-	// with no log and, in a release build, not even the assert
-	// (X2Game.cpp:6405). At SubStageStart the player has not been moved to
-	// the new stage yet, so GetPos() still answers with a point on the
-	// PREVIOUS stage's map; every bot offset from it lands nowhere and
-	// every one of them is thrown away. That is phase 2 defect 2: the
-	// player fights alone until the retry a few seconds later, by which
-	// time they have been placed and the same request succeeds.
-	//
-	// A start slot is on the map by definition, so SetPosition cannot fail
-	// on it. Slots 1..3 are also exactly where a party of four is placed,
-	// which is a better answer than a hand-rolled fan-out anyway.
-	//
-	// Read through GetStartPosMap rather than GetStartPosition( i ):
-	// m_mapStartPos is a MAP, and GetStartPosition answers a missing key
-	// with (0,0,0) - which is a position SetPosition would reject, putting
-	// the bug straight back.
-	std::vector< int >	vecStartKey;
-	CKTDGLineMap* pLineMap = ( NULL != GetWorld() ? GetWorld()->GetLineMap() : NULL );
-
-	if( NULL != pLineMap )
-	{
-		std::map< int, D3DXVECTOR3 >& mapStartPos = pLineMap->GetStartPosMap();
-		for( std::map< int, D3DXVECTOR3 >::iterator itStart = mapStartPos.begin();
-			 itStart != mapStartPos.end(); ++itStart )
-		{
-			vecStartKey.push_back( itStart->first );
-		}
-	}
+	// Placement lives in GetOfflinePartyBotPos, because a stage change no
+	// longer comes through here: with SERV_IRUHADEV_AIPARTY_PERSIST a living
+	// bot survives StageLoading and is repositioned by
+	// RepositionOfflinePartyBots, which has to put it in exactly the place
+	// this function would have spawned it.
 
 	int numNpc = 0;
 
@@ -7113,55 +7135,15 @@ void CX2Game::CreateOfflinePartyBots()
 		// the 0 the dungeon path leaves here.
 		npcSlot.m_iNpcId = (int)eNpcID;
 
-		// Party start slots 1..3 when the line map has them - see the block
-		// before the loop for why this is a correctness fix and not a
-		// nicety. The player holds slot 0.
-		D3DXVECTOR3	vPos		= vMyPos;
-		bool		bSpawnRight	= bRight;
+		// Where this one goes. Shared with the stage-change reposition so the
+		// two cannot drift apart - see GetOfflinePartyBotPos.
+		D3DXVECTOR3	vPos;
+		bool		bSpawnRight;
 
-		if( (int)vecStartKey.size() > 1 )
-		{
-			const int iKey = vecStartKey[ ( i + 1 ) % (int)vecStartKey.size() ];
+		if( false == GetOfflinePartyBotPos( i, vPos, bSpawnRight ) )
+			continue;
 
-			vPos		= pLineMap->GetStartPosition( iKey );
-			bSpawnRight	= pLineMap->GetStartRight( iKey );
-		}
-		else
-		{
-			// No usable start slots. Fall back to a fan-out around the player:
-			// alternating sides at a widening step, so a party of three sits 60
-			// behind, 80 ahead and 100 behind the way the player faces, rather
-			// than queued up in a line as phase 1's single 60-unit step reads
-			// once there is more than one of them.
-			//
-			// Logged, because this is also the path that silently drops bots
-			// when the player position is stale. If the spawn retries ever come
-			// back, this line is what says whether the line map was the reason.
-			CX2OfflineLog::Server( L"AIPARTY  NOTE line map has %d start slot(s) - placing bots off the player instead",
-				(int)vecStartKey.size() );
-
-			vPos.x += ( true == bRight ? -1.f : 1.f ) *
-				( 0 == ( i % 2 ) ? 1.f : -1.f ) * ( 60.f + 20.f * i );
-
-			if( NULL != pLineMap )
-			{
-				int iLineIndex = 0;
-				const D3DXVECTOR3 vLanded =
-					pLineMap->GetLandPosition( vPos, LINE_RADIUS, &iLineIndex );
-
-				// Only if it found something NEAR the offset. With no line under
-				// the point, GetLandPosition answers with a far-away fallback -
-				// the same one for every input - and the fan-out collapses into
-				// a single stack of bots.
-				if( fabsf( vLanded.x - vPos.x ) < 200.f &&
-					fabsf( vLanded.y - vPos.y ) < 200.f )
-				{
-					vPos = vLanded;
-				}
-			}
-		}
-
-				// CreateNPCReq, not PushCreateNPCReq, and the difference is the whole
+		// CreateNPCReq, not PushCreateNPCReq, and the difference is the whole
 		// reason a bot could swing at a monster and take nothing off it.
 		// PushCreateNPCReq never sets KNPCUnitReq::m_cAllyTeam, so the field
 		// keeps its Init() default of 2 = TN_MONSTER (CommonPacket.h:3633) -
@@ -7212,6 +7194,219 @@ void CX2Game::CreateOfflinePartyBots()
 			OFFLINE_BOT_SPAWN_INTERVAL );
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-06
+// Description: Where AI party member iBotIndex_ belongs on the stage the
+//              client is standing in right now.
+//
+//              Shared by the spawn (CreateOfflinePartyBots) and by the
+//              stage-change reposition (RepositionOfflinePartyBots), which
+//              is the point of it being a function: a bot that is kept
+//              across a stage has to end up exactly where a freshly spawned
+//              one would, or the two paths produce visibly different
+//              parties on the same map.
+//
+//              THE LINE MAP'S OWN START SLOTS, and preferring them over an
+//              offset from the player is what stopped the bots being
+//              silently dropped at every stage change.
+//
+//              CX2Game::CreateNPC builds the unit, calls SetPosition, and
+//              if that cannot find ground under the point it DELETES the
+//              unit and returns - with no log and, in a release build, not
+//              even the assert (X2Game.cpp:6405). At SubStageStart the
+//              player has not been moved to the new stage yet, so GetPos()
+//              still answers with a point on the PREVIOUS stage's map;
+//              every bot offset from it lands nowhere and every one of them
+//              is thrown away. That is phase 2 defect 2.
+//
+//              A start slot is on the map by definition, so SetPosition
+//              cannot fail on it. Slots 1..3 are also exactly where a party
+//              of four is placed, which is a better answer than a
+//              hand-rolled fan-out anyway. The player holds slot 0.
+//
+//              Read through GetStartPosMap rather than GetStartPosition( i ):
+//              m_mapStartPos is a MAP, and GetStartPosition answers a
+//              missing key with (0,0,0) - which is a position SetPosition
+//              would reject, putting the bug straight back.
+//////////////////////////////////////////////////////////////////////////
+bool CX2Game::GetOfflinePartyBotPos( int iBotIndex_, D3DXVECTOR3& vPosOut_, bool& bRightOut_ )
+{
+	CX2GUUser* pMyUnit = GetMyUnit();
+	if( NULL == pMyUnit )
+		return false;
+
+	const D3DXVECTOR3	vMyPos	= pMyUnit->GetPos();
+	const bool			bRight	= pMyUnit->GetIsRight();
+
+	CKTDGLineMap* pLineMap = ( NULL != GetWorld() ? GetWorld()->GetLineMap() : NULL );
+
+	std::vector< int > vecStartKey;
+
+	if( NULL != pLineMap )
+	{
+		std::map< int, D3DXVECTOR3 >& mapStartPos = pLineMap->GetStartPosMap();
+		for( std::map< int, D3DXVECTOR3 >::iterator itStart = mapStartPos.begin();
+			 itStart != mapStartPos.end(); ++itStart )
+		{
+			vecStartKey.push_back( itStart->first );
+		}
+	}
+
+	if( (int)vecStartKey.size() > 1 )
+	{
+		const int iKey = vecStartKey[ ( iBotIndex_ + 1 ) % (int)vecStartKey.size() ];
+
+		vPosOut_	= pLineMap->GetStartPosition( iKey );
+		bRightOut_	= pLineMap->GetStartRight( iKey );
+		return true;
+	}
+
+	// No usable start slots. Fall back to a fan-out around the player:
+	// alternating sides at a widening step, so a party of three sits 60
+	// behind, 80 ahead and 100 behind the way the player faces, rather than
+	// queued up in a line as phase 1's single 60-unit step reads once there
+	// is more than one of them.
+	//
+	// Logged, because this is also the path that silently drops bots when
+	// the player position is stale. If the spawn retries ever come back,
+	// this line is what says whether the line map was the reason.
+	CX2OfflineLog::Server( L"AIPARTY  NOTE line map has %d start slot(s) - placing bots off the player instead",
+		(int)vecStartKey.size() );
+
+	D3DXVECTOR3 vPos = vMyPos;
+
+	vPos.x += ( true == bRight ? -1.f : 1.f ) *
+		( 0 == ( iBotIndex_ % 2 ) ? 1.f : -1.f ) * ( 60.f + 20.f * iBotIndex_ );
+
+	if( NULL != pLineMap )
+	{
+		int iLineIndex = 0;
+		const D3DXVECTOR3 vLanded =
+			pLineMap->GetLandPosition( vPos, LINE_RADIUS, &iLineIndex );
+
+		// Only if it found something NEAR the offset. With no line under the
+		// point, GetLandPosition answers with a far-away fallback - the same
+		// one for every input - and the fan-out collapses into a single
+		// stack of bots.
+		if( fabsf( vLanded.x - vPos.x ) < 200.f &&
+			fabsf( vLanded.y - vPos.y ) < 200.f )
+		{
+			vPos = vLanded;
+		}
+	}
+
+	vPosOut_	= vPos;
+	bRightOut_	= bRight;
+	return true;
+}
+
+#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
+bool CX2Game::IsOfflinePartyBotUID( int iUID_ )
+{
+	if( NULL == g_pX2Room )
+		return false;
+
+	std::vector< CX2Room::RoomNpcSlot >& vecNpcSlot = g_pX2Room->GetNpcSlot();
+
+	for( int i = 0; i < (int)vecNpcSlot.size(); ++i )
+	{
+		if( (int)vecNpcSlot[i].m_iNpcUid == iUID_ )
+			return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-06
+// Description: Put the AI party members that survived a stage change onto
+//              the new stage's line map.
+//
+//              This is the other half of the exemption in
+//              DeleteAllNPCUnit, and it is deliberately a mirror of the
+//              m_UserUnitList loop it is called beside
+//              (X2DungeonGame.cpp:814): a real party member is not rebuilt
+//              at a stage change either, it is repositioned and dropped
+//              into its wait state. A bot now costs the same.
+//
+//              Called from StageLoading AFTER the new world is created, so
+//              GetWorld()->GetLineMap() is the new stage's map and
+//              SetPosition re-derives the unit's line index from it. That
+//              ordering is load-bearing: called any earlier this would
+//              place the party on a map that is about to be deleted.
+//
+//              A bot that is NOT in the world here is one that died on the
+//              old stage (DeleteAllNPCUnit spares only living ones) or one
+//              whose spawn never landed. Both are left to
+//              CreateOfflinePartyBots at SubStageStart, which is the path
+//              that was carrying every stage change until now.
+//////////////////////////////////////////////////////////////////////////
+void CX2Game::RepositionOfflinePartyBots()
+{
+	if( NULL == g_pX2Room )
+		return;
+
+	std::vector< CX2Room::RoomNpcSlot >& vecNpcSlot = g_pX2Room->GetNpcSlot();
+	if( true == vecNpcSlot.empty() )
+		return;			///< a solo room has no bot slots - the whole scope guard
+
+	for( int i = 0; i < (int)vecNpcSlot.size(); ++i )
+	{
+		CX2Room::RoomNpcSlot& npcSlot = vecNpcSlot[i];
+
+		CX2GUNPC* pNpc = GetNPCUnitByUID( (int)npcSlot.m_iNpcUid );
+		if( NULL == pNpc )
+			continue;
+
+		D3DXVECTOR3	vPos;
+		bool		bBotRight = true;
+
+		if( false == GetOfflinePartyBotPos( i, vPos, bBotRight ) )
+			continue;
+
+		if( false == pNpc->SetPosition( vPos, bBotRight ) )
+		{
+			// Nowhere to stand on the new map. Leaving it alone is the one
+			// thing that must not happen - its position and line index are
+			// still the OLD stage's - so hand it back to the spawn path,
+			// which is what ran here before this change and is still
+			// correct, only slower.
+			CX2OfflineLog::Server( L"AIPARTY  bot \"%s\" (uid=%I64d) could not be placed at (%.0f, %.0f, %.0f) on the new stage - deleting, the spawn will rebuild it",
+				npcSlot.m_wstrNpcName.c_str(), (__int64)npcSlot.m_iNpcUid,
+				vPos.x, vPos.y, vPos.z );
+
+			DeleteNPCUnitByUID( (UINT)npcSlot.m_iNpcUid );
+			continue;
+		}
+
+		// Whatever it was doing on the old stage is over. The AI's target and
+		// attacker are observer pointers and have already nulled themselves
+		// as the stage's monsters were deleted, so this is about the
+		// animation state rather than about safety - a bot that changed stage
+		// mid-swing would otherwise finish the swing on arrival.
+		if( NULL != pNpc->GetNPCAI() )
+		{
+			pNpc->GetNPCAI()->ResetTarget();
+			pNpc->GetNPCAI()->ResetAttackerGameUnit();
+		}
+
+		if( pNpc->GetCommonState().m_Wait != pNpc->GetNowStateID() )
+			pNpc->StateChangeForce( pNpc->GetCommonState().m_Wait, true );
+
+		// The same arrival grace the spawn path gives (CreateNPC,
+		// X2Game.cpp:6519). A stage can open with the party standing in
+		// something's attack.
+		pNpc->SetForceInvincible( 3.f, 3.f );
+
+		CX2OfflineLog::Server( L"AIPARTY  bot \"%s\" (uid=%I64d) kept across the stage change, moved to (%.0f, %.0f, %.0f)",
+			npcSlot.m_wstrNpcName.c_str(), (__int64)npcSlot.m_iNpcUid,
+			vPos.x, vPos.y, vPos.z );
+	}
+}
+#endif SERV_IRUHADEV_AIPARTY_PERSIST
 
 //////////////////////////////////////////////////////////////////////////
 // Author: Iruha
