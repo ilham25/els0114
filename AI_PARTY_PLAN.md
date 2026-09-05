@@ -1,11 +1,12 @@
 # AI party members in offline dungeons
 
 **Status:** **phases 0 and 1 done 2026-09-05, both play-tested. Phase 2 is
-implemented and play-tested twice, and is NOT closed** - the cast, count, draw
-and placement are right, one defect was found and fixed (six bots), and a
-second is open: the first spawn after a stage change does not land and a
-3 s retry covers for it. See *Phase 2*, defect 2, before doing anything else in
-this file. Phase 0 was a
+implemented and play-tested, and is NOT closed** — the cast, count, draw and
+placement are right and the solo button still spawns nobody, but one defect is
+open: the first spawn after a stage change does not land, and a 3 s retry covers
+for it. Revive is unproven and cannot be proven until that is settled, because
+both depend on the same UID lookup. See *Phase 2*, defect 2, before doing
+anything else in this file. Phase 0 was a
 gate and it FAILED for the intended cast, so the plan is re-pointed at
 `NUI_CSM_PVP_HERO_*` — see *Phase 0*. Phase 1 PASSED: pressing auto-party puts
 one AI party member (Lowe) in the dungeon, fighting on your team, and the
@@ -781,8 +782,8 @@ spawn *plumbing* is not finished, and phase 2 is **not closed**.
 | Sub-stages clear, dungeon finishes | **PASS** - the 05:29 run reached `SHUTDOWN clean` through a full dungeon |
 | Six bots instead of three | **WAS FAILING, now fixed** - defect 1 |
 | **One spawn burst per stage** | **STILL FAILING** - defect 2. Two bursts per stage from stage 1 onwards |
-| A dead bot comes back | **NOT YET OBSERVED.** No `was down` line in either run - nothing died for eight seconds. Still unproven |
-| **The normal start button spawns nobody** | **NOT YET RUN.** The standing regression check has not been done since phase 1 |
+| A dead bot comes back | **UNPROVEN, and assumed working by decision.** No `was down` line in any run - the mobs at this level cannot kill a bot carrying the player's stat line, so it could not be provoked. See *Revive is unproven and coupled to defect 2* below before relying on it |
+| **The normal start button spawns nobody** | **PASS** (2026-09-06). The standing regression check, re-run after the count went to three |
 | Reward path is clean | **NOT YET RUN.** Still wants the before/after `els_db.sql` comparison |
 | No new failures | **PASS for this feature.** One `UNHANDLED`, `EGS_SECRET_STAGE_LOAD_REQ` (id=1197), unrelated to the AI party - it is a dungeon feature offline mode has never handled |
 
@@ -872,6 +873,60 @@ tag it `AIPARTY`, keep it one block.
 Worth noting for whoever picks this up: the retry mechanism is behaving
 exactly as designed - it detected a spawn that did not arrive, said so, and
 recovered. The bug it uncovered is upstream of it.
+
+### Revive is unproven and coupled to defect 2
+
+Recorded because "assume it works" is a reasonable call to make and a bad thing
+to forget having made.
+
+Nothing at the player's level hits hard enough to kill a bot, so the revive path
+has never run: `grep "was down" offline_server.log` is empty across every run.
+The decision (2026-09-06) is to assume it works and move on, which is fine as
+far as it goes — but **it is not independent of defect 2, and that is the part
+worth remembering.**
+
+`TickOfflinePartyBots` finds each bot with exactly the lookup defect 2 shows
+failing:
+
+```cpp
+CX2GUNPC* pNpc = GetNPCUnitByUID( (int)npcSlot.m_iNpcUid );
+if( NULL == pNpc ) { ...treat as missing, do not check its HP... }
+```
+
+So if defect 2 turns out to be explanation 2 — the bot exists under a UID the
+room does not know — then the tick is watching a slot nothing occupies, it can
+never observe a death, and **revive is not merely unproven, it is unreachable**.
+The two questions have one answer. Settle defect 2 first; do not spend a
+play-test trying to provoke a bot death before then, because a negative result
+would not distinguish "the delay is wrong" from "the tick is looking at the
+wrong unit".
+
+If it does need provoking later, the cheap ways are a dungeon several levels
+above the character, or temporarily dropping `RESPAWN_DELAY` and letting a boss
+do the work — not a code path that kills the bot artificially, which would
+prove the respawn and not the detection.
+
+### One lead ruled out on defect 2, so nobody re-walks it
+
+`CX2Game::CreateNPC` opens with a silent early return:
+
+```cpp
+if( m_bLastKillCheck == true )
+    return;          // no log, no trace
+```
+
+It is exactly the right shape for defect 2 — a stage-scoped flag that suppresses
+NPC creation with nothing written anywhere — and it is **not** the cause.
+`CX2DungeonGame::SubStageStart()` sets `m_bLastKillCheck = false` at its very
+top ([X2DungeonGame.cpp:1068](X2Lib/X2DungeonGame.cpp#L1068)), and
+`CreateOfflinePartyBots()` is called at the *end* of that same function, so the
+flag is already clear by the time the request goes out, and it only becomes true
+again when the sub-stage is cleared. The log agrees: the stage's own monsters
+were alive and one was killed between the failed request and the retry.
+
+The remaining suspects are all downstream of `CreateNPC` being entered at all,
+which is why the diagnostic under defect 2 asks for the UID *the NPC was built
+with* rather than for another guard.
 
 ### What reading settled before the play-test
 
