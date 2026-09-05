@@ -58,6 +58,9 @@ void CX2OfflineServer::Release()
 	CX2OfflineCashShop::Release();
 	CX2OfflineBattleField::Release();
 	CX2OfflineDropTable::Release();
+#ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
+	CX2OfflineResolveTable::Release();
+#endif SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
 	CX2OfflineStatTable::Release();
 	CX2OfflineDB::Release();
 	CX2OfflineLog::Close();

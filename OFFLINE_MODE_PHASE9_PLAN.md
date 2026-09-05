@@ -746,6 +746,100 @@ a new `X2OfflineResolveTable` module (same shape as `X2OfflineDropTable` /
 committed above stands, but it is a "not yet asked to be enabled" state, not a
 "can't be done" one.
 
+### Second pass — real materials, once the Lua was packed
+
+The user packed `ResolveTable.lua` the same session and, per the corrected
+rule above, the real feature was implemented immediately rather than asked
+about and parked. No new packets: still `EGS_RESOLVE_ITEM_REQ` /
+`EGS_RESOLVE_ITEM_ACK`, same ids as the refusal above - only the handler body
+changed. Everything below is what the plan's one-line "port the algorithm"
+undersold:
+
+- **Two source functions had to be read together, not one.** The yield
+  algorithm is not all in `CXSLResolveItemManager::GetResultItem` - the sell
+  price it needs as an input is computed by the *caller*,
+  `KInventory::ResolveItem` (`Inventory.cpp:11799-12029`), which is itself
+  called from `GSUserInventory.cpp:2846-2926`. Reading only the manager class
+  (as the phase 12 diagnosis above did) would have left "what is `iSellPrice`"
+  unanswered. It turned out to already be solved: `KInventory::GetSellPrice`
+  (`SERV_SELL_ED_ITEM_PRICE_FIX` arm) is the exact formula
+  `Handler_EGS_SELL_ED_ITEM_REQ` (phase 5) already ports for shop selling, so
+  the new handler duplicates that same switch rather than inventing a second
+  one - "1/5 of shop price, prorated by remaining endurance."
+
+- **Two Lua globals nothing in the client defines - not named in the plan,
+  found by running the file.** `ResolveTable.lua` subscripts
+  `ITEM_TYPE["IT_WEAPON"]` and `ITEM_GRADE["IG_UNIQUE"]` (etc.) exactly the
+  way `RandomItemTable.lua` and `PetData.lua` needed `UNIT_CLASS[...]` /
+  `PET_UNIT_ID[...]` in phase 7b. Extended the existing
+  `X2OfflineLuaEnum`/`X2OfflineLuaEnumSeed.h` machinery (`Publish()`) rather
+  than building a second one, transcribing both enums from the client's own
+  `X2Lib/X2Item_Preprocessing.inl` and diffing against the server's
+  independent copy (`KncWX2Server/Common/X2Data/XSLItem.h:16-42`): identical,
+  value for value, no exceptions - unlike `UNIT_CLASS`'s partial diff in
+  phase 7b, there was nothing to reconcile here.
+
+- **Fashion (avatar/costume) items are a second, unrelated data dependency -
+  scoped out rather than chased.** `KInventory::ResolveItem` branches on
+  `pItemTemplet->GetFashion()` before ever calling the resolve manager: a
+  fashion item is priced through `CXSLCashItemManager::GetCashItemPriceFromScript`
+  (`Inventory.cpp:11939`) and pays out a fixed "unknown attribute stone,"
+  nothing from `ResolveTable.lua` at all. That is a different server-only
+  table this phase does not have. Since almost every real
+  `CX2Item::IT_ACCESSORY` carries `GetFashion() == true`, this is also where a
+  non-dismantleable accessory actually lands - refused with
+  `ERR_RESOLVE_ITEM_04` and a log line naming the cash-item table by name,
+  rather than silently forcing it through the weapon/armor path or widening
+  this phase to also port `CXSLCashItemManager`.
+
+- **The jackpot flag is genuinely per-session state, not the manager's - new
+  `KOfflineSession` field the plan never named**, the same shape phase 10's
+  "tracks the summoned pet" surprise took. `bJackpot` does not come from
+  `CXSLResolveItemManager` at all; it is decided by comparing
+  `KGSUser::m_kTimer[TM_RESOLVE_JACKPOT].elapsed()` against
+  `m_dResolveJackpotTime` (`GSUserInventory.cpp:2894-2944`), both per-connected-
+  user members with no offline equivalent before this phase. Added
+  `KOfflineSession::m_tNextJackpotAt` (one absolute deadline instead of an
+  elapsed/threshold pair) behind `SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE`, defaulting
+  to 0 - which is guaranteed `<=` now, so the first dismantle after any launch
+  is always a jackpot attempt, matching the live server's own default-`0.0`
+  member.
+
+- **A real bug in the studio's own code, transcribed rather than fixed.**
+  `CXSLResolveItemManager::ResolveResult_EnchantStone` doubles the quantity
+  when it inserts a *new* map entry under jackpot, but adds the plain
+  (non-doubled) `m_iResultCount` when a later draw in the same call merges
+  into an *existing* entry - both branches of that second ternary read the
+  same `kResolveData.m_iResultCount`. Ported byte for byte with a comment
+  pointing at the asymmetry rather than "correcting" it, per `CLAUDE.md`'s
+  transcribe-don't-tidy rule; it only bites a second-or-later successful draw
+  of the same enchant stone inside one dismantle, rare enough at
+  `iRandomCnt <= 4` that live players plausibly never noticed either.
+
+- **Space is checked per material type, not as one atomic reservation -
+  a known, narrow gap from `KInventory::IsEnoughSpaceExist`.** The real check
+  reserves room for every result item at once before touching anything; the
+  port calls `CX2OfflineInventory::HasRoomFor` once per distinct material
+  independently. The two disagree only when two *different* new material
+  types both need the last free slot in the same category at once - narrow
+  enough with a handful of material kinds per dismantle that it was not worth
+  a bigger, transactional check.
+
+- **A new offline module needs two file-list edits that are easy to forget
+  and fail silently at compile time, not at all.** `X2OfflineResolveTable.h`/
+  `.cpp` had to be added to `X2Lib_2010.vcxproj`'s `ClInclude`/`ClCompile`
+  lists by hand - a `.cpp` not listed there simply never compiles, with no
+  error until link time (`LNK2019` unresolved externals), which is a
+  confusing place to first learn a file was never in the build.
+
+- **Not yet done at the time of this writeup**: the exit test is a real
+  play-test (dismantle an item, read the logs, confirm materials landed and
+  the original item is gone) that needs a human at the client. Both projects
+  built clean under `US_SERVICE` and the exe was redeployed to
+  `X2_offline.exe`, confirmed by size/mtime; the first pass's refusal was
+  already play-tested and confirmed working, so this second pass is confirmed
+  only by the build, pending that play-test.
+
 ---
 
 # Phase 13 — Cobo Express: "You cannot enter the village" (`ISSUES.md` #16)

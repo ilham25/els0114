@@ -2055,6 +2055,7 @@
     <ClInclude Include="Offline\X2OfflineInventory.h" />
     <ClInclude Include="Offline\X2OfflineSkill.h" />
     <ClInclude Include="Offline\X2OfflineDropTable.h" />
+    <ClInclude Include="Offline\X2OfflineResolveTable.h" />
     <ClInclude Include="Offline\X2OfflineBattleField.h" />
     <ClInclude Include="Offline\X2OfflineIgnore.h" />
     <ClInclude Include="Offline\X2OfflineLog.h" />
@@ -3149,6 +3150,7 @@
     <ClCompile Include="Offline\X2OfflineInventory.cpp" />
     <ClCompile Include="Offline\X2OfflineSkill.cpp" />
     <ClCompile Include="Offline\X2OfflineDropTable.cpp" />
+    <ClCompile Include="Offline\X2OfflineResolveTable.cpp" />
     <ClCompile Include="Offline\X2OfflineLuaEnum.cpp" />
     <ClCompile Include="Offline\X2OfflinePetData.cpp" />
     <ClCompile Include="Offline\X2OfflineRandomItem.cpp" />

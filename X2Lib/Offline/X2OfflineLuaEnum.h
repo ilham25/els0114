@@ -13,6 +13,7 @@
 //                RandomItemTable.lua   UNIT_CLASS[...], USE_CONDITION[...]
 //                PetData.lua           PET_UNIT_ID[...]
 //                RidingPetData.lua     RIDING_PET_UNIT_ID[...]
+//                ResolveTable.lua      ITEM_TYPE[...], ITEM_GRADE[...] (phase 12)
 //
 //              Nothing in the client defines them. Without them every
 //              subscript is nil, every value arrives as 0, and the files load
@@ -49,9 +50,9 @@ public:
 	};
 
 public:
-	/// Defines UNIT_CLASS, USE_CONDITION, PET_UNIT_ID and RIDING_PET_UNIT_ID as
-	/// globals in the client's Lua state. Safe to call repeatedly; only the
-	/// first call does anything.
+	/// Defines UNIT_CLASS, USE_CONDITION, PET_UNIT_ID, RIDING_PET_UNIT_ID,
+	/// ITEM_TYPE and ITEM_GRADE as globals in the client's Lua state. Safe to
+	/// call repeatedly; only the first call does anything.
 	///
 	/// Returns false when the Lua state is not up yet, which the caller should
 	/// treat as "do not run the scripts" - running them without the tables is

@@ -656,23 +656,169 @@ bool CX2OfflineServer::Handler_EGS_SOCKET_ITEM_REQ( KOfflineSession& kSes, const
 //////////////////////////////////////////////////////////////////////////
 // Phase 12: EGS_RESOLVE_ITEM_REQ (dismantle) used to sit on
 // X2OfflineIgnore.cpp's ignore list, which sends no reply and leaves the
-// dialog hanging. Same shape as the two refusals just above: the yield table
-// (ResolveTable.lua -> CXSLResolveItemManager::m_mapResolveData /
-// m_vecBrokenPieceResolve) is server-only data with no client copy.
+// dialog hanging. ResolveTable.lua is packed into data036.kom, so this ports
+// the real yield algorithm - KInventory::ResolveItem (Inventory.cpp:11799)
+// plus CXSLResolveItemManager::GetResultItem - rather than refusing; see
+// X2OfflineResolveTable.h for exactly which pieces live where.
 
 #ifdef SERV_IRUHADEV_OFFLINE_ITEM_RESOLVE
-bool CX2OfflineServer::Handler_EGS_RESOLVE_ITEM_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
+bool CX2OfflineServer::Handler_EGS_RESOLVE_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
 {
+	KEGS_RESOLVE_ITEM_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	CX2OfflineInventory*	 pInven = CX2OfflineInventory::Instance();
+	CX2OfflineResolveTable* pTable = CX2OfflineResolveTable::Instance();
+
 	KEGS_RESOLVE_ITEM_ACK kAck;
-	kAck.m_iOK		= NetError::ERR_RESOLVE_ITEM_04;	///< "분해를 할 수 없습니다." (cannot dismantle)
+	kAck.m_iOK		= NetError::ERR_RESOLVE_ITEM_00;	///< no such item - KInventory::ResolveItem's own default
 	kAck.m_bJackpot	= false;
 #ifdef SERV_MULTI_RESOLVE
 	kAck.m_iED = 0;
 #endif SERV_MULTI_RESOLVE
 
-	CX2OfflineLog::Server( L"ITEM     refused a dismantle - the resolve-yield table"
-		L" (ResolveTable.lua -> CXSLResolveItemManager) is server data with no client copy,"
-		L" so the item workshop is not implemented offline" );
+	KOfflineItemRow kRow;
+	if( false == pInven->GetItemRow( kReq.m_iItemUID, kRow ) )
+		return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+
+	const CX2Item::ItemTemplet* pTemplet = CX2OfflineInventory::Templet( kRow.m_iItemID );
+	if( NULL == pTemplet )
+	{
+		kAck.m_iOK = NetError::ERR_RESOLVE_ITEM_01;
+		return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+	}
+
+	// KInventory::ResolveItem's type gate (Inventory.cpp:11884-11894).
+	if( CX2Item::IT_WEAPON != pTemplet->GetItemType() &&
+		CX2Item::IT_DEFENCE != pTemplet->GetItemType() &&
+		CX2Item::IT_ACCESSORY != pTemplet->GetItemType() )
+	{
+		kAck.m_iOK = NetError::ERR_RESOLVE_ITEM_03;
+		return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+	}
+
+	// Fashion (avatar/costume) dismantle is a different path on the real
+	// server - it prices the item from CXSLCashItemManager's cash-item price
+	// table (GetCashItemPriceFromScript, Inventory.cpp:11939) and pays out a
+	// fixed "unknown attribute stone" instead of anything from
+	// ResolveTable.lua. That table is not this phase's; refuse honestly rather
+	// than guess a price. Almost every real CX2Item::IT_ACCESSORY is fashion,
+	// so this is also where a non-dismantleable accessory actually lands.
+	if( true == pTemplet->GetFashion() )
+	{
+		kAck.m_iOK = NetError::ERR_RESOLVE_ITEM_04;
+		CX2OfflineLog::Server( L"ITEM     dismantle refused for item %d - it is a fashion/avatar"
+			L" piece, priced from the cash-item table (CXSLCashItemManager), not"
+			L" ResolveTable.lua; not implemented offline", kRow.m_iItemID );
+		return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+	}
+
+	// KInventory::GetSellPrice, SERV_SELL_ED_ITEM_PRICE_FIX arm - byte for
+	// byte the same formula Handler_EGS_SELL_ED_ITEM_REQ already ports above,
+	// because dismantle prices its yield the same "1/5 of shop price,
+	// prorated by remaining endurance" way the shop-sell handler does.
+	int iSellPrice = 0;
+
+	switch( pTemplet->GetPeriodType() )
+	{
+	case CX2Item::PT_INFINITY:
+		iSellPrice = (int)floorf( 0.2f * (float)pTemplet->GetPrice() + 0.01f );
+		break;
+
+	case CX2Item::PT_ENDURANCE:
+		if( pTemplet->GetEndurance() <= 0 || kRow.m_iEndurance < 0 )
+		{
+			kAck.m_iOK = NetError::ERR_RESOLVE_ITEM_01;
+			return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+		}
+		{
+			const float fRate = (float)kRow.m_iEndurance / (float)pTemplet->GetEndurance();
+			iSellPrice = (int)floorf( (float)pTemplet->GetPrice() * 0.2f * fRate + 0.01f );
+		}
+		break;
+
+	case CX2Item::PT_QUANTITY:
+		if( pTemplet->GetQuantity() <= 0 )
+		{
+			kAck.m_iOK = NetError::ERR_RESOLVE_ITEM_01;
+			return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+		}
+		iSellPrice = (int)floorf( 0.2f * (float)pTemplet->GetPrice() * (float)kRow.m_iQuantity + 0.01f );
+		break;
+
+	default:
+		kAck.m_iOK = NetError::ERR_RESOLVE_ITEM_01;
+		return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+	}
+
+	if( iSellPrice < 0 )
+		iSellPrice = 0;			///< the server's own correction for a negative result
+
+	// The per-session jackpot gate - GSUserInventory.cpp:2894-2944. See
+	// KOfflineSession::m_tNextJackpotAt for why the very first dismantle after
+	// this session starts is always an attempt.
+	const __int64 tNow = (__int64)::_time64( NULL );
+	bool bJackpot = ( tNow >= kSes.m_tNextJackpotAt );
+
+	std::map< int, int > mapResult;
+	const int iError = pTable->GetResultItem( (int)pTemplet->GetItemGrade(), pTemplet->GetUseLevel(),
+											   (int)pTemplet->GetItemType(), iSellPrice, bJackpot, mapResult );
+
+	if( NetError::NET_OK != iError )
+	{
+		kAck.m_iOK = iError;
+		return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+	}
+
+	// Space check before touching anything - KInventory::IsEnoughSpaceExist
+	// (Inventory.cpp:12043). Checked as independent single-item calls rather
+	// than as one combined reservation, so two different new material types
+	// each claiming the last free slot in the same category is the one case
+	// this can get wrong - a corner rare enough for a bag of a handful of
+	// material stacks that it is not worth a bigger check.
+	for( std::map< int, int >::const_iterator mit = mapResult.begin(); mit != mapResult.end(); ++mit )
+	{
+		if( false == pInven->HasRoomFor( mit->first, mit->second ) )
+		{
+			kAck.m_iOK = NetError::ERR_RESOLVE_ITEM_06;
+			return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+		}
+	}
+
+	KInventoryItemInfo kDeletedSlot;
+	if( false == pInven->DeleteItem( kReq.m_iItemUID, 0, kDeletedSlot ) )
+	{
+		kAck.m_iOK = NetError::ERR_RESOLVE_ITEM_04;
+		return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
+	}
+
+	kAck.m_vecKInventorySlotInfo.push_back( kDeletedSlot );
+
+	for( std::map< int, int >::const_iterator mit = mapResult.begin(); mit != mapResult.end(); ++mit )
+	{
+		std::vector< KInventoryItemInfo > vecChanged;
+		int iInserted = 0;
+
+		pInven->InsertItem( mit->first, mit->second, 0, vecChanged, iInserted );
+
+		for( size_t i = 0; i < vecChanged.size(); ++i )
+			kAck.m_vecKInventorySlotInfo.push_back( vecChanged[i] );
+
+		if( iInserted > 0 )
+			kAck.m_mapInsertedItem[ mit->first ] = iInserted;
+	}
+
+	if( true == bJackpot )
+		kSes.m_tNextJackpotAt = tNow + pTable->GetJackpotTime();
+
+	kAck.m_iOK		= NetError::NET_OK;
+	kAck.m_bJackpot	= bJackpot;
+
+	CX2OfflineLog::Server( L"ITEM     dismantled item %d (grade=%d level=%d sellPrice=%d)%s ->"
+		L" %u material kind(s)",
+		kRow.m_iItemID, (int)pTemplet->GetItemGrade(), pTemplet->GetUseLevel(), iSellPrice,
+		( true == bJackpot ) ? L" JACKPOT" : L"", (unsigned int)kAck.m_mapInsertedItem.size() );
 
 	return Reply( kSes, EGS_RESOLVE_ITEM_ACK, kAck );
 }

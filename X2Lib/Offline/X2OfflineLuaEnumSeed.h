@@ -23,6 +23,13 @@
 //                PET_UNIT_ID         X2Lib/X2PetManager.h
 //                RIDING_PET_UNIT_ID  X2Lib/X2RidingPetManager.h
 //
+//              ITEM_TYPE and ITEM_GRADE were added by hand in phase 12, not by
+//              the generator (ResolveTable.lua is the only file that needs
+//              them so far) - transcribed from X2Lib/X2Item_Preprocessing.inl
+//              and diffed the same way against
+//              KncWX2Server/Common/X2Data/XSLItem.h: identical, value for
+//              value, no exceptions.
+//
 //              and then diffed against the server's copy of the same enum
 //              (KncWX2Server/Common/X2Data/XSL{Unit,PetManager,RidingPetManager}.h),
 //              which is a genuinely independent transcription of the same
@@ -239,6 +246,39 @@ namespace X2OfflineLuaEnumSeed
 		{ "RPUI_ANCIENT_PPORU",                      3 },
 		{ "RPUI_SCORPION_TYPE_R",                    4 },
 		{ "RPUI_END",                                5 },
+	};
+
+	// CX2Item::ITEM_TYPE - X2Lib/X2Item_Preprocessing.inl. Added for phase 12
+	// (ResolveTable.lua's ITEM_TYPE["IT_WEAPON"] / ["IT_DEFENCE"]). Verified
+	// against the server's independent copy
+	// (KncWX2Server/Common/X2Data/XSLItem.h:16-32): identical, value for value.
+	static const CX2OfflineLuaEnum::KEntry ITEM_TYPE[] =
+	{
+		{ "IT_NONE",                                 0 },
+		{ "IT_WEAPON",                               1 },
+		{ "IT_DEFENCE",                              2 },
+		{ "IT_ACCESSORY",                            3 },
+		{ "IT_SKILL",                                4 },
+		{ "IT_QICK_SLOT",                            5 },
+		{ "IT_MATERIAL",                             6 },
+		{ "IT_SPECIAL",                              7 },
+		{ "IT_QUEST",                                8 },
+		{ "IT_OUTLAY",                               9 },
+		{ "IT_ETC",                                  10 },
+		{ "IT_SKILL_MEMO",                           11 },
+	};
+
+	// CX2Item::ITEM_GRADE - X2Lib/X2Item_Preprocessing.inl. Added for phase 12
+	// (ResolveTable.lua's ITEM_GRADE["IG_UNIQUE"] etc). Verified against the
+	// server's independent copy (XSLItem.h:34-42): identical, value for value.
+	static const CX2OfflineLuaEnum::KEntry ITEM_GRADE[] =
+	{
+		{ "IG_NONE",                                 0 },
+		{ "IG_UNIQUE",                               1 },
+		{ "IG_ELITE",                                2 },
+		{ "IG_RARE",                                 3 },
+		{ "IG_NORMAL",                               4 },
+		{ "IG_LOW",                                  5 },
 	};
 
 }
