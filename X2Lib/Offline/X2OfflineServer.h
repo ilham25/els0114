@@ -178,6 +178,21 @@ public:
 		std::map< int, int >	m_mapNpcLevel;
 		std::map< int, int >	m_mapNpcID;
 
+		/// NPC UID -> the two drop gates the client reported with the monster
+		/// (phase 27). Both come off KNPCUnitReq, which is the only place they
+		/// exist: NO_DROP and ACTIVE are fields of the dungeon script's NPC
+		/// block (X2DungeonSubStage.cpp:1535,1553), defaulting to false and
+		/// true respectively.
+		///
+		/// They were not needed while the only item drop was the monster's own
+		/// row - scenery has no row, so it dropped nothing anyway. The static
+		/// drop is keyed by DUNGEON, so without m_bNoDrop every prop, checker
+		/// and quest NPC in the room would roll it and the floor would fill
+		/// with Aqua. m_bActive gates the event drop only, exactly as
+		/// DungeonRoom.cpp:6600 does.
+		std::map< int, bool >	m_mapNpcNoDrop;
+		std::map< int, bool >	m_mapNpcActive;
+
 		/// The offline server owns NPC UIDs, exactly as
 		/// KRoomMonsterManager::CreateMonster does: the client sends -1 for
 		/// every monster and reads the real UID back out of
@@ -279,6 +294,8 @@ public:
 			m_bTutorial			= false;
 			m_mapNpcLevel.clear();
 			m_mapNpcID.clear();
+			m_mapNpcNoDrop.clear();
+			m_mapNpcActive.clear();
 			m_iNextNpcUID		= 1;			///< RoomMonsterManager.cpp:20 seeds it the same way
 			m_mapDropItem.clear();
 			m_iNextDropUID		= 1;
@@ -636,7 +653,8 @@ private:
 	/// them up into - and credited ED silently at kill time, which left the
 	/// floor of a dungeon empty and the money appearing out of nowhere. Both
 	/// halves land here.
-	void PushNpcDrop( KOfflineSession& kSes, int iNpcID, int iED, const VECTOR3& kDiePos );
+	void PushNpcDrop( KOfflineSession& kSes, int iNpcUID, int iNpcID, int iED,
+					  const VECTOR3& kDiePos );
 
 	/// GetEDItemID: which coin represents this much ED.
 	/// KDropTable::GetEDItemID (KDropTable.cpp:1166) verbatim.

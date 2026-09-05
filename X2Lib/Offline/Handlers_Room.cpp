@@ -322,6 +322,8 @@ void CX2OfflineServer::TrackFieldNpc( const KNPCUnitReq& kReq )
 {
 	m_kRoom.m_mapNpcLevel[ kReq.m_UID ]	= (int)kReq.m_Level;
 	m_kRoom.m_mapNpcID[ kReq.m_UID ]	= kReq.m_NPCID;
+	m_kRoom.m_mapNpcNoDrop[ kReq.m_UID ]= kReq.m_bNoDrop;
+	m_kRoom.m_mapNpcActive[ kReq.m_UID ]= kReq.m_bActive;
 	m_kRoom.m_mapNpcGroup[ kReq.m_UID ]	= kReq.m_iGroupID;
 
 	++m_kRoom.m_mapAliveByGroup[ kReq.m_iGroupID ];
@@ -1275,6 +1277,8 @@ void CX2OfflineServer::BuildStageNpcData( int iStageID, OUT std::map< int, KNPCL
 
 			m_kRoom.m_mapNpcLevel[ iNpcUID ]	= (int)kReq.m_Level;
 			m_kRoom.m_mapNpcID[ iNpcUID ]		= kReq.m_NPCID;
+			m_kRoom.m_mapNpcNoDrop[ iNpcUID ]	= kReq.m_bNoDrop;
+			m_kRoom.m_mapNpcActive[ iNpcUID ]	= kReq.m_bActive;
 
 			// One line per placed monster. This is the only view into whether a
 			// stage's script data actually arrived, and the ACTIVE flag matters
@@ -1683,6 +1687,11 @@ bool CX2OfflineServer::Handler_EGS_NPC_UNIT_CREATE_REQ( KOfflineSession& kSes, c
 		m_kRoom.m_mapNpcLevel[ iNpcUID ]	= (int)kNpcNot.m_kNPCUnitReq.m_Level;
 		m_kRoom.m_mapNpcID[ iNpcUID ]		= kNpcNot.m_kNPCUnitReq.m_NPCID;
 
+		// Phase 27: the two drop gates travel with the monster and are needed
+		// at its death, which reports neither.
+		m_kRoom.m_mapNpcNoDrop[ iNpcUID ]	= kNpcNot.m_kNPCUnitReq.m_bNoDrop;
+		m_kRoom.m_mapNpcActive[ iNpcUID ]	= kNpcNot.m_kNPCUnitReq.m_bActive;
+
 		kNot.m_vecNPCUnitAck.push_back( kNpcNot );
 	}
 
@@ -1840,7 +1849,7 @@ bool CX2OfflineServer::Handler_EGS_NPC_UNIT_DIE_REQ( KOfflineSession& kSes, cons
 		// The loot: ED as coins, plus whatever the item lottery drew. Phase 4
 		// left both out - items because there was no inventory to hold them,
 		// ED because it was credited invisibly instead.
-		PushNpcDrop( kSes, iNpcID, iED, kReq.m_DiePos );
+		PushNpcDrop( kSes, kReq.m_nDieNPCUID, iNpcID, iED, kReq.m_DiePos );
 
 		// Phase 6: hunt sub-quests and hunt sub-missions. Only a real kill
 		// counts, which is why this is inside the reward branch rather than
@@ -1922,11 +1931,69 @@ bool CX2OfflineServer::Handler_EGS_WORLD_TRIGGER_RELOCATION_REQ( KOfflineSession
 	return GOLD_ED_ITEM_ID;
 }
 
-void CX2OfflineServer::PushNpcDrop( KOfflineSession& kSes, int iNpcID, int iED,
+/// The dungeons the event drop is switched off in.
+///
+/// CXSLDungeon's own list, as DungeonRoom.cpp:6379 spells it: the El Forest
+/// Gate, any tutorial dungeon, any training-camp dungeon. Transcribed against
+/// the CLIENT's DI_* enum for the same reason IsSkillUseCountedDungeon
+/// (Handlers_Skill.cpp) is - most of the names CXSLDungeon lists are commented
+/// out of X2Lib/X2Dungeon.h and would not compile. Every enumerator below is
+/// one that file already uses, so all four are known-live rather than
+/// grep-matched.
+///
+/// The same three exclusions appear twice on live, once as this gate and once
+/// inside CXSLDungeon::IsItemDropDungeon, which refuses items 91620 and 91630
+/// in exactly these dungeons - and those two are the event table's own first
+/// entries. Two spellings of one rule; one is enough here.
+static bool IsEventDropDungeon( int iDungeonID )
+{
+	switch( iDungeonID )
+	{
+	case CX2Dungeon::DI_EL_FOREST_GATE_NORMAL:
+	case CX2Dungeon::DI_TUTORIAL_ELSWORD:
+	case CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
+		return false;
+
+	default:
+		break;
+	}
+
+	// CXSLDungeon::IsTCDungeon, spelled the way Handlers_Skill.cpp spells it:
+	// one contiguous range whose upper bound is written as RAVEN_0 + 6 because
+	// this client's enum stops at RAVEN_0.
+	if( iDungeonID >= (int)CX2Dungeon::DI_TRAINING_FREE &&
+		iDungeonID <= (int)CX2Dungeon::DI_TRAINING_RAVEN_0 + 6 )
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void CX2OfflineServer::PushNpcDrop( KOfflineSession& kSes, int iNpcUID, int iNpcID, int iED,
 									const VECTOR3& kDiePos )
 {
 	if( iNpcID <= 0 )
 		return;
+
+	// Phase 27: NO_DROP suppresses the whole payout, not just the monster's own
+	// row. DungeonRoom.cpp:6348 `continue`s past every drop roll AND past the
+	// quest-item roll AND past the ED coins for a no-drop monster, so all three
+	// go behind this gate.
+	//
+	// It did not matter until now, because the only item source was the
+	// monster's own drop-table row and scenery has none. The static drop is
+	// keyed by DUNGEON: every checker, prop, Luto and quest NPC in the room
+	// would otherwise roll it and cough up potions when it despawned.
+	{
+		std::map< int, bool >::const_iterator mitND = m_kRoom.m_mapNpcNoDrop.find( iNpcUID );
+		if( mitND != m_kRoom.m_mapNpcNoDrop.end() && true == mitND->second )
+		{
+			CX2OfflineLog::Server( L"DROP     monster %d (uid=%d) is NO_DROP - no payout",
+				iNpcID, iNpcUID );
+			return;
+		}
+	}
 
 	const bool bBattleField = ( 0 != m_kRoom.m_kInfo.m_iBattleFieldID );
 	const int  iKey			= bBattleField
@@ -1936,6 +2003,62 @@ void CX2OfflineServer::PushNpcDrop( KOfflineSession& kSes, int iNpcID, int iED,
 
 	std::vector<int> vecItemID;
 	CX2OfflineDropTable::Instance()->GetNpcItemDrop( iKey, bBattleField, iNpcID, vecItemID );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Phase 27: the drop that belongs to the PLACE.
+	//
+	// This is step 2 of the server's four (DungeonRoom.cpp:6362,
+	// BattleFieldRoom.cpp:1985), and until now the offline server did only step
+	// 1. It is where every ordinary consumable comes from: "Aqua" (99811) has a
+	// static row in nearly every dungeon in the game at 5-10%, a battlefield
+	// static row in every field at 4%, and in the whole of DropTable.lua it
+	// appears in four AddToGroup lines of which exactly one group is referenced
+	// by any monster - and that monster is 3016. Hence ISSUES.md #17: not "drops
+	// are broken", but "one entire drop source was never implemented".
+	{
+		std::vector<int> vecStatic;
+		CX2OfflineDropTable::Instance()->GetStaticDrop( iKey, bBattleField, vecStatic );
+
+		for( size_t i = 0; i < vecStatic.size(); ++i )
+		{
+			// Tagged, because the combined list below cannot say where an item
+			// came from and that is exactly the question this phase's exit test
+			// asks. Aqua showing up here is the whole fix.
+			CX2OfflineLog::Server( L"DROP     static drop for key %d%s: item %d",
+				iKey, bBattleField ? L" battlefield" : L"", vecStatic[i] );
+
+			vecItemID.push_back( vecStatic[i] );
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Step 3, the event drop. Dungeons only - BattleFieldRoom has no equivalent
+	// call - and only for an ACTIVE monster in a dungeon the event is allowed
+	// in.
+	if( false == bBattleField &&
+		true == IsEventDropDungeon( m_kRoom.m_kInfo.m_iDungeonID ) )
+	{
+		std::map< int, bool >::const_iterator mitA = m_kRoom.m_mapNpcActive.find( iNpcUID );
+
+		// Absent means the monster predates the tracking, not that it is
+		// inactive. ACTIVE defaults to true in the script
+		// (X2DungeonSubStage.cpp:1535), so an unknown UID is treated as active.
+		const bool bActive = ( mitA == m_kRoom.m_mapNpcActive.end() ) ? true : mitA->second;
+
+		if( true == bActive )
+		{
+			std::vector<int> vecEvent;
+			CX2OfflineDropTable::Instance()->GetEventDrop( vecEvent );
+
+			for( size_t i = 0; i < vecEvent.size(); ++i )
+			{
+				CX2OfflineLog::Server( L"DROP     event drop in dungeon %d: item %d",
+					m_kRoom.m_kInfo.m_iDungeonID, vecEvent[i] );
+
+				vecItemID.push_back( vecEvent[i] );
+			}
+		}
+	}
 
 	// Phase 6: the quest items an active collection quest asks for. These do not
 	// come out of the drop table at all - on live they are rolled per user from

@@ -39,6 +39,15 @@
 //                                  per-level multiplier, and EDProperty is the
 //                                  chance ED drops at all.
 //
+//                StaticDropTable.lua
+//                                  DropTable:AddStaticDropInfo{ DungeonID,
+//                                  Enable, DropItemList } and its battlefield
+//                                  twin. Phase 27's file: the drop that is
+//                                  attached to the DUNGEON rather than to any
+//                                  monster, which is where every ordinary
+//                                  consumable actually comes from - see
+//                                  GetStaticDrop.
+//
 //              The arithmetic is KDropTable::NormalNpcDropItem's, verbatim
 //              (KncWX2Server/CenterServer/KDropTable.cpp:1523-1535):
 //
@@ -101,7 +110,34 @@ public:
 	void	GetNpcItemDrop( int iKey, bool bBattleField, int iNpcID,
 							OUT std::vector<int>& vecItemID );
 
+	/// The drop that belongs to the PLACE, not to the monster (phase 27). Every
+	/// monster death in a dungeon rolls this list once in addition to its own,
+	/// and it is where the ordinary consumables live: "Aqua" (99811) is in a
+	/// static row for nearly every dungeon in the game and in only one monster
+	/// row in the whole of DropTable.lua, so without this it effectively never
+	/// drops. KDropTable::StaticDropItem (KDropTable.cpp:1861), one draw over
+	/// the row's own list, no group indirection.
+	///
+	/// iKey is the dungeon ID plus its difficulty, or the battlefield ID, and
+	/// there is deliberately NO wildcard fallback to key 0 the way
+	/// GetNpcItemDrop has one: key 0 in this table is not a wildcard, it is the
+	/// event-drop row that EventDropItem reads. Falling back to it would hand
+	/// every dungeon the event table's items.
+	void	GetStaticDrop( int iKey, bool bBattleField,
+						   OUT std::vector<int>& vecItemID );
+
+	/// KDropTable::EventDropItem, which is literally StaticDropItem( 0 ) - the
+	/// DungeonID = 0 row of the same file. Dungeons only; the battlefield room
+	/// never calls it (BattleFieldRoom.cpp goes straight from the static drop
+	/// to the attribute drop, with no event step).
+	void	GetEventDrop( OUT std::vector<int>& vecItemID );
+
 	bool	IsLoaded() const					{ return false == m_mapNpcExp.empty(); }
+
+	/// Whether StaticDropTable.lua arrived. False means the file is not packed
+	/// and every ordinary consumable drop is switched off - the caller says so
+	/// once rather than silently dropping nothing forever.
+	bool	IsStaticLoaded() const				{ return m_iStaticRows > 0; }
 
 	//////////////////////////////////////////////////////////////////////////
 	// Bound into the Lua state as DropTable:*. Public because lua_tinker needs
@@ -122,6 +158,11 @@ public:
 	void	AddBattleFieldNpcDropInfo_LUA();
 	void	AddHenirMonsterDropInfo_LUA();
 	void	AddExtraStageMonsterDropInfo_LUA();
+
+	/// StaticDropTable.lua's two block kinds. Both carry a DropItemList and an
+	/// Enable flag and nothing else - no groups, no EXP, no ED.
+	void	AddStaticDropInfo_LUA();
+	void	AddBattleFieldStaticDropInfo_LUA();
 
 	/// DropTable:AddToGroup( groupID, itemID, probability ) - one case of one
 	/// item group. Every AddToGroup call for a group has to arrive before the
@@ -146,6 +187,17 @@ private:
 	/// DropItemList and DropGroupList, and files the row in the map it belongs
 	/// to.
 	void	ReadDropBlock( const char* szKeyField, bool bBattleField );
+
+	/// Shared body of the two static readers. Much smaller than ReadDropBlock:
+	/// KDropTable::AddStaticDropInfo_LUA reads a key, an Enable flag and a flat
+	/// DropItemList, and files the row whole.
+	void	ReadStaticBlock( const char* szKeyField, bool bBattleField );
+
+	/// Every row this loader has parsed, across all three files. RunScript uses
+	/// it to decide whether a chunk actually did anything: checking only the
+	/// npc-exp and monster counters would have reported StaticDropTable.lua as
+	/// "produced no rows" on every successful load.
+	int		TotalRows() const					{ return m_iNpcExpRows + m_iMonsterRows + m_iStaticRows; }
 
 private:
 	/// One case of a lottery, in KLottery::KCaseUnit's shape: the thing drawn,
@@ -202,10 +254,19 @@ private:
 	/// block can name a group.
 	std::map< int, std::vector<KDropCase> >				m_mapDropGroup;
 
+	/// dungeonID+difficulty -> the dungeon's own drop list, and the same for a
+	/// battlefield. Two maps rather than one for the same reason the monster
+	/// tables are two: key 0 means something different in each, and here it
+	/// means something different again - the event table.
+	std::map< int, std::vector<KDropCase> >				m_mapStaticDrop;
+	std::map< int, std::vector<KDropCase> >				m_mapBattleFieldStaticDrop;
+
 	bool	m_bLoadAttempted;
 	int		m_iNpcExpRows;
 	int		m_iMonsterRows;
 	int		m_iItemCaseRows;
+	int		m_iStaticRows;
+	int		m_iStaticCaseRows;
 };
 
 #endif SERV_IRUHADEV_OFFLINE

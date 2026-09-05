@@ -3200,6 +3200,117 @@ the table's provenance **before** debugging anything.
 Aqua drops from a monster that should drop it, at a plausible rate, and picking it
 up puts it in the bag.
 
+### What actually happened
+
+**Candidate 1, and the table it is missing from is a file the offline server
+never loaded.** "Aqua" is item **99811** - resolved from the shipped
+`ItemTrans.lua`, not guessed. It appears in `DropTable.lua` exactly four times,
+all `AddToGroup` lines (groups 10000, 10010, 10020, 28260), and of those four
+groups only **10000** is referenced by any monster row at all - by a single
+monster, NPC 3016, on the wildcard dungeon key. That is the entire monster-drop
+route for Aqua in the whole game, which is why it never dropped.
+
+Where it actually lives is **`StaticDropTable.lua`**, a *fourth* server drop
+file the offline loader had never heard of. It holds the drop that belongs to
+the **place** rather than to the monster: 144 `AddStaticDropInfo` blocks keyed by
+dungeon ID + difficulty and 26 `AddBattleFieldStaticDropInfo` blocks keyed by
+battlefield ID. **Aqua is in 143 of the 144 dungeon rows (5-10%) and in all 26
+battlefield rows (4%).** Every monster death rolls its dungeon's row once, in
+addition to its own.
+
+So the phase's framing - "this class of drop is missing" - was right, and the
+missing class was one of the server's four drop steps. The offline server did
+step 1 (the monster's own row) and no others:
+
+| step | server call site | offline before | offline now |
+|---|---|---|---|
+| 1. monster's own row | `KDropTable::NpcDropItem` | yes | yes |
+| 2. the dungeon's / field's own row | `StaticDropItem` (`DungeonRoom.cpp:6362`, `BattleFieldRoom.cpp:1985`) | **no** | yes |
+| 3. the event row | `EventDropItem` = `StaticDropItem( 0 )` (`DungeonRoom.cpp:6383`) | **no** | yes |
+| 4. attribute-NPC drop | `AttribNpcDropItem` | no | no - different file, not this phase |
+
+### The Trap section's worry did not apply, and the "blocked on user" count is now 0 for 5
+
+The provenance check the Trap asks for came back clean: the drop table is built
+from the studio's own `KncWX2Server/ServerResource/US/*.lua`, not from anything
+in `ScriptData/`, so there was no live-DB question to ask. `StaticDropTable.lua`
+is in the tree, exactly where §0.3's `ls` says to look - the fifth phase running
+where "blocked on the user" turned out to be one directory listing away from
+being answered.
+
+The one genuine ask is packing, and per `CLAUDE.md` that did not block the
+build: the feature is implemented in full and degrades visibly if the file is
+absent.
+
+### Work the section did not mention, all of it forced by step 2 being keyed by *place*
+
+- **`NO_DROP` had to start being tracked.** A static row is attached to the
+  dungeon, so *every* NPC death rolls it - props, dungeon checkers, Luto, quest
+  NPCs, the lot. Scenery has no monster-drop row, which is why the gate had
+  never been needed; with step 2 in, the floor would have filled with potions
+  every time a prop despawned. `KNPCUnitReq::m_bNoDrop` is now recorded per NPC
+  UID (`KOfflineRoom::m_mapNpcNoDrop`) at all three spawn sites and suppresses
+  the whole payout - items, quest items and ED coins - which is what
+  `DungeonRoom.cpp:6348` does with its `continue`.
+- **`ACTIVE` too**, for step 3: the event drop is gated on `m_bActive`
+  (`DungeonRoom.cpp:6600`) and on the dungeon not being the El Forest Gate, a
+  tutorial or the training camp. Transcribed as `IsEventDropDungeon` against the
+  client's `DI_*` enum, reusing only enumerators `IsSkillUseCountedDungeon`
+  already proves are live - see the `client-enums-are-half-commented-out` trap.
+- **`RunScript`'s "did this chunk do anything" test was quietly wrong for any
+  new file.** It compared the npc-exp and monster counters before and after,
+  which is empty by construction for `StaticDropTable.lua`: a perfect load would
+  have been called "produced no rows" and re-run as plaintext for nothing. It
+  now compares `TotalRows()`. Same shape as the `NULL == kInfo` bug §0.3 records
+  - a degrade path that could not give the one diagnosis it exists for.
+- **`Enable = True` needed `CX2OfflineLuaEnum::Publish()`**, which this loader
+  had never called because the other two files do not use the global. And this
+  one would have failed *silently in the safe direction*: `LUA_GET_VALUE`'s
+  fallback for `Enable` is `true`, so an unpublished `True` reads as nil, falls
+  back to true, and all 170 rows load correctly by accident. Published anyway,
+  because the accident is not the contract - see
+  `server-lua-needs-enum-globals`.
+
+### Decisions the plan did not specify
+
+- **No wildcard fallback to key 0 in the static table.** `GetNpcItemDrop` falls
+  back to `(0, npcID)` because 0 *is* the wildcard in the monster table. In the
+  static table key 0 is not a wildcard, it is the event row (`EventDropItem` is
+  literally `StaticDropItem( 0 )`), so falling back to it would hand every
+  dungeon the event table's three items. `ReadStaticBlock` also defaults its key
+  to **-1** rather than 0 for the same reason - the real loader's invalid marker
+  is -1 precisely because 0 is legitimate here.
+- **`AddMultiProbRate( fUserContribution )` is skipped, not mirrored.**
+  Contribution is 1.0 for a solo player who did all the damage; multiplying
+  every case by 1.0 is a no-op. Same simplification phases 4 and 5 made.
+- **The battlefield gets step 2 but not step 3.** `BattleFieldRoom.cpp` goes
+  straight from the static drop to the attribute drop with no event step, so the
+  event roll is dungeon-only here too.
+- **Static and event drops are logged on their own lines** (`DROP static drop
+  for key %d: item %d`), because the combined list the `_NOT` is built from
+  cannot say where an item came from and that is exactly what this phase's exit
+  test asks.
+
+### Status
+
+Built (`X2Lib` then `X2.exe`, 0 errors) and deployed to `X2_offline.exe`,
+verified by size and mtime programmatically, and the new strings were confirmed
+present in the linked binary rather than inferred from a successful compile.
+
+**Not yet play-tested, because the file is not packed.** `data036/` does not
+contain `StaticDropTable.lua`, so on the next launch the loader will print
+
+```
+DROP     ERROR 'StaticDropTable.lua' not found in any .kom or on disk.
+DROP     XOR-encrypt KncWX2Server/ServerResource/US/StaticDropTable.lua and pack it into data036.kom.
+DROP     WARNING no static drop table - ordinary consumable drops (Aqua, Ruve Herb, ...) are OFF.
+```
+
+Once it is packed the same line reads `170 static row(s) with 1241 case(s)` -
+those two numbers were computed from the file independently of the loader, so
+they are a free check that the right file got packed and that every block
+parsed.
+
 ---
 
 # Phase 28 — Summoned pet doesn't survive relog / character switch (not in `ISSUES.md`)

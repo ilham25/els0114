@@ -4,6 +4,7 @@
 #ifdef SERV_IRUHADEV_OFFLINE
 
 #include "X2OfflineLog.h"
+#include "X2OfflineLuaEnum.h"
 
 CX2OfflineDropTable* CX2OfflineDropTable::ms_pInstance = NULL;
 
@@ -11,6 +12,12 @@ namespace
 {
 	const wchar_t* const SCRIPT_NPC_EXP		= L"NpcExpTable.lua";
 	const wchar_t* const SCRIPT_DROP_TABLE	= L"DropTable.lua";
+
+	/// Phase 27. The third file of the set, and the one the offline server had
+	/// never loaded: every ordinary consumable drop is in here rather than in
+	/// DropTable.lua. Not fatal if it is missing - the static drop simply
+	/// switches off and EnsureLoaded says which file to pack.
+	const wchar_t* const SCRIPT_STATIC_DROP	= L"StaticDropTable.lua";
 
 	/// NpcExpTable.lua's own level-1 row, used only if the file cannot be
 	/// loaded at all. The real curve is roughly quadratic; this keeps a
@@ -25,6 +32,8 @@ CX2OfflineDropTable::CX2OfflineDropTable()
 , m_iNpcExpRows( 0 )
 , m_iMonsterRows( 0 )
 , m_iItemCaseRows( 0 )
+, m_iStaticRows( 0 )
+, m_iStaticCaseRows( 0 )
 {
 }
 
@@ -85,16 +94,20 @@ bool CX2OfflineDropTable::RunScript( const wchar_t* szName )
 		return false;
 	}
 
-	const int iNpcExpBefore  = m_iNpcExpRows;
-	const int iMonsterBefore = m_iMonsterRows;
+	// Every counter, not just the npc-exp and monster ones. The old form named
+	// those two explicitly, which was correct while there were two files and
+	// silently wrong the moment a third arrived: StaticDropTable.lua touches
+	// neither counter, so a perfectly good load would have been reported as
+	// "produced no rows" and then re-run as plaintext for nothing.
+	const int iRowsBefore = TotalRows();
 
 	bool bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) );
-	bool bAdded = ( m_iNpcExpRows > iNpcExpBefore || m_iMonsterRows > iMonsterBefore );
+	bool bAdded = ( TotalRows() > iRowsBefore );
 
 	if( false == bRan || false == bAdded )
 	{
 		bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size ) );
-		bAdded = ( m_iNpcExpRows > iNpcExpBefore || m_iMonsterRows > iMonsterBefore );
+		bAdded = ( TotalRows() > iRowsBefore );
 
 		if( true == bRan && true == bAdded )
 		{
@@ -155,21 +168,61 @@ void CX2OfflineDropTable::EnsureLoaded()
 		&CX2OfflineDropTable::AddExtraStageMonsterDropInfo_LUA );
 	lua_tinker::class_def< CX2OfflineDropTable >( pLuaState, "AddToGroup",
 		&CX2OfflineDropTable::AddToGroup_LUA );
+	lua_tinker::class_def< CX2OfflineDropTable >( pLuaState, "AddStaticDropInfo",
+		&CX2OfflineDropTable::AddStaticDropInfo_LUA );
+	lua_tinker::class_def< CX2OfflineDropTable >( pLuaState, "AddBattleFieldStaticDropInfo",
+		&CX2OfflineDropTable::AddBattleFieldStaticDropInfo_LUA );
 	lua_tinker::decl( pLuaState, "DropTable", this );
 
-	// Order matters only for the log: the two files are independent.
+	// Order matters only for the log: the three files are independent.
 	RunScript( SCRIPT_NPC_EXP );
 	RunScript( SCRIPT_DROP_TABLE );
 
+	// StaticDropTable.lua writes `Enable = True` on all 170 of its blocks - a
+	// bare capitalised global that exists in a GameServer's Lua state and
+	// nowhere in the client's. Unpublished it reads as nil, LUA_GET_VALUE falls
+	// back to its init value, and because that init value is `true` the file
+	// would have loaded perfectly and nobody would ever have found out. It is
+	// published as the NUMBER 1 for the reason X2OfflineLuaEnum.cpp explains at
+	// length: KLuaManager gates every read on lua_isnumber, which is false for
+	// a Lua boolean.
+	//
+	// The other two files need none of this, which is why the call is here and
+	// not at the top of EnsureLoaded - a Publish() failure must not cost them
+	// their load.
+	if( false == CX2OfflineLuaEnum::Publish() )
+	{
+		CX2OfflineLog::Server(
+			L"DROP     ERROR could not publish True/False - skipping '%s'."
+			L" Ordinary consumable drops will be off.", SCRIPT_STATIC_DROP );
+	}
+	else
+	{
+		RunScript( SCRIPT_STATIC_DROP );
+	}
+
 	CX2OfflineLog::Server( L"DROP     loaded: %d npc-exp row(s), %d monster row(s),"
-		L" %d item case(s) in %u group(s)",
+		L" %d item case(s) in %u group(s), %d static row(s) with %d case(s)",
 		m_iNpcExpRows, m_iMonsterRows, m_iItemCaseRows,
-		(unsigned int)m_mapDropGroup.size() );
+		(unsigned int)m_mapDropGroup.size(), m_iStaticRows, m_iStaticCaseRows );
 
 	if( 0 == m_iNpcExpRows )
 	{
 		CX2OfflineLog::Server(
 			L"DROP     WARNING no NPC exp table - a dungeon run will award almost no EXP." );
+	}
+
+	// Degrade visibly. This is the one that answers ISSUES.md #17: "Aqua"
+	// (item 99811) is in a static row for nearly every dungeon in the game and
+	// appears in exactly four AddToGroup lines in the whole of DropTable.lua,
+	// only one of which any monster row references - so with this file absent
+	// it, and every other ordinary consumable, simply never drops.
+	if( 0 == m_iStaticRows )
+	{
+		CX2OfflineLog::Server(
+			L"DROP     WARNING no static drop table - ordinary consumable drops (Aqua,"
+			L" Ruve Herb, Whole Grain Flour, ...) are OFF. Pack"
+			L" KncWX2Server/ServerResource/US/StaticDropTable.lua into data036.kom." );
 	}
 }
 
@@ -333,6 +386,88 @@ void CX2OfflineDropTable::AddExtraStageMonsterDropInfo_LUA()
 	LUA_GET_VALUE( luaManager, "MonsterID", iMonsterID, -1 );
 }
 
+void CX2OfflineDropTable::ReadStaticBlock( const char* szKeyField, bool bBattleField )
+{
+	// KDropTable::AddStaticDropInfo_LUA (KDropTable.cpp:828), which is a much
+	// smaller reader than AddMonsterDropInfo_LUA: a key, an Enable flag and one
+	// flat DropItemList. No groups, no EXP, no ED - a static row only ever puts
+	// an item on the floor.
+	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+
+	int		iKey		= -1;
+	bool	bEnable		= true;
+
+	LUA_GET_VALUE( luaManager, szKeyField,	iKey,		-1 );
+	LUA_GET_VALUE( luaManager, "Enable",	bEnable,	true );
+
+	// -1 rather than 0 is the real loader's invalid marker, and it has to be:
+	// 0 is a legitimate key here (the event-drop row). Defaulting to 0 the way
+	// ReadDropBlock does would silently file a malformed block as the event
+	// table.
+	if( -1 == iKey )
+		return;
+
+	if( false == bEnable )
+		return;
+
+	std::vector<KDropCase> vecCase;
+
+	if( true == luaManager.BeginTable( "DropItemList" ) )
+	{
+		int iIndex = 1;
+		while( true == luaManager.BeginTable( iIndex ) )
+		{
+			int		iItemID	= -1;
+			float	fProb	= 0.0f;
+
+			LUA_GET_VALUE( luaManager, 1, iItemID,	-1 );
+			LUA_GET_VALUE( luaManager, 2, fProb,	0.0f );
+
+			if( iItemID > 0 && fProb > 0.0f )
+			{
+				KDropCase kCase;
+				kCase.m_iID		= iItemID;
+				kCase.m_fProb	= fProb;
+				kCase.m_bGroup	= false;		///< a static row never names a group
+
+				vecCase.push_back( kCase );
+				++m_iStaticCaseRows;
+			}
+
+			++iIndex;
+			luaManager.EndTable();
+		}
+
+		luaManager.EndTable();
+	}
+
+	if( true == vecCase.empty() )
+		return;
+
+	// insert, not operator[] - the real loader refuses a duplicate key and
+	// keeps the row it already has, and says so. Same here, minus the shouting:
+	// StaticDropTable.lua has no duplicates, so this is a guard, not a case.
+	std::map< int, std::vector<KDropCase> >& mapTarget =
+		( true == bBattleField ) ? m_mapBattleFieldStaticDrop : m_mapStaticDrop;
+
+	if( mapTarget.find( iKey ) != mapTarget.end() )
+		return;
+
+	mapTarget[ iKey ] = vecCase;
+
+	++m_iStaticRows;
+}
+
+void CX2OfflineDropTable::AddStaticDropInfo_LUA()
+{
+	ReadStaticBlock( "DungeonID", false );
+}
+
+void CX2OfflineDropTable::AddBattleFieldStaticDropInfo_LUA()
+{
+	ReadStaticBlock( "BattleFieldID", true );
+}
+
 void CX2OfflineDropTable::AddToGroup_LUA( int iGroupID, int iItemID, float fProbability )
 {
 	if( iGroupID <= 0 || iItemID <= 0 || fProbability <= 0.0f )
@@ -425,6 +560,46 @@ void CX2OfflineDropTable::GetNpcItemDrop( int iKey, bool bBattleField, int iNpcI
 	const int iItemID = Decide( git->second, bInner );
 	if( iItemID > 0 )
 		vecItemID.push_back( iItemID );
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+void CX2OfflineDropTable::GetStaticDrop( int iKey, bool bBattleField,
+										 OUT std::vector<int>& vecItemID )
+{
+	vecItemID.clear();
+
+	EnsureLoaded();
+
+	const std::map< int, std::vector<KDropCase> >& mapStatic =
+		( true == bBattleField ) ? m_mapBattleFieldStaticDrop : m_mapStaticDrop;
+
+	// Exact key only. KDropTable::StaticDropItem does not fall back to key 0 -
+	// see the note on GetStaticDrop in the header - and a dungeon with no static
+	// row simply has no place-drop, which the real server logs as a clog line
+	// and otherwise ignores.
+	std::map< int, std::vector<KDropCase> >::const_iterator mit = mapStatic.find( iKey );
+	if( mit == mapStatic.end() )
+		return;
+
+	// AddMultiProbRate( fUserContribution ) is skipped rather than mirrored:
+	// contribution is 1.0 for a solo player who did all the damage, and
+	// multiplying every case by 1.0 is a no-op. The same simplification phases
+	// 4 and 5 already made for EXP, ED and the monster lottery.
+	bool bGroup = false;
+
+	const int iItemID = Decide( mit->second, bGroup );
+	if( iItemID > 0 )
+		vecItemID.push_back( iItemID );
+}
+
+void CX2OfflineDropTable::GetEventDrop( OUT std::vector<int>& vecItemID )
+{
+	// KDropTable::EventDropItem is StaticDropItem( 0 ) verbatim
+	// (KDropTable.cpp:1894). Key 0 is a real row in StaticDropTable.lua, not a
+	// wildcard: Magic Ice Powder, Alchemy Essence and the Unidentified Ancient
+	// Fossil, at 8 / 2 / 2 percent.
+	GetStaticDrop( 0, false, vecItemID );
 }
 
 //////////////////////////////////////////////////////////////////////////
