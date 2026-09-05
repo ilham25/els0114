@@ -301,6 +301,18 @@ class CX2Room
 			float		m_fDefPhysic;
 			float		m_fDefMagic;
 
+#ifdef SERV_IRUHADEV_OFFLINE
+			/// AI_PARTY_PLAN.md phase 1. The bot slot's unit class, carried
+			/// through so CX2Game::CreateOfflinePartyBots can turn it into an
+			/// NPC id. It has to be captured here because DeleteNpcSlot() has
+			/// already destroyed the SlotData by the time the spawn loop runs,
+			/// and no packet on the dungeon path carries an NPC id at all -
+			/// KEGS_PARTY_GAME_START_NOT has no m_mapPvpNpcInfo, only
+			/// EGS_GAME_START_PVP_MATCH_NOT does, so m_iNpcId is 0 there.
+			/// A client-side struct, not a packet, so this costs nothing.
+			char		m_cUnitClass;
+#endif SERV_IRUHADEV_OFFLINE
+
 			RoomNpcSlot()
 			{
 				m_iNpcId = 0;
@@ -317,6 +329,9 @@ class CX2Room
 				m_fAtkMagic = 0.f;
 				m_fDefPhysic = 0.f;
 				m_fDefMagic = 0.f;
+#ifdef SERV_IRUHADEV_OFFLINE
+				m_cUnitClass = 0;
+#endif SERV_IRUHADEV_OFFLINE
 			}
 		};
 #endif

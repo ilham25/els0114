@@ -608,6 +608,16 @@ class CX2Game : public CKTDXStage
 		void						PushCreateNPCReq_Lua( int unitID, int level, bool bActive, D3DXVECTOR3 vPos, bool bRight, float fDelayTime, bool bNoDrop, int iKeyCode );
 		void						FlushCreateNPCReq();
 
+#ifdef SERV_IRUHADEV_OFFLINE
+		/// AI_PARTY_PLAN.md phase 1. Spawn the AI party members the offline
+		/// server put in this dungeon room's bot slots, on the player's team
+		/// with ally AI. Called from Handler_EGS_PLAY_START_NOT in place of
+		/// the PvP arena spawn loop, which places bots on the enemy side of a
+		/// versus map. A dungeon room with no bot slots spawns nothing, which
+		/// is what keeps the solo button solo.
+		void						CreateOfflinePartyBots();
+#endif SERV_IRUHADEV_OFFLINE
+
 #ifdef CREATE_NPC_REQ_FULL_ARGUMENTS
 		void						CreateNPCReq_LUA3( int unitID, int level, bool bActive, D3DXVECTOR3 vPos, bool bRight, D3DXVECTOR3 vfDelayTimeNKeyCode, bool bNoDrop, int iTeam, int iAIType, UidType iAllyUID );
 		void						PushCreateNPCReq_LUA3( int unitID, int level, bool bActive, D3DXVECTOR3 vPos, bool bRight, D3DXVECTOR3 vfDelayTimeNKeyCode, bool bNoDrop, int iTeam, int iAIType, UidType iAllyUID );

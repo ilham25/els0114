@@ -1258,6 +1258,29 @@ void CX2DungeonGame::SubStageStart()
 		CreateAllyEventMonster();
 	}
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_IRUHADEV_OFFLINE
+	// AI_PARTY_PLAN.md phase 1. The AI party members auto-party asked for.
+	//
+	// Here, and not in CX2Game::Handler_EGS_PLAY_START_NOT where the plan
+	// put it, for two reasons found by play-testing that handler doing
+	// nothing at all. First, a dungeon never calls it: EGS_PLAY_START_NOT
+	// goes to CX2StateDungeonGame::PlayStartNot(), which calls GameStart()
+	// directly (X2StateDungeonGame.cpp:1692) - that handler is the PvP and
+	// room paths only. Second, even reachable it would be too early: the
+	// first sub-stage has not loaded at play start, so there is no placed
+	// player to spawn beside.
+	//
+	// Deliberately alongside CreateAllyEventMonster() above, which is the
+	// studio's own "fill this party out to four with ally NPCs" feature and
+	// therefore the best evidence in the tree that this is the right moment.
+	// CreateOfflinePartyBots() is idempotent, so running once per sub-stage
+	// spawns on the first and recovers a lost bot on the rest.
+	if( true == IsHost() )
+	{
+		CreateOfflinePartyBots();
+	}
+#endif SERV_IRUHADEV_OFFLINE
 }
 
 

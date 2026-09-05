@@ -77,9 +77,66 @@ namespace
 	/// back out; nothing offline connects to it.
 	const wchar_t* const CENTER_IP	= L"127.0.0.1";
 
-	/// The client is the only occupant, so it is always slot 0 and always host.
+	/// The client is always slot 0 and always host. Slots 1..3 are the AI party
+	/// members the auto-party button asks for; a room opened any other way
+	/// leaves them empty (AI_PARTY_PLAN.md phase 1).
 	const char SLOT_INDEX	= 0;
-	const char MAX_SLOT		= 1;
+	const char MAX_SLOT		= 4;
+
+	//////////////////////////////////////////////////////////////////////////
+	/// The AI party cast.
+	///
+	/// KEEP THIS TABLE IN STEP WITH ITS TWIN IN X2Game.cpp. The dungeon path
+	/// has no packet that can carry an NPC id - KEGS_PARTY_GAME_START_NOT has
+	/// no m_mapPvpNpcInfo, only EGS_GAME_START_PVP_MATCH_NOT does - so the id
+	/// is derived client-side from the slot's m_cUnitClass, in
+	/// CX2Game::CreateOfflinePartyBots. This table decides the NAME, that one
+	/// decides the MODEL, and the unit class is the only thing joining them.
+	/// Change one without the other and a bot is named as someone it is not.
+	///
+	/// The class values are real CX2Unit::UNIT_CLASS entries rather than bare
+	/// indices on purpose: a bot slot still builds a CX2Unit
+	/// (CX2Room::SlotData::Set_KRoomSlotInfoOfOthers), whose Init() looks its
+	/// class up in the unit templet table. The class is never seen on screen -
+	/// the bot's model is the hero NPC's - it is only the selector.
+	///
+	/// The heroes themselves are NUI_CSM_PVP_HERO_*, the card-summoned PvP hero
+	/// NPCs. The six NUI_PVP_BOT_* the plan originally aimed at are orphan rows
+	/// in this build: templet and stat row present, state machine .lua absent.
+	/// See AI_PARTY_PLAN.md phase 0.
+	struct KBotCastEntry
+	{
+		char				m_cUnitClass;
+		const wchar_t*		m_szNickName;
+	};
+
+	const KBotCastEntry BOT_CAST[] =
+	{
+		{ (char)CX2Unit::UC_ELSWORD_SWORDMAN,	L"Lowe" },
+		{ (char)CX2Unit::UC_ARME_VIOLET_MAGE,	L"Lime" },
+		{ (char)CX2Unit::UC_LIRE_ELVEN_RANGER,	L"Edan" },
+	};
+
+	const int BOT_CAST_NUM	= sizeof( BOT_CAST ) / sizeof( BOT_CAST[0] );
+	const int MAX_BOT		= MAX_SLOT - 1;
+
+	/// The NPC ids those three classes map to, and the only thing the server
+	/// needs the mapping for: recognising a bot spawn in
+	/// EGS_NPC_UNIT_CREATE_REQ so it can hand back the room slot's negative UID
+	/// instead of the next monster UID. Order matches BOT_CAST.
+	const int BOT_NPC_ID[] =
+	{
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_LOW,
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_LIME,
+		(int)CX2UnitManager::NUI_CSM_PVP_HERO_EDAN,
+	};
+
+	/// Compile-time proof the two tables above line up. BOT_CAST decides the
+	/// name, BOT_NPC_ID the model, and index is the only thing joining them.
+	typedef char BOT_CAST_TABLES_MUST_MATCH[
+		( sizeof( BOT_CAST ) / sizeof( BOT_CAST[0] ) ==
+		  sizeof( BOT_NPC_ID ) / sizeof( BOT_NPC_ID[0] ) ) ? 1 : -1 ];
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -180,6 +237,114 @@ void CX2OfflineServer::MakeRoomUserInfo( const KOfflineUnitRow& kRow, OUT KRoomU
 	kOut.m_vecGamePlayStatus.push_back( kStatus );
 }
 
+void CX2OfflineServer::MakeBotRoomUserInfo( const KOfflineRoom::KPartyBot& kBot,
+										    OUT KRoomUserInfo& kOut )
+{
+	kOut = KRoomUserInfo();
+
+	kOut.m_iGSUID			= 1;
+	kOut.m_sServerGroupID	= 1;
+	kOut.m_cAuthLevel		= (char)CX2User::XUAL_NORMAL_USER;
+
+	// m_iOwnerUserUID stays 0 so the slot is never mistaken for mine.
+	// CX2Room::SlotData::Set_KRoomSlotInfo compares it against
+	// g_pData->GetMyUser()->GetUID() to choose between Set_KRoomSlotInfoOfMine
+	// and ..OfOthers, and the "mine" branch runs against the player's own
+	// CX2Unit - it would overwrite the live character with a bot.
+	kOut.m_iOwnerUserUID	= 0;
+
+	// THE ONLY SIGNAL. CX2Room::SlotData::Set_KRoomSlotInfo copies it into
+	// m_bNpc (X2Room.cpp:2323), and everything downstream keys off that:
+	// NetworkProcess() skips the slot so no unreachable P2P peer is added
+	// (which is the single reason this design is possible at all),
+	// AddUserUnit() skips it so no CX2GUUser is built for it, and
+	// DeleteNpcSlot() moves it into m_vecNpcSlot for the spawn loop.
+	kOut.m_bIsPvpNpc		= true;
+
+	// At most -2. CX2GUNPC's constructor sets m_bPvpBot from
+	// m_UnitUID < -1 && g_pX2Room->IsNpcSlot( m_UnitUID ) (X2GUNPC.cpp:2153),
+	// and IsPvpBot() is what makes the RoomNpcSlot stat override fire
+	// (X2GUNPC.cpp:3915). A positive UID gives a bot that spawns and fights at
+	// NPC-table stats - a hero row is 160k-285k HP - and is invisible to every
+	// piece of bot-aware code in the client.
+	kOut.m_nUnitUID			= kBot.m_nUnitUID;
+
+	// Free for this, and the only field on the slot that is. Ingest reads just
+	// m_nUnitUID, m_wstrNickName and m_iRating when m_bIsPvpNpc is set, so the
+	// class survives to the client untouched and CreateOfflinePartyBots turns
+	// it into an NPC id. See BOT_CAST.
+	kOut.m_cUnitClass		= kBot.m_cUnitClass;
+
+	kOut.m_wstrNickName		= kBot.m_wstrNickName;
+	kOut.m_ucLevel			= (unsigned char)kBot.m_iLevel;
+	kOut.m_bIsObserver		= false;
+	kOut.m_bIsGuestUser		= false;
+	kOut.m_iTitleID			= 0;
+
+	// CX2Room::DeleteNpcSlot copies HP/atk/def straight off
+	// m_pUnit->GetUnitData()->m_GameStat into the RoomNpcSlot, and CX2GUNPC
+	// then overrides its NPC stat table with those five numbers. A zeroed one
+	// here is a party member with no HP.
+	//
+	// The base table only, with no gear: a bot has no inventory, and
+	// MakeGameStat's KOfflineUnitRow overload would load somebody else's.
+	CX2OfflineStatTable::Instance()->GetUnitStat( (int)kBot.m_cUnitClass,
+		kBot.m_iLevel, kOut.m_kGameStat );
+
+	// No m_wstrIP / m_usPort, deliberately. A bot has no P2P identity, and
+	// CX2Room::NetworkProcess() never reaches this slot to want one.
+	// No equipped items and no skill data either - Set_KRoomSlotInfoOfOthers
+	// skips ResetEqip() for an m_bNpc slot (X2Room.cpp:2410).
+}
+
+void CX2OfflineServer::MakePartyBots( const KOfflineUnitRow& kRow, int iBotCount )
+{
+	m_kRoom.m_vecBot.clear();
+
+	if( iBotCount > MAX_BOT )
+		iBotCount = MAX_BOT;
+	if( iBotCount > BOT_CAST_NUM )
+		iBotCount = BOT_CAST_NUM;
+
+	for( int i = 0; i < iBotCount; ++i )
+	{
+		KOfflineRoom::KPartyBot kBot;
+
+		// -2, -3, -4. Never 0 and never -1: -1 is what KNPCUnitReq::Init uses
+		// for "the server owns this UID", and IsPvpBot() wants strictly less
+		// than -1.
+		kBot.m_nUnitUID		= (UidType)( -2 - i );
+		kBot.m_cUnitClass	= BOT_CAST[i].m_cUnitClass;
+		kBot.m_wstrNickName	= BOT_CAST[i].m_szNickName;
+
+		// The id the client will independently derive from m_cUnitClass. Kept
+		// here so a bot spawn can be matched back to its slot - see
+		// KPartyBot::m_iNpcID for why matching beats a one-shot claim.
+		kBot.m_iNpcID		= BOT_NPC_ID[i];
+
+		// The player's own level, so the stat table gives the bot what a real
+		// party member of that level would have.
+		kBot.m_iLevel		= kRow.m_iLevel;
+
+		m_kRoom.m_vecBot.push_back( kBot );
+
+		CX2OfflineLog::Server( L"AIPARTY  bot slot %d: uid=%I64d class=%d level=%d name=\"%s\"",
+			i + 1, (__int64)kBot.m_nUnitUID, (int)kBot.m_cUnitClass,
+			kBot.m_iLevel, kBot.m_wstrNickName.c_str() );
+	}
+}
+
+CX2OfflineServer::KOfflineRoom::KPartyBot* CX2OfflineServer::FindPartyBotByNpcID( int iNpcID )
+{
+	for( size_t i = 0; i < m_kRoom.m_vecBot.size(); ++i )
+	{
+		if( m_kRoom.m_vecBot[i].m_iNpcID == iNpcID )
+			return &m_kRoom.m_vecBot[i];
+	}
+
+	return NULL;
+}
+
 void CX2OfflineServer::MakeRoomSlots( const KOfflineUnitRow& kRow, int iSlotState,
 									  OUT std::vector< KRoomSlotInfo >& vecOut )
 {
@@ -197,6 +362,32 @@ void CX2OfflineServer::MakeRoomSlots( const KOfflineUnitRow& kRow, int iSlotStat
 	MakeRoomUserInfo( kRow, kSlot.m_kRoomUserInfo );
 
 	vecOut.push_back( kSlot );
+
+	// The AI party members, if this room was opened by the auto-party button.
+	// m_vecBot is empty for every other entry point, so the solo path produces
+	// exactly the one-slot list it always did - without the solo handler being
+	// touched. See KOfflineRoom::m_vecBot for why the count lives on the room
+	// rather than being an argument here.
+	for( size_t i = 0; i < m_kRoom.m_vecBot.size(); ++i )
+	{
+		KRoomSlotInfo kBotSlot;
+		kBotSlot.m_Index		= (char)( SLOT_INDEX + 1 + i );
+		kBotSlot.m_SlotState	= (char)iSlotState;
+		kBotSlot.m_bHost		= false;
+		kBotSlot.m_bReady		= true;
+		kBotSlot.m_bPitIn		= false;
+		kBotSlot.m_bTrade		= false;
+
+		// TN_RED, the dungeon player team. Not negotiable and not cosmetic:
+		// CX2Game::LiveActiveNPCNum() - what CC_KILL_ALL_ACTIVE_NPC counts -
+		// only counts NPCs whose team is TN_MONSTER, so a bot on any other
+		// team would make every sub-stage uncompletable.
+		kBotSlot.m_TeamNum		= (int)CX2Room::TN_RED;
+
+		MakeBotRoomUserInfo( m_kRoom.m_vecBot[i], kBotSlot.m_kRoomUserInfo );
+
+		vecOut.push_back( kBotSlot );
+	}
 }
 
 void CX2OfflineServer::MakeRoomInfo( OUT KRoomInfo& kOut )
@@ -206,7 +397,7 @@ void CX2OfflineServer::MakeRoomInfo( OUT KRoomInfo& kOut )
 	kOut.m_wstrUDPRelayIP	= RELAY_IP;
 	kOut.m_usUDPRelayPort	= RELAY_PORT;
 	kOut.m_MaxSlot			= MAX_SLOT;
-	kOut.m_JoinSlot			= 1;
+	kOut.m_JoinSlot			= (char)( 1 + m_kRoom.m_vecBot.size() );
 }
 
 bool CX2OfflineServer::OpenRoom( KOfflineSession& kSes, int iRoomType, const KRoomInfo& kReqInfo,
@@ -659,16 +850,10 @@ void CX2OfflineServer::PushRemainingPlayTime( KOfflineSession& kSes )
 	Reply( kSes, EGS_REMAINING_PLAY_TIME_NOT, fNot );
 }
 
-bool CX2OfflineServer::Handler_EGS_QUICK_START_DUNGEON_GAME_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+bool CX2OfflineServer::OpenDungeonGameRoom( KOfflineSession& kSes,
+										    const KEGS_QUICK_START_DUNGEON_GAME_REQ& kReq,
+										    OUT KOfflineUnitRow& kRow )
 {
-	KEGS_QUICK_START_DUNGEON_GAME_REQ kReq;
-	if( false == ReadReq( kEvent, kReq ) )
-		return false;
-
-	KEGS_QUICK_START_DUNGEON_GAME_ACK kAck;
-	kAck.m_iOK			= NetError::NET_OK;
-	kAck.m_iFailUnitUID	= 0;
-
 	// This is how a normal dungeon is entered, and the plan's guess that it
 	// needs the party subsystem was wrong. CX2PartyUI::GameStartCurrentMember
 	// (X2PartyUI.cpp:4984-5008) takes its branch when DoIHaveParty() is *false*
@@ -687,7 +872,7 @@ bool CX2OfflineServer::Handler_EGS_QUICK_START_DUNGEON_GAME_REQ( KOfflineSession
 	// can see each other commit, and offline it would only add three seconds.
 	KRoomInfo kSeed;
 	kSeed.Initialize();
-	kSeed.m_RoomName		= L"solo";
+	kSeed.m_RoomName		= L"offline";
 	kSeed.m_bPublic			= false;
 	kSeed.m_iDungeonID		= kReq.m_iDungeonID;
 	kSeed.m_DifficultyLevel	= kReq.m_DifficultyLevel;
@@ -701,15 +886,11 @@ bool CX2OfflineServer::Handler_EGS_QUICK_START_DUNGEON_GAME_REQ( KOfflineSession
 	// the same value the real server falls back to when a dungeon has no limit.
 	kSeed.m_fPlayTime		= 19999.0f;
 
-	KOfflineUnitRow kRow;
-	if( false == OpenRoom( kSes, (int)CX2Room::RT_DUNGEON, kSeed, 0, kRow ) )
-	{
-		kAck.m_iOK = NetError::ERR_ROOM_00;
-		return Reply( kSes, EGS_QUICK_START_DUNGEON_GAME_ACK, kAck );
-	}
+	return OpenRoom( kSes, (int)CX2Room::RT_DUNGEON, kSeed, 0, kRow );
+}
 
-	Reply( kSes, EGS_QUICK_START_DUNGEON_GAME_ACK, kAck );
-
+bool CX2OfflineServer::SendDungeonGameStartNot( KOfflineSession& kSes, const KOfflineUnitRow& kRow )
+{
 	// The ACK only releases the client's wait and re-locks its shortcut keys;
 	// CX2PartyManager::Handler_EGS_QUICK_START_DUNGEON_GAME_ACK does nothing
 	// else. EGS_PARTY_GAME_START_NOT is the packet that moves the player:
@@ -743,12 +924,41 @@ bool CX2OfflineServer::Handler_EGS_QUICK_START_DUNGEON_GAME_REQ( KOfflineSession
 	kNot.m_wstrCNIP = CENTER_IP;
 	kNot.m_vecInventorySlotInfo.clear();		///< no inventory until phase 5
 
-	CX2OfflineLog::Server( L"ROOM     solo dungeon room %I64d dungeonID=%d dif=%d mode=%d for unitUID=%I64d",
-		(__int64)m_kRoom.m_kInfo.m_RoomUID, kReq.m_iDungeonID,
-		(int)kReq.m_DifficultyLevel, (int)kReq.m_cDungeonMode,
-		(__int64)kRow.m_nUnitUID );
+	CX2OfflineLog::Server( L"ROOM     dungeon room %I64d dungeonID=%d dif=%d mode=%d for unitUID=%I64d, %u bot(s)",
+		(__int64)m_kRoom.m_kInfo.m_RoomUID, m_kRoom.m_kInfo.m_iDungeonID,
+		(int)m_kRoom.m_kInfo.m_DifficultyLevel, (int)m_kRoom.m_kInfo.m_cDungeonMode,
+		(__int64)kRow.m_nUnitUID, (unsigned int)m_kRoom.m_vecBot.size() );
 
 	return Reply( kSes, EGS_PARTY_GAME_START_NOT, kNot );
+}
+
+bool CX2OfflineServer::Handler_EGS_QUICK_START_DUNGEON_GAME_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_QUICK_START_DUNGEON_GAME_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	KEGS_QUICK_START_DUNGEON_GAME_ACK kAck;
+	kAck.m_iOK			= NetError::NET_OK;
+	kAck.m_iFailUnitUID	= 0;
+
+	KOfflineUnitRow kRow;
+	if( false == OpenDungeonGameRoom( kSes, kReq, kRow ) )
+	{
+		kAck.m_iOK = NetError::ERR_ROOM_00;
+		return Reply( kSes, EGS_QUICK_START_DUNGEON_GAME_ACK, kAck );
+	}
+
+	// THE SOLO BUTTON STAYS SOLO. No MakePartyBots call here, and OpenRoom has
+	// just cleared m_vecBot, so MakeRoomSlots below produces the same one-slot
+	// list it always did. This is the whole scope guard for the AI party
+	// feature - see AI_PARTY_PLAN.md, "Scope: auto-party only". Do not add a
+	// bot here "temporarily" to test the spawn path; use the auto-party button,
+	// which is the path the feature is meant to be reached by.
+
+	Reply( kSes, EGS_QUICK_START_DUNGEON_GAME_ACK, kAck );
+
+	return SendDungeonGameStartNot( kSes, kRow );
 }
 
 bool CX2OfflineServer::Handler_EGS_JOIN_BATTLE_FIELD_REQ( KOfflineSession& kSes, const KEvent& kEvent )
@@ -1700,6 +1910,34 @@ bool CX2OfflineServer::Handler_EGS_NPC_UNIT_CREATE_REQ( KOfflineSession& kSes, c
 	{
 		KNPCUnitNot kNpcNot;
 		kNpcNot.m_kNPCUnitReq = kReq.m_vecNPCUnitReq[i];
+
+		// An AI party member is not a monster and does not get a monster UID.
+		// It has to come back with the negative UID its ROOM SLOT was given, or
+		// CX2GUNPC::IsPvpBot() is false and the whole bot-aware half of the
+		// client stops seeing it: the RoomNpcSlot stat override never fires
+		// (X2GUNPC.cpp:3915) and the hero arrives at its own NPC-table stats,
+		// which for this cast is 160k-285k HP. That failure reads as "the AI is
+		// broken" rather than as a wrong UID, which is why it is worth the
+		// special case here.
+		//
+		// Nor does it get a m_mapNpcLevel / m_mapNpcID row: those price kill
+		// rewards at EGS_NPC_UNIT_DIE_REQ, and a dying party member must not
+		// pay EXP or ED. Leaving them out is what prevents it - the die handler
+		// finds no row and pays nothing.
+		KOfflineRoom::KPartyBot* pBot =
+			FindPartyBotByNpcID( kNpcNot.m_kNPCUnitReq.m_NPCID );
+
+		if( NULL != pBot )
+		{
+			kNpcNot.m_kNPCUnitReq.m_UID = (int)pBot->m_nUnitUID;
+
+			CX2OfflineLog::Server( L"AIPARTY  bot spawn \"%s\" npcID=%d given slot uid=%d level=%d",
+				pBot->m_wstrNickName.c_str(), kNpcNot.m_kNPCUnitReq.m_NPCID,
+				kNpcNot.m_kNPCUnitReq.m_UID, (int)kNpcNot.m_kNPCUnitReq.m_Level );
+
+			kNot.m_vecNPCUnitAck.push_back( kNpcNot );
+			continue;
+		}
 
 		// Issue the UID here, then hand the same struct back with it filled in -
 		// which is exactly what the CenterServer does (DungeonRoom.cpp:5700).

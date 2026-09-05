@@ -503,13 +503,45 @@ bool CX2OfflineServer::Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ( KOfflineSession&
 	if( false == ReadReq( kEvent, kReq ) )
 		return false;
 
-	CX2OfflineLog::Server( L"PARTY    auto-party refused - there is nobody to be matched with" );
-
+	// AI party members (AI_PARTY_PLAN.md phase 1). Auto-party used to be
+	// refused with ERR_PARTY_23 because there is nobody offline to be matched
+	// with; it now fills the remaining slots with AI-controlled hero NPCs
+	// instead of searching for humans.
+	//
+	// KEGS_AUTO_PARTY_DUNGEON_GAME_REQ is a typedef of
+	// KEGS_QUICK_START_DUNGEON_GAME_REQ (ClientPacket.h:7804) - same dungeon
+	// id, difficulty, get-item type and mode - so this is the solo path with
+	// bots added and a different ACK, sharing OpenDungeonGameRoom and
+	// SendDungeonGameStartNot with it rather than copying them. The ONLY thing
+	// that differs between the two buttons is the MakePartyBots call below.
+	//
+	// This is the shortest legal auto-party path: ACK, then straight to
+	// EGS_PARTY_GAME_START_NOT. The matchmaking ceremony the client's own flow
+	// expects in between - EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT, the accept
+	// popup, the cancel path - is phase 3. The player presses the button and
+	// arrives in the dungeon with no queue.
 	KEGS_AUTO_PARTY_DUNGEON_GAME_ACK kAck;
-	kAck.m_iOK					= NetError::ERR_PARTY_23;
+	kAck.m_iOK					= NetError::NET_OK;
 	kAck.m_wstrFailUserNickName	= L"";
 
-	return Reply( kSes, EGS_AUTO_PARTY_DUNGEON_GAME_ACK, kAck );
+	KOfflineUnitRow kRow;
+	if( false == OpenDungeonGameRoom( kSes, kReq, kRow ) )
+	{
+		CX2OfflineLog::Server( L"AIPARTY  auto-party refused - could not open the dungeon room" );
+
+		kAck.m_iOK = NetError::ERR_PARTY_23;
+		return Reply( kSes, EGS_AUTO_PARTY_DUNGEON_GAME_ACK, kAck );
+	}
+
+	// The one line that separates auto-party from the solo button. Everything
+	// downstream - the slot list, the room's join count, the negative UIDs the
+	// NPC create handler hands out - reads m_kRoom.m_vecBot, which every other
+	// entry point leaves empty.
+	MakePartyBots( kRow, AUTO_PARTY_BOT_NUM );
+
+	Reply( kSes, EGS_AUTO_PARTY_DUNGEON_GAME_ACK, kAck );
+
+	return SendDungeonGameStartNot( kSes, kRow );
 }
 
 bool CX2OfflineServer::Handler_EGS_PVP_PARTY_CHANGE_MATCH_INFO_REQ( KOfflineSession& kSes, const KEvent& kEvent )

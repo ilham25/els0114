@@ -1,10 +1,31 @@
 # AI party members in offline dungeons
 
-**Status:** planned, nothing implemented. Written 2026-09-05.
-**Depends on:** `SERV_IRUHADEV_OFFLINE` (all nine phases done — see
-`OFFLINE_MODE_PLAN.md`).
-**Proposed flag:** `SERV_IRUHADEV_AI_PARTY`, defined in `KTDXLIB/Always.h` per
-the rule at the top of `CLAUDE.md`.
+**Status:** **phases 0 and 1 done 2026-09-05, both play-tested.** Phase 0 was a
+gate and it FAILED for the intended cast, so the plan is re-pointed at
+`NUI_CSM_PVP_HERO_*` — see *Phase 0*. Phase 1 PASSED: pressing auto-party puts
+one AI party member (Lowe) in the dungeon, fighting on your team, and the
+normal start button still goes in alone. Getting there took three build/play
+cycles and cost three defects and five corrections, all written up under
+*Phase 1* — **read those before starting phase 2**, because two of them change
+what later phases can assume. Phases 2-5 planned, nothing else implemented.
+Written 2026-09-05.
+**Flag:** none of its own. This is an extension of offline mode, so every edit
+goes behind the existing **`SERV_IRUHADEV_OFFLINE`** — there is no
+`SERV_IRUHADEV_AI_PARTY`. Offline mode's nine phases are done; see
+`OFFLINE_MODE_PLAN.md`.
+
+Two consequences of reusing the flag rather than adding one:
+
+- **`SERV_IRUHADEV_OFFLINE` is defined in two places and both must stay
+  toggled together** — `KTDXLIB/Always.h:2446` *and*
+  `X2ServerProtocol/X2ServerProtocol_2010.vcxproj`'s `US_SERVICE`
+  `PreprocessorDefinitions`. Nothing in this plan touches `X2ServerProtocol`,
+  so no new work there, but do not "tidy" one side away.
+- **The new client-side edits land in files offline mode has not touched
+  before** — `X2Lib/X2Game.cpp` and `X2Lib/X2Room.h`. `MODS.md`'s
+  `SERV_IRUHADEV_OFFLINE` row lists client files explicitly, so it gains two
+  entries rather than a new row. Reverting offline mode now also reverts the AI
+  party, which is the intended trade.
 
 ## Context
 
@@ -19,6 +40,37 @@ The goal: **make auto-party fill the remaining three slots with AI-controlled
 characters instead of searching for humans.** They should read as party members
 — named, levelled, on your team, fighting the dungeon with you — not as
 summoned pets.
+
+## Scope: auto-party only. The solo button stays solo.
+
+Bots appear **only** when the player presses auto-party. Picking a dungeon and
+starting it normally must behave exactly as it does today — one slot, one
+character, no companions. Anyone who wants a solo run must still be able to have
+one, and that is the button for it.
+
+Two facts make this a clean separation rather than a conditional threaded
+through the feature:
+
+- **The two entry points are already separate handlers.**
+  `EGS_QUICK_START_DUNGEON_GAME_REQ` is the solo button
+  ([Handlers_Room.cpp:639](X2Lib/Offline/Handlers_Room.cpp#L639));
+  `EGS_AUTO_PARTY_DUNGEON_GAME_REQ` is the auto-party button
+  ([Handlers_Social.cpp:498](X2Lib/Offline/Handlers_Social.cpp#L498)). Nothing
+  in this plan edits the first one. `MakeRoomSlots` gains an optional bot count
+  that defaults to zero, so the solo call site keeps its current meaning without
+  being touched.
+- **`KEGS_AUTO_PARTY_DUNGEON_GAME_REQ` is a `typedef` of
+  `KEGS_QUICK_START_DUNGEON_GAME_REQ`** ([ClientPacket.h:7804](KncWX2Server/Common/ClientPacket.h#L7804))
+  — same four fields, same dungeon id, difficulty, get-item type and mode. So
+  the auto-party handler can be built by copying the solo one and adding bots,
+  with no new plumbing and no risk of the two diverging on what a dungeon
+  request means.
+
+**The client-side widening needs no scope guard of its own.** All three gates in
+`CX2Game` are driven by bot slots *existing* — `DeleteNpcSlot()` iterates
+`m_bNpc` slots, and the spawn loop iterates `m_vecNpcSlot`. A solo room sends no
+bot slots, so all three are no-ops on that path automatically. Do not add a
+"was this auto-party?" test to `CX2Game`; the room already says.
 
 ## The discovery that shapes this whole plan
 
@@ -42,12 +94,12 @@ in this tree, not assumed:
 | **P2P exclusion** | [X2Room.cpp:265-268](X2Lib/X2Room.cpp#L265) — `NetworkProcess()` skips `m_bNpc` slots, so **no UDP peer is added for a bot** |
 | Player-unit exclusion | [X2Game.cpp:1861-1866](X2Lib/X2Game.cpp#L1861) — `AddUserUnit()` skips NPC slots |
 | Slot to in-game bot | `CX2Room::DeleteNpcSlot()` ([X2Room.cpp:1070](X2Lib/X2Room.cpp#L1070)) moves each bot slot into `m_vecNpcSlot` as a `RoomNpcSlot`, carrying name, level, rating and the five combat stats off `m_pUnit->GetUnitData()->m_GameStat` |
-| Spawn | [X2Game.cpp:8093-8117](X2Lib/X2Game.cpp#L8093), inside `CX2Game::Handler_EGS_PLAY_START_NOT` — **base class, not `CX2PVPGame`** |
+| Spawn | ~~[X2Game.cpp:8093-8117](X2Lib/X2Game.cpp#L8093), inside `CX2Game::Handler_EGS_PLAY_START_NOT` — base class, not `CX2PVPGame`~~ — **wrong for dungeons, and it cost a build/play cycle.** That handler is PvP-and-room only; the dungeon hook is `CX2DungeonGame::SubStageStart()` ([X2DungeonGame.cpp:1258](X2Lib/X2DungeonGame.cpp#L1258)), beside the studio's own `CreateAllyEventMonster`. See *Defect 1* under phase 1 |
 | "This NPC is a bot" | [X2GUNPC.cpp:2151-2157](X2Lib/X2GUNPC.cpp#L2151) and [:2529-2535](X2Lib/X2GUNPC.cpp#L2529) — `m_UnitUID < -1 && g_pX2Room->IsNpcSlot( m_UnitUID )` |
 | Stat override | [X2GUNPC.cpp:3915-3921](X2Lib/X2GUNPC.cpp#L3915) — a bot's HP/atk/def come from its `RoomNpcSlot`, not from the NPC stat table |
 | Team HP bars | `InsertPvpMemberUI` / `UpdatePvpMemberGageData` ([X2Game.cpp:6438](X2Lib/X2Game.cpp#L6438), [X2PVPGame.cpp:176](X2Lib/X2PVPGame.cpp#L176)) |
 | Revive | [X2Game.cpp:6174-6205](X2Lib/X2Game.cpp#L6174) — `RebirthUserUnit` already takes a bot branch |
-| The characters | `NUI_PVP_BOT_ELSWORD / _AISHA / _RENA / _RAVEN / _EVE / _CHUNG` ([X2UnitManager.h:1258-1263](X2Lib/X2UnitManager.h#L1258)) |
+| The characters | ~~`NUI_PVP_BOT_ELSWORD / _AISHA / _RENA / _RAVEN / _EVE / _CHUNG`~~ — **dead in this build, phase 0 proved it.** Use `NUI_CSM_PVP_HERO_*` ([X2UnitManager.h:1627-1636](X2Lib/X2UnitManager.h#L1627)); see *Phase 0* |
 | Follow-and-fight AI | `CX2AllyNPCAI : CX2NPCAI` ([X2AllyNPCAI.h](X2Lib/X2AllyNPCAI.h)) — targeting, chase, dash/walk, random jump, Lua-tuned; selected by `CX2NPCAI::NAT_ALLY` at [X2GUNPC.cpp:1780](X2Lib/X2GUNPC.cpp#L1780) |
 
 **Nothing in `KncWX2Server/Common/` has to change.** The offline mod stays
@@ -76,9 +128,25 @@ clear**. Spawn them on any other team and every room becomes uncompletable.
 
 ## The three gates that currently make it PvP-only
 
+> **Corrected by phase 1, and this is the single most misleading thing the plan
+> said.** Gates 1 and 2 below are real, but they are **not** the mechanism,
+> because a dungeon never calls the function they live in. Being in `CX2Game`,
+> the shared base class, is not the same as being on the dungeon's path:
+> `CX2StateDungeonGame` routes `EGS_PLAY_START_NOT` to its own `PlayStartNot()`
+> ([X2StateDungeonGame.cpp:1692](X2Lib/X2StateDungeonGame.cpp#L1692)), which
+> calls `GameStart()` directly and never touches
+> `CX2Game::Handler_EGS_PLAY_START_NOT`. The working hook is
+> `CX2DungeonGame::SubStageStart()`. Both gates were left in as a guard rather
+> than removed; see *Defect 1* under phase 1 for the whole story, and treat any
+> other "it is in the base class, so the dungeon runs it" claim in this file as
+> unverified. Gate 3 *is* reachable — it is inside `CX2Game::CreateNPC`, which
+> the dungeon does reach.
+
 All three are in `CX2Game`, the base class both `CX2DungeonGame` and
-`CX2PVPGame` derive from. All three are one `#ifdef SERV_IRUHADEV_AI_PARTY`
-each.
+`CX2PVPGame` derive from. All three are one `#ifdef SERV_IRUHADEV_OFFLINE`
+each, with the studio's original code kept reachable in the `#else` branch —
+these are behaviour *replacements*, which is exactly the case `CLAUDE.md` asks
+to be written that way.
 
 1. **Conversion is gated on the PvP channel.**
    [X2Game.cpp:8044-8048](X2Lib/X2Game.cpp#L8044):
@@ -109,6 +177,11 @@ the client is the only occupant. It becomes a 1..4-element vector where slots
 Four concrete requirements, each of which will silently do nothing if missed:
 
 - **`m_bIsPvpNpc = true`** on the bot's `KRoomUserInfo`. This is the only signal.
+- **`m_iOwnerUserUID = 0`** — a fifth requirement the plan missed, found in
+  phase 1. `CX2Room::SlotData::Set_KRoomSlotInfo` compares that field against
+  `g_pData->GetMyUser()->GetUID()` to choose between
+  `Set_KRoomSlotInfoOfMine` and `..OfOthers`, and the "mine" branch runs
+  against the player's own live `CX2Unit`.
 - **A negative unit UID, at most -2.** `IsPvpBot()` tests `m_UnitUID < -1`
   ([X2GUNPC.cpp:2153](X2Lib/X2GUNPC.cpp#L2153)). `-2, -3, -4` is the obvious
   choice. A positive UID produces a bot that spawns, fights, and is invisible to
@@ -124,14 +197,18 @@ Four concrete requirements, each of which will silently do nothing if missed:
   **no `m_mapPvpNpcInfo`**; only `EGS_GAME_START_PVP_MATCH_NOT` carries it. So
   `SlotData::m_iNpcId` stays 0 on the dungeon path.
   **Do not add a field to the packet.** Map `KRoomUserInfo::m_cUnitClass` to
-  `NUI_PVP_BOT_*` in the widened spawn loop instead. The class is already on
-  every slot, and this keeps the mod client-only.
+  an NPC id in the widened spawn loop instead. The class is already on every
+  slot, and this keeps the mod client-only. (Phase 0 changed *which* ids that
+  table maps to — `NUI_CSM_PVP_HERO_*`, not `NUI_PVP_BOT_*` — but not the
+  mechanism: slot ingest at [X2Room.cpp:2323-2331](X2Lib/X2Room.cpp#L2323)
+  reads only UID, nickname and rating for a bot slot, so `m_cUnitClass` is
+  free for this.)
 
 Then `Handler_EGS_NPC_UNIT_CREATE_REQ`
 ([Handlers_Room.cpp:1613](X2Lib/Offline/Handlers_Room.cpp#L1613)) must hand a
 bot spawn its **room-slot UID** rather than the next value of
-`m_kRoom.m_iNextNpcUID`. Recognise it by `m_NPCID` being one of the six
-`NUI_PVP_BOT_*`, and pop the next unused negative UID from the room's bot list.
+`m_kRoom.m_iNextNpcUID`. Recognise it by `m_NPCID` being one of the bot-cast
+ids, and pop the next unused negative UID from the room's bot list.
 Get this wrong and the NPC spawns with a positive UID, `IsPvpBot()` is false,
 the stat override does not fire, and the bot appears at NPC-table stats with no
 HUD entry — a failure that looks like the AI being broken.
@@ -150,9 +227,49 @@ larger, and it fights the client instead of using it.
 **Chosen: PvP bot slots.** Everything in the table above already works; the
 change is three `#ifdef`s in `CX2Game` plus room-building in the offline server.
 Its cost is honest and worth stating up front: a bot is a `CX2GUNPC`, so its
-moveset is whatever `NUI_PVP_BOT_<char>.lua` gives it — a scripted approximation
-of that character, not the player's own skill tree. That is what KOG shipped
-these NPCs to be.
+moveset is whatever its `.lua` gives it — a scripted approximation of that
+character, not the player's own skill tree. That is what KOG shipped these NPCs
+to be. Phase 0 sharpened this cost: the cast is not the six playable-character
+bots but the game's *named NPC heroes*, so a party reads as Lowe, Lime and Edan
+fighting alongside you rather than as a second Elsword.
+
+---
+
+## Running a phase in a fresh conversation
+
+Each phase is meant to be one conversation. `CLAUDE.md` and the memory index
+load automatically, and the memory already points here, so the prompt only has
+to name the phase and forbid re-exploration:
+
+```
+Read AI_PARTY_PLAN.md and do Phase 1.
+
+The plan's evidence table has the file:line refs already - trust it and verify
+by reading those specific lines, don't re-explore the codebase from scratch.
+Build and deploy per the plan's Verification section when you're done, then
+stop so I can play-test.
+```
+
+Substitute the phase number. Three things to hold to across all of them:
+
+1. **Phases are ordered and phase 0 is a gate.** Do not start phase 1 before
+   phase 0 has run *in the game* and its result is written into this file. Which
+   of the six `NUI_PVP_BOT_*` exist decides what phase 1 and 2 can do, and it is
+   not knowable from the repo.
+2. **Write the outcome back into this file at the end of every phase**, in
+   `OFFLINE_MODE_PLAN.md`'s shape: an `### Exit test — PASSED/PARTIAL (date)`
+   table, a *Corrections to this plan, found by doing it* section, and
+   *Decisions made while implementing phase N*. The next conversation reads that
+   and nothing else of the previous one. A phase that changed the plan's
+   assumptions and did not say so costs the following phase more than it saved.
+3. **Only the play-test closes a phase.** There is no test suite; a phase ends
+   when the exit test has been run in the client and the result recorded, not
+   when it compiles. Expect to hand the build back and forth — the model builds
+   and deploys, you play, you paste what happened.
+
+If a conversation runs long mid-phase, the cheapest resume is a fresh one with:
+*"Read AI_PARTY_PLAN.md. Phase N is in progress — `git diff` shows what's done.
+Continue from there."*
 
 ---
 
@@ -169,10 +286,16 @@ and `serverresource-lua-newer-than-tree` for the version-skew form.
 
 Do:
 
-1. Build a throwaway diagnostic behind `SERV_IRUHADEV_AI_PARTY_DEBUG`: after
+1. Build a diagnostic under `SERV_IRUHADEV_OFFLINE` like everything else: after
    unit-manager load, call `GetNPCUnitInfo()` for all six ids and log id, name,
    `m_LuaFileName`, and whether an NPC stat row exists, via
    `CX2OfflineLog::Server( L"AIPARTY  ..." )`.
+   `CLAUDE.md` suggests a separate short-lived `*_DEBUG` flag for temporary
+   diagnostics; deliberately not doing that here — one flag for the whole
+   feature. What makes it removable instead is that it is **one contiguous block
+   in one function**, tagged `AIPARTY`, and phase 5 deletes it. Keep it that
+   way: do not scatter probe logging across files, or there will be nothing to
+   grep for when it is time to take it out.
 2. Run one dungeon, `grep AIPARTY offline_server.log`.
 
 Exit test: all six resolve, **or** a known subset does. Record which.
@@ -192,16 +315,130 @@ code:
   `Always.h:1161`) but produces a *monster* ally, not a party member — the
   fallback of last resort.
 
+### Exit test — FAILED for the intended cast, re-planned (2026-09-05)
+
+Probe built at the end of `CX2Data::ResetUnitManager`
+([X2Data.cpp:2007](X2Lib/X2Data.cpp#L2007)), one contiguous `AIPARTY`-tagged
+block. It runs at client start-up, from `CX2StateStartUp`, so **no dungeon is
+needed** — reaching the login screen is enough. It probes 27 ids: the six
+intended bots plus both fallback casts, so one run answered the gate *and* the
+re-plan question.
+
+| Cast | Result |
+|---|---|
+| `NUI_PVP_BOT_*` (6) | **0/6 usable.** Templet row and stat row both present; the `.lua` loads to nothing — `skinMesh=0 states=0` on all six |
+| `NUI_PVP_HERO_*` + `NUI_PVP_RUNE_GUARD` (11) | 11/11 usable |
+| `NUI_CSM_PVP_HERO_*` (10) | 10/10 usable |
+
+The six bots are **orphan rows**: `NPCTemplet.lua` and `NPCStat.lua` still carry
+them (`PVP_BOT_ELSWORD.lua`, hp 30800, atkP 474, ...) but the state-machine
+`.lua` they name is not in this client's archives. Two independent signs it is
+data rot rather than a probe artefact:
+
+- All 21 other ids came back fully populated through the *same* call in the
+  *same* run — `GetNPCUnitInfo()`, the call the `CX2GUNPC` creation path itself
+  makes. The loader is fine; these six files are not there.
+- Their templet `NAME` string ids resolve to the wrong strings. All six read as
+  Gliter Alchemist event NPCs ("new / suspicious / supporter", cycling) — the
+  three enum entries immediately *preceding* `NUI_PVP_BOT_ELSWORD`. Whatever
+  removed the bots left the rows behind and the string table skewed past them.
+
+Not settled, and deliberately not chased: whether the `.lua` is absent from the
+`.kom` or present-but-failing. `LoadLuaManager_ErrorCode()` distinguishes the
+two (1 = load failure, 2 = execution failure) and the probe could log it, but it
+costs a build/play-test cycle and changes nothing — the files are in neither the
+archives nor this repo, so there is no path to this cast either way. A raw byte
+scan of the `.kom` set was tried and is **not** evidence: `CSM_PVP_HERO_LOW`
+loads perfectly and its name appears in no archive's plaintext, so absence of
+the string proves nothing.
+
+### Decisions made while implementing phase 0
+
+- **The cast becomes `NUI_CSM_PVP_HERO_*`** — Lowe, Penensio, Noah, Speka, Lime,
+  Amelia, Edan, Valak, Code:Q-Proto_00, Apple. Chosen over the otherwise
+  equivalent `NUI_PVP_HERO_*` because the CSM set is the *card-summoned* one:
+  those NPCs were shipped to be summoned onto the player's side, which is
+  exactly the job here. Ten is more than the three slots need.
+- **`NUI_PVP_RUNE_GUARD` is excluded.** It loads, but `states=8` and
+  `defP=defM=0` — it is a stationary guard object, not a fighter. (Its name
+  string is also wrong, reading "Apple".)
+- **The probe was left in** rather than deleted now. Phase 5 removes it; until
+  then it is the standing check that this cast still resolves, and it is one
+  `grep AIPARTY` away from proving a future data change broke something.
+- **The probe covers the fallbacks too**, not just the six ids the gate was
+  about. That is what made this one play-test instead of two.
+
+### Corrections to this plan, found by doing it
+
+1. **"Run one dungeon" was wrong** — the probe sits in start-up data loading and
+   fires before login. Cheaper than the plan assumed.
+2. **"The enum existing proves nothing" was right, and stronger than written.**
+   The failure mode here was not a commented-out enum or a missing templet: the
+   templet *and* a full stat row are both present and look completely healthy.
+   Only the state machine is missing. Anything that had checked for a templet
+   row — the obvious check — would have passed, and phase 1 would have shipped a
+   bot that spawns as nothing.
+3. **Phase 2 step 1 no longer means what it says.** "Classes chosen to
+   complement the player's, never a duplicate of the player's class" assumed the
+   bots *were* the six playable characters. The heroes have no `UNIT_CLASS`, so
+   the rule becomes: pick three distinct heroes, and there is nothing to
+   complement. Their captions come from the slot nickname while their model
+   comes from the client-side id mapping, so keep those two tables in step or a
+   bot will be named as someone it is not.
+4. **Phase 5's stat scaling matters more than the plan assumed.** These heroes
+   carry boss-scale rows — hp 159k-285k, atk 1.3k-2.4k, against a low-level
+   player's few thousand. The `RoomNpcSlot` override
+   ([X2GUNPC.cpp:3915-3921](X2Lib/X2GUNPC.cpp#L3915)) is what makes them usable
+   at all, so it is load-bearing rather than a tuning nicety: if it does not
+   fire, a "party member" arrives with 250k HP. That is the same failure the
+   plan's table already predicts for a positive NPC UID — it will just be far
+   more obvious than "immortal-looking" suggests.
+5. **`m_cUnitClass` is confirmed free for a bot slot.** Ingest at
+   [X2Room.cpp:2323-2331](X2Lib/X2Room.cpp#L2323) reads only `m_nUnitUID`,
+   `m_wstrNickName` and `m_iRating` when `m_bIsPvpNpc` is set, so phase 1 step 6
+   can carry the hero selector there as planned — only the mapping's target
+   changes.
+
 ---
 
-# Phase 1 — One bot, in a solo dungeon
+# Phase 1 — One bot, through auto-party
 
-Smallest thing that proves the pipeline. Keep auto-party refused; use the
-existing quick-start path.
+> **Done and play-tested 2026-09-05 (exit test below).** The six numbered
+> steps are the plan **as written beforehand** and three of them did not
+> survive contact: step 3's defaulted bot count, and steps 5 and 6, which
+> name a handler the dungeon never calls. They are kept unedited so the
+> corrections underneath have something to correct. **To read what the code
+> actually does, skip to *Three defects found by play-testing phase 1* and
+> *Decisions made while implementing phase 1*.**
 
-1. **`KTDXLIB/Always.h`** — define `SERV_IRUHADEV_AI_PARTY` with the house
-   comment block. `touch X2Lib/stdafx.cpp` afterwards (`pch-hides-header-edits`).
-2. **`Handlers_Room.cpp`** — `MakeRoomSlots` grows an optional bot count.
+Smallest thing that proves the pipeline. Because bots must never appear on the
+solo button, this phase has to reach the dungeon through auto-party rather than
+quick-start — so it builds the *shortest legal* auto-party path and leaves the
+matchmaking ceremony (queue, popup, cancel) to phase 3.
+
+**Do not test this by temporarily adding a bot to the quick-start handler.** It
+is the obvious shortcut and it is how the solo path ends up shipping with a
+companion nobody asked for: the temporary edit compiles, works, and looks
+exactly like the permanent one in a diff two weeks later.
+
+1. **No flag work.** `SERV_IRUHADEV_OFFLINE` is already defined on both sides;
+   this phase adds nothing to `Always.h`. If you edit any header anyway (step 6
+   adds a field to `X2Room.h`, which is not in the PCH, but `X2Define.h` in
+   phase 5 is), `touch X2Lib/stdafx.cpp` before building —
+   `pch-hides-header-edits`.
+2. **`Handlers_Social.cpp`** — replace the `ERR_PARTY_23` refusal in
+   `Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ` with the solo handler's own shape.
+   The request is a typedef of the quick-start one, so it is the same four
+   fields: build the same `KRoomInfo` seed, call the same `OpenRoom( ...,
+   RT_DUNGEON, ... )`, set `RS_LOADING` and `m_dwPlayStartTick` the same way,
+   and send `EGS_AUTO_PARTY_DUNGEON_GAME_ACK` with `NET_OK` followed by
+   `EGS_PARTY_GAME_START_NOT` — but with **one** bot slot.
+   Factor the shared middle out of
+   `Handler_EGS_QUICK_START_DUNGEON_GAME_REQ` rather than copying it, so the two
+   buttons cannot drift; the only difference between them should be the bot
+   count and which ACK goes out. Read the solo handler's comments first — the
+   room-state and `SS_LOADING` notes there are load-bearing and apply verbatim.
+3. **`Handlers_Room.cpp`** — `MakeRoomSlots` grows an optional bot count.
    `MAX_SLOT` in the anonymous namespace goes from 1 to 4, and `MakeRoomInfo`'s
    `m_JoinSlot` follows the real occupancy. Add `MakeBotRoomUserInfo( class,
    level, nickname, botUID, OUT KRoomUserInfo& )` next to `MakeRoomUserInfo`:
@@ -210,13 +447,15 @@ existing quick-start path.
    equipped items, no skill data, no IP/port — a bot has no P2P identity and
    `Set_KRoomSlotInfo` skips `ResetEqip()` for it anyway.
    Record the bot UIDs on `m_kRoom` for the create-req handler.
-3. **`Handlers_Room.cpp`** — `Handler_EGS_NPC_UNIT_CREATE_REQ` returns the
-   room's bot UID when `m_NPCID` is a `NUI_PVP_BOT_*`, and does **not** write
+   **The bot count parameter defaults to 0**, which is what keeps the solo call
+   site correct without editing it.
+4. **`Handlers_Room.cpp`** — `Handler_EGS_NPC_UNIT_CREATE_REQ` returns the
+   room's bot UID when `m_NPCID` is a bot-cast id, and does **not** write
    `m_mapNpcLevel` / `m_mapNpcID` for it (those price kill rewards).
-4. **`X2Game.cpp` gate 1** — widen the `DeleteNpcSlot()` condition to also fire
+5. **`X2Game.cpp` gate 1** — widen the `DeleteNpcSlot()` condition to also fire
    when `GetGameType() == GT_DUNGEON`, keeping the original `PCC_OFFICIAL`
    branch in `#else`.
-5. **`X2Game.cpp` gate 2** — in the spawn loop, when `GT_DUNGEON`: derive the
+6. **`X2Game.cpp` gate 2** — in the spawn loop, when `GT_DUNGEON`: derive the
    NPC id from the slot's unit class, spawn on `CX2Room::TN_RED` with
    `CX2NPCAI::NAT_ALLY` and `m_iAllyUID = GetMyUnit()->GetUnitUID()`, and take
    the start position from the player's own start position offset sideways, not
@@ -227,45 +466,302 @@ existing quick-start path.
 
 Exit test:
 
-- Enter any normal dungeon solo. One AI character spawns beside you on your
-  team, follows you, and attacks monsters.
-- Sub-stages still clear. If they do not, the bot is not on `TN_RED`.
+- Press **auto-party** on a normal dungeon. One AI character spawns beside you
+  on your team, follows you, and attacks monsters.
+- **Press the normal start button on the same dungeon. Nobody spawns.** This is
+  the regression check for the whole feature and it belongs in every phase's
+  exit test from here on — it is one run and it is the thing most likely to be
+  broken by a careless refactor of the shared middle.
+- Sub-stages still clear on both paths. If they do not on the auto-party path,
+  the bot is not on `TN_RED`.
 - `offline_packets.log` has no new `UNHANDLED` and no `EXCEPTION`.
-- The dungeon still finishes loading — no 80% hang. If it hangs, a bot slot is
+- Both dungeons still finish loading — no 80% hang. If one hangs, a bot slot is
   reaching `NetworkProcess()` without `m_bNpc` set.
+
+### Exit test — PASSED (2026-09-05)
+
+Confirmed in play after three build/play cycles. Evidence, from the run at
+22:58–23:04 in `offline_server.log`:
+
+| Check | Result |
+|---|---|
+| Auto-party fills a slot | `ROOM dungeon room 1001 … 1 bot(s)`, `AIPARTY bot slot 1: uid=-2 class=1 level=50 name="Lowe"` |
+| The bot spawns, on your team, and follows | on screen; `AIPARTY spawning bot "Lowe" npcID=1102 level=50 slotUID=-2 … ally of 12` |
+| **Its hits damage monsters** | on screen, after defect 2 below |
+| **No entrance animation on stage change** | on screen, after defect 3 below |
+| Sub-stages clear, the dungeon finishes | 6 stage starts, then `GAME all NPCs dead - dungeon clear broadcast sent` and a result screen (score=27131, 12 items) |
+| **The normal start button spawns nobody** | `ROOM dungeon room 1002 … 0 bot(s)`, and nobody on screen |
+| No new failures | `grep -cE "UNHANDLED\|EXCEPTION" offline_packets.log` → 0 |
+| No 80% hang on either button | both rooms loaded into the dungeon |
+
+A second dungeon (`dungeonID=38100 dif=0 mode=2`) also spawned its bot, so the
+path is not specific to the one map it was developed against.
+
+The bot spawned four times across that six-stage run, which is the per-**stage**
+rebuild described under defect 3 — not once per sub-stage, and not once per run.
+
+**One thing to know before grepping these logs again:** the two `AIPARTY` spawn
+lines now appear in the opposite order to what you would expect —
+`bot spawn "…" given slot uid=-2` (the offline server) prints *before*
+`spawning bot "…"` (the client). Since defect 2's fix, `CreateNPCReq` sends its
+packet immediately rather than batching into a later flush, and the emulator
+answers it synchronously inside the same call. Not a fault; it just means the
+server line is not evidence that the client line was skipped.
+
+### Three defects found by play-testing phase 1, and what each taught
+
+Written 2026-09-05, after three build/play cycles. Each is worth keeping because
+each was invisible to code-reading and each has a general form.
+
+#### Defect 1 — nothing spawned at all: the plan named a handler the dungeon never calls
+
+The plan's evidence table put the spawn in `CX2Game::Handler_EGS_PLAY_START_NOT`
+and stressed that it is the **base class**, not `CX2PVPGame`. That is true and it
+is beside the point: **a dungeon never reaches that handler.**
+`CX2StateDungeonGame` routes `EGS_PLAY_START_NOT` to its own `PlayStartNot()`
+([X2StateDungeonGame.cpp:1692](X2Lib/X2StateDungeonGame.cpp#L1692)), which calls
+`m_pDungeonGame->GameStart()` directly. Both gates sat in dead code: no
+`DeleteNpcSlot()`, so `m_vecNpcSlot` stayed empty, so `CreateOfflinePartyBots()`
+returned before it could even log a failure.
+
+Even reachable it would have been too early — at play start the first sub-stage
+has not loaded, so there is no placed player to spawn beside.
+
+**The hook is `CX2DungeonGame::SubStageStart()`**
+([X2DungeonGame.cpp:1258](X2Lib/X2DungeonGame.cpp#L1258)), immediately after
+`CreateAllyEventMonster()` — the studio's own "fill this party out to four with
+`NAT_ALLY` NPCs at `pUser->GetPos()`" feature. When the tree already contains the
+feature you are building, follow *its* call site, not the one that merely
+contains the code you want to reuse.
+
+Consequences, both now in the code:
+
+- `CreateOfflinePartyBots()` runs **once per sub-stage** and so must be
+  idempotent. It is: a bot whose NPC is already in the world is skipped, and it
+  calls `DeleteNpcSlot()` itself (also idempotent) rather than relying on the
+  dead gate.
+- The offline server matches a bot spawn by **hero id**, not by "next unclaimed
+  slot". A bot really is re-created — once per **stage**, because a stage change
+  tears the world down — so a one-shot claim flag would have handed the second
+  spawn an ordinary monster UID and `IsPvpBot()` would have stopped seeing it.
+  This is why every bot must be a *distinct* hero.
+
+The two `Handler_EGS_PLAY_START_NOT` gates were left in place as a guard rather
+than a mechanism: if that handler is ever reached in a dungeon it now takes the
+dungeon branch instead of spawning bots on `TN_BLUE`.
+
+#### Defect 2 — the bot attacked monsters and did no damage: a packet field's default
+
+Lowe chased monsters and swung at them, and they took nothing. Not the AI, not
+the stats, not the negative UID — **one field of `KNPCUnitReq` that
+`PushCreateNPCReq` does not set.**
+
+`KNPCUnitReq::Init()` defaults `m_cAllyTeam = 2`, i.e. `CX2Room::TN_MONSTER`
+([CommonPacket.h:3633](KncWX2Server/Common/CommonPacket.h#L3633)).
+`CX2Game::PushCreateNPCReq` sets `m_cTeamNum`, `m_cAIType` and `m_iAllyUID` but
+never `m_cAllyTeam`, so the default survived to the client. And
+`CX2DamageManager` skips any hit whose NPC attacker has an ally team equal to
+the defender's team ([X2DamageManager.cpp:1347](X2Lib/X2DamageManager.cpp#L1347),
+`SERV_TRAPPING_RANGER_TEST`):
+
+```cpp
+if( pAttacker->GetGameUnitType() == CX2GameUnit::GUT_NPC &&
+    pAttacker->GetAllyTeam() == pDefender->GetTeam() )
+    continue;
+```
+
+So every monster in the game counted as the bot's own side. The attack animation
+plays either way, which is exactly what made it read as an AI bug.
+
+**The fix is `CreateNPCReq` instead of `PushCreateNPCReq`.** It takes `eAllyTeam`
+and defaults it to `TN_NONE`, which is why *both* of the studio's ally spawns use
+it and pass `TN_NONE` explicitly — `CreateAllyEventMonster`
+([X2DungeonGame.cpp:3531](X2Lib/X2DungeonGame.cpp#L3531)) and
+`CreateAllyNpcByMonster_LUA` ([X2GUNPC.cpp:25680](X2Lib/X2GUNPC.cpp#L25680)).
+One packet per bot rather than a batch; `CreateAllyEventMonster` does the same in
+its own loop.
+
+The general form is worth stating plainly: **`PushCreateNPCReq` is not
+`CreateNPCReq` with batching.** It fills in fewer fields, and the ones it omits
+keep packet defaults that were chosen for monsters. Reading its body is what
+answers this; reading its signature is not, because the field is not a parameter
+of it at all.
+
+#### Defect 3 — the bot played an entrance animation at every stage change
+
+Every NPC is put into its lua `START` state when it is built
+([X2GUNPC.cpp:2621](X2Lib/X2GUNPC.cpp#L2621)), and for this cast that state is a
+card-summon entrance. Because a stage change tears the world down, a bot is
+rebuilt once per stage, so the entrance played each time — which reads as being
+re-summoned rather than as a party member who was there all along.
+
+The bot is now forced into `GetCommonState().m_Wait` at creation, in
+`CX2Game::CreateNPC` right after `SetUserSummonedNPCInfo`, guarded on
+`IsPvpBot()` and `GT_DUNGEON`. The ally AI takes over on its next tick. This is
+the same intent the studio already applies one level up: `SubStageStart` forces
+`GetStartState()` on every NPC **except** `NAT_ALLY` ones
+([X2DungeonGame.cpp:1116](X2Lib/X2DungeonGame.cpp#L1116)) — an exemption that
+does not extend to creation, which is the gap this fills.
+
+Note what the logs proved along the way, since it constrains phase 2: a bot
+persists across **sub-stages** (`DeleteAllNPCUnit` only removes the sub-stage's
+own NPC list) but not across **stages**. The `AIPARTY spawning bot` lines came
+once per stage, not once per sub-stage, against a stage 0 of two sub-stages and a
+stage 1 of three.
+
+### Decisions made while implementing phase 1
+
+- **The bot count lives on the room, not on `MakeRoomSlots`.** The plan asked
+  for an optional bot-count parameter defaulting to zero. That cannot work, and
+  finding out why is the most useful thing this phase learned: **the slot list
+  is built three times for one run, and only the first of those knows which
+  button was pressed.** `EGS_PARTY_GAME_START_NOT` comes from the entry handler,
+  but `EGS_STATE_CHANGE_GAME_START_NOT` and — the one that actually matters —
+  `EGS_PLAY_START_NOT` are both sent from `Handler_EGS_GAME_LOADING_REQ`, which
+  is shared by both buttons and has no idea. `EGS_PLAY_START_NOT` is the packet
+  `CX2Game::Handler_EGS_PLAY_START_NOT` turns into `m_vecNpcSlot`, so a
+  defaulted argument would have been correct at the call site that does not
+  matter and unanswerable at the one that does. `KOfflineRoom::m_vecBot` gives
+  the same guarantee the default was for — `OpenRoom` clears it, only
+  `MakePartyBots` fills it, and only the auto-party handler calls that — while
+  making every call site right without any of them having to ask.
+- **`m_cUnitClass` carries a real `UNIT_CLASS`, not a bare index.** A bot slot
+  still constructs a `CX2Unit` (`Set_KRoomSlotInfoOfOthers` →
+  `new CX2Unit( kRoomUserInfo )` → `Init()`, which looks the class up in the
+  unit templet table), so an out-of-range value is a needless risk for nothing.
+  Phase 1's one bot is `UC_ELSWORD_SWORDMAN` → `NUI_CSM_PVP_HERO_LOW` ("Lowe").
+  The class is never seen: the model is the hero NPC's and the caption is the
+  slot nickname.
+- **The two tables are named after each other.** `BOT_CAST` in
+  `Handlers_Room.cpp` decides a bot's *name*; the `switch` in
+  `CX2Game::CreateOfflinePartyBots` decides its *model*; the unit class is the
+  only thing joining them. Both carry a comment naming the other, and
+  `Handlers_Room.cpp` has a compile-time check that `BOT_CAST` and `BOT_NPC_ID`
+  are the same length. The server needs `BOT_NPC_ID` for one thing only:
+  recognising a bot spawn in `EGS_NPC_UNIT_CREATE_REQ`.
+- **The shared middle is two functions, not one.** `OpenDungeonGameRoom` (build
+  the `KRoomInfo` seed, open the room) and `SendDungeonGameStartNot` (advance to
+  `RS_LOADING`, start the clock, `ClearPlayRun`, send
+  `EGS_PARTY_GAME_START_NOT`). Splitting there is what lets each handler send
+  its own ACK in between, in the same order the solo handler always did. The
+  only line that differs between the two buttons is `MakePartyBots`.
+- **Gate 1's `else` branch was left where it was.** The plan's "widen the
+  condition, keep the original in `#else`" would have moved dungeons out of the
+  `SetCanUseEscFlag( true )` branch as a side effect — that branch is what every
+  non-PvP-channel game, dungeons included, has always taken. The `#ifdef` now
+  carries two separate conditions rather than one if/else, so ESC handling on
+  the solo path is byte-identical to before.
+- **Gate 2 is a new method, not an edited loop.** `CreateOfflinePartyBots()`
+  sits beside `PushCreateNPCReq` in `X2Game.cpp`; the studio's PvP arena loop is
+  untouched behind an `else`. A PvP match still takes it.
+- **Bots are spawned behind the player, 60 units apart**, from
+  `GetMyUnit()->GetPos()` rather than from the line map. A dungeon line map has
+  no team start positions to read, and the player is standing on valid ground by
+  definition at play start. Phase 2's fan-out along the start line supersedes
+  this.
+
+### Corrections to this plan, found by doing it
+
+1. **`MakeRoomSlots`'s "optional bot count defaulting to 0" is wrong** — see the
+   first decision above. The scope guard that keeps the solo button solo is
+   `m_vecBot` being empty, not an argument default.
+2. **`NAT_ALLY` + `iAllyUID` means the client re-stats the bot from the player,
+   and phase 5 needs to know.** `CX2Game::CreateNPC` calls
+   `SetUserSummonedNPCInfo` for any ally with an owner
+   ([X2Game.cpp:6483](X2Lib/X2Game.cpp#L6483)), and its `default:` branch does
+   `pNPC->SetNPCStat( ... )` from **the player's own** HP/atk/def
+   ([X2Game.cpp:12900](X2Lib/X2Game.cpp#L12900)) — after the `RoomNpcSlot`
+   override at [X2GUNPC.cpp:3915](X2Lib/X2GUNPC.cpp#L3915) has already run. So
+   the last word on a bot's stats is the player's stat line, not the slot's.
+   Two consequences: the 160k–285k HP hero rows cannot reach the field even if
+   the slot override failed (belt and braces, which is welcome), and **phase 5's
+   "scale the five `RoomNpcSlot` stats" knob will do nothing on this path**. The
+   knob phase 5 actually has is `SetHardLevel` / the `unitID` switch in
+   `SetUserSummonedNPCInfo`, or dropping `iAllyUID` and losing the follow
+   behaviour. Decide that in phase 5 with a play-test, not from the code.
+3. **The bot's `m_kGameStat` is base-table only, with no gear.**
+   `MakeGameStat( const KOfflineUnitRow& )` loads *that row's* inventory, which a
+   bot does not have; calling it with the player's row would have given the bot
+   the player's equipment bonuses. `MakeBotRoomUserInfo` calls
+   `CX2OfflineStatTable::GetUnitStat` directly instead.
+4. **`m_iOwnerUserUID` must stay 0 on a bot slot.** Not in the plan's list of
+   four requirements, and it belongs there:
+   `CX2Room::SlotData::Set_KRoomSlotInfo` picks between
+   `Set_KRoomSlotInfoOfMine` and `..OfOthers` by comparing that field against
+   `g_pData->GetMyUser()->GetUID()`, and the "mine" branch runs against the
+   player's own live `CX2Unit`.
+5. **A cast id that spawns with no bot slot left is treated as an ordinary
+   NPC**, with a log line. The same heroes are summonable by monster card, so
+   "this NPC id means bot" is not true on its own — only "this NPC id *and* an
+   unclaimed bot slot" is.
 
 ---
 
 # Phase 2 — Three bots, placement, death and revive
 
-1. Three bots, classes chosen to complement the player's (never a duplicate of
-   the player's class unless all six are exhausted).
+**What phase 1 already did, so phase 2 does not redo it.** Step 3 is done — a
+bot is built at the player's level and its `m_kGameStat` comes from
+`CX2OfflineStatTable` at that level. Step 5's prevention is in and is stronger
+than the plan's wording: the offline server writes no `m_mapNpcLevel` /
+`m_mapNpcID` row for a bot at all, so `Handler_EGS_NPC_UNIT_DIE_REQ` finds
+nothing to price. It still wants the before/after `els_db.sql` check.
+
+**Raising the count to three is one constant plus two table rows.**
+`AUTO_PARTY_BOT_NUM` in `X2OfflineServer.h` goes from 1 to `MAX_BOT`; `BOT_CAST`
+in `Handlers_Room.cpp` already carries three entries (Lowe, Lime, Edan) and the
+`switch` in `CX2Game::CreateOfflinePartyBots` already maps all three classes.
+Adding a fourth means a row in **both**, and the compile-time check next to
+`BOT_CAST` only catches a length mismatch against `BOT_NPC_ID`, not a class the
+client `switch` has no case for — that one logs `maps to no hero` at runtime.
+
+**Every bot must stay a distinct hero.** The offline server matches a spawn back
+to its slot by NPC id (`FindPartyBotByNpcID`), because a bot is genuinely
+re-created once per stage and a one-shot claim would break the second spawn. Two
+bots sharing a hero would collide on that lookup.
+
+1. ~~Three bots, classes chosen to complement the player's.~~ Superseded twice
+   over: the cast is NPC heroes with no `UNIT_CLASS` (phase 0), and the unit
+   class on a bot slot is only a selector for the client's id mapping (phase 1).
+   Pick three distinct heroes and keep `BOT_CAST` and the client `switch` in
+   step.
 2. Spawn placement: fan out along the player's start line via
    `CKTDGLineMap::GetLineData`, the way the field spawner in
-   `X2OfflineBattleField.cpp` already picks positions.
-3. Level: match the player's level, so `MakeGameStat` gives a bot the stats a
-   real party member of that level would have.
+   `X2OfflineBattleField.cpp` already picks positions. Phase 1 spawns them
+   behind the player at 60-unit intervals off `GetMyUnit()->GetPos()`, which is
+   fine for one and will read as a queue for three.
+3. ~~Level: match the player's level.~~ Done in phase 1.
 4. Death and revive. `CX2Game::RebirthUserUnit` already takes the bot branch
    ([X2Game.cpp:6174](X2Lib/X2Game.cpp#L6174)); confirm what sends it in a
    dungeon and whether `CX2Game::IsAllUserDead()`
    ([X2Game.cpp:6108](X2Lib/X2Game.cpp#L6108)) counts bots — if it does, a wiped
    party of bots would end the run while the player is alive.
+   **Do not take "it is in `CX2Game`, the base class" as proof the dungeon runs
+   it.** That is exactly the reasoning that produced defect 1: the dungeon has
+   its own state class and its own `CX2DungeonGame`, and it routes around base
+   handlers more often than the class hierarchy suggests. Find the caller and
+   check it is on the dungeon path before building on it.
+   Worth knowing already: a bot survives sub-stage changes but is destroyed and
+   re-created at every **stage** change, so "died and came back" and "was
+   rebuilt by the next stage" look identical from the outside. Distinguish them
+   in the log before concluding revive works.
 5. **Verify the reward path is not polluted.** A dying bot must not produce
    EXP/ED through `Handler_EGS_NPC_UNIT_DIE_REQ`
-   ([Handlers_Room.cpp:1692](X2Lib/Offline/Handlers_Room.cpp#L1692)); step 3 of
-   phase 1 is what prevents it. Confirm with a run:
-   `sqlite3 els_db.sql "select unit_uid, exp, ed from unit;"` before and after.
+   ([Handlers_Room.cpp:1692](X2Lib/Offline/Handlers_Room.cpp#L1692)). Confirm
+   with a run: `sqlite3 els_db.sql "select unit_uid, exp, ed from unit;"` before
+   and after.
 
 Exit test: three bots fight a full dungeon start to finish, die and come back,
-and EXP/ED for the run matches a solo run of the same dungeon.
+and EXP/ED for the auto-party run matches a solo run of the same dungeon. The
+solo button still spawns nobody.
 
 ---
 
-# Phase 3 — Wire it to the auto-party button
+# Phase 3 — The matchmaking ceremony
 
-Replace the refusal at
-[Handlers_Social.cpp:498](X2Lib/Offline/Handlers_Social.cpp#L498). The client's
-own auto-party flow expects, in order:
+Auto-party already reaches the dungeon after phase 1; what it does not do is
+*look* like matchmaking. Right now the ACK is followed immediately by
+`EGS_PARTY_GAME_START_NOT`, so the player presses a button and teleports. The
+client's own auto-party flow expects, in order:
 
 ```
 EGS_AUTO_PARTY_DUNGEON_GAME_REQ / _ACK
@@ -279,14 +775,20 @@ plus `EGS_CANCEL_AUTO_PARTY_MAKING_REQ/ACK`, `EGS_UNREG_AUTO_PARTY_WAIT_LIST_NOT
 and `EGS_AUTO_PARTY_CLOSE_NOT` for the cancel path. Read `CX2PartyManager`'s
 handlers for each before deciding how much of the ceremony to reproduce — a
 short fake queue (1-2 s) that then "matches" reads far better than an instant
-jump, and it exercises the cancel path.
+jump, and it is the only thing that gives the cancel path somewhere to happen.
+
+The queue needs a timer the offline server owns. `TickField` and
+`PushRemainingPlayTime` ([Handlers_Room.cpp:400](X2Lib/Offline/Handlers_Room.cpp#L400),
+[:571](X2Lib/Offline/Handlers_Room.cpp#L571)) are the existing precedent for
+deferred server-side work; reuse that shape rather than inventing a second one.
 
 Decide and record: does offline auto-party always fill to 4, or offer a count?
 Default to 4.
 
 Exit test: press auto-party in the village, watch it queue and match, land in
 the dungeon with three bots. Cancel mid-queue and end up back in the village
-with the UI reset.
+with the UI reset. Start the same dungeon with the normal button and go in
+alone.
 
 ---
 
@@ -299,6 +801,11 @@ three pets.
    [X2Game.cpp:6437](X2Lib/X2Game.cpp#L6437) so a dungeon bot gets
    `InsertPvpMemberUI` / `UpdatePvpMemberGageData` too. Cheapest route to
    on-screen HP bars, but it uses the PvP team-list widget.
+   Unlike gates 1 and 2, this one **is** on the dungeon path — it is inside
+   `CX2Game::CreateNPC`, which the dungeon reaches through the offline server's
+   `EGS_NPC_UNIT_CREATE_NOT` broadcast; phase 1's entrance-animation fix already
+   lives a few lines below it. Confirm that rather than assume it, though: gates
+   1 and 2 were in `CX2Game` too and the dungeon reaches neither.
 2. The dungeon party HUD proper is `InsertPartyMemberUI( const KPartyUserInfo&,
    CX2GameUnit* )` ([X2GageManager.cpp:395](X2Lib/X2GageManager.cpp#L395)),
    driven entirely by `CX2PartyManager` off `EGS_PARTY_*` packets
@@ -317,15 +824,36 @@ three pets.
 
 # Phase 5 — Tuning and honesty
 
-- Bot difficulty. `RoomNpcSlot`'s five stats are the only knob and the offline
-  server owns them outright — scale them off `CX2OfflineStatTable` with a factor
-  that is one named constant in `X2Lib/X2Define.h`, the way
-  `SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC` is.
+- Bot difficulty. **The plan's knob does not work on this path** — see phase 1
+  correction 2. `RoomNpcSlot`'s five stats are overridden a second time, after
+  the slot override, by `SetUserSummonedNPCInfo`
+  ([X2Game.cpp:12900](X2Lib/X2Game.cpp#L12900)), which re-stats any ally with an
+  owner from **the player's own** HP/atk/def. So a bot currently has the
+  player's stat line, which is a defensible default and is why nothing looked
+  wrong in phase 1. Scaling `RoomNpcSlot` would change nothing visible.
+  The knobs that do exist: a multiplier applied where
+  `SetUserSummonedNPCInfo` writes the stats (a `unitID` case, as the Nasod Watch
+  and Wally entries already are), `SetHardLevel`, or dropping `iAllyUID` and
+  losing the follow behaviour with it. Whichever is chosen, the named constant
+  in `X2Lib/X2Define.h` is still the right shape. Decide with a play-test.
 - `CX2AllyNPCAI` is Lua-tuned (`LoadAIDataFromLUA`): `allyLostRange`,
   `targetRange`, `dashRange`, jump rates. If those need changing, the file is
   the studio's and the packing is the user's job — name it and stop
   (`server-lua-packing-is-users-job`).
-- Update `MODS.md` with the flag row and a description.
+- Delete phase 0's probe block — `grep AIPARTY` across `X2Lib/` finds it, and it
+  should be one block in one function. Phase 0 is the only thing that needed it.
+- Update `MODS.md` by **extending the existing `SERV_IRUHADEV_OFFLINE` row** —
+  add a sentence about AI party members to its description, saying explicitly
+  that they are auto-party only. No new row: there is no new flag.
+  (`X2Lib/Offline/` is already listed as a whole directory, so
+  `Handlers_Social.cpp` and `Handlers_Room.cpp` need no separate mention.)
+  The *Client files* column gains **five** entries, not the two the plan
+  guessed, because the hook moved to the dungeon game object and both room
+  files were touched:
+  `X2Lib/X2Game.h`, `X2Lib/X2Game.cpp`, `X2Lib/X2DungeonGame.cpp`,
+  `X2Lib/X2Room.h`, `X2Lib/X2Room.cpp`. `X2Lib/X2Data.cpp` is there too, from
+  phase 0's probe — remove it from the list in the same edit that deletes the
+  probe, if nothing else in offline mode has claimed that file by then.
 - Write the phase history and every correction back into this file, the way
   `OFFLINE_MODE_PLAN.md` does. That record is worth more than the plan was.
 
@@ -349,11 +877,15 @@ grep "AIPARTY" offline_server.log
 sqlite3 els_db.sql "select unit_uid, nickname, level, exp, ed from unit;"
 ```
 
-## The four failure modes to expect, and what each looks like
+## The failure modes to expect, and what each looks like
 
 | Symptom | Cause |
 |---|---|
 | Dungeon hangs at 80% loading | A bot slot reached `NetworkProcess()` without `m_bIsPvpNpc` — three unreachable P2P peers |
 | Bots spawn but at wrong stats, no HUD, immortal-looking | Positive NPC UID, so `IsPvpBot()` is false. Fix the create-req handler |
 | Sub-stage never clears, camera waits forever | Bots spawned on a team other than `TN_RED`; `LiveActiveNPCNum()` counts them |
-| Bots do not appear at all, or appear as placeholders | Phase 0 was skipped and `NUI_PVP_BOT_*` has no templet in this client's `.kom` |
+| Bots do not appear at all, or appear as placeholders | An NPC id whose `.lua` is not in this client's `.kom`. Phase 0 lists the 21 that are; anything outside that list must be probed the same way before it is used |
+| **Bots appear on the normal start button** | The solo path reached `MakePartyBots`, or the solo handler was edited "temporarily". `m_kRoom.m_vecBot` being empty is the entire scope guard. Out of scope by design — see *Scope* |
+| **Bots spawn, chase and swing, and monsters take no damage** | `KNPCUnitReq::m_cAllyTeam` left at its `Init()` default of `TN_MONSTER`, so `CX2DamageManager` treats every monster as the bot's own side ([X2DamageManager.cpp:1347](X2Lib/X2DamageManager.cpp#L1347)). Spawn through `CreateNPCReq`, which defaults it to `TN_NONE`; `PushCreateNPCReq` never sets it. Phase 1 defect 2 |
+| **Nothing happens at all, and no log line says why** | The code was hung off a `CX2Game` handler the dungeon does not call. Verify the caller is on the dungeon path, and log the early-return branches. Phase 1 defect 1 |
+| Bots play an entrance animation on every stage change | Normal — a stage change destroys every NPC and the bot is rebuilt. Force it past its lua `START` state at creation. Phase 1 defect 3 |

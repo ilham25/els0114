@@ -301,6 +301,49 @@ public:
 		int				m_iMiddleBossAlive;
 		DWORD			m_dwPlayStartTick;
 
+		//////////////////////////////////////////////////////////////////////////
+		/// AI party members (AI_PARTY_PLAN.md phase 1). One entry per bot the
+		/// auto-party button asked for; empty for every other way into a room,
+		/// which is what keeps the solo button solo.
+		///
+		/// This lives on the room rather than being a parameter to MakeRoomSlots
+		/// because the slot list is built THREE times for one run and only the
+		/// first of those knows how the room was entered:
+		/// EGS_PARTY_GAME_START_NOT (the entry handler), then
+		/// EGS_STATE_CHANGE_GAME_START_NOT and EGS_PLAY_START_NOT, both sent
+		/// from Handler_EGS_GAME_LOADING_REQ, which is shared by both buttons.
+		/// EGS_PLAY_START_NOT is the one that matters - it is the packet
+		/// CX2Game::Handler_EGS_PLAY_START_NOT turns into m_vecNpcSlot - so a
+		/// defaulted bot-count argument on MakeRoomSlots would have been correct
+		/// at the call site that does not matter and unanswerable at the one
+		/// that does. The room remembering is what makes every call site right
+		/// without any of them having to ask.
+		struct KPartyBot
+		{
+			UidType			m_nUnitUID;			///< at most -2; CX2GUNPC::IsPvpBot tests m_UnitUID < -1
+			char			m_cUnitClass;		///< carries the hero selection to the client - see BOT_CAST
+			int				m_iLevel;
+			std::wstring	m_wstrNickName;
+
+			/// The NPC id the client will derive from m_cUnitClass, mirrored
+			/// here so EGS_NPC_UNIT_CREATE_REQ can match a spawn to its bot.
+			///
+			/// Matching on the id rather than handing out "the next unclaimed
+			/// slot" is what lets a bot be spawned MORE THAN ONCE in a run.
+			/// CX2Game::CreateOfflinePartyBots is called on every sub-stage and
+			/// re-spawns a bot that is no longer in the world, so a one-shot
+			/// claim flag would give the second spawn an ordinary monster UID
+			/// and a bot that IsPvpBot() cannot see. Every bot therefore gets a
+			/// DISTINCT hero - see BOT_CAST.
+			int				m_iNpcID;
+
+			KPartyBot()
+				: m_nUnitUID( 0 ), m_cUnitClass( 0 ), m_iLevel( 1 ), m_iNpcID( 0 )
+			{
+			}
+		};
+		std::vector< KPartyBot >	m_vecBot;
+
 		KOfflineRoom()
 		{
 			Clear();
@@ -353,6 +396,7 @@ public:
 			m_bMiddleBossReserved = false;
 			m_iMiddleBossAlive	= 0;
 			m_dwPlayStartTick	= 0;
+			m_vecBot.clear();		///< a fresh room has no bots until auto-party asks
 		}
 	};
 
@@ -604,11 +648,46 @@ private:
 
 	void MakeRoomUserInfo( const KOfflineUnitRow& kRow, OUT KRoomUserInfo& kOut );
 
-	/// The single-occupant slot list. The slot is always host: CX2Game::IsHost()
-	/// reads it, and the client only drives the simulation - stage loads, NPC
-	/// spawns, the end of the game - when it believes it is host.
+	/// One AI party member's room slot (AI_PARTY_PLAN.md phase 1). Four fields
+	/// carry the whole feature and each one silently does nothing if missed:
+	/// m_bIsPvpNpc (the only signal that this is a bot), a unit UID of at most
+	/// -2 (CX2GUNPC::IsPvpBot tests m_UnitUID < -1), m_cUnitClass (which the
+	/// client maps to an NPC id, because no packet on the dungeon path carries
+	/// one) and a filled m_kGameStat.
+	void MakeBotRoomUserInfo( const KOfflineRoom::KPartyBot& kBot, OUT KRoomUserInfo& kOut );
+
+	/// The occupant slot list: the player, then one slot per bot the room was
+	/// opened with. The player's slot is always host: CX2Game::IsHost() reads
+	/// it, and the client only drives the simulation - stage loads, NPC spawns,
+	/// the end of the game - when it believes it is host.
 	void MakeRoomSlots( const KOfflineUnitRow& kRow, int iSlotState,
 						OUT std::vector< KRoomSlotInfo >& vecOut );
+
+	/// How many slots the auto-party button fills. Phase 1 proves the pipeline
+	/// with one; phase 2 raises it to three. Here rather than in
+	/// Handlers_Room.cpp's anonymous namespace only because the caller is in
+	/// Handlers_Social.cpp.
+	static const int AUTO_PARTY_BOT_NUM = 1;
+
+	/// Fill m_kRoom.m_vecBot with iBotCount AI party members at the player's
+	/// level. Called only by the auto-party handler; every other way into a
+	/// room leaves the vector empty, which is what keeps the solo button solo.
+	void MakePartyBots( const KOfflineUnitRow& kRow, int iBotCount );
+
+	/// The bot in this room whose hero id is iNpcID, or NULL. Used by
+	/// EGS_NPC_UNIT_CREATE_REQ to give a bot spawn its room-slot UID.
+	KOfflineRoom::KPartyBot* FindPartyBotByNpcID( int iNpcID );
+
+	/// The two halves of "start a dungeon", shared by the solo button
+	/// (EGS_QUICK_START_DUNGEON_GAME_REQ) and the auto-party one
+	/// (EGS_AUTO_PARTY_DUNGEON_GAME_REQ). The requests are the same struct -
+	/// KEGS_AUTO_PARTY_DUNGEON_GAME_REQ is a typedef of the quick-start one
+	/// (ClientPacket.h:7804) - so the only difference between the two buttons
+	/// is the bot count and which ACK goes out.
+	bool OpenDungeonGameRoom( KOfflineSession& kSes,
+							  const KEGS_QUICK_START_DUNGEON_GAME_REQ& kReq,
+							  OUT KOfflineUnitRow& kRow );
+	bool SendDungeonGameStartNot( KOfflineSession& kSes, const KOfflineUnitRow& kRow );
 
 	/// Fill m_RoomInfo from the room the session is in.
 	void MakeRoomInfo( OUT KRoomInfo& kOut );

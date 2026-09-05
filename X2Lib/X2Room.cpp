@@ -1084,6 +1084,16 @@ void CX2Room::DeleteNpcSlot()
 			roomNpcSlot.m_wstrNpcName = pSlotData->m_pUnit->GetUnitData()->m_NickName;
 			roomNpcSlot.m_iLevel = pSlotData->m_pUnit->GetUnitData()->m_Level;
 
+#ifdef SERV_IRUHADEV_OFFLINE
+			// AI_PARTY_PLAN.md phase 1. The offline server puts the bot's hero
+			// selection in KRoomUserInfo::m_cUnitClass, which is the only field
+			// on the slot free to carry it - the ingest above reads just the
+			// UID, the nickname and the rating for an m_bNpc slot. This is the
+			// last point it is reachable: the SlotData is deleted three lines
+			// below, and CX2Game::CreateOfflinePartyBots runs afterwards.
+			roomNpcSlot.m_cUnitClass = (char)pSlotData->m_pUnit->GetUnitData()->m_UnitClass;
+#endif SERV_IRUHADEV_OFFLINE
+
 			// 대전 NPC Stat은 RoomSlot에 저장된 Stat정보를 사용한다.
 			roomNpcSlot.m_fBaseHP		= pSlotData->m_pUnit->GetUnitData()->m_GameStat.m_fBaseHP;
 			roomNpcSlot.m_fAtkPhysic	= pSlotData->m_pUnit->GetUnitData()->m_GameStat.m_fAtkPhysic;
