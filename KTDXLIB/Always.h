@@ -2549,3 +2549,17 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              row in the offline SQLite DB.
 #define SERV_IRUHADEV_OFFLINE_INVENTORY_EXPAND
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-05
+// Description: Offline mode - phase 10 (OFFLINE_MODE_PHASE9_PLAN.md). Feed a
+//              summoned pet for real instead of an unconditional refusal.
+//              PetData.lua's feed table was already loading (phase 7b) but
+//              CX2OfflinePetData discarded it, and the handler never read the
+//              request at all - both fixed here. Also tracks which pet is
+//              currently summoned per session, since EGS_FEED_PETS_REQ names
+//              only the food item, and stops reusing ERR_PET_00 ("failed to
+//              create the pet") for a feeding refusal.
+#define SERV_IRUHADEV_OFFLINE_PET_FEED
+//////////////////////////////////////////////////////////////////////////

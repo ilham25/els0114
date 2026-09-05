@@ -450,6 +450,100 @@ Feed a summoned pet an El tree seed: satiety rises by 468, the seed count drops 
 one in a bag that redraws, and the new satiety survives a relog. No `PetData.lua`
 message anywhere in `offline_server.log`.
 
+### What actually happened
+
+No new packets either - still bucket A, but the plan's "What to do" undersold
+the actual gap. Feeding needed one piece of state the plan never named, and the
+"fix the dialog string" line turned out to have a real, already-built fix
+sitting in the shared header:
+
+- **The dependency check resolved clean, without needing phase 14.** The plan
+  flagged "check how the offline server tracks the summoned pet first; if it
+  does not track one, do phase 14 before this one" as an open question.
+  Reading `Handler_EGS_SUMMON_PET_REQ` (`Handlers_Social.cpp`) answered it:
+  summoning a pet by a real, non-zero UID already works today (it finds the
+  row, updates `m_tLastSummonDate`, replies `NET_OK`) - only *unsummoning* is
+  broken, and that is a narrower, separate bug (below). Since the exit test only
+  needs a pet summoned, not un-summoned, phase 10 did not need phase 14 first.
+
+- **"Tracks the summoned pet" was the real missing piece, and the plan didn't
+  say how to build it because nothing existed to build on.**
+  `EGS_FEED_PETS_REQ` carries only the food item's UID, never a pet UID, so the
+  server has to already know which pet is out. Before this phase,
+  `KOfflineSession` had no such field at all - not even something to read and
+  find broken. Added `UidType m_nSummonedPetUID`, written by
+  `Handler_EGS_SUMMON_PET_REQ` on every successful summon and read by the feed
+  handler to look up the live `KOfflinePetRow`. This is new state, not a bug
+  fix to existing state, and it is the piece the plan's "What to do" section
+  skipped over by assuming the summoned pet would just be "the summoned pet."
+
+- **`EGS_SUMMON_PET_REQ` with UID 0 means "put the pet away", confirmed from
+  the client, not guessed.** `CX2PetManager::Handler_EGS_SUMMON_PET_REQ( 0 )`
+  is the exact call `PCUM_SUMMON_CANCEL` makes
+  (`X2PetManager.cpp:319`). The offline handler's match loop can never find a
+  pet row with UID 0, so every unsummon request already fails with
+  `ERR_PET_00` today - and worse, the client's own ACK handler
+  (`X2PetManager.cpp:2253`) shows the *correct* success shape for that case is
+  `iOK = NET_OK` with `m_kSummonedPetInfo.m_iPetUID == 0`, not an error at all.
+  **Left alone on purpose** - this is squarely phase 14's declared symptom
+  ("Pet summon/unsummon `Failed to create the pet`"), and fixing it here would
+  have widened phase 10 into phase 14's scope for no gain the exit test needs.
+  Whoever runs phase 14 should start from this paragraph rather than
+  rediscovering it.
+
+- **The dialog-string fix the plan asked for already has the right error codes
+  sitting unused in the shared enum - no `Common/` edit, no server rebuild.**
+  `KncWX2Server/Common/NetError_def.h` already defines `ERR_PET_06` ("no
+  summoned pet"), `ERR_PET_10` ("satiety full"), `ERR_PET_11` (generic feed
+  failure) and `ERR_PET_18` ("not a food item this pet can eat") - a whole
+  family of pet-specific codes nothing in the offline handlers had ever
+  referenced. `IsValidPacket()` (`X2Main.cpp:6914`) has no special case for any
+  of them, so each one falls through to the generic popup that prints
+  `NetError::GetErrStrF(enumID)` and returns `false` - exactly the "show the
+  right refusal, don't touch the ack" shape every other refusal in this file
+  already uses. Swapped the feed handler's `ERR_PET_00` for `ERR_PET_06` (no
+  pet out), `ERR_PET_18` (wrong item) and `ERR_PET_10` (already full), instead
+  of inventing a new code or leaving the wrong-operation string in place.
+
+- **The satiety cap (4800) is a real, citable client constant, the same shape
+  `CLAUDE.md`'s permitted-fallback rule describes.**
+  `CX2PetManager::MAX_OF_SATIETY` at `X2Lib/X2PetManager.cpp:14` is a
+  compile-time `= 4800.0f` the client itself divides every satiety bar by.
+  Cited in a comment at the clamp site rather than pulled in via a
+  `CX2PetManager` include, since `X2Lib/Offline` doesn't otherwise depend on
+  the client UI/manager layer and this is one `int` literal, not a live
+  dependency.
+
+- **Recorded, not yet wired: satiety decay and the "special" feed gate.**
+  `AddPetSatietyDecreaseFactor` and the two
+  `Increase`/`DecreaseSpecialFeedIntimacyRate` calls are now captured (per the
+  plan's "next pet phase will want them") with getters, but nothing in this
+  phase reads them back - satiety decay over time and `ERR_PET_12` ("special"
+  pets eating only tree fruit/seed) are still a later phase's job, consistent
+  with `SERV_TRANSFORM_PET` being off in this build regardless.
+
+- **Build toolchain note for future phases**: `msbuild` is not on `PATH` in
+  this environment - use
+  `C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe` directly (PowerShell,
+  not the bash `msbuild X2Lib/...` form `CLAUDE.md`'s loop shows). More
+  importantly, **a `SolutionDir` value ending in a bare `\` right before the
+  closing quote breaks silently**: PowerShell re-quotes an argument containing
+  spaces for the native argv parser, and a trailing `\"` in that reconstructed
+  command line is read as an *escaped quote*, not backslash-then-quote - the
+  build still runs, `SolutionDir` is simply wrong, and the result is the same
+  `cannot open include file: 'd3dx9.h'` error `CLAUDE.md` already warns about
+  for a missing `SolutionDir`, which reads exactly like the flag wasn't passed
+  at all even though it was. Forward slashes throughout (`"/p:SolutionDir=$TRUNK/"`
+  with `$TRUNK` itself built from forward slashes) sidestep the whole class of
+  bug, matching the advice `CLAUDE.md` already gives for the opposite reason
+  (fighting a trailing `\` through a shell).
+
+- **Not yet done**: the exit test is a real play-test (feed a summoned pet,
+  watch the satiety bar and the bag, relog) that needs a human at the client -
+  not run as part of this phase. `X2Lib_2010.vcxproj` then `X2_2010.vcxproj`
+  both built clean under `US_SERVICE`, deployed to `X2_offline.exe`, confirmed
+  by size/mtime.
+
 ---
 
 # Phase 11 — Cannot sort inventory (`ISSUES.md` #7)

@@ -104,6 +104,26 @@ public:
 	bool	HasPetRows();
 	bool	HasRidingPetRows();
 
+#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
+	/// AddPetCashFeedItemInfo's table: how much satiety one of an item raises.
+	/// false when iItemID is not a feed item at all (ERR_PET_18 territory).
+	bool	GetFeedSatietyGain( int iItemID, OUT int& iSatietyGain );
+
+	/// AddSpecialFeedItemID's table - the same five items right now. Recorded
+	/// for the transform-pet phase this one does not implement
+	/// (SERV_TRANSFORM_PET is off in this build); unused until then.
+	bool	IsSpecialFeedItem( int iItemID ) const;
+
+	/// AddPetSatietyDecreaseFactor, keyed by evolution step. Recorded for the
+	/// satiety-decay phase this one does not implement; unused until then.
+	bool	GetSatietyDecreaseFactor( int iEvolutionStep, OUT double& fFactor ) const;
+
+	/// IncreaseSpecialFeedIntimacyRate / DecreaseSpecialFeedIntimacyRate.
+	/// Recorded for the same future phase as the two above; unused until then.
+	double	GetIncreaseSpecialFeedIntimacyRate() const	{ return m_dIncreaseSpecialFeedIntimacyRate; }
+	double	GetDecreaseSpecialFeedIntimacyRate() const	{ return m_dDecreaseSpecialFeedIntimacyRate; }
+#endif SERV_IRUHADEV_OFFLINE_PET_FEED
+
 	//////////////////////////////////////////////////////////////////////////
 	// Bound into the Lua state as g_pPetManager:* and g_pRidingPetManager:*.
 	// Public because lua_tinker needs to take their addresses.
@@ -118,9 +138,13 @@ public:
 	void	AddPetCreateItemInfo_LUA( int iItemID, int iPetID, int iPeriodDays );
 	void	AddRandomPetCreateItemInfo_LUA( int iItemID, int iPetID, float fRate );
 
-	/// Feeding, satiety decay and pet transformation. Recorded but unused: the
-	/// offline feed handler already works off the item the client hands it, and
-	/// SERV_TRANSFORM_PET is off in this build.
+	/// Feeding, satiety decay and pet transformation.
+	/// AddPetCashFeedItemInfo and AddSpecialFeedItemID are read by
+	/// Handler_EGS_FEED_PETS_REQ under SERV_IRUHADEV_OFFLINE_PET_FEED - see
+	/// GetFeedSatietyGain / IsSpecialFeedItem below. The decrease factor and
+	/// the two intimacy rates are recorded but not yet read anywhere:
+	/// satiety decay and transformation are a later phase's job, and
+	/// SERV_TRANSFORM_PET is off in this build regardless.
 	void	AddPetCashFeedItemInfo_LUA( int iItemID, int iIncreaseSatiety );
 	void	AddSpecialFeedItemID_LUA( int iItemID );
 	void	AddPetSatietyDecreaseFactor_LUA( int iEvolutionStep, double fFactor );
@@ -176,6 +200,22 @@ private:
 	/// silent shortfall between the file and the map.
 	int		m_iPetSkipped;
 	int		m_iRidingPetSkipped;
+
+#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
+	/// AddPetCashFeedItemInfo( itemID, satietyGain ) - five rows right now.
+	std::map< int, int >	m_mapFeedItem;
+
+	/// AddSpecialFeedItemID( itemID ) - the same five rows. See the getter.
+	std::set< int >			m_setSpecialFeedItem;
+
+	/// AddPetSatietyDecreaseFactor( evolutionStep, factor ). See the getter.
+	std::map< int, double >	m_mapSatietyDecreaseFactor;
+
+	/// IncreaseSpecialFeedIntimacyRate / DecreaseSpecialFeedIntimacyRate - one
+	/// call each at the top of PetData.lua, not keyed by anything.
+	double	m_dIncreaseSpecialFeedIntimacyRate;
+	double	m_dDecreaseSpecialFeedIntimacyRate;
+#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 };
 
 #endif SERV_IRUHADEV_OFFLINE

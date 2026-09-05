@@ -78,6 +78,13 @@ public:
 		std::wstring	m_wstrLoginID;
 		std::wstring	m_wstrPassport;
 
+#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
+		/// Which pet EGS_SUMMON_PET_REQ last summoned - 0 when none is out.
+		/// EGS_FEED_PETS_REQ names only the food item, not the pet, so this is
+		/// the only place the offline server can look up which one to feed.
+		UidType			m_nSummonedPetUID;
+#endif SERV_IRUHADEV_OFFLINE_PET_FEED
+
 		KOfflineSession()
 			: m_pSession( NULL )
 			, m_eKind( PK_UNKNOWN )
@@ -88,6 +95,9 @@ public:
 			, m_iSavedMP( -1 )
 			, m_iSavedHyper( -1 )
 			, m_iSavedAbil( -1 )
+#ifdef SERV_IRUHADEV_OFFLINE_PET_FEED
+			, m_nSummonedPetUID( 0 )
+#endif SERV_IRUHADEV_OFFLINE_PET_FEED
 		{
 		}
 	};
