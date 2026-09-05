@@ -456,6 +456,17 @@ bool CX2OfflineServer::Handler_EGS_SELECT_UNIT_REQ( KOfflineSession& kSes, const
 	kSes.m_nSelectedUnitUID	= kRow.m_nUnitUID;
 	kSes.m_eState			= S_FIELD_MAP;
 
+	//////////////////////////////////////////////////////////////////////////
+	// Author: Iruha
+	// Date: 2026-09-05
+	// Description: Phase 28. Read back which pet, if any, this character left
+	// summoned - matching live's UserPetManager::Init, which runs right after
+	// character select (GSUserFunction.cpp:5189). Only decides kSes state here;
+	// the visible spawn is deferred to the next EGS_FIELD_LOADING_COMPLETE_REQ,
+	// see SendPendingPetRestore.
+	RestoreSummonedPet( kSes, kRow.m_nUnitUID );
+	//////////////////////////////////////////////////////////////////////////
+
 	// Order matters: the five notifications carry the whole character payload
 	// and the ACK is only the m_iOK that closes the client's wait. Sending the
 	// ACK first would let CX2StateServerSelect run on a half-built CX2Unit.
@@ -703,9 +714,18 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 		pTitle->GetMissionInstances( kNot.m_vecMission );
 		pTitle->GetTitles( kNot.m_vecTitle );
 
-		// Pets are phase 7. Reported as none owned and none summoned, which is
-		// true rather than a stub.
-		kNot.m_iSummonedPetUID	= 0;
+		//////////////////////////////////////////////////////////////////////////
+		// Author: Iruha
+		// Date: 2026-09-05
+		// Description: Phase 28. This was hardcoded to 0 with a comment saying
+		// "none summoned, which is true rather than a stub" - true when phase 7
+		// wrote it, wrong the moment a pet could survive a relog. Handler_
+		// EGS_SELECT_UNIT_REQ has already called RestoreSummonedPet by the time
+		// this notification goes out, so kSes carries the real answer. This
+		// field is bookkeeping only (CX2Unit::SetSummonPetUid) - it does not
+		// spawn the visible pet; see SendPendingPetRestore for that half.
+		kNot.m_iSummonedPetUID	= kSes.m_nSummonedPetUID;
+		//////////////////////////////////////////////////////////////////////////
 
 		Reply( kSes, EGS_SELECT_UNIT_3_NOT, kNot );
 	}

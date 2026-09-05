@@ -87,6 +87,15 @@ public:
 		/// the only place the offline server can look up which one to feed.
 		UidType			m_nSummonedPetUID;
 
+		/// Phase 28. Set once by RestoreSummonedPet (from Handler_EGS_SELECT_
+		/// UNIT_REQ) when a persisted pet needs to be re-spawned, and cleared by
+		/// SendPendingPetRestore the first time EGS_FIELD_LOADING_COMPLETE_REQ
+		/// runs afterwards - which may be a village or a dungeon, whichever the
+		/// character enters first. That handler fires on every field transition
+		/// for the life of the session, so this flag is what keeps the restore
+		/// a one-shot instead of re-spawning the pet on every later map change.
+		bool			m_bPetRestorePending;
+
 		/// KGSUser::m_kTimer[TM_RESOLVE_JACKPOT] / m_dResolveJackpotTime
 		/// (GSUserInventory.cpp:2894-2944), collapsed into one absolute
 		/// deadline instead of an elapsed-time/threshold pair: dismantling is
@@ -108,6 +117,7 @@ public:
 			, m_iSavedHyper( -1 )
 			, m_iSavedAbil( -1 )
 			, m_nSummonedPetUID( 0 )
+			, m_bPetRestorePending( false )
 			, m_tNextJackpotAt( 0 )
 		{
 		}
@@ -891,6 +901,19 @@ private:
 	bool Handler_EGS_SUMMON_RIDING_PET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_UNSUMMON_RIDING_PET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_RELEASE_RIDING_PET_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Author: Iruha
+	// Date: 2026-09-05
+	// Description: Phase 28 - persisted summoned pet, split the way live splits
+	// it. RestoreSummonedPet decides at character select which pet (if any) is
+	// still out; SendPendingPetRestore does the actual spawn once the field has
+	// finished loading, since CreateGamePet needs g_pX2Game to already exist.
+	// Both live in Handlers_Social.cpp, next to MakePetInfo and
+	// Handler_EGS_SUMMON_PET_REQ.
+	void RestoreSummonedPet( KOfflineSession& kSes, UidType nUnitUID );
+	void SendPendingPetRestore( KOfflineSession& kSes );
+	//////////////////////////////////////////////////////////////////////////
 
 	//////////////////////////////////////////////////////////////////////////
 	// Handlers_Social.cpp - phase 7, the rest of what a village menu can reach

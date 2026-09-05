@@ -244,6 +244,13 @@ struct KOfflinePetRow
 	__int64			m_tLastSummonDate;
 	__int64			m_tRegDate;
 
+	/// Phase 28 (v11). dbo.GPet.bIsSummoned - whether this is the pet
+	/// UserPetManager::Init re-summons on the next character select. Written
+	/// by Handler_EGS_SUMMON_PET_REQ on every summon/unsummon, the same way
+	/// live's dbo.gup_update_pet_call writes it immediately rather than only
+	/// at logout.
+	bool			m_bSummoned;
+
 	KOfflinePetRow()
 		: m_nPetUID( 0 )
 		, m_iPetID( 0 )
@@ -257,6 +264,7 @@ struct KOfflinePetRow
 		, m_tLastFeedDate( 0 )
 		, m_tLastSummonDate( 0 )
 		, m_tRegDate( 0 )
+		, m_bSummoned( false )
 	{
 	}
 };
@@ -388,7 +396,7 @@ public:
 	{
 		/// Schema revision. Bump it and add a rung to Migrate() when a later
 		/// phase needs a new table, so existing saves are not wiped.
-		SCHEMA_VERSION			= 10,
+		SCHEMA_VERSION			= 11,
 
 		/// How long after a soft delete the final delete becomes possible.
 		/// Zero: a solo save has nobody to protect a character from, so the

@@ -1498,6 +1498,27 @@ bool CX2OfflineServer::Handler_EGS_SUMMON_PET_REQ( KOfflineSession& kSes, const 
 			CX2OfflineLog::Server( L"PET      unsummoned petUID=%I64d",
 				(__int64)kSes.m_nSummonedPetUID );
 
+			//////////////////////////////////////////////////////////////////////////
+			// Author: Iruha
+			// Date: 2026-09-05
+			// Description: Phase 28. Persist the unsummon - mirrors dbo.gup_
+			// update_pet_call( petUID, 0 ), which live writes to the DB immediately
+			// rather than only at logout. Without this the pet reads back as still
+			// summoned on the next login even though the player put it away.
+			std::vector< KOfflinePetRow > vecPet;
+			pDB->LoadPets( kSes.m_nSelectedUnitUID, vecPet );
+
+			for( size_t i = 0; i < vecPet.size(); ++i )
+			{
+				if( kSes.m_nSummonedPetUID != vecPet[i].m_nPetUID )
+					continue;
+
+				vecPet[i].m_bSummoned = false;
+				pDB->SavePet( kSes.m_nSelectedUnitUID, vecPet[i] );
+				break;
+			}
+			//////////////////////////////////////////////////////////////////////////
+
 			kSes.m_nSummonedPetUID = 0;
 			kAck.m_iOK = NetError::NET_OK;
 			// kAck.m_kSummonedPetInfo is left default-constructed (m_iPetUID
@@ -1543,6 +1564,29 @@ bool CX2OfflineServer::Handler_EGS_SUMMON_PET_REQ( KOfflineSession& kSes, const 
 		if( (__int64)kReq.m_iSummonPetUID != vecPet[i].m_nPetUID )
 			continue;
 
+		//////////////////////////////////////////////////////////////////////////
+		// Author: Iruha
+		// Date: 2026-09-05
+		// Description: Phase 28. Persist which pet is out - mirrors dbo.gup_
+		// update_pet_call's pair of writes (..., 0 on whatever was summoned
+		// before, then ..., 1 on the new one), so the pet reads back correctly
+		// on the next login instead of needing the summon button pressed again.
+		if( 0 != kSes.m_nSummonedPetUID && kSes.m_nSummonedPetUID != vecPet[i].m_nPetUID )
+		{
+			for( size_t j = 0; j < vecPet.size(); ++j )
+			{
+				if( kSes.m_nSummonedPetUID != vecPet[j].m_nPetUID )
+					continue;
+
+				vecPet[j].m_bSummoned = false;
+				pDB->SavePet( kSes.m_nSelectedUnitUID, vecPet[j] );
+				break;
+			}
+		}
+
+		vecPet[i].m_bSummoned = true;
+		//////////////////////////////////////////////////////////////////////////
+
 		// The summon date is what the client's satiety clock counts from, so it
 		// is written on every summon rather than only on the first.
 		vecPet[i].m_tLastSummonDate = (__int64)::_time64( NULL );
@@ -1582,6 +1626,84 @@ bool CX2OfflineServer::Handler_EGS_SUMMON_PET_REQ( KOfflineSession& kSes, const 
 	kNot.m_vecPetInfo.push_back( kAck.m_kSummonedPetInfo );
 	return Reply( kSes, EGS_SUMMON_PET_NOT, kNot );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-05
+// Description: Phase 28. See the KOfflineSession::m_bPetRestorePending
+// comment and X2OfflineServer.h's declaration for the split rationale: which
+// pet is out is decided once at character select; the visible spawn waits
+// for the field to finish loading, because CreateGamePet needs g_pX2Game to
+// already exist (X2PetManager.cpp) and it does not yet on the character-
+// select screen.
+void CX2OfflineServer::RestoreSummonedPet( KOfflineSession& kSes, UidType nUnitUID )
+{
+	CX2OfflineDB* pDB = CX2OfflineDB::Instance();
+
+	std::vector< KOfflinePetRow > vecPet;
+	pDB->LoadPets( nUnitUID, vecPet );
+
+	for( size_t i = 0; i < vecPet.size(); ++i )
+	{
+		if( false == vecPet[i].m_bSummoned )
+			continue;
+
+		kSes.m_nSummonedPetUID		= vecPet[i].m_nPetUID;
+		kSes.m_bPetRestorePending	= true;
+
+		CX2OfflineLog::Server( L"PET      restoring summoned petUID=%I64d on login",
+			(__int64)vecPet[i].m_nPetUID );
+
+		return;
+	}
+}
+
+void CX2OfflineServer::SendPendingPetRestore( KOfflineSession& kSes )
+{
+	if( false == kSes.m_bPetRestorePending )
+		return;
+
+	// One-shot regardless of outcome below - see the m_bPetRestorePending
+	// comment for why this must not fire again on the next field transition.
+	kSes.m_bPetRestorePending = false;
+
+	if( 0 == kSes.m_nSummonedPetUID )
+		return;
+
+	CX2OfflineDB* pDB = CX2OfflineDB::Instance();
+
+	std::vector< KOfflinePetRow > vecPet;
+	pDB->LoadPets( kSes.m_nSelectedUnitUID, vecPet );
+
+	for( size_t i = 0; i < vecPet.size(); ++i )
+	{
+		if( kSes.m_nSummonedPetUID != vecPet[i].m_nPetUID )
+			continue;
+
+		KEGS_SUMMON_PET_NOT kNot;
+		kNot.m_iUnitUID = kSes.m_nSelectedUnitUID;
+
+		KPetInfo kInfo;
+		MakePetInfo( vecPet[i], kInfo );
+		kNot.m_vecPetInfo.push_back( kInfo );
+
+		Reply( kSes, EGS_SUMMON_PET_NOT, kNot );
+
+		CX2OfflineLog::Server( L"PET      re-summoned petUID=%I64d after relog/char-switch",
+			(__int64)vecPet[i].m_nPetUID );
+
+		return;
+	}
+
+	// The pet named by the persisted flag no longer exists (released, or the
+	// save file was hand-edited) - clear the stale session state instead of
+	// silently doing nothing every field load for the rest of the session.
+	CX2OfflineLog::Server( L"PET      WARNING petUID=%I64d was marked summoned but no longer"
+		L" exists - clearing the session flag", (__int64)kSes.m_nSummonedPetUID );
+
+	kSes.m_nSummonedPetUID = 0;
+}
+//////////////////////////////////////////////////////////////////////////
 
 bool CX2OfflineServer::Handler_EGS_FEED_PETS_REQ( KOfflineSession& kSes, const KEvent& kEvent )
 {

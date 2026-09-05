@@ -130,6 +130,20 @@ bool CX2OfflineServer::Handler_EGS_FIELD_LOADING_COMPLETE_REQ( KOfflineSession& 
 
 	Reply( kSes, EGS_FIELD_LOADING_COMPLETE_ACK, kAck );
 
+	//////////////////////////////////////////////////////////////////////////
+	// Author: Iruha
+	// Date: 2026-09-05
+	// Description: Phase 28. This handler runs on every village entry within a
+	// session, not only the first one after login (a dungeon/battlefield uses
+	// a separate completion packet - EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ,
+	// Handlers_Room.cpp). SendPendingPetRestore is a no-op after its first
+	// call - kSes.m_bPetRestorePending only gets set once, by Handler_EGS_
+	// SELECT_UNIT_REQ - so calling it unconditionally here does not re-spawn
+	// the pet on ordinary village-to-village travel. See the phase 28 section
+	// of OFFLINE_MODE_PHASE9_PLAN.md's Trap.
+	SendPendingPetRestore( kSes );
+	//////////////////////////////////////////////////////////////////////////
+
 	// Phase 6: standing in a village finishes a SQT_VISIT_VILLAGE step, and it
 	// is also where a character that levelled elsewhere is told which title
 	// missions it has grown into. Done here rather than at

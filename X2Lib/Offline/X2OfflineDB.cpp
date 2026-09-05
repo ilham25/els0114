@@ -329,6 +329,20 @@ namespace
 		"  PRIMARY KEY( unit_uid, page ) );"
 		"ALTER TABLE unit ADD COLUMN skill_note_page INTEGER NOT NULL DEFAULT 0;"
 		;
+
+	//////////////////////////////////////////////////////////////////////////
+	// v11 (phase 28): whether a pet is the one currently summoned, so it
+	// survives a relog or a character switch instead of needing the summon
+	// button pressed again every time. dbo.GPet.bIsSummoned on live; see
+	// KOfflinePetRow::m_bSummoned.
+	//
+	// Defaults to 0 (not summoned) for every existing pet row on an upgraded
+	// save - the same state a character with no pet ever summoned starts in
+	// on live, and the honest answer for a row this migration cannot know the
+	// true history of.
+	const char* const SCHEMA_V11 =
+		"ALTER TABLE unit_pet ADD COLUMN summoned INTEGER NOT NULL DEFAULT 0;"
+		;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -940,6 +954,15 @@ bool CX2OfflineDB::Migrate()
 		if( false == Exec( "COMMIT;" ) )		return false;
 
 		CX2OfflineLog::Server( L"DB       schema upgraded to v10 (skill unsealing, skill note)" );
+	}
+
+	if( iFrom < 11 )
+	{
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( SCHEMA_V11 ) )		{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v11 (persisted summoned pet)" );
 	}
 
 	char szSetVersion[64];
@@ -2867,7 +2890,7 @@ bool CX2OfflineDB::LoadPets( UidType nUnitUID, OUT std::vector< KOfflinePetRow >
 
 	sqlite3_stmt* pStmt = Prepare(
 		"SELECT pet_uid, pet_id, name, evolution_step, satiety, intimacy, extroversion,"
-		" emotion, auto_feed, auto_looting, last_feed, last_summon, reg_date"
+		" emotion, auto_feed, auto_looting, last_feed, last_summon, reg_date, summoned"
 		" FROM unit_pet WHERE unit_uid = ?1 ORDER BY pet_uid;" );
 	if( NULL == pStmt )
 		return false;
@@ -2890,6 +2913,7 @@ bool CX2OfflineDB::LoadPets( UidType nUnitUID, OUT std::vector< KOfflinePetRow >
 		kRow.m_tLastFeedDate	= (__int64)sqlite3_column_int64( pStmt, 10 );
 		kRow.m_tLastSummonDate	= (__int64)sqlite3_column_int64( pStmt, 11 );
 		kRow.m_tRegDate			= (__int64)sqlite3_column_int64( pStmt, 12 );
+		kRow.m_bSummoned		= ( 0 != sqlite3_column_int( pStmt, 13 ) );
 
 		vecOut.push_back( kRow );
 	}
@@ -2952,7 +2976,7 @@ bool CX2OfflineDB::SavePet( UidType nUnitUID, const KOfflinePetRow& kRow )
 	sqlite3_stmt* pStmt = Prepare(
 		"UPDATE unit_pet SET pet_id = ?3, name = ?4, evolution_step = ?5, satiety = ?6,"
 		" intimacy = ?7, extroversion = ?8, emotion = ?9, auto_feed = ?10, auto_looting = ?11,"
-		" last_feed = ?12, last_summon = ?13"
+		" last_feed = ?12, last_summon = ?13, summoned = ?14"
 		" WHERE unit_uid = ?1 AND pet_uid = ?2;" );
 	if( NULL == pStmt )
 		return false;
@@ -2970,6 +2994,7 @@ bool CX2OfflineDB::SavePet( UidType nUnitUID, const KOfflinePetRow& kRow )
 	sqlite3_bind_int(   pStmt, 11, true == kRow.m_bAutoLooting ? 1 : 0 );
 	sqlite3_bind_int64( pStmt, 12, (sqlite3_int64)kRow.m_tLastFeedDate );
 	sqlite3_bind_int64( pStmt, 13, (sqlite3_int64)kRow.m_tLastSummonDate );
+	sqlite3_bind_int(   pStmt, 14, true == kRow.m_bSummoned ? 1 : 0 );
 
 	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
 

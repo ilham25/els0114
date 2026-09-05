@@ -3289,6 +3289,59 @@ Summon a pet, log out (or switch to another character and back), log back in
 as the same character: the pet is already out, without touching the summon
 button.
 
+### What actually happened
+
+**The plan's own open question resolved in its favor, with one correction.**
+`Handler_EGS_SELECT_UNIT_REQ` does fire exactly once per login - confirmed by
+reading it, not assumed. `Handler_EGS_FIELD_LOADING_COMPLETE_REQ` turned out
+**not** to be "every field transition" the way the Trap section worried: a
+dungeon/battlefield uses a different completion packet entirely
+(`EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ`, `Handlers_Room.cpp`), so this
+handler only runs on village entry. That narrows the risk but doesn't remove
+it - a session can walk through several villages - so the fix still needed a
+one-shot gate rather than leaning on "this only fires once." That gate is
+`KOfflineSession::m_bPetRestorePending`: set once by `RestoreSummonedPet` (at
+select-unit), consumed once by `SendPendingPetRestore` (at the next village
+load), regardless of how many times the handler around it fires afterward.
+
+**Why the spawn can't happen at character select is a client fact, not a
+guess.** `X2PetManager.cpp:2415`'s `CreateGamePet` bails out unless
+`g_pX2Game != NULL`, and that doesn't exist yet on the character-select
+screen - confirmed by reading the client function before relying on the
+plan's own framing of it.
+
+**A field the plan never named needed fixing too.** `KEGS_SELECT_UNIT_3_NOT.
+m_iSummonedPetUID` (`Handlers_Unit.cpp`, `PushSelectUnitNotifications`) had
+been hardcoded to 0 since phase 7 with a comment claiming "none owned and
+none summoned, which is true rather than a stub." True when written, wrong
+the moment a pet could survive a relog - the same stale-refusal shape §0.1
+tracks, just on a bookkeeping field instead of a request handler. It now
+reads `kSes.m_nSummonedPetUID` once `RestoreSummonedPet` has set it. This
+field only feeds `CX2Unit::SetSummonPetUid` (which pet `EGS_FEED_PETS_REQ`
+resolves against) - it does not spawn anything, so getting it wrong would
+have been silent rather than visibly broken, which is exactly why it survived
+three phases unnoticed.
+
+**Decisions the plan left open:**
+- Schema v11 adds `unit_pet.summoned` (`KOfflinePetRow::m_bSummoned`),
+  defaulting to 0 for every existing row on migration - the same "never
+  summoned" state a character on live starts in, and the only honest answer
+  for a row this migration has no history for.
+- `Handler_EGS_SUMMON_PET_REQ` persists the flag on **both** branches, not
+  just summon: the unsummon branch (`m_iSummonPetUID == 0`) now clears the
+  previously-summoned row's flag, and the summon branch clears whichever pet
+  was out before *and* sets the new one, so switching directly between two
+  pets without unsummoning first still leaves exactly one row marked
+  summoned.
+- If the persisted flag names a pet that no longer exists by the time
+  `SendPendingPetRestore` runs (released, or the save hand-edited), it logs a
+  `WARNING` and clears `kSes.m_nSummonedPetUID` rather than silently doing
+  nothing on every later village load for the rest of the session.
+
+Built (`X2Lib` then `X2.exe`, 0 errors both), deployed to `X2_offline.exe`
+(verified by size and mtime programmatically), and **play-tested** - summon a
+pet, relog, confirmed already summoned with no button press.
+
 ---
 
 # Appendix A — Found in the logs, not in `ISSUES.md`
