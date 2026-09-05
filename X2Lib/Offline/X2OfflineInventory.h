@@ -36,10 +36,13 @@
 //              test for this phase is "every change persisted exactly", and
 //              write-through is the only shape where that cannot be got wrong.
 //
-//              What is not implemented, and is not pretending to be: item
-//              enhancement, socketing, identification, resolving, manufacture,
-//              repair, the bank, pet inventories, the temp inventory, trade and
-//              the personal shop. Their handlers refuse rather than half-work.
+//              What is not implemented, and is not pretending to be:
+//              socketing, identification, manufacture, the bank, pet
+//              inventories, the temp inventory, trade and the personal shop.
+//              Their handlers refuse rather than half-work. (Resolving arrived
+//              in phase 12, repair in phase 5, and enhancement in phase 23 -
+//              the last through CX2OfflineEnchantTable, which is where the
+//              rules live; this class only owns SetEnchantLevel.)
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef SERV_IRUHADEV_OFFLINE
@@ -101,10 +104,18 @@ public:
 	/// answer for the unit the player currently has selected, and the character
 	/// list needs a stat for every character in it.
 	///
-	/// Socket and enchant contributions are not added: nothing offline can
-	/// enchant or socket an item (both refuse - see Handlers_Inventory.cpp), so
-	/// every item's socket list is empty and its enchant level is zero, and the
-	/// templet stat is the whole of it.
+	/// The enchant multiplier IS applied, through the client's own
+	/// ENCHANT_STAT_SCALE - the same array CX2Item::GetEnchantStat multiplies
+	/// by (X2Item.cpp:605), so a +7 weapon counts here for exactly what the
+	/// character sheet says it is worth. That matters beyond cosmetics:
+	/// m_kGameStat is what CX2GUUser::InitStat prefers when its base HP is
+	/// above zero, so an enchant level missing from this sum is an enchant
+	/// level missing from the character's HP in a dungeon.
+	///
+	/// Socket contributions are still not added: nothing offline can socket an
+	/// item (EGS_SOCKET_ITEM_REQ still refuses - see Handlers_Inventory.cpp),
+	/// so every item's socket list is empty. Enhancement was in that same
+	/// sentence until phase 23 implemented it.
 	void	AddEquippedStat( IN OUT KStat& kInOut ) const;
 
 	//////////////////////////////////////////////////////////////////////////
@@ -141,6 +152,44 @@ public:
 
 	/// Set an item's remaining endurance, for the repair NPC.
 	bool	SetEndurance( UidType nItemUID, int iEndurance, OUT KInventoryItemInfo& kOut );
+
+	/// Set an item's enchant level, for the blacksmith (phase 23).
+	///
+	/// One setter rather than KInventory's IncreaseEnchantLevel /
+	/// DecreaseEnchantLevel pair, because the caller has already turned the
+	/// roll into an absolute: the real server's five results are +1, unchanged,
+	/// -1, down-to-zero, and "level becomes -level" (Inventory.cpp:12952-13003,
+	/// where a break is a Decrease of abs(level)*2). Expressing them as deltas
+	/// here would only re-derive that arithmetic in a second place.
+	///
+	/// A NEGATIVE level is meaningful and is not an error: it is how the game
+	/// marks an item destroyed by a failed enhancement, and it is what
+	/// CX2Item::IsDisabled (X2Item.cpp:543) and KInventoryItem::IsBroken read.
+	bool	SetEnchantLevel( UidType nItemUID, int iEnchantLevel, OUT KInventoryItemInfo& kOut );
+
+	/// Set one of an item's three attribute slots, for the attribute NPC
+	/// (phase 26). KInventory::SetAttribEnchant: iSlotID is
+	/// CX2EnchantItem::ESI_SLOT_1..3 and cAttribEnchantType is an
+	/// ENCHANT_TYPE, with ET_NONE meaning "clear this slot" - which is a real
+	/// operation the player pays ED for, not a no-op.
+	bool	SetAttribEnchant( UidType nItemUID, int iSlotID, char cAttribEnchantType,
+							  OUT KInventoryItemInfo& kOut );
+
+	/// Put one socket option into one of an item's socket slots (phase 24).
+	/// KInventory::SetItemSocketOption via KInventoryItem's own version, which
+	/// is where the index is range-checked against the slot count the item's
+	/// grade gives it - so the row's socket vector is grown to that length
+	/// here rather than to whatever the save happened to hold.
+	bool	SetItemSocketOption( UidType nItemUID, int iSocketIndex, int iSocketOption,
+								 OUT KInventoryItemInfo& kOut );
+
+	/// The option currently in one slot, 0 for an empty one. False only when
+	/// the item or the index does not exist.
+	bool	GetItemSocketOption( UidType nItemUID, int iSocketIndex, OUT int& iSocketOption ) const;
+
+	/// KInventoryItem::GetCountAssignedItemSocket - how many of the item's
+	/// slots are filled. Feeds the socket fee, which scales with it.
+	int		GetCountAssignedItemSocket( UidType nItemUID ) const;
 
 	/// Give a brand-new character the five-piece promotional costume its class
 	/// starts with, worn, at NESI fashion slots 10/2/4/6/8.

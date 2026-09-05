@@ -556,15 +556,10 @@ int CX2OfflineQuest::GetCompleteCount( int iQuestID ) const
 	case CX2QuestManager::SQT_ITEM_ATTRIB:
 		return L"the item attribute system is compiled out of this build";
 
-	// Both features are refused outright offline, with the item left intact -
-	// the per-level success rates and the socket option tables are server data
-	// with no client copy, and inventing either would silently destroy items
-	// (Handlers_Inventory.cpp, EGS_ENCHANT_ITEM_REQ and EGS_SOCKET_ITEM_REQ).
-	// A quest step that asks for enhancement therefore cannot be reached, and
-	// wiring a driver for it would be dead code, not progress.
-	case CX2QuestManager::SQT_ITEM_ENCHANT:
-	case CX2QuestManager::SQT_ITEM_SOCKET:
-		return L"enhancement and socketing are refused offline (server-only tables)";
+	// SQT_ITEM_ENCHANT and SQT_ITEM_SOCKET both used to be listed here, on the
+	// grounds that both features were refused outright. Neither is any more:
+	// phase 23 packed EnchantTable.lua and phase 24 SocketItemTable.lua, and
+	// OnEnchantItem / OnSocketItem drive the two types. Nothing to return.
 
 	case CX2QuestManager::SQT_ITEM_RESOLVE:
 		return L"item disassembly is not implemented offline (no REQ handled)";
@@ -2096,6 +2091,150 @@ void CX2OfflineQuest::OnUseItem( int iItemID, int iDungeonID, char cDifficulty,
 				mit->first, iSubQuestID, iItemID,
 				(int)kInst.m_vecSubQuestInstance[i].m_ucClearData,
 				pSub->m_ClearCondition.m_iUseItemNum,
+				kInst.m_vecSubQuestInstance[i].m_bIsSuccess ? 1 : 0 );
+
+			Save( mit->first );
+			MarkChanged( kInst, vecChanged );
+		}
+	}
+}
+
+void CX2OfflineQuest::OnEnchantItem( int iItemID, int iEnchantLevel, const KOfflineUnitRow& kRow,
+									 OUT std::vector< KQuestInstance >& vecChanged )
+{
+	std::map< int, KQuestInstance >::iterator mit;
+	for( mit = m_mapQuesting.begin(); mit != m_mapQuesting.end(); ++mit )
+	{
+		const CX2QuestManager::QuestTemplet* pTemplet = Templet( mit->first );
+		if( false == IsQuestAdvanceable( pTemplet, kRow.m_iLevel ) )
+			continue;
+
+		KQuestInstance& kInst = mit->second;
+
+		for( size_t i = 0; i < pTemplet->m_vecSubQuest.size() &&
+							i < kInst.m_vecSubQuestInstance.size(); ++i )
+		{
+			const int iSubQuestID = pTemplet->m_vecSubQuest[i];
+
+			const CX2QuestManager::SubQuestTemplet* pSub = SubTemplet( iSubQuestID );
+			if( NULL == pSub )
+				continue;
+
+			if( true == kInst.m_vecSubQuestInstance[i].m_bIsSuccess )
+				continue;
+
+			if( CX2QuestManager::SQT_ITEM_ENCHANT != pSub->m_eClearType )
+				continue;
+
+			// The target item. The server calls this field m_iItemID; the
+			// client parses the same Lua key (m_iCollectionItemID) into the
+			// field of that name, so this is a rename, not a different rule -
+			// X2QuestManager.cpp:2292 is the read, and :3832 is the client's
+			// own "0 means any item" in the quest-description text.
+			//
+			// Absent is treated as "any item", which is what the title steps
+			// this unblocks want: they ask for a level, not for a particular
+			// weapon. Both 0 and -1 count as absent - the parser writes 0 for
+			// this clear type and ClearCondition's constructor leaves -1 -
+			// because a step that named no item must not become unreachable on
+			// the strength of which of the two got there first.
+			const int iWantedItemID = pSub->m_ClearCondition.m_iCollectionItemID;
+
+			if( iWantedItemID > 0 && iWantedItemID != iItemID )
+				continue;
+
+			// Exact, not at-least. KUserQuestManager::Handler_OnEnchantItem
+			// (UserQuestManager.cpp:2943) compares with !=, so a player who
+			// goes straight past the level the step wants has to come back
+			// down to it - which is a thing enhancement can actually do.
+			if( pSub->m_ClearCondition.m_iEnchantLevel != iEnchantLevel )
+				continue;
+
+			if( false == CheckBeforeGroup( pTemplet, iSubQuestID ) )
+				continue;
+
+			// One-shot: this type has no counter, only a flag.
+			if( 0 != kInst.m_vecSubQuestInstance[i].m_ucClearData )
+				continue;
+
+			kInst.m_vecSubQuestInstance[i].m_ucClearData	= 1;
+			kInst.m_vecSubQuestInstance[i].m_bIsSuccess		= true;
+
+			CX2OfflineLog::Server(
+				L"QUEST    %d sub %d ITEM_ENCHANT item %d reached +%d, done=1",
+				mit->first, iSubQuestID, iItemID, iEnchantLevel );
+
+			Save( mit->first );
+			MarkChanged( kInst, vecChanged );
+		}
+	}
+}
+
+void CX2OfflineQuest::OnSocketItem( int iItemID, int iSocketUseCount, const KOfflineUnitRow& kRow,
+									OUT std::vector< KQuestInstance >& vecChanged )
+{
+	if( iSocketUseCount <= 0 )
+		return;
+
+	std::map< int, KQuestInstance >::iterator mit;
+	for( mit = m_mapQuesting.begin(); mit != m_mapQuesting.end(); ++mit )
+	{
+		const CX2QuestManager::QuestTemplet* pTemplet = Templet( mit->first );
+		if( false == IsQuestAdvanceable( pTemplet, kRow.m_iLevel ) )
+			continue;
+
+		KQuestInstance& kInst = mit->second;
+
+		for( size_t i = 0; i < pTemplet->m_vecSubQuest.size() &&
+							i < kInst.m_vecSubQuestInstance.size(); ++i )
+		{
+			const int iSubQuestID = pTemplet->m_vecSubQuest[i];
+
+			const CX2QuestManager::SubQuestTemplet* pSub = SubTemplet( iSubQuestID );
+			if( NULL == pSub )
+				continue;
+
+			if( true == kInst.m_vecSubQuestInstance[i].m_bIsSuccess )
+				continue;
+
+			if( CX2QuestManager::SQT_ITEM_SOCKET != pSub->m_eClearType )
+				continue;
+
+			// Same rename as the enchant hook: the server's m_iItemID is the
+			// client's m_iCollectionItemID, parsed from the same Lua key
+			// (X2QuestManager.cpp:2299), and absent means "any item".
+			const int iWantedItemID = pSub->m_ClearCondition.m_iCollectionItemID;
+
+			if( iWantedItemID > 0 && iWantedItemID != iItemID )
+				continue;
+
+			if( false == CheckBeforeGroup( pTemplet, iSubQuestID ) )
+				continue;
+
+			// Add this request's slots, then clamp to what the step asks for -
+			// the counter is a UCHAR and a big multi-slot request would
+			// otherwise be able to run past the target and wrap.
+			if( pSub->m_ClearCondition.m_iSocketCount >
+				(int)kInst.m_vecSubQuestInstance[i].m_ucClearData )
+			{
+				const int iNew = (int)kInst.m_vecSubQuestInstance[i].m_ucClearData + iSocketUseCount;
+
+				kInst.m_vecSubQuestInstance[i].m_ucClearData =
+					(unsigned char)( ( iNew > pSub->m_ClearCondition.m_iSocketCount )
+									 ? pSub->m_ClearCondition.m_iSocketCount : iNew );
+			}
+
+			if( pSub->m_ClearCondition.m_iSocketCount <=
+				(int)kInst.m_vecSubQuestInstance[i].m_ucClearData )
+			{
+				kInst.m_vecSubQuestInstance[i].m_bIsSuccess = true;
+			}
+
+			CX2OfflineLog::Server(
+				L"QUEST    %d sub %d ITEM_SOCKET item %d -> %d/%d, done=%d",
+				mit->first, iSubQuestID, iItemID,
+				(int)kInst.m_vecSubQuestInstance[i].m_ucClearData,
+				pSub->m_ClearCondition.m_iSocketCount,
 				kInst.m_vecSubQuestInstance[i].m_bIsSuccess ? 1 : 0 );
 
 			Save( mit->first );

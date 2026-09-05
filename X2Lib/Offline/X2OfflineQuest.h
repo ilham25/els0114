@@ -212,6 +212,27 @@ public:
 					   int iBattleFieldID, const KOfflineUnitRow& kRow,
 					   OUT std::vector< KQuestInstance >& vecChanged );
 
+	/// One enhancement attempt that changed the item's level, from the
+	/// blacksmith. iEnchantLevel is the level AFTER the attempt, and the match
+	/// is exact: a step that asks for +5 is not satisfied by +6, which is how
+	/// KUserQuestManager::Handler_OnEnchantItem compares it
+	/// (UserQuestManager.cpp:2943).
+	///
+	/// The real server calls this from DBE_ENCHANT_ITEM_ACK, i.e. on every
+	/// result except "no change" - a no-change attempt never reaches the DB
+	/// round trip - so the caller makes that same exclusion rather than this
+	/// function guessing at it.
+	void	OnEnchantItem( int iItemID, int iEnchantLevel, const KOfflineUnitRow& kRow,
+						   OUT std::vector< KQuestInstance >& vecChanged );
+
+	/// One socketing request, from the magic-stone NPC. iSocketUseCount is how
+	/// many slots THIS request filled, not the item's running total - the
+	/// counter accumulates across requests and is clamped to what the step
+	/// asks for (KUserQuestManager::Handler_OnSocketItem,
+	/// UserQuestManager.cpp:3066).
+	void	OnSocketItem( int iItemID, int iSocketUseCount, const KOfflineUnitRow& kRow,
+						  OUT std::vector< KQuestInstance >& vecChanged );
+
 
 	//////////////////////////////////////////////////////////////////////////
 

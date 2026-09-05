@@ -67,10 +67,21 @@ namespace
 		{ L"EGS_ITEM_CONVERT_REQ",			L"the item workshop is not implemented offline" },
 		{ L"EGS_ITEM_EXCHANGE_REQ",			L"the item workshop is not implemented offline" },
 		{ L"EGS_RESTORE_ITEM_REQ",			L"the item workshop is not implemented offline" },
-		{ L"EGS_ATTRIB_ENCHANT_ITEM_REQ",	L"the item workshop is not implemented offline" },
-		{ L"EGS_ATTRIB_ATTACH_ITEM_REQ",	L"the item workshop is not implemented offline" },
-		{ L"EGS_ENCHANT_ATTACH_ITEM_REQ",	L"the item workshop is not implemented offline" },
-		{ L"EGS_ADD_ON_STAT_REQ",			L"the item workshop is not implemented offline" },
+		// EGS_ATTRIB_ENCHANT_ITEM_REQ, EGS_ATTRIB_ATTACH_ITEM_REQ and
+		// EGS_ENCHANT_ATTACH_ITEM_REQ stood here until phases 25 and 26; all
+		// three are handled now. An ignore rule is a promise that nothing is
+		// waiting on a reply, and all three arm an AddServerPacket wait, so
+		// leaving them here hung the dialog rather than refusing it.
+
+		// EGS_ADD_ON_STAT_REQ is NOT part of the item workshop and never was -
+		// the name is a coincidence. It is an in-match relay: the GameServer
+		// forwards it to the room server (GSUserRoomCommon.cpp:4122) and the
+		// answer comes back as EGS_ADD_ON_STAT_NOT, which the client applies
+		// with CX2GUUser::SetAddOnStat (X2Game.cpp:8660) - a temporary stat
+		// buff on a unit inside a dungeon. There is no room server offline and
+		// the host applies its own buffs peer-to-peer, so it stays ignored;
+		// only the reason was wrong.
+		{ L"EGS_ADD_ON_STAT_REQ",			L"an in-match stat relay to the room server, not an item packet; the P2P host applies its own" },
 
 		// phase 7: "the pre-global billing packets that SERV_GLOBAL_BILLING
 		// replaces". The handled replacements carry a BILL_ in the middle

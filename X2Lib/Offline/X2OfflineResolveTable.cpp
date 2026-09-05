@@ -111,7 +111,15 @@ void CX2OfflineResolveTable::EnsureLoaded()
 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kInfo;
 	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( SCRIPT_RESOLVE_TABLE );
 
-	if( NULL == kInfo )
+	// NOT `NULL == kInfo`. MASSFILE_MEMBERFILEINFO_POINTER is a STRUCT BY
+	// VALUE with an `operator const MASSFILE_MEMBERFILEINFO*() const` that
+	// returns `this` (KGCMassFileManager.h), so comparing it against NULL
+	// takes the address of a local and is never true. A missing file then
+	// falls through to the DoMemory calls and is reported as "failed to run"
+	// instead of "not packed" - which is the one diagnosis this branch
+	// exists to give. The client's own loader tests the payload
+	// (X2ItemManager.cpp:231); so does this.
+	if( NULL == kInfo->pRealData || kInfo->size <= 0 )
 	{
 		CX2OfflineLog::Server(
 			L"RESOLVE  ERROR '%s' not found in any .kom or on disk.", SCRIPT_RESOLVE_TABLE );

@@ -59,6 +59,9 @@ void CX2OfflineServer::Release()
 	CX2OfflineBattleField::Release();
 	CX2OfflineDropTable::Release();
 	CX2OfflineResolveTable::Release();
+	CX2OfflineEnchantTable::Release();
+	CX2OfflineAttribTable::Release();
+	CX2OfflineSocketTable::Release();
 	CX2OfflineStatTable::Release();
 	CX2OfflineDB::Release();
 	CX2OfflineLog::Close();
@@ -569,6 +572,9 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_REPAIR_ITEM_REQ:				return Handler_EGS_REPAIR_ITEM_REQ( kSes, kEvent );
 	case EGS_ENCHANT_ITEM_REQ:				return Handler_EGS_ENCHANT_ITEM_REQ( kSes, kEvent );
 	case EGS_SOCKET_ITEM_REQ:				return Handler_EGS_SOCKET_ITEM_REQ( kSes, kEvent );
+	case EGS_ENCHANT_ATTACH_ITEM_REQ:		return Handler_EGS_ENCHANT_ATTACH_ITEM_REQ( kSes, kEvent );
+	case EGS_ATTRIB_ENCHANT_ITEM_REQ:		return Handler_EGS_ATTRIB_ENCHANT_ITEM_REQ( kSes, kEvent );
+	case EGS_ATTRIB_ATTACH_ITEM_REQ:		return Handler_EGS_ATTRIB_ATTACH_ITEM_REQ( kSes, kEvent );
 	case EGS_RESOLVE_ITEM_REQ:				return Handler_EGS_RESOLVE_ITEM_REQ( kSes, kEvent );
 
 	//////////////////////////////////////////////////////////////////////////

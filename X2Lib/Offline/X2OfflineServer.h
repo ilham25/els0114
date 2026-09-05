@@ -30,6 +30,9 @@
 #include "X2OfflineStatTable.h"
 #include "X2OfflineDropTable.h"
 #include "X2OfflineResolveTable.h"
+#include "X2OfflineEnchantTable.h"
+#include "X2OfflineAttribTable.h"
+#include "X2OfflineSocketTable.h"
 #include "X2OfflineBattleField.h"
 #include "X2OfflineInventory.h"
 #include "X2OfflineSkill.h"
@@ -655,6 +658,9 @@ private:
 	/// tables are server-only. See the handlers.
 	bool Handler_EGS_ENCHANT_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_SOCKET_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_ENCHANT_ATTACH_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_ATTRIB_ENCHANT_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_ATTRIB_ATTACH_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 
 	/// Dismantling (phase 12). ResolveTable.lua is packed, so this computes
 	/// real materials through CX2OfflineResolveTable rather than refusing -

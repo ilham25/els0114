@@ -10,6 +10,8 @@
 #ifdef SERV_IRUHADEV_OFFLINE
 
 #include "X2OfflineLog.h"
+#include "X2OfflineEnchantTable.h"		///< MAX_ENCHANT_LEVEL, for SetEnchantLevel's range check
+#include "X2OfflineSocketTable.h"		///< GetSocketCount, for the socket slot range check
 
 #include <algorithm>
 
@@ -249,6 +251,40 @@ void CX2OfflineInventory::Release()
 	return CX2Unit::CanEquipAsParts( iItemID, pUnit, 1 );
 }
 
+namespace
+{
+	/// CX2Item::GetEnchantStat's multiplier, for one item (X2Item.cpp:562).
+	///
+	/// Its gate and its indexing both matter. Only a non-fashion weapon or
+	/// piece of armour is scaled at all - everything else returns from that
+	/// function without touching the stat. And the index is abs( level ),
+	/// which is the ITEM_RECOVERY_TEST arm (on in this build, Always.h:1984):
+	/// a broken item carries a NEGATIVE enchant level and is still scaled by
+	/// the multiplier for its magnitude, which looks wrong and is what the
+	/// shipped client does, so it is what this does.
+	float EnchantStatScale( int iEnchantLevel, const CX2Item::ItemTemplet* pTemplet )
+	{
+		if( NULL == pTemplet )
+			return 1.0f;
+
+		if( true == pTemplet->GetFashion() )
+			return 1.0f;
+
+		if( CX2Item::IT_WEAPON != pTemplet->GetItemType() &&
+			CX2Item::IT_DEFENCE != pTemplet->GetItemType() )
+		{
+			return 1.0f;
+		}
+
+		const int iIndex = ( iEnchantLevel < 0 ) ? -iEnchantLevel : iEnchantLevel;
+
+		if( iIndex >= (int)( sizeof( ENCHANT_STAT_SCALE ) / sizeof( ENCHANT_STAT_SCALE[0] ) ) )
+			return 1.0f;
+
+		return ENCHANT_STAT_SCALE[ iIndex ];
+	}
+}
+
 void CX2OfflineInventory::AddEquippedStat( IN OUT KStat& kInOut ) const
 {
 	if( NULL == g_pData )
@@ -282,11 +318,19 @@ void CX2OfflineInventory::AddEquippedStat( IN OUT KStat& kInOut ) const
 		CX2Item::KItemFormatStatData kStatData;
 		g_pData->GetItemStatCalculator().CalculateItemStat( kStatData, pTemplet );
 
-		fBaseHP		+= kStatData.m_fBaseHP;
-		fAtkPhysic	+= kStatData.m_fAtkPhysic;
-		fAtkMagic	+= kStatData.m_fAtkMagic;
-		fDefPhysic	+= kStatData.m_fDefPhysic;
-		fDefMagic	+= kStatData.m_fDefMagic;
+		// The enchant multiplier, exactly as CX2Item::GetEnchantStat applies it
+		// (X2Item.cpp:562-621): weapons and armour only, never fashion, and a
+		// broken item - negative level - scaled by the multiplier for its
+		// magnitude, which is what the ITEM_RECOVERY_TEST arm of that function
+		// does with abs(). A level with no entry leaves the stat alone rather
+		// than dropping the item out of the sum.
+		const float fEnchantScale = EnchantStatScale( pRow->m_iEnchantLevel, pTemplet );
+
+		fBaseHP		+= kStatData.m_fBaseHP		* fEnchantScale;
+		fAtkPhysic	+= kStatData.m_fAtkPhysic	* fEnchantScale;
+		fAtkMagic	+= kStatData.m_fAtkMagic	* fEnchantScale;
+		fDefPhysic	+= kStatData.m_fDefPhysic	* fEnchantScale;
+		fDefMagic	+= kStatData.m_fDefMagic	* fEnchantScale;
 	}
 
 	kInOut.m_iBaseHP	+= (int)fBaseHP;
@@ -976,6 +1020,141 @@ bool CX2OfflineInventory::SetEndurance( UidType nItemUID, int iEndurance,
 		return false;
 
 	pRow->m_iEndurance = iEndurance;
+
+	CX2OfflineDB::Instance()->UpdateItem( *pRow );
+
+	MakeItemInfo( *pRow, kOut );
+	return true;
+}
+
+bool CX2OfflineInventory::SetEnchantLevel( UidType nItemUID, int iEnchantLevel,
+										   OUT KInventoryItemInfo& kOut )
+{
+	KOfflineItemRow* pRow = FindRow( nItemUID );
+	if( NULL == pRow )
+		return false;
+
+	// KItemInfo::m_cEnchantLevel is a char and MakeItemInfo casts into it, so
+	// a level outside the byte would wrap silently on the wire. The real range
+	// is -20..+20 (CXSLEnchantItemManager::MAX_ENCHANT_LEVEL either way, the
+	// negative half being a broken item), and KInventory clamps to exactly that
+	// on every load path (Inventory.cpp:3851 and :4034). Refuse rather than
+	// store something the packet cannot carry.
+	if( iEnchantLevel < -CX2OfflineEnchantTable::MAX_ENCHANT_LEVEL ||
+		iEnchantLevel >  CX2OfflineEnchantTable::MAX_ENCHANT_LEVEL )
+	{
+		CX2OfflineLog::Server( L"ITEM     refused an enchant level out of range: item %I64d -> %d",
+			(__int64)nItemUID, iEnchantLevel );
+		return false;
+	}
+
+	pRow->m_iEnchantLevel = iEnchantLevel;
+
+	CX2OfflineDB::Instance()->UpdateItem( *pRow );
+
+	MakeItemInfo( *pRow, kOut );
+	return true;
+}
+
+bool CX2OfflineInventory::SetItemSocketOption( UidType nItemUID, int iSocketIndex, int iSocketOption,
+											   OUT KInventoryItemInfo& kOut )
+{
+	KOfflineItemRow* pRow = FindRow( nItemUID );
+	if( NULL == pRow )
+		return false;
+
+	const CX2Item::ItemTemplet* pTemplet = Templet( pRow->m_iItemID );
+	if( NULL == pTemplet )
+		return false;
+
+	// KInventoryItem::GetItemSocketOption's range check (InventoryItem.cpp:219):
+	// the index has to be inside the slot count the item's GRADE gives it, not
+	// inside whatever the save file happens to have stored.
+	const int iMaxSocketCount = CX2OfflineSocketTable::GetSocketCount(
+		(int)pTemplet->GetItemGrade(), (int)pTemplet->GetItemType() );
+
+	if( iSocketIndex < 0 || iSocketIndex >= iMaxSocketCount )
+	{
+		CX2OfflineLog::Server( L"ITEM     socket index %d out of range for item %d"
+			L" (grade %d gives it %d slot(s))",
+			iSocketIndex, pRow->m_iItemID, (int)pTemplet->GetItemGrade(), iMaxSocketCount );
+		return false;
+	}
+
+	// Grow to the full slot count rather than just past the index, so that an
+	// item's socket list always has one entry per slot the UI draws - an empty
+	// slot is a 0, not a missing entry.
+	if( (int)pRow->m_vecSocket.size() < iMaxSocketCount )
+		pRow->m_vecSocket.resize( iMaxSocketCount, 0 );
+
+	pRow->m_vecSocket[ iSocketIndex ] = iSocketOption;
+
+	CX2OfflineDB::Instance()->UpdateItem( *pRow );
+
+	MakeItemInfo( *pRow, kOut );
+	return true;
+}
+
+bool CX2OfflineInventory::GetItemSocketOption( UidType nItemUID, int iSocketIndex,
+											   OUT int& iSocketOption ) const
+{
+	const KOfflineItemRow* pRow = FindRow( nItemUID );
+	if( NULL == pRow )
+		return false;
+
+	const CX2Item::ItemTemplet* pTemplet = Templet( pRow->m_iItemID );
+	if( NULL == pTemplet )
+		return false;
+
+	const int iMaxSocketCount = CX2OfflineSocketTable::GetSocketCount(
+		(int)pTemplet->GetItemGrade(), (int)pTemplet->GetItemType() );
+
+	if( iSocketIndex < 0 || iSocketIndex >= iMaxSocketCount )
+		return false;
+
+	// A slot the save has never written is empty, not absent.
+	iSocketOption = ( iSocketIndex < (int)pRow->m_vecSocket.size() )
+					? pRow->m_vecSocket[ iSocketIndex ]
+					: 0;
+
+	return true;
+}
+
+int CX2OfflineInventory::GetCountAssignedItemSocket( UidType nItemUID ) const
+{
+	const KOfflineItemRow* pRow = FindRow( nItemUID );
+	if( NULL == pRow )
+		return 0;
+
+	int iCount = 0;
+
+	for( size_t i = 0; i < pRow->m_vecSocket.size(); ++i )
+	{
+		if( pRow->m_vecSocket[i] > 0 )
+			++iCount;
+	}
+
+	return iCount;
+}
+
+bool CX2OfflineInventory::SetAttribEnchant( UidType nItemUID, int iSlotID, char cAttribEnchantType,
+											OUT KInventoryItemInfo& kOut )
+{
+	KOfflineItemRow* pRow = FindRow( nItemUID );
+	if( NULL == pRow )
+		return false;
+
+	switch( iSlotID )
+	{
+	case CX2EnchantItem::ESI_SLOT_1:	pRow->m_iAttrib0 = (int)cAttribEnchantType;	break;
+	case CX2EnchantItem::ESI_SLOT_2:	pRow->m_iAttrib1 = (int)cAttribEnchantType;	break;
+	case CX2EnchantItem::ESI_SLOT_3:	pRow->m_iAttrib2 = (int)cAttribEnchantType;	break;
+
+	default:
+		CX2OfflineLog::Server( L"ITEM     refused an attribute slot out of range: item %I64d slot %d",
+			(__int64)nItemUID, iSlotID );
+		return false;
+	}
 
 	CX2OfflineDB::Instance()->UpdateItem( *pRow );
 

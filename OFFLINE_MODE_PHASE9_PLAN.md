@@ -187,7 +187,7 @@ files handles it before assuming the bag path is broken.** Note that some ids
 exist in both forms — `99600 SI_SKILL_NOTE_ITEM` is a real bag item,
 `221600 CI_CASH_SKILL_NOTE_ITEM` is claim-time only, and they do the same thing.
 
-### And the §0.1 count is now seven
+### And the §0.1 count is now nine
 
 Stale refusal comments found and corrected in this batch alone: the bag path's
 "its effect is not implemented offline" (it was, via the `_NOT`), the cube's
@@ -195,9 +195,202 @@ Stale refusal comments found and corrected in this batch alone: the bag path's
 was destroying the gauge), `m_vecSkillUnsealed`'s "Nothing offline seals or
 unseals anything" (nothing did, then something did), and
 `EGS_REG_SKILL_NOTE_MEMO_REQ`'s "the memo IDs come from a server table" (they are
-`GetItemID( itemUID )`; there was never a table). **§0.1 is not a caveat about
+`GetItemID( itemUID )`; there was never a table). Phase 23 then added two more:
+`EGS_ENCHANT_ITEM_REQ`'s "the enchant tables are server data with no client copy"
+(the stat multipliers and the stone IDs both have a client copy, and always did —
+only the success rates do not), and the copy of that same sentence that had
+propagated into `X2OfflineQuest.cpp`'s undriven-clear-type list, where it was
+keeping a title sub-quest permanently unreachable. **§0.1 is not a caveat about
 one pet message. Assume every self-describing refusal in `X2Lib/Offline/` is as
-old as the phase that wrote it.**
+old as the phase that wrote it — and that a wrong one may have been copied
+somewhere else.**
+
+---
+
+## 0.3 What phases 23-26 actually required — read this before 27
+
+Written 2026-09-05, after all four shipped and were played. The item workshop was
+the batch the plan was least sure about — four phases marked **"blocked on the
+user"**, three of them with a "name the file, stop, wait" instruction. None of
+them was blocked. Seven things, in the order they will cost you time.
+
+### 1. The "blocked on user" column was wrong four times out of four
+
+The whole question was answered by one `ls KncWX2Server/ServerResource/US/`:
+
+| phase | the plan said it needed | where it actually was |
+|---|---|---|
+| 23 enhancement | "enchant tables", maybe a live-DB query | `EnchantTable.lua`, in the tree |
+| 24 socketing | "socket option tables" | `SocketItemTable.lua`, in the tree |
+| 25 amulet | "attach tables" | **already parsed** — inside `EnchantTable.lua` |
+| 26 attributes | "attrib tables" | `AttribEnchantTable.lua` + `AttribAttachTable.lua`, in the tree |
+
+No live-DB query was needed for any of them. **Do the `ls` before writing the
+ask.** The `CLAUDE.md` rule is "name the file, then implement anyway" — it is not
+"assume the file does not exist".
+
+### 2. Ask what the CLIENT already has before asking what the user must supply
+
+Every one of the four refusals over-claimed. In each case a meaningful part of
+what was called server-only had a client copy that had been there all along:
+
+| phase | claimed server-only | actually client-side |
+|---|---|---|
+| 23 | "success rates **and stat multipliers**" | `ENCHANT_STAT_SCALE` is `SetEnchantRate`'s 21 values byte for byte; so are the stone IDs and the level banding |
+| 24 | "the socket option tables" | the **cost** (`CX2UISocketItem::CalculateNewSocketCost`) and the **slot count** (`CX2SocketItem::SOCKET_COUNT`) |
+| 26 | "the item attribute system" | `AttribEnchantRequire.lua` is loaded by the *client*; so are `ATI_*`, `ESI_SLOT_*`, `ACT_*`, `ENCHANT_TYPE`, `CanEnchantAttribute` and `GetItemID` |
+
+Only one thing in each phase genuinely had no client copy: the **probability
+tables**. That is a much smaller ask than "the enchant tables", and it is also
+what makes a packed file self-checking — phase 23's loader compares its
+`SetEnchantRate` rows against the client's `ENCHANT_STAT_SCALE` and logs
+`21 stat rate(s) match`, which is a free proof that the right region's file got
+packed.
+
+### 3. `NULL == kInfo` is dead code, and it was in every offline loader
+
+**This is the one to carry forward.** Every loader in `X2Lib/Offline/` tested a
+missing packed file with:
+
+```c
+KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kInfo;
+kInfo = ...->LoadDataFile( name );
+if( NULL == kInfo )            // <-- never true
+```
+
+`MASSFILE_MEMBERFILEINFO_POINTER` is **a struct by value**, not a pointer, and it
+carries `operator const MASSFILE_MEMBERFILEINFO*() const { return this; }`
+(`KTDXLIB/KGCMassFileManager.h`). Comparing it against NULL takes the address of a
+local, which is never null. So a file that was never packed fell through to the
+`DoMemory` / `DoMemoryNotEncript` pair and was reported as
+
+```
+ATTRIB   ERROR 'AttribAttachTable.lua' failed to run, encrypted or plaintext.
+```
+
+— i.e. "your packed file is corrupt" when the truth was "you did not pack it".
+That is the single diagnosis the degrade path exists to give, and it was the one
+it could not give. Caught only because phase 26 shipped with one of its two files
+unpacked and the log accused the wrong thing.
+
+Fixed at all **11 sites across 9 loaders** (`Enchant`, `Socket`, `Attrib`,
+`Resolve`, `Drop`, `Stat`, `PetData`, `MapData`, `RandomItem`, `BattleField`×2) to
+test the payload instead:
+
+```c
+if( NULL == kInfo->pRealData || kInfo->size <= 0 )
+```
+
+which is what the client's own loader does
+([X2ItemManager.cpp:231](X2Lib/X2ItemManager.cpp#L231)). The bug came from the
+phase-12 loader and was copied forward three times without anyone reading the
+type. **When a degrade path fires, check that it says the right thing — a wrong
+diagnosis is worse than none, because it sends the user to fix the wrong thing.**
+
+### 4. Bind every method the packed file names, including the dead ones
+
+lua_tinker turns a call to an unbound method into an error that **abandons the
+rest of the chunk**. `EnchantTable.lua` calls 23 distinct methods, several inside
+its own `--[[ ]]` block comments and several behind TW/HK-only flags, and the
+probability rows this batch needed are at the very *end* of the file. Binding only
+the methods phase 23 read would have silently cost every row after the first
+unbound call.
+
+So phase 23 bound all 23 and parsed all of them into storage. **That is why phase
+25 was nearly free**: `AddAttachItemInfo` — the magic amulet's entire table — had
+already been loading since the day `EnchantTable.lua` was packed, and phase 25
+turned out to be two accessors and a handler, with no new file, no new loader and
+nothing to ask the user for.
+
+### 5. Two of the four loaders had to borrow a Lua global and give it back
+
+`AttribEnchantTable.lua` and `AttribAttachTable.lua` are written against
+`g_pCX2EnchantItem`, and `SocketItemTable.lua` against `g_pCX2SocketItem`. Both of
+those names are published by the **client's own** managers (`X2EnchantItem.cpp:33`,
+`X2SocketItem.cpp:69`), and neither client manager binds the methods those files
+call. So both loaders point the global at themselves for the duration of the
+`DoMemory` calls and restore `g_pData->GetEnchantItem()` / `GetSocketItem()`
+immediately afterwards, logging a warning if they cannot. The client republishes
+those globals only from `OpenScriptFile`, which runs once at start-up, long
+before either loader.
+
+Worth checking before adding a fifth: `EnchantTable.lua`'s `EnchantItemManager`
+and `ResolveTable.lua`'s `g_pResolveItemManager` are names the client does **not**
+use, so those two could simply take them.
+
+### 6. A long flag-wrapped server switch gets extracted by machine, not by hand
+
+`CXSLSocketItem::GetSocketDataType` is a ~450-line switch over magic stone IDs
+wrapped in six different `SERV_` flags. It was extracted with a small
+preprocessor applying this build's flag set and flattened into one 58-row table,
+and `IsMagicStoneItemID` was extracted the same way. **The two agreeing —
+identical 58-stone sets, arrived at independently — is the check that says the
+extraction was right.** The `SOCKET_DATA_TYPE` and `ENCHANT_TYPE` enum seeds were
+generated from the client headers the same way, and verified by resolving all 117
+enum names the packed `SocketItemTable.lua` subscripts.
+
+**One asymmetry this turned up:** the client's socket UI offers 16 Luriel stones
+(`85003840..`, `152000699..`) that the server never accepted, because
+`SERV_LURIEL_MAGIC_STONE` is not defined **anywhere** in `KncWX2Server/Common`.
+The client array is not flag-guarded; the server switch is. The server wins, and
+those stones are refused with a log line naming the stone.
+
+### 7. Packets and work the phase sections did not mention
+
+- **`EGS_SOCKET_ITEM_REQ` is plural.** Its `m_mapSocketInfo` is
+  slot index -> magic stone UID, so one request fills several slots. The phase-24
+  exit test says "a magic stone sockets into an item", singular; the handler has
+  to price, validate and apply a whole batch, and the real server does it in two
+  passes so a request that cannot be paid for changes nothing. The play-test
+  exercised exactly this: two empty slots in one request, then repeated single-
+  slot replacements.
+- **Two quest hooks nobody scheduled.** Phases 23 and 24 each had to add a driver
+  (`OnEnchantItem`, `OnSocketItem`) and take their clear type off
+  `X2OfflineQuest.cpp`'s undriven list. Phase 23's section mentions the two stuck
+  title sub-quests as a *consequence* of the refusal, not as work to do.
+- **`EGS_ADD_ON_STAT_REQ` is not part of phase 26** — the trap in that section was
+  right. It is an in-match relay to the room server
+  ([GSUserRoomCommon.cpp:4122](KncWX2Server/GameServer/GSUserRoomCommon.cpp#L4122))
+  whose answer the client applies with `CX2GUUser::SetAddOnStat`. It stays
+  ignored; only its wrong reason was fixed.
+- **Phase 23 also had to touch the stat sum.** `AddEquippedStat` did not apply
+  `ENCHANT_STAT_SCALE`, because until phase 23 no offline item could have a
+  non-zero enchant level. Left alone, a +7 weapon would have been worth nothing to
+  the character's HP in a dungeon, since `m_kGameStat` is what
+  `CX2GUUser::InitStat` prefers.
+
+### Decisions taken that the plan did not specify
+
+- **The GM socket cheat is refused.** `KEGS_SOCKET_ITEM_REQ::m_bCheat` lets the
+  request carry chosen option IDs straight into the item, gated on `UAL_GM` on the
+  real server. Offline there is no operator and the auth level is whatever the
+  login handed out, so honouring it would let a modified client write arbitrary
+  socket options. `ERR_VERIFY_12` and a log line.
+- **The enchant amulet does NOT feed the enchant quest hook**, because the real
+  server does not: `DBE_ENCHANT_ATTACH_ITEM_ACK` has no `Handler_OnEnchantItem`
+  call, only the enhancement path does. A step that asks the player to *enhance*
+  an item is not satisfied by buying the level.
+- **A random attribute that rolls `ET_NONE` is refused, not applied.** Left alone
+  it would silently turn "add an attribute" into "clear the slot".
+- **`GetAttribCountType` counts non-empty slots, not leading ones** — an item with
+  slot 0 empty and slot 1 filled is `ACT_SINGLE`. That decides both the price and
+  which lottery runs, and reading it as "how far along the array am I" is wrong.
+- **The attribute amulet overwrites all three slots**, `ET_NONE` included, because
+  the server's loop walks `ESI_SLOT_1..MAX` unconditionally.
+- **Rows for flags this build does not compile are parsed and stored anyway**
+  (EnchantPlus, DestroyGuard, the identify table, the drop/cube random enchant
+  lotteries). They cost nothing, they keep the chunk alive per point 4, and the
+  drop/cube ones are what phase 27 will want.
+
+### And the §0.1 count is now eleven
+
+This batch found four more stale refusals: `EGS_ENCHANT_ITEM_REQ`'s "the enchant
+tables are server data with no client copy" (two thirds of it had a client copy),
+`EGS_SOCKET_ITEM_REQ`'s identical claim, the copy of the enchant sentence that had
+**propagated into `X2OfflineQuest.cpp`** and was keeping two title sub-quests
+permanently unreachable, and `EGS_ADD_ON_STAT_REQ`'s ignore reason. **Add the
+propagation case to the §0.1 habit: a wrong refusal sentence may have been copied
+somewhere that makes a decision.**
 
 ---
 
@@ -207,14 +400,15 @@ Each phase below is meant to open a fresh conversation. That conversation gets
 `CLAUDE.md` automatically and this file is in the repo, so it does not need
 pasting — one line starts a phase:
 
-> Read §0, §0.1, §0.2, §1 and the Phase N section of
+> Read §0, §0.1, §0.2, §0.3, §1 and the Phase N section of
 > `OFFLINE_MODE_PHASE9_PLAN.md`, then do Phase N. Don't read the other phase
 > sections — the file is long.
 
 Substitute the phase number. Naming the sections matters: §0 is the bucket
-triage, §0.1 is the stale-refusal check, **§0.2 is what phases 19-22 turned up
-and is the one that would have saved the most time**, §1 is this preamble, and
-skipping them is how a phase gets debugged with the wrong technique.
+triage, §0.1 is the stale-refusal check, §0.2 is what phases 19-22 turned up,
+**§0.3 is what phases 23-26 turned up and is the one that matters most for
+anything that loads a packed table**, §1 is this preamble, and skipping them is
+how a phase gets debugged with the wrong technique.
 
 Two useful variants:
 
@@ -313,10 +507,10 @@ below say otherwise.
 | **20** | 11 | Stamina potion not working | ~~B~~ **C** | **DONE 2026-09-05** | no |
 | **21** | 9  | "Camilla's secret manual" unusable | ~~B~~ **C** | **DONE 2026-09-05** | no |
 | **22** | 12 | Skill notebook not working | ~~B~~ **C** | **DONE 2026-09-05** | no |
-| **23** | 4  | Cannot enhance equipment | A + B | CONFIRMED | **yes — enchant tables** |
-| **24** | 3  | Cannot socket equipment | A + B | CONFIRMED | **yes — socket tables** |
-| **25** | 5  | Cannot use magic amulet | A | CONFIRMED | **yes — attach tables** |
-| **26** | 10 | Cannot add equipment attributes | A | CONFIRMED | **yes — attrib tables** |
+| **23** | 4  | Cannot enhance equipment | A + B | **DONE 2026-09-05** | no — `EnchantTable.lua` is in the tree, pack it |
+| **24** | 3  | Cannot socket equipment | A + B | **DONE 2026-09-05** | no — `SocketItemTable.lua` is in the tree, pack it |
+| **25** | 5  | Cannot use magic amulet | A | **DONE 2026-09-05** | no — the table is inside `EnchantTable.lua` |
+| **26** | 10 | Cannot add equipment attributes | A | **DONE 2026-09-05** | no — `AttribEnchantTable.lua` + `AttribAttachTable.lua` |
 | **27** | 17 | Regular drop ("Aqua") never drops | C | HYPOTHESIS | no |
 
 **~~Phases 19-22 share one root cause and probably one flag.~~ They did not.**
@@ -345,6 +539,32 @@ each needs a different table from the user. **Run phase 23 first**; it establish
 whether the tables can be sourced at all. If the answer is no, phases 24-26
 become "improve the refusal so the player knows why", which is a real and much
 smaller job, and they should be merged into one conversation at that point.
+
+**Phase 23 ran, and the answer was yes** (2026-09-05). The table was already in
+the tree — `KncWX2Server/ServerResource/US/EnchantTable.lua` — and needed no
+live-DB query at all. **All four are now done** (23-26, 2026-09-05), and not one
+of them needed a live-DB query or anything the user did not already have.
+
+The thing worth carrying forward is how badly the "blocked on the user" column
+read the situation. Four phases were marked **yes — blocked**; the real answer
+was one `ls KncWX2Server/ServerResource/US/`:
+
+| phase | what it "needed" | where it actually was |
+|---|---|---|
+| 23 | enchant tables | `EnchantTable.lua`, in the tree |
+| 24 | socket option tables | `SocketItemTable.lua`, in the tree |
+| 25 | attach tables | **already loaded** — inside `EnchantTable.lua` |
+| 26 | attrib tables | `AttribEnchantTable.lua` + `AttribAttachTable.lua`, in the tree; and half the feature was already client-side |
+
+And in every one of the four, a meaningful part of what the refusal claimed was
+server-only turned out to have a client copy that had been there all along —
+`ENCHANT_STAT_SCALE` for 23, the cost and slot-count maths for 24, the whole
+require table and every enum for 26. **The audit that pays is "what does the
+client already have", done before "what must the user supply".**
+
+Three of the four still need a file packed to *run* (23 is packed and verified;
+24 and 26 are not). That is a different thing from being blocked on data that
+does not exist, and the degrade paths say which file and what to do about it.
 
 ---
 
@@ -2382,6 +2602,143 @@ ship one honest "the item workshop is unavailable offline" path.
 Either an item enhances with real rates and the level persists, or the attempt is
 refused with a message naming why and the item is untouched.
 
+### What actually happened
+
+Built and deployed 2026-09-05. **The data can be sourced, so this is the "if the
+data arrives" branch, not the "improve the refusal" one — phases 24-26 are not
+folded in.** The blocking question above answered itself on the first `ls`:
+`KncWX2Server/ServerResource/US/EnchantTable.lua` exists, 442 lines, and it holds
+`SetEnchantProbability` for every level 1-20. No live-DB query was needed.
+
+#### The refusal was half wrong, and that half is the finding
+
+`Handler_EGS_ENCHANT_ITEM_REQ`'s comment claimed the per-level success rates
+**and the stat multipliers** were server data "with no client copy". The stat
+multipliers have a client copy and always did:
+
+| `EnchantTable.lua` | client | agree? |
+|---|---|---|
+| `SetEnchantRate( 0..20 )` | `ENCHANT_STAT_SCALE[]` ([X2Define.h:212](X2Lib/X2Define.h#L212)) | **identical, all 21 values** |
+| `AddEnchantStoneInfo` (130077-130094) | `NEW_{WEAPON,DEFENCE}_ENCHANT_STONE_ITEM_ID[]` ([X2Define.h:325](X2Lib/X2Define.h#L325)) | identical, and `CX2UIShop::GetEnchantStoneLevel` is the same banding |
+| `SetWeaponEnchantStone( 109950 )` etc. | `NORMAL_*_ENCHANT_STONE_ITEM_ID` ([X2Define.h:318](X2Lib/X2Define.h#L318)) | identical |
+| `SetEnchantProbability` | **nothing** | — |
+
+So exactly one of the three things the refusal named has no client copy. That
+also makes the packed file self-checking: the loader compares its
+`SetEnchantRate` rows against `ENCHANT_STAT_SCALE` and logs
+`ENCHANT  21 stat rate(s) match the client's own ENCHANT_STAT_SCALE - right
+file.`, which is a free proof that the archive holds the US table and not some
+other region's.
+
+**This is §0.1's seventh-and-eighth stale refusal.** The same sentence had also
+propagated into `X2OfflineQuest.cpp`'s `IsClearTypeUndriven`, where it justified
+leaving `SQT_ITEM_ENCHANT` in the "nothing can ever drive this" list. Both are
+now corrected, and socketing is stated on its own rather than as half of a pair.
+
+#### The bucket-B half was never a bug
+
+`EGS_ENCHANT_ITEM_REQ` is genuinely absent from the census, and the reason is
+the client working correctly. `CX2UIShop::EnchantItem`
+([X2UIShop.cpp:2729](X2Lib/X2UIShop.cpp#L2729)) refuses to open the dialog at all
+unless the character holds a stone **in the item's own level band**, and the save
+says exactly why that fired:
+
+```
+unit 12 (reyaa, level 50) holds  130077 x7, 130078 x3, 130079 x2   (weapon, bands 0-20 / 21-30 / 31-40)
+                                 130086 x8, 130087 x3, 130088 x1   (armour, same three bands)
+   ...and none of 130080-130085 / 130089-130094, which is what level-40+ gear needs.
+```
+
+Nothing to fix and nothing to remove: with the right stone the dialog opens and
+the packet goes. **This is the §0.2 lesson landing the other way round** — the
+last four phases found bucket-B calls hiding a real defect, and this one is a
+bucket-B call that is simply true and benign.
+
+#### What was built
+
+- **`X2Lib/Offline/X2OfflineEnchantTable.{h,cpp}`** — `CXSLEnchantItemManager`'s
+  client-side twin, loaded exactly the way `X2OfflineResolveTable` loads
+  `ResolveTable.lua`. **Every** Lua method the file names is bound, including
+  those inside its own block comments and those whose `SERV_` flag is TW/HK-only:
+  an unbound method is a Lua error that abandons the rest of the chunk, and the
+  probability rows are at the very end of the file. Rows this phase does not read
+  are parsed, counted and stored anyway — `AddAttachItemInfo` is the enchant-attach
+  ticket table **phase 25 needs** (it is in this same file), `AddRestoreItemInfo`
+  is the repair scrolls, `Add{Drop,Cube}RandomEnchantInfo` belongs to phase 27.
+- **`Handler_EGS_ENCHANT_ITEM_REQ`** — `KInventory::EnchantItem`
+  ([Inventory.cpp:12098](KncWX2Server/GameServer/Inventory.cpp#L12098)) plus its
+  `KGSUser` wrapper and the ACK that `DBE_ENCHANT_ITEM_ACK` sends
+  ([GSUserInventory.cpp:3421](KncWX2Server/GameServer/GSUserInventory.cpp#L3421)),
+  gate for gate and in the server's order: bank, sealed, templet, `CanEnchant`,
+  broken, fluor-stone level cap, +20 cap, ED cost, stone selection, stone in bag,
+  not worn, roll, cheat box, fluor stone, apply, consume, charge. Compiled for
+  this build's flag set: `SERV_ENCHANT_PLUS_ITEM` and `SERV_DESTROY_GUARD_ITEM`
+  are TW/HK-only so those two arms do not exist, while
+  `SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT` **is** on for US and rewrites the
+  legacy-stone branch (rare first, then Ruriel's `152000121`/`152000122`, then
+  plain) — the client's own stone count adds the same two IDs under the same flag.
+- **`CX2OfflineInventory::SetEnchantLevel`** — one absolute setter rather than
+  `Increase`/`DecreaseEnchantLevel`, because the caller has already turned the
+  five results into a level. A **negative** level is valid and is how a broken
+  item is marked; the setter refuses only outside ±20, which is what the `char`
+  on the wire can carry.
+- **`CX2OfflineInventory::AddEquippedStat` now applies the enchant multiplier**,
+  through the client's own `ENCHANT_STAT_SCALE` and `CX2Item::GetEnchantStat`'s
+  own gate (non-fashion weapon/armour, indexed by `abs(level)` under
+  `ITEM_RECOVERY_TEST`). This is not cosmetic: `m_kGameStat` is what
+  `CX2GUUser::InitStat` prefers, so without it a +7 weapon would have been worth
+  nothing to the character's HP in a dungeon. Its header comment used to say
+  "nothing offline can enchant … so every item's enchant level is zero".
+- **`CX2OfflineQuest::OnEnchantItem`** — `KUserQuestManager::Handler_OnEnchantItem`
+  ([UserQuestManager.cpp:2877](KncWX2Server/GameServer/UserQuestManager.cpp#L2877)),
+  called on every result **except** no-change, exactly as the real server does
+  (a no-change attempt returns before the DB round trip that triggers it). This is
+  what unblocks the two title sub-quests the phase-8 census flagged as
+  `clearType=13 ** NOT DRIVEN OFFLINE`. One rename to watch: the server's
+  `m_ClearCondition.m_iItemID` is the client's `m_iCollectionItemID` — the same
+  Lua key parsed into a differently-named field
+  ([X2QuestManager.cpp:2292](X2Lib/X2QuestManager.cpp#L2292)) — and the level
+  match is `!=`, i.e. **exact**, so a step asking for +5 is not satisfied by +6.
+
+#### Exit test status
+
+**VERIFIED IN PLAY, 2026-09-05.** The user packed `EnchantTable.lua` and
+enhancement works with real rolls, real ED and a real failure:
+
+```
+[16:15:10.113] ENCHANT  loaded: 29 probability row(s), 20 stone row(s), 59 fluor row(s), 21 stat-rate row(s), 140 other row(s)
+[16:15:10.113] ENCHANT  stones: weapon 109950 / rare 109960, armor 109965 / rare 109970; fluor usable below +10 (+11 during an event)
+[16:15:10.113] ENCHANT  21 stat rate(s) match the client's own ENCHANT_STAT_SCALE - right file.
+[16:15:10.113] ITEM     enhanced item 113532: +0 -> +1 (success), stone 130077, 2040 ED, 184180 ED left
+                              ... +1 -> +2, +2 -> +3, +3 -> +4 ...
+[16:15:20.367] ITEM     enhanced item 113532: +4 -> +3 (down one), stone 130077, 2040 ED, 176020 ED left
+[16:15:22.415] ITEM     enhanced item 113532: +3 -> +4 (success), stone 130077, 2040 ED, 173980 ED left
+```
+
+The down-one at +4 is the table working: `SetEnchantProbability( 4 )` is
+`Up1 = 60, NoChange = 40`, and +5 onward is where `Down1` first appears - the
+run above went 100/100/80/60 and then met the 30% at +5's row. The stat-rate
+cross-check line is the packed file confirming it is the US table.
+
+The text below is what the degrade path looked like before it was packed, kept
+because it is what the next unpacked table will look like:
+
+```
+ENCHANT  ERROR 'EnchantTable.lua' not found in any .kom or on disk - enhancement is OFF.
+ENCHANT  XOR-encrypt KncWX2Server/ServerResource/US/EnchantTable.lua and pack it into data036.kom.
+ITEM     refused an enhancement - EnchantTable.lua is not loaded. ...
+```
+
+`data036/` in the game directory currently holds 182 scripts and
+`EnchantTable.lua` is not among them. Once it is, the loader logs
+`ENCHANT  loaded: N probability row(s), ...` and the stat-rate cross-check line,
+and the attempt itself logs
+`ITEM     enhanced item <id>: +N -> +M (success|no change|down one|reset to +0|BROKEN), stone <id>, <ED> ED, <ED> ED left`.
+
+To test it, use a **bag** item (worn gear is refused with `ERR_ENCHANT_ITEM_08`,
+which is correct) whose use level falls in a band the character has stones for —
+on `reyaa` that means level-40-or-below gear, not the equipped set.
+
 ---
 
 # Phase 24 — Cannot socket equipment (`ISSUES.md` #3)
@@ -2412,6 +2769,88 @@ one file covers both because they share a UI.
 ### Exit test
 A magic stone sockets into an item and the rolled option is real and persisted, or
 the attempt is refused with a message and the stone is not consumed.
+
+### What actually happened
+
+Built and deployed 2026-09-05, together with 25 and 26. **The trap above was
+right and the diagnosis was right**: socketing really is a different table and a
+different roll from enhancement. It is also in the tree —
+`KncWX2Server/ServerResource/US/SocketItemTable.lua`, 3,812 lines, the largest of
+the four this batch needed.
+
+#### What has a client copy and what does not
+
+Same audit as phase 23, different answer in one place:
+
+| piece | where it lives |
+|---|---|
+| socket **cost** | client. `CX2UISocketItem::CalculateNewSocketCost` ([X2UISocketItem.cpp:829](X2Lib/X2UISocketItem.cpp#L829)) is `CalcInsertSocketCost`, same 0.01 and the same four grade factors |
+| how many **slots** an item has | client. `CX2SocketItem::SOCKET_COUNT` ([X2SocketItem.h:169](X2Lib/X2SocketItem.h#L169)) is what the socket window draws |
+| what an option **does** | client. `OptionItemData.lua` + `SocketOptionForm.lua`, loaded at start-up ([X2StateStartUp.cpp:189](X2Lib/X2StateStartUp.cpp#L189)) |
+| which **option** a stone rolls | **server only** — `SocketItemTable.lua` |
+
+So this phase touches none of the option maths. It rolls an option ID and puts
+it in the item's socket list; the client reads it back through its own tables.
+
+#### The magic-stone table was extracted, not typed
+
+`CXSLSocketItem::GetSocketDataType` is a ~450-line switch and
+`IsMagicStoneItemID` a second one over the same stones. Both were run through a
+small preprocessor with this build's flag set applied and flattened into one
+58-row table in `X2OfflineSocketTable.cpp`. It self-checks three ways:
+
+1. The 58 stones it maps are **exactly** the 58 `IsMagicStoneItemID` accepts.
+2. Every one of the 117 distinct `SOCKET_DATA_TYPE` names the packed
+   `SocketItemTable.lua` subscripts resolves in the client's enum.
+3. The client enum's own tail pins `SDT_QUEST_CLEAR_COUNT = 120`, and counting
+   the members ahead of it lands on exactly 120 — so the seeded values cannot
+   be off by one without that pin disagreeing.
+
+**One real asymmetry, and it is the server's to win.** The client's socket UI
+offers 16 Luriel stones (`85003840..`, `152000699..`) that are not in the table,
+because `SERV_LURIEL_MAGIC_STONE` is not defined **anywhere** in
+`KncWX2Server/Common` — the live server would have refused them too. They are
+refused with a log line naming the stone rather than silently rolling the wrong
+pool.
+
+#### Two deliberate departures from the server
+
+- **The GM socket cheat is not honoured.** `m_bCheat` lets the request carry
+  chosen option IDs straight into the item, gated on `UAL_GM`. There is no
+  operator offline and the auth level is whatever the offline login handed out,
+  so honouring it would let any modified client write arbitrary socket options.
+  Refused with `ERR_VERIFY_12` and a log line.
+- **Cost and stones are checked in a first pass over the whole request.** One
+  request can fill several slots; the real server prices them all, then checks
+  the wallet, then applies. That shape is kept so a request that cannot be paid
+  for changes nothing at all.
+
+`SQT_ITEM_SOCKET` is now driven too — `CX2OfflineQuest::OnSocketItem`, counting
+the slots one request filled and clamping to what the step asks for, which is
+what the real hook does with its `UCHAR` counter.
+
+#### Exit test status
+
+**VERIFIED IN PLAY, 2026-09-05.** The user packed `SocketItemTable.lua` and
+socketed a weapon repeatedly:
+
+```
+[16:57:50.486] SOCKET   loaded: 216 random row(s) over 114 pool(s), 3586 group row(s) over 182 group(s), 58 magic stone(s) known
+[16:57:50.487] ITEM     socket slot 1 of item 117040 <- option 40110 (stone 135184)
+[16:57:50.487] ITEM     socket slot 2 of item 117040 <- option 40708 (stone 135184)
+[16:57:50.487] ITEM     socketed item 117040: 2 slot(s) for 1424 ED, 33176 ED left
+[16:57:53.644] ITEM     socket slot 2 of item 117040 <- option 40710 (stone 135184)
+[16:57:53.644] ITEM     socketed item 117040: 1 slot(s) for 6414 ED, 26762 ED left
+                              ... 40710, 41010, 40320, 40936, 40712 ...
+```
+
+Three things are visible in those six lines and all three are the port working:
+**one request filling two slots** (the packet is plural — see §0.3), **different
+option IDs out of the same stone** (the group lottery is rolling, not returning a
+constant), and **the empty-versus-occupied price rule** — two empty slots cost
+1424 together, then every re-socket of the now-occupied slot 2 costs a flat 6414,
+which is `CalcInsertSocketCost`'s ×3 replace multiplier scaled by the item's
+assigned socket count.
 
 ---
 
@@ -2448,6 +2887,53 @@ for the player: a refusal at least closes the dialog.
 The amulet attaches its option, or the attempt is refused with a message and the
 amulet is intact. In neither case does the dialog hang.
 
+### What actually happened
+
+Built and deployed 2026-09-05. **Step 1's hunch was right, and better than
+right: it is deterministic AND its table was already loaded.** No new file, no
+new loader, no ask.
+
+The "magic amulet" is an *enchant-attach ticket* — `강화권` / `강화의 부적`, an
+item that simply sets a piece of gear to a fixed enhancement level. Its table is
+`AddAttachItemInfo` **inside `EnchantTable.lua`**, which phase 23 has been
+parsing since the day it was packed, precisely because unbound methods abort a
+Lua chunk. Phase 23's note that "phase 25's table is in the file phase 23 already
+loads" turned out to be exactly the shape of the work: two accessors on
+`CX2OfflineEnchantTable`, and a handler.
+
+`KInventory::EnchantAttachItem` ([Inventory.cpp:16066](KncWX2Server/GameServer/Inventory.cpp#L16066))
+is a straight gate list with no roll anywhere in it: ticket is a ticket, target
+is enchantable, the ticket's item-type restriction (`IT_NONE` = any, `IT_DEFENCE`
+= armour only), `CheckAttachItemEnableLevel`'s use-level band, not broken, not
+worn, and **the target's current level must be strictly below what the ticket
+grants** — an amulet only ever raises. Then it sets the level and eats the
+ticket. `SERV_ENCHANT_ATTACH_MODIFY` is on in this build, which is why the ticket
+is decremented if it stacks and deleted whole if it does not.
+
+**One thing deliberately not done.** The amulet reaches an enhancement level, so
+it looks like it should feed phase 23's `SQT_ITEM_ENCHANT` quest hook. It does
+not, because the real server does not: `DBE_ENCHANT_ATTACH_ITEM_ACK` has no
+`Handler_OnEnchantItem` call, only the enhancement path does. A quest step that
+asks the player to *enhance* an item is not satisfied by buying the level.
+
+#### Exit test status
+
+**The hang is gone and the data is loaded; the effect itself is the one thing in
+this batch with no log line of its own yet.** The ignore rule is removed and
+every path replies, and `EnchantTable.lua` — which carries this phase's whole
+table — has been packed and verified since phase 23, so there is nothing left to
+pack. Look for:
+
+```
+ITEM     amulet <ticket id> set item <item id> to +N (was +M)
+```
+
+or, when the ticket is not usable on that piece, one of the refusal lines naming
+why (`is already +N, ticket grants +M` / `is not an enchant-attach ticket` /
+`ticket <id> has item type N`). It needs an enhancement ticket in the bag —
+`강화권` / `강화의 부적`, IDs `130147`-`130152`, `132495`-`132500`,
+`85002810`-`85002860` and the Ruriel `60007250`-`60007300` block among others.
+
 ---
 
 # Phase 26 — Cannot add equipment attributes (`ISSUES.md` #10)
@@ -2480,6 +2966,108 @@ check before removing any rule.
 ### Exit test
 An attribute is added and persists, or the attempt is refused with a message and
 nothing is consumed.
+
+### What actually happened
+
+Built and deployed 2026-09-05. Three ignored event IDs, and the trap fired
+exactly as written.
+
+#### `EGS_ADD_ON_STAT_REQ` is not part of this feature and never was
+
+The name collides and nothing else does. It is an **in-match relay**: the
+GameServer forwards it to the room server
+([GSUserRoomCommon.cpp:4122](KncWX2Server/GameServer/GSUserRoomCommon.cpp#L4122))
+and the answer comes back as `EGS_ADD_ON_STAT_NOT`, which the client applies with
+`CX2GUUser::SetAddOnStat` ([X2Game.cpp:8660](X2Lib/X2Game.cpp#L8660)) — a
+temporary stat buff on a unit inside a dungeon. It stays ignored, because there
+is no room server offline and the P2P host applies its own buffs. **Its ignore
+reason was wrong and is now fixed**, which is the §0.1 pattern again: the rule
+was right, the sentence next to it was not.
+
+#### Most of this feature was already client-side
+
+The server loads three files for attributes; the client loads two of them, and
+one is shared:
+
+| file | server | client |
+|---|---|---|
+| `AttribEnchantRequire.lua` | yes | **yes** — shard count + ED cost, via `CX2EnchantItem::AddEnchantRequire_LUA` |
+| `AttribEnchantItem.lua` | no | yes — the damage effects |
+| `AttribEnchantTable.lua` | yes | **no** — the random rolls |
+| `AttribAttachTable.lua` | yes | **no** — the amulets |
+
+So is the logic: `CX2EnchantItem::CanEnchantAttribute` is
+`CXSLAttribEnchantItem::IsPossibleToPush` (the fire/water/nature and
+wind/light/dark exclusions), `GetItemID` is `GetRequireItemID`, and `ATI_*`,
+`ESI_SLOT_*`, `ACT_*` and `ENCHANT_TYPE` are all in
+[X2EnchantItem.h](X2Lib/X2EnchantItem.h) with the server's values. The two cost
+functions are **called on the client's object** rather than re-ported —
+`GetAttribEnchantRequireMagicStoneCount` and `GetAttribEnchantRequireED` are the
+same table the real server reads.
+
+`CX2OfflineAttribTable` is therefore small: three random lotteries (single, dual
+keyed by the existing attribute, triple keyed by the existing pair), the amulet
+map, and the identify rows, which are parsed and stored but have no accessor
+because `EGS_IDENTIFY_ITEM_REQ` is a different packet and still ignored.
+
+#### Two loaders now borrow a Lua global and give it back
+
+`AttribEnchantTable.lua` and `AttribAttachTable.lua` are written against
+`g_pCX2EnchantItem`, and `SocketItemTable.lua` against `g_pCX2SocketItem` — both
+names the **client's own** managers publish for themselves, and neither client
+manager binds the methods those files call. So both loaders point the global at
+themselves for the duration of the `DoMemory` calls and restore
+`g_pData->GetEnchantItem()` / `GetSocketItem()` immediately afterwards, logging a
+warning if they cannot. The client republishes those globals only from
+`OpenScriptFile`, which runs once at start-up, long before either loader.
+
+This is worth knowing before adding a fifth loader: `EnchantTable.lua`'s
+`EnchantItemManager` and `ResolveTable.lua`'s `g_pResolveItemManager` are names
+the client does **not** use, so those two could simply take them. These two
+could not.
+
+#### The rules that are easy to get wrong, and were transcribed rather than guessed
+
+- **`GetAttribCountType` counts non-empty slots, not leading ones.** An item with
+  slot 0 empty and slot 1 filled is `ACT_SINGLE`, not `ACT_NONE` — which is what
+  decides both the price and which lottery runs.
+- **`ET_RANDOM` is resolved *inside* the legality check**, before anything is
+  charged, and a roll that finds no row comes back `ET_NONE`. Left alone that
+  would silently turn "add an attribute" into "clear the slot", so it is refused
+  explicitly.
+- **For a third attribute the triple lottery IS the legality table** —
+  `KLottery::IsExistCase`, not a rule — so even a non-random request needs the
+  packed file at that point.
+- **Removing an attribute is a real, paid operation**, not a no-op, and reports a
+  short wallet with its own error code so the dialog can say which action failed.
+- **The amulet overwrites all three slots**, including with `ET_NONE`, because
+  the server's loop walks `ESI_SLOT_1..MAX` unconditionally.
+
+#### Exit test status
+
+**VERIFIED IN PLAY, 2026-09-05**, reported by the user after packing both files.
+The El shard half is confirmed working; `offline_server.log` is rewritten per
+session and the run that exercised it has since been overwritten, so the line
+quoted below is the loader from the run *before* `AttribAttachTable.lua` was
+packed — which is why it says zero amulets:
+
+```
+[16:52:06.100] ATTRIB   ERROR 'AttribAttachTable.lua' failed to run, encrypted or plaintext.
+[16:52:06.100] ATTRIB   loaded: 6 single, 24 dual, 42 triple, 0 amulet(s), 12 identify row(s) - AttribAttachTable.lua missing, amulets will refuse
+```
+
+**That first line is a lie, and chasing it is what found §0.3's third finding.**
+The file was not corrupt, it was simply not packed; `NULL == kInfo` could never
+be true, so the not-found branch never fired. After the fix the same situation
+reads `ATTRIB   ERROR '...' not found in any .kom or on disk.` followed by the
+XOR-and-pack instruction.
+
+Worth knowing: a *specific* attribute (not random, not a third one) needs no
+packed file at all — everything that path touches is client-side — so it works
+on the El shards and ED alone. Random attributes and third attributes need
+`AttribEnchantTable.lua`; amulets need `AttribAttachTable.lua`. The healthy load
+line is `ATTRIB   loaded: 6 single, 24 dual, 42 triple, 15 amulet(s), 12 identify
+row(s)`.
 
 ---
 

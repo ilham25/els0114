@@ -17,12 +17,13 @@
 //              "one entry per touched slot, m_iItemUID 0 meaning the slot is
 //              now empty" (X2UIInventory.cpp:3891-3947).
 //
-//              Two packets are answered with a refusal rather than left
-//              unhandled, because the client waits on them and a silent drop
-//              turns into a five-second timeout and a modal error box:
-//              EGS_ENCHANT_ITEM_REQ and EGS_SOCKET_ITEM_REQ. Enhancement and
-//              socketing need the enchant tables, which are server data with no
-//              client copy, so they are off and say so.
+//              EGS_SOCKET_ITEM_REQ is answered with a refusal rather than left
+//              unhandled, because the client waits on it and a silent drop
+//              turns into a five-second timeout and a modal error box.
+//              Socketing needs the socket option tables, which are server data
+//              this build has no copy of, so it is off and says so.
+//              EGS_ENCHANT_ITEM_REQ was in that same sentence until phase 23
+//              found EnchantTable.lua and implemented it for real.
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef SERV_IRUHADEV_OFFLINE
@@ -775,34 +776,1453 @@ bool CX2OfflineServer::Handler_EGS_REPAIR_ITEM_REQ( KOfflineSession& kSes, const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Refused, not unhandled. Both arm an AddServerPacket wait, so dropping them
-// would time out into a modal network error five seconds later.
+// Phase 23: EGS_ENCHANT_ITEM_REQ used to be a hardcoded refusal that did not
+// even read its request, on the grounds that the enchant tables were server
+// data with no client copy. EnchantTable.lua is now packed into data036.kom,
+// so this ports the real thing: KInventory::EnchantItem (Inventory.cpp:12098)
+// plus the KGSUser handler around it (GSUserInventory.cpp:3042) and the ACK
+// that DBE_ENCHANT_ITEM_ACK sends back (:3421). CX2OfflineEnchantTable is the
+// data half; see its header for what is and is not client-side.
+//
+// The client half of the feature was never broken and is not touched.
+// CX2UIShop::EnchantItem (X2UIShop.cpp:2642) refuses to even open the dialog
+// unless the character holds a stone in the item's own level band, which is
+// why no EGS_ENCHANT_ITEM_REQ appears in the play-test census: that is the
+// client working, not a gate to remove.
 
-bool CX2OfflineServer::Handler_EGS_ENCHANT_ITEM_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
+namespace
 {
-	// Enhancement needs the per-level success rates and stat multipliers out of
-	// the server's enchant tables. There is no client copy - the client draws
-	// the stat preview from data the server sent it - so there is nothing to
-	// compute a result from, and inventing a success curve would silently
-	// destroy items. Off, and it says so.
-	KEGS_ENCHANT_ITEM_ACK kAck;
-	kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_00;
+	/// The five NetError::ERR_ENCHANT_RESULT_* values in English, for the log.
+	/// NetError::GetErrStr would give the shipped Korean text in CP949, which
+	/// offline_server.log is not.
+	const wchar_t* EnchantResultStr( int iEnchantResult )
+	{
+		switch( iEnchantResult )
+		{
+		case NetError::ERR_ENCHANT_RESULT_00:	return L"success";
+		case NetError::ERR_ENCHANT_RESULT_01:	return L"no change";
+		case NetError::ERR_ENCHANT_RESULT_02:	return L"down one";
+		case NetError::ERR_ENCHANT_RESULT_03:	return L"reset to +0";
+		case NetError::ERR_ENCHANT_RESULT_04:	return L"BROKEN";
+		}
 
-	CX2OfflineLog::Server( L"ITEM     refused an enhancement - the enchant tables are server data"
-		L" with no client copy, so enhancement is not implemented" );
-
-	return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+		return L"?";
+	}
 }
 
-bool CX2OfflineServer::Handler_EGS_SOCKET_ITEM_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
+bool CX2OfflineServer::Handler_EGS_ENCHANT_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
 {
+	KEGS_ENCHANT_ITEM_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	CX2OfflineInventory*	pInven	= CX2OfflineInventory::Instance();
+	CX2OfflineDB*			pDB		= CX2OfflineDB::Instance();
+	CX2OfflineEnchantTable*	pTable	= CX2OfflineEnchantTable::Instance();
+
+	// The real server's failure reply is a default-constructed ACK with only
+	// m_iOK set: the client tests it with IsValidPacket and puts up the message
+	// for that error code without reading anything else.
+	KEGS_ENCHANT_ITEM_ACK kAck;
+	kAck.m_iOK				= NetError::ERR_ENCHANT_ITEM_00;
+	kAck.m_iED				= 0;
+	kAck.m_iEnchantResult	= NetError::ERR_ENCHANT_RESULT_01;
+	kAck.m_iEnchantedItemUID = 0;
+	kAck.m_iEnchantedItemID	= 0;
+
+	//////////////////////////////////////////////////////////////////////////
+	// The data has to be there before anything else is checked, because
+	// everything below turns on the probability rows.
+
+	if( false == pTable->IsLoaded() )
+	{
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_06;		///< "cannot proceed with enhancement"
+
+		CX2OfflineLog::Server( L"ITEM     refused an enhancement - EnchantTable.lua is not loaded."
+			L" XOR-encrypt KncWX2Server/ServerResource/US/EnchantTable.lua and pack it into"
+			L" data036.kom; the ENCHANT lines above say what went wrong." );
+
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// KInventory::EnchantItem's gates, in its order.
+
+	KOfflineItemRow kRow;
+	if( false == pInven->GetItemRow( kReq.m_iItemUID, kRow ) )
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );	///< ERR_ENCHANT_ITEM_00
+
+	if( CX2Inventory::ST_BANK == kRow.m_iCategory ||
+		CX2Inventory::ST_SHARE_BANK == kRow.m_iCategory )
+	{
+		kAck.m_iOK = NetError::ERR_BANK_02;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	// KInventoryItem::IsSealed (InventoryItem.cpp:501).
+	if( kRow.m_iSealData >= 100 )
+	{
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_14;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	const CX2Item::ItemTemplet* pTemplet = CX2OfflineInventory::Templet( kRow.m_iItemID );
+	if( NULL == pTemplet )
+	{
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_01;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	if( false == pTemplet->GetCanEnchant() )
+	{
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_03;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	// KInventoryItem::IsBroken (InventoryItem.cpp:479): an enchantable item
+	// with a negative level. The client checks this too (CX2Item::IsDisabled),
+	// so reaching it means the two disagree, which is worth a log line.
+	if( kRow.m_iEnchantLevel < 0 )
+	{
+		CX2OfflineLog::Server( L"ITEM     enhancement refused: item %d is broken (+%d)",
+			kRow.m_iItemID, kRow.m_iEnchantLevel );
+
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_12;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	const int iEnchantLevel = kRow.m_iEnchantLevel;
+
+	// SERV_SUPPORT_MATERIAL_LIMIT is on in this build. The event limit arm
+	// (SERV_SUPPORT_MATERIAL_ENCHANT_EVENT) is compiled in on the real server
+	// but only taken while KGameSysVal says an enchant event is running;
+	// nothing offline runs one, so this is the plain arm.
+	if( true == kReq.m_bIsSupportMaterial )
+	{
+		const int iLimit = pTable->GetSupportMaterialEnchantLimitLevel();
+
+		if( iLimit > 0 && iEnchantLevel >= iLimit )
+		{
+			// The real server switches on the limit VALUE to pick the message,
+			// so that the dialog names the right level; 10 and 11 are the only
+			// two it knows, and anything else falls back to the +10 wording.
+			kAck.m_iOK = ( 11 == iLimit ) ? NetError::ERR_ENCHANT_ITEM_15
+										  : NetError::ERR_ENCHANT_ITEM_11;
+
+			return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+		}
+	}
+
+	if( iEnchantLevel >= CX2OfflineEnchantTable::MAX_ENCHANT_LEVEL )
+	{
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_04;		///< cannot be enhanced further
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Cost. Identical to the figure the client already printed in the dialog
+	// (CX2UIShop::OpenEnchantDLG, X2UIShop.cpp:2797) - both are
+	// price * 0.1 * 0.5 for a weapon and price * 0.1 * 0.1 for armour, in that
+	// order and with that float truncation.
+
+	int iED = 0;
+
+	if( CX2Item::IT_WEAPON == pTemplet->GetItemType() )
+	{
+		iED = (int)( ( (float)pTemplet->GetPrice() * 0.1f ) * 0.5f );
+	}
+	else if( CX2Item::IT_DEFENCE == pTemplet->GetItemType() )
+	{
+		iED = (int)( ( (float)pTemplet->GetPrice() * 0.1f ) * 0.1f );
+	}
+	else
+	{
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_02;		///< weapons and armour only
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	KOfflineUnitRow kUnit;
+	if( false == pDB->LoadUnit( kSes.m_nSelectedUnitUID, kUnit ) )
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+
+	if( kUnit.m_iED < iED )
+	{
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_07;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Which stone. m_bIsNewEnchant is the client's "special enhancement"
+	// button: true means the level-banded stones from AddEnchantStoneInfo,
+	// false means the two flat pre-2008 ones. m_bIsRareEnchantStone is dead -
+	// X2UIShop.cpp:3753 sets it false and calls it obsolete - but it is still
+	// what selects the rare probability table below, so it is read, not
+	// assumed.
+
+	int iEnchantStoneID = 0;
+
+	if( true == kReq.m_bIsNewEnchant )
+	{
+		// SERV_EVENT_ENCHANT_STONE_MULTI: any event stone the character
+		// actually holds wins over the standard one.
+		std::vector< int > vecEventStoneID;
+		pTable->GetEventEnchantStoneItemID( pTemplet->GetUseLevel(),
+											(int)pTemplet->GetItemType(), vecEventStoneID );
+
+		for( size_t i = 0; i < vecEventStoneID.size(); ++i )
+		{
+			if( vecEventStoneID[i] > 0 &&
+				pInven->CountItemByID( vecEventStoneID[i], true ) > 0 )
+			{
+				iEnchantStoneID = vecEventStoneID[i];
+				break;
+			}
+		}
+
+		if( 0 == iEnchantStoneID )
+		{
+			iEnchantStoneID = pTable->GetEnchantStoneItemID( pTemplet->GetUseLevel(),
+															 (int)pTemplet->GetItemType() );
+		}
+
+		if( iEnchantStoneID <= 0 )
+		{
+			CX2OfflineLog::Server( L"ITEM     enhancement refused: no stone registered for"
+				L" use level %d, item type %d - EnchantTable.lua is incomplete?",
+				pTemplet->GetUseLevel(), (int)pTemplet->GetItemType() );
+
+			kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_06;
+			return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+		}
+	}
+	else
+	{
+		// SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT is defined for US
+		// (ServerDefine_US.h:607), and it rewrites this branch: the rare stone
+		// is tried first whatever the request said, then Ruriel's event stone,
+		// then the plain one. The client's own count in
+		// CX2UIShop::EnchantItem adds the same Ruriel IDs under the same flag.
+		const bool bWeapon = ( CX2Item::IT_WEAPON == pTemplet->GetItemType() );
+
+		iEnchantStoneID = bWeapon ? pTable->GetRareWeaponEnchantStoneID()
+								  : pTable->GetRareArmorEnchantStoneID();
+
+		if( pInven->CountItemByID( iEnchantStoneID, true ) <= 0 )
+		{
+			iEnchantStoneID = bWeapon
+				? _CONST_BLESSED_RURIEL_ENCHANT_STONE_EVENT::iRuriel_Enchant_Stone_Weapon_Item
+				: _CONST_BLESSED_RURIEL_ENCHANT_STONE_EVENT::iRuriel_Enchant_Stone_Defence_Item;
+
+			if( pInven->CountItemByID( iEnchantStoneID, true ) <= 0 )
+			{
+				iEnchantStoneID = bWeapon ? pTable->GetWeaponEnchantStoneID()
+										  : pTable->GetArmorEnchantStoneID();
+			}
+		}
+	}
+
+	if( pInven->CountItemByID( iEnchantStoneID, true ) <= 0 )
+	{
+		CX2OfflineLog::Server( L"ITEM     enhancement refused: no enchant stone %d in the bag",
+			iEnchantStoneID );
+
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_05;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	// Worn gear cannot be enhanced - the item has to be in the bag first.
+	if( CX2Inventory::ST_E_EQUIP == kRow.m_iCategory )
+	{
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_08;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// The fluor stone, if one was asked for. Found and RESERVED here but not
+	// spent until the roll is done, because the real server's order is: find
+	// it, spend it, then let it rewrite the result. Refusing after the roll
+	// would be indistinguishable, but refusing before it means a request that
+	// cannot be served has not consumed the character's luck for the attempt.
+
+	int iSupportMaterialID = 0;
+
+	if( true == kReq.m_bIsSupportMaterial )
+	{
+		// SERV_COBO_SUPPORT_MATERIAL_EVENT + SERV_EVENT_SUPPORT_MATERIAL_MULTI:
+		// an event fluor stone in the bag wins over the standard one.
+		std::vector< int > vecEventSupportID;
+		pTable->GetEventEnchantSupportMaterialItemID( pTemplet->GetUseLevel(), vecEventSupportID );
+
+		for( size_t i = 0; i < vecEventSupportID.size(); ++i )
+		{
+			if( vecEventSupportID[i] > 0 &&
+				pInven->CountItemByID( vecEventSupportID[i], true ) > 0 )
+			{
+				iSupportMaterialID = vecEventSupportID[i];
+				break;
+			}
+		}
+
+		if( 0 == iSupportMaterialID )
+			iSupportMaterialID = pTable->GetEnchantSupportMaterialItemID( pTemplet->GetUseLevel() );
+
+		if( iSupportMaterialID <= 0 )
+		{
+			kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_10;		///< no fluor stone for this level
+			return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+		}
+
+		if( pInven->CountItemByID( iSupportMaterialID, true ) <= 0 )
+		{
+			kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_09;		///< none in the bag
+			return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// The roll. Keyed by the level being ATTEMPTED, hence +1.
+
+	int iEnchantResult = NetError::ERR_ENCHANT_RESULT_01;
+
+	if( false == pTable->GetEnchantResult( kReq.m_bIsRareEnchantStone,
+										   iEnchantLevel + 1, iEnchantResult ) )
+	{
+		CX2OfflineLog::Server( L"ITEM     enhancement refused: no probability row for +%d%s",
+			iEnchantLevel + 1, kReq.m_bIsRareEnchantStone ? L" (rare)" : L"" );
+
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_06;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	// The GM cheat checkbox. The client only sets m_bDebug for an account with
+	// CX2User::XUAL_DEV, and the real server re-checks the auth level before
+	// honouring it; offline the account is whatever the login handler said it
+	// was, so this is honoured as sent rather than re-derived.
+	if( true == kReq.m_bDebug )
+	{
+		iEnchantResult = NetError::ERR_ENCHANT_RESULT_00;
+
+		CX2OfflineLog::Server( L"ITEM     enhancement forced to succeed by the dev cheat box" );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Spend the fluor stone and let it rewrite the result: it turns a
+	// down-one or a reset into "no change". It does NOT stop a break, which is
+	// what the separate destroy-guard item was for (TW/HK only).
+
+	if( iSupportMaterialID > 0 )
+	{
+		pInven->ConsumeByID( iSupportMaterialID, 1, kAck.m_vecInventorySlotInfo );
+
+		if( NetError::ERR_ENCHANT_RESULT_02 == iEnchantResult ||
+			NetError::ERR_ENCHANT_RESULT_03 == iEnchantResult )
+		{
+			iEnchantResult = NetError::ERR_ENCHANT_RESULT_01;
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Apply. KInventory::EnchantItem's result switch (Inventory.cpp:12952) as
+	// absolute levels rather than as its Increase/Decrease deltas - a break is
+	// a decrease of abs(level)*2, i.e. the level with its sign flipped.
+
+	int iLevelAfterEnchant = iEnchantLevel;
+
+	switch( iEnchantResult )
+	{
+	case NetError::ERR_ENCHANT_RESULT_00:	iLevelAfterEnchant = iEnchantLevel + 1;	break;
+	case NetError::ERR_ENCHANT_RESULT_01:	/* unchanged */							break;
+	case NetError::ERR_ENCHANT_RESULT_02:	iLevelAfterEnchant = iEnchantLevel - 1;	break;
+	case NetError::ERR_ENCHANT_RESULT_03:	iLevelAfterEnchant = 0;					break;
+	case NetError::ERR_ENCHANT_RESULT_04:	iLevelAfterEnchant = -iEnchantLevel;	break;
+
+	default:
+		CX2OfflineLog::Server( L"ITEM     enhancement produced an undefined result %d",
+			iEnchantResult );
+
+		kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_06;
+		return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	if( iLevelAfterEnchant != iEnchantLevel )
+	{
+		KInventoryItemInfo kEnchanted;
+
+		if( false == pInven->SetEnchantLevel( kReq.m_iItemUID, iLevelAfterEnchant, kEnchanted ) )
+		{
+			kAck.m_iOK = NetError::ERR_ENCHANT_ITEM_13;		///< the DB update failed
+			kAck.m_vecInventorySlotInfo.clear();
+			return Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+		}
+
+		kAck.m_vecInventorySlotInfo.push_back( kEnchanted );
+	}
+
+	// The stone goes whatever the result was.
+	pInven->ConsumeByID( iEnchantStoneID, 1, kAck.m_vecInventorySlotInfo );
+
+	kUnit.m_iED -= iED;
+
+	pDB->SaveProgress( kUnit.m_nUnitUID, kUnit.m_iLevel, kUnit.m_iEXP, kUnit.m_iED );
+
+	kAck.m_iOK					= NetError::NET_OK;
+	kAck.m_iED					= kUnit.m_iED;
+	kAck.m_iEnchantResult		= iEnchantResult;
+	kAck.m_iEnchantedItemUID	= kReq.m_iItemUID;
+	kAck.m_iEnchantedItemID		= kRow.m_iItemID;
+
+	CX2OfflineLog::Server( L"ITEM     enhanced item %d: +%d -> +%d (%s), stone %d%s, %d ED, %d ED left",
+		kRow.m_iItemID, iEnchantLevel, iLevelAfterEnchant,
+		EnchantResultStr( iEnchantResult ), iEnchantStoneID,
+		( iSupportMaterialID > 0 ) ? L" + fluor stone" : L"",
+		iED, kUnit.m_iED );
+
+	Reply( kSes, EGS_ENCHANT_ITEM_ACK, kAck );
+
+	//////////////////////////////////////////////////////////////////////////
+	// The quest hook, which is the reason two title sub-quests existed and
+	// could never be finished. KUserQuestManager::Handler_OnEnchantItem is
+	// called from DBE_ENCHANT_ITEM_ACK (GSUserInventory.cpp:3354) - i.e. on
+	// every result EXCEPT "no change", which returns before the DB round trip.
+	// The level it passes is the level AFTER the attempt, so a step that asks
+	// for +5 is satisfied by reaching +5 and by nothing else.
+
+	if( NetError::ERR_ENCHANT_RESULT_01 != iEnchantResult )
+	{
+		KOfflineUnitRow kQuestUnit;
+		if( true == LoadQuestState( kSes, kQuestUnit ) )
+		{
+			std::vector< KQuestInstance > vecChanged;
+
+			CX2OfflineQuest::Instance()->OnEnchantItem( kRow.m_iItemID, iLevelAfterEnchant,
+														kQuestUnit, vecChanged );
+
+			PushQuestUpdate( kSes, vecChanged );
+		}
+	}
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Phase 25: EGS_ENCHANT_ATTACH_ITEM_REQ (ISSUES.md #5, the "magic amulet")
+// used to sit on X2OfflineIgnore.cpp's list, which sends no reply at all and
+// leaves the client's dialog hanging on its AddServerPacket wait - strictly
+// worse for the player than a refusal, which at least closes the dialog.
+//
+// It needs no new data. The amulet is DETERMINISTIC: EnchantTable.lua's
+// AddAttachItemInfo says what enchant level each ticket grants, and phase 23's
+// CX2OfflineEnchantTable has been parsing that table since it was packed. This
+// is KInventory::EnchantAttachItem (Inventory.cpp:16066) plus the KGSUser
+// handler around it (GSUserInventory.cpp:6844) and the ACK that
+// DBE_ENCHANT_ATTACH_ITEM_ACK sends back (:6942).
+
+bool CX2OfflineServer::Handler_EGS_ENCHANT_ATTACH_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_ENCHANT_ATTACH_ITEM_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	CX2OfflineInventory*	pInven	= CX2OfflineInventory::Instance();
+	CX2OfflineEnchantTable*	pTable	= CX2OfflineEnchantTable::Instance();
+
+	KEGS_ENCHANT_ATTACH_ITEM_ACK kAck;
+	kAck.m_iOK = NetError::ERR_ATTACH_ITEM_00;
+
+	if( false == pTable->IsLoaded() )
+	{
+		CX2OfflineLog::Server( L"ITEM     refused an enchant amulet - EnchantTable.lua is not loaded."
+			L" XOR-encrypt KncWX2Server/ServerResource/US/EnchantTable.lua and pack it into data036.kom." );
+
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_01;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// KInventory::EnchantAttachItem's gates, in its order.
+
+	KOfflineItemRow kDest;
+	KOfflineItemRow kAttach;
+
+	if( false == pInven->GetItemRow( kReq.m_iDestItemUID, kDest ) ||
+		false == pInven->GetItemRow( kReq.m_iAttachItemUID, kAttach ) )
+	{
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );		///< ERR_ATTACH_ITEM_00
+	}
+
+	// 2. Is the ticket a ticket, and what does it grant?
+	int iAttachEnchantLevel	= 0;
+	int iAttachItemType		= 0;
+
+	if( false == pTable->GetAttachItemEnchantLevel( kAttach.m_iItemID,
+													iAttachEnchantLevel, iAttachItemType ) )
+	{
+		CX2OfflineLog::Server( L"ITEM     amulet refused: item %d is not an enchant-attach ticket",
+			kAttach.m_iItemID );
+
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_01;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	// 3. Both templets. SERV_ENCHANT_ATTACH_MODIFY is on in this build, which
+	// is what makes the ticket's own templet load-bearing: it decides at the
+	// end whether the ticket is a stack to decrement or an item to delete.
+	const CX2Item::ItemTemplet* pDestTemplet	= CX2OfflineInventory::Templet( kDest.m_iItemID );
+	const CX2Item::ItemTemplet* pAttachTemplet	= CX2OfflineInventory::Templet( kAttach.m_iItemID );
+
+	if( NULL == pDestTemplet || NULL == pAttachTemplet )
+	{
+		kAck.m_iOK = NetError::ERR_ITEM_04;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	if( false == pDestTemplet->GetCanEnchant() )
+	{
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_02;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	// The ticket's own item-type restriction: IT_NONE takes any weapon or
+	// piece of armour, IT_DEFENCE takes armour only, and anything else is a
+	// broken table row rather than a player mistake.
+	if( CX2Item::IT_NONE == iAttachItemType )
+	{
+		if( CX2Item::IT_WEAPON != pDestTemplet->GetItemType() &&
+			CX2Item::IT_DEFENCE != pDestTemplet->GetItemType() )
+		{
+			kAck.m_iOK = NetError::ERR_ATTACH_ITEM_02;
+			return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+		}
+	}
+	else if( CX2Item::IT_DEFENCE == iAttachItemType )
+	{
+		if( CX2Item::IT_DEFENCE != pDestTemplet->GetItemType() )
+		{
+			kAck.m_iOK = NetError::ERR_ATTACH_ITEM_02;
+			return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+		}
+	}
+	else
+	{
+		CX2OfflineLog::Server( L"ITEM     amulet refused: ticket %d has item type %d,"
+			L" which EnchantTable.lua should never produce",
+			kAttach.m_iItemID, iAttachItemType );
+
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_02;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	// SERV_ADD_ITEM_LEVEL_CONDITION_FOR_ENCHANT_ATTACH_ITEM, on in this build.
+	if( false == pTable->CheckAttachItemEnableLevel( kAttach.m_iItemID, pDestTemplet->GetUseLevel() ) )
+	{
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_04;		///< wrong equipment level for this amulet
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	// 4. Broken item.
+	if( kDest.m_iEnchantLevel < 0 )
+	{
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_02;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	// 6. The amulet only ever raises: a target already at or above the level
+	// the ticket grants is refused, not silently downgraded.
+	if( kDest.m_iEnchantLevel >= iAttachEnchantLevel )
+	{
+		CX2OfflineLog::Server( L"ITEM     amulet refused: item %d is already +%d, ticket grants +%d",
+			kDest.m_iItemID, kDest.m_iEnchantLevel, iAttachEnchantLevel );
+
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_02;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	// 7. Range.
+	if( kDest.m_iEnchantLevel > CX2OfflineEnchantTable::MAX_ENCHANT_LEVEL )
+	{
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_02;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	// 8. Worn gear cannot be attached to.
+	if( CX2Inventory::ST_E_EQUIP == kDest.m_iCategory )
+	{
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_02;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// 9. Apply. No roll, no ED, no chance of loss - that is the whole point of
+	// the amulet.
+
+	KInventoryItemInfo kChanged;
+
+	if( false == pInven->SetEnchantLevel( kReq.m_iDestItemUID, iAttachEnchantLevel, kChanged ) )
+	{
+		kAck.m_iOK = NetError::ERR_ATTACH_ITEM_00;
+		return Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+	}
+
+	kAck.m_vecKInventorySlotInfo.push_back( kChanged );
+
+	// 11. Spend the ticket. SERV_ENCHANT_ATTACH_MODIFY: a stackable ticket
+	// loses one, a non-stackable one is deleted whole. DeleteItem does both -
+	// a quantity of 1 against a single-item row removes the row.
+	KInventoryItemInfo kSpent;
+
+	if( true == pInven->DeleteItem( kReq.m_iAttachItemUID, 1, kSpent ) )
+		kAck.m_vecKInventorySlotInfo.push_back( kSpent );
+
+	kAck.m_iOK = NetError::NET_OK;
+
+	CX2OfflineLog::Server( L"ITEM     amulet %d set item %d to +%d (was +%d)",
+		kAttach.m_iItemID, kDest.m_iItemID, iAttachEnchantLevel, kDest.m_iEnchantLevel );
+
+	Reply( kSes, EGS_ENCHANT_ATTACH_ITEM_ACK, kAck );
+
+	// The amulet reaches a level the same way an enhancement does, so it feeds
+	// the same quest hook. The real server does not do this - its
+	// DBE_ENCHANT_ATTACH_ITEM_ACK has no Handler_OnEnchantItem call, only the
+	// enhancement path does - so it is NOT done here either; a step that asks
+	// the player to enhance an item is not satisfied by buying the level.
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Phase 26: item attributes (ISSUES.md #10). Two packets, both previously on
+// the ignore list and therefore both hanging their dialog:
+//
+//   EGS_ATTRIB_ENCHANT_ITEM_REQ  - the El shard NPC. Put one attribute into
+//                                  one slot, or take one out. Costs ED and
+//                                  shards; an El shard [Unknown] rolls.
+//   EGS_ATTRIB_ATTACH_ITEM_REQ   - the attribute amulet. Sets all three slots
+//                                  at once, deterministically, for free.
+//
+// Most of this is client-side already and is used rather than re-ported:
+// CX2EnchantItem::GetAttribEnchantRequireMagicStoneCount and
+// ...RequireED are AttribEnchantRequire.lua, which the client loads itself;
+// CanEnchantAttribute is CXSLAttribEnchantItem::IsPossibleToPush; GetItemID is
+// GetRequireItemID. Only the random tables are server-only, and those are
+// CX2OfflineAttribTable's job.
+
+namespace
+{
+	/// CXSLAttribEnchantItem::GetAttribCountType (XSLAttribEnchantItem.cpp:304),
+	/// which counts NON-EMPTY slots rather than reading them in order - an item
+	/// with slot 0 empty and slot 1 filled is ACT_SINGLE, not ACT_NONE.
+	int AttribCountType( int iAttrib0, int iAttrib1, int iAttrib2 )
+	{
+		int iCount = 0;
+
+		if( 0 != iAttrib0 )	++iCount;
+		if( 0 != iAttrib1 )	++iCount;
+		if( 0 != iAttrib2 )	++iCount;
+
+		switch( iCount )
+		{
+		case 0:		return CX2EnchantItem::ACT_NONE;
+		case 1:		return CX2EnchantItem::ACT_SINGLE;
+		case 2:		return CX2EnchantItem::ACT_DUAL;
+		}
+
+		return CX2EnchantItem::ACT_TRIPLE;
+	}
+
+	/// CXSLAttribEnchantItem::GetRequireItemID - which El shard a given
+	/// attribute is bought with. The client's CX2EnchantItem::GetItemID is the
+	/// same table but has no ET_NONE case, and ET_NONE (removing an attribute)
+	/// costs no shard at all, so this keeps the server's shape: 0 for ET_NONE,
+	/// -1 for a value that is not an attribute.
+	int AttribRequireItemID( char cAttribEnchantType )
+	{
+		switch( cAttribEnchantType )
+		{
+		case CX2EnchantItem::ET_NONE:	return 0;
+		case CX2EnchantItem::ET_BLAZE:	return CX2EnchantItem::ATI_RED;
+		case CX2EnchantItem::ET_WATER:	return CX2EnchantItem::ATI_BLUE;
+		case CX2EnchantItem::ET_NATURE:	return CX2EnchantItem::ATI_GREEN;
+		case CX2EnchantItem::ET_WIND:	return CX2EnchantItem::ATI_WIND;
+		case CX2EnchantItem::ET_LIGHT:	return CX2EnchantItem::ATI_LIGHT;
+		case CX2EnchantItem::ET_DARK:	return CX2EnchantItem::ATI_DARK;
+		case CX2EnchantItem::ET_RANDOM:	return CX2EnchantItem::ATI_UNKNOWN;
+		}
+
+		return -1;
+	}
+
+	/// CXSLAttribEnchantItem::VerifyAttribEnchantType.
+	bool IsAttribEnchantType( char cAttribEnchantType )
+	{
+		switch( cAttribEnchantType )
+		{
+		case CX2EnchantItem::ET_NONE:
+		case CX2EnchantItem::ET_BLAZE:
+		case CX2EnchantItem::ET_WATER:
+		case CX2EnchantItem::ET_NATURE:
+		case CX2EnchantItem::ET_WIND:
+		case CX2EnchantItem::ET_LIGHT:
+		case CX2EnchantItem::ET_DARK:
+		case CX2EnchantItem::ET_RANDOM:
+			return true;
+		}
+
+		return false;
+	}
+
+	/// CXSLAttribEnchantItem::IsPossibleToPush - the two exclusive triads.
+	/// CX2EnchantItem::CanEnchantAttribute is the client's own copy of the same
+	/// rule but takes a whole ItemEnchantedAttribute; this takes the pair the
+	/// server's version does, which is what the caller has.
+	bool IsPossibleToPush( char cExistingType, char cTypeToAdd )
+	{
+		if( CX2EnchantItem::ET_NONE == cExistingType || CX2EnchantItem::ET_NONE == cTypeToAdd )
+			return false;
+
+		switch( cExistingType )
+		{
+		case CX2EnchantItem::ET_BLAZE:
+			return ( CX2EnchantItem::ET_WATER != cTypeToAdd &&
+					 CX2EnchantItem::ET_NATURE != cTypeToAdd );
+
+		case CX2EnchantItem::ET_WATER:
+			return ( CX2EnchantItem::ET_BLAZE != cTypeToAdd &&
+					 CX2EnchantItem::ET_NATURE != cTypeToAdd );
+
+		case CX2EnchantItem::ET_NATURE:
+			return ( CX2EnchantItem::ET_BLAZE != cTypeToAdd &&
+					 CX2EnchantItem::ET_WATER != cTypeToAdd );
+
+		case CX2EnchantItem::ET_WIND:
+			return ( CX2EnchantItem::ET_LIGHT != cTypeToAdd &&
+					 CX2EnchantItem::ET_DARK != cTypeToAdd );
+
+		case CX2EnchantItem::ET_LIGHT:
+			return ( CX2EnchantItem::ET_WIND != cTypeToAdd &&
+					 CX2EnchantItem::ET_DARK != cTypeToAdd );
+
+		case CX2EnchantItem::ET_DARK:
+			return ( CX2EnchantItem::ET_WIND != cTypeToAdd &&
+					 CX2EnchantItem::ET_LIGHT != cTypeToAdd );
+		}
+
+		return true;
+	}
+}
+
+bool CX2OfflineServer::Handler_EGS_ATTRIB_ENCHANT_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_ATTRIB_ENCHANT_ITEM_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	CX2OfflineInventory*	pInven	= CX2OfflineInventory::Instance();
+	CX2OfflineDB*			pDB		= CX2OfflineDB::Instance();
+	CX2OfflineAttribTable*	pTable	= CX2OfflineAttribTable::Instance();
+
+	KEGS_ATTRIB_ENCHANT_ITEM_ACK kAck;
+	kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_00;
+
+	if( NULL == g_pData || NULL == g_pData->GetEnchantItem() )
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+
+	CX2EnchantItem* pClientEnchant = g_pData->GetEnchantItem();
+
+	char cAttribEnchantType = kReq.m_cAttribEnchantID;
+
+	// A random request needs the packed lottery; a specific one does not, so
+	// the data gate is only applied where it actually bites.
+	if( CX2EnchantItem::ET_RANDOM == cAttribEnchantType && false == pTable->IsLoaded() )
+	{
+		CX2OfflineLog::Server( L"ITEM     refused a random attribute - AttribEnchantTable.lua is not"
+			L" loaded. XOR-encrypt KncWX2Server/ServerResource/US/AttribEnchantTable.lua and pack"
+			L" it into data036.kom." );
+
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// KInventory::AttribEnchantItem's gates, in its order.
+
+	KOfflineItemRow kRow;
+	if( false == pInven->GetItemRow( kReq.m_iItemUID, kRow ) )
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+
+	if( CX2Inventory::ST_BANK == kRow.m_iCategory ||
+		CX2Inventory::ST_SHARE_BANK == kRow.m_iCategory )
+	{
+		kAck.m_iOK = NetError::ERR_BANK_02;
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	if( kRow.m_iEnchantLevel < 0 )
+	{
+		kAck.m_iOK = NetError::ERR_RESTORE_ITEM_06;		///< broken item
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	if( false == IsAttribEnchantType( cAttribEnchantType ) )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	const int iRequireItemID = AttribRequireItemID( cAttribEnchantType );
+	if( iRequireItemID < 0 )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// CXSLAttribEnchantItem::IsPossibleAttribEnchant, which is also where
+	// ET_RANDOM stops being random: it is resolved into a real attribute here,
+	// against the slots that are already filled, before anything is charged.
+
+	const int eCountType = AttribCountType( kRow.m_iAttrib0, kRow.m_iAttrib1, kRow.m_iAttrib2 );
+
+	if( CX2EnchantItem::ET_NONE != cAttribEnchantType )
+	{
+		// Which slot, and what is in the other two.
+		char cFirstAttribType	= 0;
+		char cSecondAttribType	= 0;
+
+		switch( kReq.m_cAttribEnchantSlotNo )
+		{
+		case CX2EnchantItem::ESI_SLOT_1:
+			if( 0 != kRow.m_iAttrib0 )
+			{
+				kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_02;		///< slot already taken
+				return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+			}
+			cFirstAttribType	= (char)kRow.m_iAttrib1;
+			cSecondAttribType	= (char)kRow.m_iAttrib2;
+			break;
+
+		case CX2EnchantItem::ESI_SLOT_2:
+			if( 0 != kRow.m_iAttrib1 )
+			{
+				kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_02;
+				return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+			}
+			cFirstAttribType	= (char)kRow.m_iAttrib0;
+			cSecondAttribType	= (char)kRow.m_iAttrib2;
+			break;
+
+		case CX2EnchantItem::ESI_SLOT_3:
+			if( 0 != kRow.m_iAttrib2 )
+			{
+				kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_02;
+				return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+			}
+			cFirstAttribType	= (char)kRow.m_iAttrib0;
+			cSecondAttribType	= (char)kRow.m_iAttrib1;
+			break;
+
+		default:
+			kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+			return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+		}
+
+		switch( eCountType )
+		{
+		case CX2EnchantItem::ACT_NONE:
+			if( CX2EnchantItem::ET_RANDOM == cAttribEnchantType )
+			{
+				cAttribEnchantType = pTable->GetRandomAttribResult( eCountType, 0, 0 );
+			}
+			break;
+
+		case CX2EnchantItem::ACT_SINGLE:
+			{
+				// Exactly one of the other two slots holds something; the real
+				// server reads whichever it is, in that order.
+				const char cExisting = ( 0 != cFirstAttribType ) ? cFirstAttribType
+																 : cSecondAttribType;
+
+				if( 0 == cExisting )
+				{
+					kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+					return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+				}
+
+				if( CX2EnchantItem::ET_RANDOM == cAttribEnchantType )
+					cAttribEnchantType = pTable->GetRandomAttribResult( eCountType, cExisting, 0 );
+
+				if( false == IsPossibleToPush( cExisting, cAttribEnchantType ) )
+				{
+					kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+					return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+				}
+			}
+			break;
+
+		case CX2EnchantItem::ACT_DUAL:
+			{
+				if( CX2EnchantItem::ET_RANDOM == cAttribEnchantType )
+				{
+					cAttribEnchantType = pTable->GetRandomAttribResult(
+						eCountType, cFirstAttribType, cSecondAttribType );
+				}
+
+				// The triple lottery IS the legality table: an attribute that
+				// has no case registered for this pair cannot be added, random
+				// or chosen. This needs the packed file even when the request
+				// was not random, so the gate is applied here rather than up
+				// top.
+				if( false == pTable->IsLoaded() )
+				{
+					CX2OfflineLog::Server( L"ITEM     refused a third attribute -"
+						L" AttribEnchantTable.lua is not loaded." );
+
+					kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+					return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+				}
+
+				if( false == pTable->IsExistTripleCase( cFirstAttribType, cSecondAttribType,
+														cAttribEnchantType ) )
+				{
+					kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+					return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+				}
+			}
+			break;
+
+		default:
+			// Already triple - nothing more fits.
+			kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+			return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+		}
+
+		// A roll that found no row comes back ET_NONE, which would silently
+		// turn "add an attribute" into "clear the slot".
+		if( CX2EnchantItem::ET_NONE == cAttribEnchantType )
+		{
+			kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+			return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+		}
+	}
+	else
+	{
+		// Removing: the named slot has to hold something.
+		int iExisting = 0;
+
+		switch( kReq.m_cAttribEnchantSlotNo )
+		{
+		case CX2EnchantItem::ESI_SLOT_1:	iExisting = kRow.m_iAttrib0;	break;
+		case CX2EnchantItem::ESI_SLOT_2:	iExisting = kRow.m_iAttrib1;	break;
+		case CX2EnchantItem::ESI_SLOT_3:	iExisting = kRow.m_iAttrib2;	break;
+
+		default:
+			kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+			return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+		}
+
+		if( 0 == iExisting )
+		{
+			kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_03;		///< nothing to remove
+			return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Weapon or armour, and the cost.
+
+	const CX2Item::ItemTemplet* pTemplet = CX2OfflineInventory::Templet( kRow.m_iItemID );
+	if( NULL == pTemplet )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_06;
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	bool bWeapon = false;
+
+	if( CX2Item::IT_WEAPON == pTemplet->GetItemType() )
+	{
+		bWeapon = true;
+	}
+	else if( CX2Item::IT_DEFENCE != pTemplet->GetItemType() )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_07;
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	KOfflineUnitRow kUnit;
+	if( false == pDB->LoadUnit( kSes.m_nSelectedUnitUID, kUnit ) )
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+
+	int iRequireQuantity	= 0;
+	int iCost				= 0;
+
+	// The shard count and the ED both come from AttribEnchantRequire.lua, which
+	// the CLIENT loads - CX2EnchantItem parses it at start-up, so these two
+	// calls are the same table the real server reads, not a re-derivation.
+	// Both take the count of attributes ALREADY on the item, which is
+	// eCountType, and CX2EnchantItem's ACT_* values are the server's.
+	if( CX2EnchantItem::ET_NONE != cAttribEnchantType )
+	{
+		if( false == pClientEnchant->GetAttribEnchantRequireMagicStoneCount(
+				bWeapon, eCountType, pTemplet->GetUseLevel(),
+				pTemplet->GetItemGrade(), iRequireQuantity ) )
+		{
+			kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+			return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+		}
+
+		if( iRequireItemID > 0 &&
+			pInven->CountItemByID( iRequireItemID, true ) < iRequireQuantity )
+		{
+			kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_05;		///< not enough El shards
+			return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+		}
+	}
+
+	if( false == pClientEnchant->GetAttribEnchantRequireED(
+			bWeapon, eCountType, pTemplet->GetUseLevel(), pTemplet->GetItemGrade(), iCost ) )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	if( kUnit.m_iED < iCost )
+	{
+		// The insert and remove paths report a short wallet with different
+		// codes, so the dialog can name which operation could not be paid for.
+		kAck.m_iOK = ( CX2EnchantItem::ET_NONE != cAttribEnchantType )
+					 ? NetError::ERR_ATTRIB_ENCHANT_04
+					 : NetError::ERR_ATTRIB_ENCHANT_08;
+
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Apply.
+
+	KInventoryItemInfo kChanged;
+
+	if( false == pInven->SetAttribEnchant( kReq.m_iItemUID, (int)kReq.m_cAttribEnchantSlotNo,
+										   cAttribEnchantType, kChanged ) )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_00;
+		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+	}
+
+	if( CX2EnchantItem::ET_NONE != cAttribEnchantType &&
+		iRequireItemID > 0 && iRequireQuantity > 0 )
+	{
+		pInven->ConsumeByID( iRequireItemID, iRequireQuantity, kAck.m_vecInventorySlotInfo );
+	}
+
+	kAck.m_vecInventorySlotInfo.push_back( kChanged );
+
+	kUnit.m_iED -= iCost;
+	pDB->SaveProgress( kUnit.m_nUnitUID, kUnit.m_iLevel, kUnit.m_iEXP, kUnit.m_iED );
+
+	kAck.m_iOK = NetError::NET_OK;
+
+	CX2OfflineLog::Server( L"ITEM     attribute slot %d of item %d set to %d"
+		L" (%d shard(s) of %d, %d ED, %d ED left)",
+		(int)kReq.m_cAttribEnchantSlotNo, kRow.m_iItemID, (int)cAttribEnchantType,
+		iRequireQuantity, iRequireItemID, iCost, kUnit.m_iED );
+
+	Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
+
+	// SQT_ITEM_ATTRIB is not driven from here. The offline quest census already
+	// says why and it is still true: the clear type is parsed but this build
+	// has no reachable sub-quest that uses it, and the real server's own hook
+	// sits behind a flag combination this configuration does not compile.
+
+	return true;
+}
+
+bool CX2OfflineServer::Handler_EGS_ATTRIB_ATTACH_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_ATTRIB_ATTACH_ITEM_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	CX2OfflineInventory*	pInven	= CX2OfflineInventory::Instance();
+	CX2OfflineAttribTable*	pTable	= CX2OfflineAttribTable::Instance();
+
+	KEGS_ATTRIB_ATTACH_ITEM_ACK kAck;
+	kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_00;
+
+	if( false == pTable->IsLoaded() )
+	{
+		CX2OfflineLog::Server( L"ITEM     refused an attribute amulet - the attribute tables are"
+			L" not loaded. XOR-encrypt KncWX2Server/ServerResource/US/AttribEnchantTable.lua and"
+			L" AttribAttachTable.lua and pack them into data036.kom." );
+
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+		return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+	}
+
+	KOfflineItemRow kDest;
+	KOfflineItemRow kAttach;
+
+	if( false == pInven->GetItemRow( kReq.m_iDestItemUID, kDest ) ||
+		false == pInven->GetItemRow( kReq.m_iAttachItemUID, kAttach ) )
+	{
+		return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+	}
+
+	if( CX2Inventory::ST_BANK == kDest.m_iCategory ||
+		CX2Inventory::ST_SHARE_BANK == kDest.m_iCategory ||
+		CX2Inventory::ST_BANK == kAttach.m_iCategory ||
+		CX2Inventory::ST_SHARE_BANK == kAttach.m_iCategory )
+	{
+		kAck.m_iOK = NetError::ERR_BANK_02;
+		return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+	}
+
+	if( kDest.m_iEnchantLevel < 0 )
+	{
+		kAck.m_iOK = NetError::ERR_RESTORE_ITEM_06;
+		return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+	}
+
+	const CX2Item::ItemTemplet* pTemplet = CX2OfflineInventory::Templet( kDest.m_iItemID );
+	if( NULL == pTemplet )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_06;
+		return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+	}
+
+	if( CX2Item::IT_WEAPON != pTemplet->GetItemType() &&
+		CX2Item::IT_DEFENCE != pTemplet->GetItemType() )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_07;
+		return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+	}
+
+	char cAttrib0 = 0;
+	char cAttrib1 = 0;
+	char cAttrib2 = 0;
+
+	if( false == pTable->GetAttribAttachInfo( kAttach.m_iItemID, cAttrib0, cAttrib1, cAttrib2 ) )
+	{
+		CX2OfflineLog::Server( L"ITEM     amulet refused: item %d is not an attribute amulet",
+			kAttach.m_iItemID );
+
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+		return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+	}
+
+	// The item has to have room for as many attributes as the amulet carries.
+	int iAmuletCount = 0;
+	if( 0 != cAttrib0 )	++iAmuletCount;
+	if( 0 != cAttrib1 )	++iAmuletCount;
+	if( 0 != cAttrib2 )	++iAmuletCount;
+
+	if( iAmuletCount > pTemplet->GetMaxAttribEnchantCount() )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_01;
+		return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Apply all three slots. The amulet OVERWRITES - it writes every slot,
+	// including the empty ones, so an item with attributes already on it comes
+	// out carrying exactly what the amulet says and nothing else. That is the
+	// real server's loop, which walks ESI_SLOT_1..ESI_SLOT_MAX unconditionally.
+
+	KInventoryItemInfo kChanged;
+	bool bWrote = false;
+
+	for( int iSlotID = CX2EnchantItem::ESI_SLOT_1; iSlotID <= CX2EnchantItem::ESI_SLOT_3; ++iSlotID )
+	{
+		char cType = 0;
+
+		switch( iSlotID )
+		{
+		case CX2EnchantItem::ESI_SLOT_1:	cType = cAttrib0;	break;
+		case CX2EnchantItem::ESI_SLOT_2:	cType = cAttrib1;	break;
+		case CX2EnchantItem::ESI_SLOT_3:	cType = cAttrib2;	break;
+		}
+
+		if( true == pInven->SetAttribEnchant( kReq.m_iDestItemUID, iSlotID, cType, kChanged ) )
+			bWrote = true;
+	}
+
+	if( false == bWrote )
+	{
+		kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_00;
+		return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+	}
+
+	// kChanged is the last write's slot info, which carries all three
+	// attributes - each SetAttribEnchant rebuilds it from the whole row.
+	kAck.m_vecInventorySlotInfo.push_back( kChanged );
+
+	KInventoryItemInfo kSpent;
+	if( true == pInven->DeleteItem( kReq.m_iAttachItemUID, 1, kSpent ) )
+		kAck.m_vecInventorySlotInfo.push_back( kSpent );
+
+	kAck.m_iOK = NetError::NET_OK;
+
+	CX2OfflineLog::Server( L"ITEM     attribute amulet %d set item %d to %d/%d/%d",
+		kAttach.m_iItemID, kDest.m_iItemID, (int)cAttrib0, (int)cAttrib1, (int)cAttrib2 );
+
+	return Reply( kSes, EGS_ATTRIB_ATTACH_ITEM_ACK, kAck );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Phase 24: EGS_SOCKET_ITEM_REQ (ISSUES.md #3) was the twin of the phase-23
+// enhancement refusal, and had the same shape of answer: the option tables ARE
+// server data, and they are in the tree - SocketItemTable.lua. This is
+// KInventory::SocketItem (Inventory.cpp:13486) plus its KGSUser wrapper
+// (GSUserInventory.cpp:3437) and the ACK that DBE_SOCKET_ITEM_ACK sends (:3571).
+//
+// One request can fill several slots at once - m_mapSocketInfo is
+// slot index -> magic stone item UID - and the real server prices, validates
+// and then applies all of them, so a request that cannot be paid for changes
+// nothing at all. That two-pass shape is kept.
+
+bool CX2OfflineServer::Handler_EGS_SOCKET_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_SOCKET_ITEM_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	CX2OfflineInventory*	pInven	= CX2OfflineInventory::Instance();
+	CX2OfflineDB*			pDB		= CX2OfflineDB::Instance();
+	CX2OfflineSocketTable*	pTable	= CX2OfflineSocketTable::Instance();
+
 	KEGS_SOCKET_ITEM_ACK kAck;
-	kAck.m_iOK = NetError::ERR_SOCKET_ITEM_00;
+	kAck.m_iOK		= NetError::ERR_SOCKET_ITEM_00;
+	kAck.m_iED		= 0;
+	kAck.m_iItemUID	= 0;
 
-	CX2OfflineLog::Server( L"ITEM     refused a socketing - the socket option tables are server"
-		L" data with no client copy, so socketing is not implemented" );
+	if( false == pTable->IsLoaded() )
+	{
+		CX2OfflineLog::Server( L"ITEM     refused a socketing - SocketItemTable.lua is not loaded."
+			L" XOR-encrypt KncWX2Server/ServerResource/US/SocketItemTable.lua and pack it into"
+			L" data036.kom; the SOCKET lines above say what went wrong." );
 
-	return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+		kAck.m_iOK = NetError::ERR_SOCKET_ITEM_01;
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+	}
+
+	// The GM socket-option cheat is not honoured offline. On the real server it
+	// writes chosen option IDs straight into the item and is gated on
+	// UAL_GM; there is no operator here, and the request carries the option IDs
+	// themselves, so honouring it would let a modified client write arbitrary
+	// socket options. Refused, and it says so rather than silently rolling.
+	if( true == kReq.m_bCheat )
+	{
+		CX2OfflineLog::Server( L"ITEM     refused a socket CHEAT request - offline has no GM" );
+
+		kAck.m_iOK = NetError::ERR_VERIFY_12;
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// KInventory::SocketItem's gates on the target, in its order.
+
+	KOfflineItemRow kRow;
+	if( false == pInven->GetItemRow( kReq.m_iItemUID, kRow ) )
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+
+	if( CX2Inventory::ST_BANK == kRow.m_iCategory ||
+		CX2Inventory::ST_SHARE_BANK == kRow.m_iCategory )
+	{
+		kAck.m_iOK = NetError::ERR_BANK_01;
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+	}
+
+	if( kRow.m_iEnchantLevel < 0 )
+	{
+		kAck.m_iOK = NetError::ERR_RESTORE_ITEM_06;		///< broken item
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+	}
+
+	const CX2Item::ItemTemplet* pTemplet = CX2OfflineInventory::Templet( kRow.m_iItemID );
+	if( NULL == pTemplet )
+	{
+		kAck.m_iOK = NetError::ERR_SOCKET_ITEM_01;
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+	}
+
+	if( true == pTemplet->GetNoEquip() )
+	{
+		kAck.m_iOK = NetError::ERR_SOCKET_ITEM_06;
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+	}
+
+	if( true == kReq.m_mapSocketInfo.empty() )
+	{
+		kAck.m_iOK = NetError::ERR_SOCKET_ITEM_03;
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+	}
+
+	KOfflineUnitRow kUnit;
+	if( false == pDB->LoadUnit( kSes.m_nSelectedUnitUID, kUnit ) )
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+
+	//////////////////////////////////////////////////////////////////////////
+	// First pass: price every insert and count how many of each stone the
+	// request needs, without touching anything.
+
+	const int iAssignedSocketCount = pInven->GetCountAssignedItemSocket( kReq.m_iItemUID );
+
+	int iTotalCost = 0;
+
+	std::map< UidType, int > mapRequireStone;		///< stone item UID -> how many
+
+	std::map< int, UidType >::const_iterator mitSI;
+	for( mitSI = kReq.m_mapSocketInfo.begin(); mitSI != kReq.m_mapSocketInfo.end(); ++mitSI )
+	{
+		const int		iSocketSlotID	= mitSI->first;
+		const UidType	nMagicStoneUID	= mitSI->second;
+
+		++mapRequireStone[ nMagicStoneUID ];
+
+		const int iMagicStoneItemID = pInven->GetItemID( nMagicStoneUID );
+
+		if( false == pTable->IsMagicStoneItemID( iMagicStoneItemID ) )
+		{
+			CX2OfflineLog::Server( L"ITEM     socketing refused: item %d is not a magic stone",
+				iMagicStoneItemID );
+
+			kAck.m_iOK = NetError::ERR_SOCKET_ITEM_03;
+			return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+		}
+
+		int iSocketOptionID = 0;
+		if( false == pInven->GetItemSocketOption( kReq.m_iItemUID, iSocketSlotID, iSocketOptionID ) )
+		{
+			kAck.m_iOK = NetError::ERR_SOCKET_ITEM_00;
+			return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+		}
+
+		const bool bIsEmptySlot = ( 0 == iSocketOptionID );
+
+		int iCost = 0;
+		if( false == pTable->CalcInsertSocketCost( kRow.m_iItemID, iMagicStoneItemID,
+												   iAssignedSocketCount, bIsEmptySlot, iCost ) )
+		{
+			kAck.m_iOK = NetError::ERR_SOCKET_ITEM_03;
+			return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+		}
+
+		iTotalCost += iCost;
+	}
+
+	if( kUnit.m_iED < iTotalCost )
+	{
+		kAck.m_iOK = NetError::ERR_SOCKET_ITEM_02;
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+	}
+
+	// Every stone the request names has to actually be there, in the quantity
+	// the request uses it - checked before the first one is spent.
+	std::map< UidType, int >::const_iterator mitRS;
+	for( mitRS = mapRequireStone.begin(); mitRS != mapRequireStone.end(); ++mitRS )
+	{
+		KOfflineItemRow kStone;
+
+		if( false == pInven->GetItemRow( mitRS->first, kStone ) ||
+			kStone.m_iQuantity < mitRS->second )
+		{
+			CX2OfflineLog::Server( L"ITEM     socketing refused: not enough of magic stone %I64d",
+				(__int64)mitRS->first );
+
+			kAck.m_iOK = NetError::ERR_SOCKET_ITEM_03;
+			return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Second pass: roll and apply.
+
+	KInventoryItemInfo kChanged;
+	bool bAnyWritten = false;
+
+	for( mitSI = kReq.m_mapSocketInfo.begin(); mitSI != kReq.m_mapSocketInfo.end(); ++mitSI )
+	{
+		const int		iSocketSlotID	= mitSI->first;
+		const int		iMagicStoneItemID = pInven->GetItemID( mitSI->second );
+
+		int iSocketResult = 0;
+
+		if( false == pTable->GetResultItem( iMagicStoneItemID, (int)pTemplet->GetItemType(),
+											pTemplet->GetUseLevel(), pTemplet->GetFashion(),
+											kRow.m_iEnchantLevel, iSocketResult ) )
+		{
+			// Mid-request failure. The real server returns here too, leaving
+			// whatever it already wrote in place; the ED has not been charged
+			// yet either way, so the honest thing is to stop and say so.
+			CX2OfflineLog::Server( L"ITEM     socketing stopped at slot %d: no option rolled"
+				L" for stone %d", iSocketSlotID, iMagicStoneItemID );
+
+			kAck.m_iOK = NetError::ERR_SOCKET_ITEM_01;
+			kAck.m_vecInventorySlotInfo.clear();
+			return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+		}
+
+		if( false == pInven->SetItemSocketOption( kReq.m_iItemUID, iSocketSlotID,
+												  iSocketResult, kChanged ) )
+		{
+			kAck.m_iOK = NetError::ERR_SOCKET_ITEM_06;
+			kAck.m_vecInventorySlotInfo.clear();
+			return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+		}
+
+		bAnyWritten = true;
+
+		CX2OfflineLog::Server( L"ITEM     socket slot %d of item %d <- option %d (stone %d)",
+			iSocketSlotID, kRow.m_iItemID, iSocketResult, iMagicStoneItemID );
+	}
+
+	if( false == bAnyWritten )
+	{
+		kAck.m_iOK = NetError::ERR_SOCKET_ITEM_06;
+		return Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+	}
+
+	// kChanged is the last write's slot info and carries the whole socket list,
+	// because SetItemSocketOption rebuilds it from the row every time.
+	kAck.m_vecInventorySlotInfo.push_back( kChanged );
+
+	// Spend the stones.
+	for( mitRS = mapRequireStone.begin(); mitRS != mapRequireStone.end(); ++mitRS )
+	{
+		KInventoryItemInfo kSpent;
+
+		if( true == pInven->DeleteItem( mitRS->first, mitRS->second, kSpent ) )
+			kAck.m_vecInventorySlotInfo.push_back( kSpent );
+	}
+
+	kUnit.m_iED -= iTotalCost;
+	pDB->SaveProgress( kUnit.m_nUnitUID, kUnit.m_iLevel, kUnit.m_iEXP, kUnit.m_iED );
+
+	kAck.m_iOK		= NetError::NET_OK;
+	kAck.m_iED		= kUnit.m_iED;
+	kAck.m_iItemUID	= kReq.m_iItemUID;
+
+	CX2OfflineLog::Server( L"ITEM     socketed item %d: %u slot(s) for %d ED, %d ED left",
+		kRow.m_iItemID, (unsigned int)kReq.m_mapSocketInfo.size(), iTotalCost, kUnit.m_iED );
+
+	Reply( kSes, EGS_SOCKET_ITEM_ACK, kAck );
+
+	//////////////////////////////////////////////////////////////////////////
+	// The quest hook, the socket twin of phase 23's. The real server calls it
+	// from DBE_SOCKET_ITEM_ACK (GSUserInventory.cpp:3566) with the number of
+	// slots this one request filled, not the item's running total.
+
+	KOfflineUnitRow kQuestUnit;
+	if( true == LoadQuestState( kSes, kQuestUnit ) )
+	{
+		std::vector< KQuestInstance > vecChanged;
+
+		CX2OfflineQuest::Instance()->OnSocketItem( kRow.m_iItemID,
+			(int)kReq.m_mapSocketInfo.size(), kQuestUnit, vecChanged );
+
+		PushQuestUpdate( kSes, vecChanged );
+	}
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////

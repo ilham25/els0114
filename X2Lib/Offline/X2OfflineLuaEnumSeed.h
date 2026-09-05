@@ -281,6 +281,168 @@ namespace X2OfflineLuaEnumSeed
 		{ "IG_LOW",                                  5 },
 	};
 
+	// CX2EnchantItem::ENCHANT_TYPE - X2Lib/X2EnchantItem.h:8. Added for phase
+	// 26 (AttribEnchantTable.lua and AttribAttachTable.lua both subscript
+	// ENCHANT_TYPE["ET_BLAZE"] and friends). Verified against the server's
+	// independent copy (XSLAttribEnchantItem.h): ET_NONE 0 through ET_DARK 6
+	// and ET_RANDOM 7, identical value for value. The client additionally
+	// carries the PREFIX/SUFFIX range aliases, which share values with the
+	// members they bracket; they are published as they stand rather than
+	// filtered, because this table is the client's enum and nothing else.
+	static const CX2OfflineLuaEnum::KEntry ENCHANT_TYPE[] =
+	{
+		{ "ET_NONE",                                     0 },
+		{ "ET_PREFIX_START",                             1 },
+		{ "ET_BLAZE",                                    1 },
+		{ "ET_WATER",                                    2 },
+		{ "ET_NATURE",                                   3 },
+		{ "ET_PREFIX_END",                               3 },
+		{ "ET_SUFFIX_START",                             4 },
+		{ "ET_WIND",                                     4 },
+		{ "ET_LIGHT",                                    5 },
+		{ "ET_DARK",                                     6 },
+		{ "ET_SUFFIX_END",                               6 },
+		{ "ET_RANDOM",                                   7 },
+		{ "ET_END",                                      8 },
+	};
+
+	// CX2SocketItem::SOCKET_DATA_TYPE - X2Lib/X2SocketItem.h:11. Added for
+	// phase 24 (SocketItemTable.lua's AddSocketRandomData rows are keyed by
+	// SOCKET_DATA_TYPE["SDT_WEAPON_NORMAL"] and 116 siblings).
+	//
+	// Transcribed from the client header by a generator, and it checks itself
+	// twice over. The enum's own tail pins SDT_QUEST_CLEAR_COUNT = 120 and
+	// SDT_ITEM_EXCHANGE_COUNT = 121 explicitly, and counting the members ahead
+	// of them lands on exactly 120 - so the sequential values below cannot be
+	// off by one without that pin disagreeing. And every one of the 117
+	// distinct names the packed SocketItemTable.lua subscripts resolves here;
+	// a missing one would have loaded a whole option pool under key 0.
+	static const CX2OfflineLuaEnum::KEntry SOCKET_DATA_TYPE[] =
+	{
+		{ "SDT_NONE",                                    0 },
+		{ "SDT_WEAPON_NORMAL",                           1 },
+		{ "SDT_WEAPON_RARE",                             2 },
+		{ "SDT_DEFENCE_NORMAL",                          3 },
+		{ "SDT_DEFENCE_RARE",                            4 },
+		{ "SDT_SET_ITEM",                                5 },
+		{ "SDT_ACCESSORY",                               6 },
+		{ "SDT_TITLE",                                   7 },
+		{ "SDT_WEAPON_HARMONY",                          8 },
+		{ "SDT_DEFENCE_HARMONY",                         9 },
+		{ "SDT_WEAPON_MYSTERY",                          10 },
+		{ "SDT_DEFENCE_MYSTERY",                         11 },
+		{ "SDT_WEAPON_SHINE",                            12 },
+		{ "SDT_DEFENCE_SHINE",                           13 },
+		{ "SDT_WEAPON_BATTLE",                           14 },
+		{ "SDT_DEFENCE_BATTLE",                          15 },
+		{ "SDT_WEAPON_INCREASE",                         16 },
+		{ "SDT_DEFENCE_INCREASE",                        17 },
+		{ "SDT_WEAPON_HIT",                              18 },
+		{ "SDT_DEFENCE_HIT",                             19 },
+		{ "SDT_WEAPON_ATK_PHYSIC",                       20 },
+		{ "SDT_DEFENCE_ATK_PHYSIC",                      21 },
+		{ "SDT_WEAPON_ATK_MAGIC",                        22 },
+		{ "SDT_DEFENCE_ATK_MAGIC",                       23 },
+		{ "SDT_WEAPON_DEF_PHYSIC",                       24 },
+		{ "SDT_DEFENCE_DEF_PHYSIC",                      25 },
+		{ "SDT_WEAPON_DEF_MAGIC",                        26 },
+		{ "SDT_DEFENCE_DEF_MAGIC",                       27 },
+		{ "SDT_WEAPON_HYPER_TIME",                       28 },
+		{ "SDT_DEFENCE_HYPER_TIME",                      29 },
+		{ "SDT_WEAPON_INCREASE_HP",                      30 },
+		{ "SDT_DEFENCE_INCREASE_HP",                     31 },
+		{ "SDT_WEAPON_HYPER_CHARGE",                     32 },
+		{ "SDT_DEFENCE_HYPER_CHARGE",                    33 },
+		{ "SDT_WEAPON_SPEED",                            34 },
+		{ "SDT_DEFENCE_SPEED",                           35 },
+		{ "SDT_WEAPON_CRITICAL",                         36 },
+		{ "SDT_DEFENCE_CRITICAL",                        37 },
+		{ "SDT_WEAPON_MOVE_SPEED",                       38 },
+		{ "SDT_DEFENCE_MOVE_SPEED",                      39 },
+		{ "SDT_WEAPON_STRIKE",                           40 },
+		{ "SDT_DEFENCE_STRIKE",                          41 },
+		{ "SDT_WEAPON_AVOID",                            42 },
+		{ "SDT_DEFENCE_AVOID",                           43 },
+		{ "SDT_WEAPON_JUMP_SPEED",                       44 },
+		{ "SDT_DEFENCE_JUMP_SPEED",                      45 },
+		{ "SDT_WEAPON_ADD_DAMAGE",                       46 },
+		{ "SDT_DEFENCE_ADD_DAMAGE",                      47 },
+		{ "SDT_WEAPON_ADD_DAMAGE_REDUCE",                48 },
+		{ "SDT_DEFENCE_ADD_DAMAGE_REDUCE",               49 },
+		{ "SDT_WEAPON_DESTROY",                          50 },
+		{ "SDT_DEFENCE_DESTROY",                         51 },
+		{ "SDT_WEAPON_EXPLOSION",                        52 },
+		{ "SDT_DEFENCE_EXPLOSION",                       53 },
+		{ "SDT_WEAPON_BURN",                             54 },
+		{ "SDT_DEFENCE_BURN",                            55 },
+		{ "SDT_WEAPON_QUICK",                            56 },
+		{ "SDT_DEFENCE_QUICK",                           57 },
+		{ "SDT_WEAPON_FURY",                             58 },
+		{ "SDT_DEFENCE_FURY",                            59 },
+		{ "SDT_WEAPON_SAGE",                             60 },
+		{ "SDT_DEFENCE_SAGE",                            61 },
+		{ "SDT_WEAPON_HYPER_TIME_PVP",                   62 },
+		{ "SDT_DEFENCE_HYPER_TIME_PVP",                  63 },
+		{ "SDT_WEAPON_INCREASE_HP_PVP",                  64 },
+		{ "SDT_DEFENCE_INCREASE_HP_PVP",                 65 },
+		{ "SDT_WEAPON_HYPER_CHARGE_PVP",                 66 },
+		{ "SDT_DEFENCE_HYPER_CHARGE_PVP",                67 },
+		{ "SDT_WEAPON_SPEED_PVP",                        68 },
+		{ "SDT_DEFENCE_SPEED_PVP",                       69 },
+		{ "SDT_WEAPON_CRITICAL_PVP",                     70 },
+		{ "SDT_DEFENCE_CRITICAL_PVP",                    71 },
+		{ "SDT_WEAPON_MOVE_SPEED_PVP",                   72 },
+		{ "SDT_DEFENCE_MOVE_SPEED_PVP",                  73 },
+		{ "SDT_WEAPON_STRIKE_PVP",                       74 },
+		{ "SDT_DEFENCE_STRIKE_PVP",                      75 },
+		{ "SDT_WEAPON_AVOID_PVP",                        76 },
+		{ "SDT_DEFENCE_AVOID_PVP",                       77 },
+		{ "SDT_WEAPON_JUMP_SPEED_PVP",                   78 },
+		{ "SDT_DEFENCE_JUMP_SPEED_PVP",                  79 },
+		{ "SDT_WEAPON_ADD_DAMAGE_PVP",                   80 },
+		{ "SDT_DEFENCE_ADD_DAMAGE_PVP",                  81 },
+		{ "SDT_WEAPON_ADD_DAMAGE_REDUCE_PVP",            82 },
+		{ "SDT_DEFENCE_ADD_DAMAGE_REDUCE_PVP",           83 },
+		{ "SDT_WEAPON_DESTROY_PVP",                      84 },
+		{ "SDT_DEFENCE_DESTROY_PVP",                     85 },
+		{ "SDT_WEAPON_EXPLOSION_PVP",                    86 },
+		{ "SDT_DEFENCE_EXPLOSION_PVP",                   87 },
+		{ "SDT_WEAPON_BURN_PVP",                         88 },
+		{ "SDT_DEFENCE_BURN_PVP",                        89 },
+		{ "SDT_WEAPON_QUICK_PVP",                        90 },
+		{ "SDT_DEFENCE_QUICK_PVP",                       91 },
+		{ "SDT_WEAPON_FURY_PVP",                         92 },
+		{ "SDT_DEFENCE_FURY_PVP",                        93 },
+		{ "SDT_PVP_TAG_POINT",                           94 },
+		{ "SDT_WEAPON_SPEED_2P5_FIXED",                  95 },
+		{ "SDT_DEFFENCE_SPEED_2P5_FIXED",                96 },
+		{ "SDT_WEAPON_SPEED_5P_FIXED",                   97 },
+		{ "SDT_DEFFENCE_SPEED_5P_FIXED",                 98 },
+		{ "SDT_WEAPON_CRITICAL_2P5_FIXED",               99 },
+		{ "SDT_DEFFENCE_CRITICAL_2P5_FIXED",             100 },
+		{ "SDT_WEAPON_CRITICAL_5P_FIXED",                101 },
+		{ "SDT_DEFFENCE_CRITICAL_5P_FIXED",              102 },
+		{ "SDT_WEAPON_AVOID_2P5_FIXED",                  103 },
+		{ "SDT_DEFFECNE_AVOID_2P5_FIXED",                104 },
+		{ "SDT_WEAPON_AVOID_5P_FIXED",                   105 },
+		{ "SDT_DEFFENCE_AVOID_5P_FIXED",                 106 },
+		{ "SDT_WEAPON_ADD_DAMAGE_2P5_FIXED",             107 },
+		{ "SDT_DEFFENCE_ADD_DAMAGE_2P5_FIXED",           108 },
+		{ "SDT_WEAPON_ADD_DAMAGE_5P_FIXED",              109 },
+		{ "SDT_DEFFENCE_ADD_DAMAGE_5P_FIXED",            110 },
+		{ "SDT_WEAPON_DAMAGE_REDUCE_2P5_FIXED",          111 },
+		{ "SDT_DEFFECNE_DAMAGE_REDUCE_2P5_FIXED",        112 },
+		{ "SDT_WEAPON_DAMAGE_REDUCE_5P_FIXED",           113 },
+		{ "SDT_DEFFENCE_DAMAGE_REDUCE_5P_FIXED",         114 },
+		{ "SDT_WEAPON_HYPER_CHARGE_5P_FIXED",            115 },
+		{ "SDT_DEFFENCE_HYPER_CHARGE_5P_FIXED",          116 },
+		{ "SDT_WEAPON_HYPER_CHARGE_10P_FIXED",           117 },
+		{ "SDT_DEFFENCE_HYPER_CHARGE_10P_FIXED",         118 },
+		{ "SDT_SKILL_LV_GROUP",                          119 },
+		{ "SDT_QUEST_CLEAR_COUNT",                       120 },
+		{ "SDT_ITEM_EXCHANGE_COUNT",                     121 },
+	};
+
 	// SEnum::VILLAGE_MAP_ID - KncWX2Server/Common/Enum/Enum.h. Added for the
 	// Cobo Express fix (MapData.lua's VILLAGE_MAP_ID["VMI_RUBEN"] etc). This is
 	// the ONE table here with no client/server diff to do: Enum.h is a SHARED
