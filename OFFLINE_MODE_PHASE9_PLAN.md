@@ -512,6 +512,7 @@ below say otherwise.
 | **25** | 5  | Cannot use magic amulet | A | **DONE 2026-09-05** | no — the table is inside `EnchantTable.lua` |
 | **26** | 10 | Cannot add equipment attributes | A | **DONE 2026-09-05** | no — `AttribEnchantTable.lua` + `AttribAttachTable.lua` |
 | **27** | 17 | Regular drop ("Aqua") never drops | C | HYPOTHESIS | no |
+| **28** | *(not in `ISSUES.md` — found 2026-09-05, after phase 14)* | Summoned pet doesn't survive relog / character switch | — | CONFIRMED | no |
 
 **~~Phases 19-22 share one root cause and probably one flag.~~ They did not.**
 All four are done (2026-09-05) and they were four unrelated defects in four
@@ -3198,6 +3199,95 @@ the table's provenance **before** debugging anything.
 ### Exit test
 Aqua drops from a monster that should drop it, at a plausible rate, and picking it
 up puts it in the bag.
+
+---
+
+# Phase 28 — Summoned pet doesn't survive relog / character switch (not in `ISSUES.md`)
+
+**Flag:** `SERV_IRUHADEV_OFFLINE` (shared flag — do not create a per-phase flag; see §1 rule 2)
+
+Found 2026-09-05 while playtesting phase 14's fix, and diagnosed in that same
+conversation before being split off here — the fix is bigger than a packet-logic
+bug (it needs a save-schema change), so it gets its own phase rather than
+riding on phase 14's commit.
+
+### Symptom
+Summon a pet, then log out and back in (or switch characters and back): the
+pet is gone and has to be summoned again by hand. On live, a summoned pet is
+still summoned next login — nothing has to be redone.
+
+### Evidence
+This is a design-comparison finding, not a log grep — read live's own source
+rather than trying to catch it in `offline_packets.log`:
+
+- `KncWX2Server/GameServer/GSGameDBThread.cpp:2256-2359` (`DBE_SELECT_UNIT_REQ`
+  handler) calls `exec dbo.gup_get_pet_list`, which returns a `bIsSummoned` bit
+  per pet row; whichever row has it set becomes `kAck.m_iSummonedPetUID`
+  (reset to 0 first, only set from the DB — not derived from anything else).
+- `GSGameDBThread.cpp:15588-15672` (`DBE_SUMMON_PET_REQ`) calls
+  `exec dbo.gup_update_pet_call <petUID>, 0` then `..., 1` on every
+  summon/unsummon — the flag is written to the DB immediately, not just at
+  logout.
+- `UserPetManager.cpp:251-267` (`KUserPetManager::Init`, run from
+  `GSUserFunction.cpp:5189` right after character select): if
+  `iSummonedPetUID > 0`, it fetches that pet and calls
+  `spSummonedPet->Summon(...)` immediately, before the player has done
+  anything - the summoned pet is restored as part of character select, not
+  something the player re-triggers.
+
+Offline has none of this: `KOfflineSession::m_nSummonedPetUID`
+(`X2OfflineServer.h`) is in-memory session state, reset to 0 on every new
+session, and `KOfflinePetRow` (`X2OfflineDB.h:231`) has no "is this pet
+summoned" column to restore from even if the session survived.
+
+### Diagnosis — CONFIRMED
+Live persists "currently summoned pet" per character and restores it
+transparently on every character select. Offline does not persist it at all.
+This is a real functional gap, not a misreading of live behavior.
+
+### What to do
+1. **Add a persisted flag to the save.** `KOfflinePetRow` gets a
+   `bool m_bSummoned` (or equivalent), `X2OfflineDB.h`'s `SCHEMA_VERSION` goes
+   from 10 to 11, with a migration step — `X2OfflineDB` migrates forward only,
+   and `els_db.sql` is real character data (`reyaa`, `wewswe`, `caswe` as of
+   this writing), so treat the migration with the same care `CLAUDE.md`'s
+   save-file caution describes. Don't guess a default; a migrated-in column
+   should read as "not summoned" (`false`/0) for every existing pet row, which
+   is exactly first-login behavior on live for a character that never had one
+   summoned.
+2. **Persist on every summon/unsummon**, not just `kSes.m_nSummonedPetUID`.
+   `Handler_EGS_SUMMON_PET_REQ` (`X2Lib/Offline/Handlers_Social.cpp`, the
+   function phase 14 already touched twice) needs to `SavePet()` the flag
+   change on both the pet being summoned (`true`) and whatever was previously
+   summoned, if any (`false`) - mirroring `dbo.gup_update_pet_call`'s pair of
+   calls.
+3. **Restore on character select, not on every field/map transition.** This is
+   the open question phase 14's conversation didn't settle: the hook needs to
+   fire once per login (matching live's `DBE_SELECT_UNIT_ACK` timing), not on
+   every dungeon/village transition within an already-running session, or the
+   pet would visibly re-spawn every time the player walks through a door.
+   `Handler_EGS_SELECT_UNIT_REQ` (`X2Lib/Offline/Handlers_Unit.cpp:393`, "the
+   last step of character select") is the candidate for reading the persisted
+   flag back into `kSes.m_nSummonedPetUID`; `Handler_EGS_FIELD_LOADING_COMPLETE_REQ`
+   (`X2Lib/Offline/Handlers_Field.cpp:109`) is the candidate for actually
+   sending the `EGS_SUMMON_PET_NOT` relay (phase 14's mechanism) once the field
+   has finished loading, since the client needs to be in a state that can
+   render the pet before that packet arrives. Confirm which of these actually
+   fires exactly once per login before wiring the restore into it - neither was
+   read closely enough in the phase-14 conversation to be sure.
+
+### Trap
+Do not restore and send the `EGS_SUMMON_PET_NOT` relay from anywhere that also
+runs on ordinary field-to-field travel within a session (e.g. a generic
+"entered a field" hook shared with dungeon entry) - the client already keeps
+its own pet state for the lifetime of the running process, and re-sending the
+spawn packet there would make the pet flicker or re-play its spawn animation
+on every map change instead of only once per login.
+
+### Exit test
+Summon a pet, log out (or switch to another character and back), log back in
+as the same character: the pet is already out, without touching the summon
+button.
 
 ---
 
