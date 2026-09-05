@@ -1594,7 +1594,22 @@ void CX2StateBeginning::CreateUnitButton()
 
 		CKTDGUIStatic* pStaticEmblem = (CKTDGUIStatic*)pUnitSlot->GetControl( L"UnitEmblem" );
 		pStaticEmblem->GetPicture(0)->SetShow( true );
+		//{{ Author: Iruha
+		// Date: 2026-09-05
+		// Description: Offline mode - phase 16. GetPVPEmblem() returns a
+		// CX2PVPEmblem::PVP_EMBLEM rating bucket (0, 251, 551, ...), but under
+		// PVP_SEASON2 GetPVPEmblemData() is keyed by PVP_RANK (0-9), so this call
+		// was passing a rating value into a rank lookup - for m_iRating in
+		// [0,251) that bucket is PE_RANK_E, numerically 0, which collides with
+		// PVPRANK_NONE and finds nothing in the map PVPEmblem_Season2.lua built,
+		// leaving the picture with no texture (a black swatch). GetPvpRank()
+		// reads m_cRank directly, which is what that map is actually keyed on.
+#ifdef SERV_IRUHADEV_OFFLINE
+		CX2PVPEmblem::PVPEmblemData* pPVPEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pUnit->GetPvpRank() );
+#else
 		CX2PVPEmblem::PVPEmblemData* pPVPEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pUnit->GetPVPEmblem() );
+#endif SERV_IRUHADEV_OFFLINE
+		//}}
 		if ( pPVPEmblemData != NULL )
 		{
 			pStaticEmblem->GetPicture(0)->SetTex( pPVPEmblemData->m_TextureName.c_str(), pPVPEmblemData->m_TextureKey.c_str() );

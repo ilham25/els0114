@@ -399,6 +399,23 @@ bool CX2OfflineServer::ReplyID( KOfflineSession& kSes, unsigned short usEventID 
 	kOut.m_ucLevel			= (UCHAR)iLevel;
 	kOut.m_cAuthLevel		= (char)CX2User::XUAL_NORMAL_USER;
 
+	//{{ Author: Iruha
+	// Date: 2026-09-05
+	// Description: Offline mode - phase 16. This build has SERV_PVP_NEW_SYSTEM
+	// and SERV_2012_PVP_SEASON2 both active (KncWX2Server/Common/ServerDefine.h,
+	// KTDXLIB/Always.h's unconditional PVP_SEASON2), so KUnitInfo's PvP field is
+	// m_cRank, not the old m_iPVPEmblem/m_iVSPoint pair - those aren't members
+	// of this build's KUnitInfo at all. Init() leaves m_cRank at 0
+	// (CX2PVPEmblem::PVPRANK_NONE), which PVPEmblem_Season2.lua never registers
+	// with CX2PVPEmblem::AddEmblemData_LUA (its lowest key is
+	// PVPRANK_RANK_ARRANGE = 1, the "still being placed" rank a real server
+	// gives a character with no season games yet) - so GetPVPEmblemData()
+	// returns NULL and the character-select screen draws whatever the picture
+	// control defaults to instead of an emblem. PVPRANK_RANK_ARRANGE is the
+	// structural "no rank yet" the real client actually has a texture for.
+	kOut.m_cRank			= (char)CX2PVPEmblem::PVPRANK_RANK_ARRANGE;
+	//}}
+
 	// not covered by Init()
 	kOut.m_iOfficialMatchCnt	= 0;
 	kOut.m_iMaxRating			= 0;

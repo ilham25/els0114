@@ -1705,6 +1705,86 @@ This phase is *only* about the list not drawing a black box.
 The character list shows a proper unranked emblem, or nothing, for all three
 characters.
 
+### Status, 2026-09-05 — what this phase actually required
+
+**No packet was involved.** Phase 16 doesn't fit the §0 bucket table at all —
+there's no A/B/C/D to classify, because the character-select screen that draws
+the emblem runs entirely off a `KUnitInfo` the offline server already sends in
+the (correctly `HANDLED`) `EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK`. The bug is
+in how the client *reads* a field of that struct, not in whether any packet
+reached the offline server. Anyone tempted to `grep` the packet log for this one
+will find nothing to grep for.
+
+**The Evidence section above is for a KUnitInfo that doesn't exist in this
+build**, and following it wastes the first hour. `SERV_PVP_NEW_SYSTEM` and
+`SERV_2012_PVP_SEASON2` are both unconditionally defined
+(`KncWX2Server/Common/ServerDefine.h:1188` and `:2182`;
+`KTDXLIB/Always.h:1135`'s unguarded `#define PVP_SEASON2` is the client-side
+name for the same feature), so `KUnitInfo`'s PvP field is `m_cRank` — the
+`m_iPVPEmblem` / `m_cPVPEmblem` / `m_iVSPoint` names the Evidence block cites
+are compiled out entirely on both sides. **This was found by attempted compile,
+not by reading the `#ifdef`s**: setting `m_iPVPEmblem` in
+`X2OfflineServer.cpp` failed with `error C2039: 'm_iPVPEmblem': is not a member
+of 'KUnitInfo'`, which is what sent this phase looking for what *is* a member —
+the [[preprocess-to-resolve-projectx2-flags]] memory's advice, just via the
+compiler's own verdict rather than an actual `cl /P` run (`cl.exe` invoked
+outside an `msbuild`-prepared environment exits silently with no INCLUDE/LIB
+set up; re-triggering one already-changed file through `msbuild` and reading
+its error list worked instead, and is cheaper to set up).
+
+**The real defect is client-side and has nothing to do with what the offline
+server sends.** `X2StateBeginning.cpp`'s character-select draw calls
+`GetPVPEmblemData( pUnit->GetPVPEmblem() )`, but under `PVP_SEASON2`
+`GetPVPEmblemData` is keyed by `PVP_RANK` (`PVPRANK_NONE=0` .. `PVPRANK_RANK_SSS=9`)
+while `GetPVPEmblem()` returns a `PVP_EMBLEM` *rating* bucket (`PE_RANK_E=0,
+PE_RANK_D=251, PE_RANK_C=551, ...`). For `m_iRating` in `[0,251)` — i.e. every
+character that has never played a ranked match — that bucket is `PE_RANK_E`,
+numerically 0, which collides with the unrelated enum's `PVPRANK_NONE` and
+matches no key `PVPEmblem_Season2.lua` registers (decrypted via the
+[[client-lua-xor-key]] method: its lowest registered key is
+`PVPRANK_RANK_ARRANGE = 1`, "Arranging"/provisional rank). `GetPVPEmblemData`
+returns NULL, the texture is never set, and the picture control's un-textured
+state is the black box. This reads as a genuine bug in the shipped 2014 client,
+not an offline-only one — nothing about the offline server's behavior is
+implicated at all, so **every** character, real server or offline, whose
+rating lands in `[0,251)` should show the same black box live.
+
+**Decision taken that the plan did not anticipate:** fixed it anyway, gated
+behind `SERV_IRUHADEV_OFFLINE` rather than left unguarded, even though the root
+cause isn't offline-specific. Rule 2 in §1 only permits the one shared flag for
+this whole 9-27 batch, this phase's scope is the offline character list, and
+there's no phase elsewhere in this document that owns "fix general client PvP
+display bugs" — so the fix rides the flag this batch already has rather than
+going in bare. The `#else` branch keeps the original (buggy) call intact,
+consistent with the "keep the original code reachable" rule in `CLAUDE.md`.
+
+**Two client-side changes, one bug:**
+- `X2StateBeginning.cpp`: calls `pUnit->GetPvpRank()` (reads `m_cRank` directly,
+  the accessor that's actually type-correct for `GetPVPEmblemData`) instead of
+  `GetPVPEmblem()`.
+- `X2OfflineServer::MakeDefaultUnitInfo`: sets
+  `kOut.m_cRank = CX2PVPEmblem::PVPRANK_RANK_ARRANGE` — `Init()` alone leaves it
+  at `PVPRANK_NONE` (0), which is *also* an unregistered key, so fixing only the
+  accessor without also fixing the default would have left the same black box.
+  Both changes were necessary; neither alone was sufficient.
+
+**Process note for the next phase that touches `X2StateBeginning.cpp` or any
+other CP949/ISO-8859 file:** the Edit tool re-encoded this file from ISO-8859 to
+UTF-8 on the first attempt at this exact change — a ~10-line intended diff came
+out as 549 changed lines, caught by `file` and `git diff --stat` per
+`CLAUDE.md`'s own warning, not by anything looking wrong in the editor. Restored
+via `git checkout --` (confirmed with the user first, since it's destructive)
+and redone as a raw byte-level Python patch (`open(path, "rb")`, locate the
+exact byte span, splice, `open(path, "wb")`) that left the rest of the file's
+bytes untouched. This is the second time this exact failure mode has hit this
+project (see [[ide-destroys-cp949-files]]) — treat the verify step as mandatory
+on every edit to a non-ASCII file in this tree, not just a precaution for ones
+that "look risky".
+
+Built (`X2Lib` then `X2.exe`, 0 errors both), deployed to `X2_offline.exe`
+(verified by size and mtime programmatically, not by eye), and **not yet
+play-tested** — the exit test needs a human.
+
 ---
 
 # Phase 17 — Result screen shows no reward (`ISSUES.md` #18)
