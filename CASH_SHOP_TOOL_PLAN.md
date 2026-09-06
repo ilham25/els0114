@@ -541,6 +541,16 @@ Three things to hold to across all phases:
 3. **Only running it closes a phase.** There is no test suite. A phase ends when
    its exit test has been run against the real game directory and the result
    recorded — not when it compiles.
+4. **Deploy to the game directory after every build, every phase — not only
+   when that phase's exit test happens to touch archives or `els_db.sql`.**
+   Build, then `cp X2CashShopTool/Ui/Release/X2CashShopTool.exe "$DATA/"`,
+   then run it from `$DATA`, confirming the copy landed by re-listing the
+   directory rather than trusting the `cp` exit code — the same discipline
+   `CLAUDE.md`'s "Deploying the offline client" section prescribes for
+   `X2_offline.exe`. Phase 0's own probe needs no game data at all and still
+   gets deployed and re-run from there, because the tool's whole reason to
+   exist is running out of that directory (see *Outcome*), and every phase
+   from here on depends on it being there.
 
 ## Phases
 
@@ -594,6 +604,12 @@ predicted. The two-project split does contain the `/clr:nostdlib` injection:
 with plain `/TC`/`/TP`, and only `Main.cpp` (in `Ui`) got `/clr:nostdlib` —
 confirmed both by the canary staying silent in `Core` and by reading the
 actual `cl.exe`/`link.exe` command lines out of `/v:normal`.
+
+Deployed per the standing rule (see point 4 above): copied to
+`F:\...\237311\22191271\data\X2CashShopTool.exe`, landing confirmed by
+listing the directory (not just the `cp` exit code), and re-run with that
+directory as the working directory — same output, exit code 0. Phase 0 needed
+none of that to pass its own exit test, and got it anyway.
 
 **One thing worth recording precisely**: `link.exe`'s own printed command
 line does *not* list `X2CashShopCore.lib` among its visible arguments — only
@@ -747,7 +763,11 @@ anything.
 ## Verification
 
 There is no test suite in this repo, so verification is running the tool and
-then running the game.
+then running the game. **Deploying the exe into the game directory is not an
+optional last step for phases that happen to need archives or `els_db.sql` —
+it happens after every build, every phase, including phase 0**, whose probe
+touches no game data at all. See point 4 under *Running a phase in a fresh
+conversation* above.
 
 ```sh
 TRUNK="f:/elsword stuff/.../source/EU_CN_US/Trunk"
