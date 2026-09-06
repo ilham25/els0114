@@ -527,10 +527,12 @@ done, then stop so I can run it.
 Three things to hold to across all phases:
 
 1. **Phase 0 is a gate.** Do not start phase 1 before phase 0 has actually built
-   and run. Whether `/clr` links cleanly against `luaLib.lib`, `libxml_mt.lib`,
-   the 2014-vintage `zlib.lib` and a C-compiled `sqlite3.c` is not knowable by
-   reading — and if it does not, the whole project shape changes to a native
-   core lib plus a thin managed front end.
+   and run. Whether the `/clr` exe links cleanly against `luaLib.lib`,
+   `libxml_mt.lib` and the 2014-vintage `zlib.lib`, and whether the two-project
+   split really does contain the `/clr:nostdlib` injection, is not knowable by
+   reading. The split is already the design (section 6) — what phase 0 settles is
+   whether it holds in practice, and if it does not, the fallback is a fully
+   native tool with an MFC or Win32 front end.
 2. **Write the outcome back into the file at the end of every phase**, in the
    house shape: an `### Exit test — PASSED/PARTIAL (date)` block, a *Corrections
    to this plan, found by doing it* section, and *Decisions made while
@@ -566,6 +568,99 @@ split contained the `/clr:nostdlib` injection — that is what the canary is for
 **This is a gate.** Record in this file whether the 2014-vintage `zlib.lib`
 linked, and if `/clr` cannot be made to work at all, record that and the chosen
 fallback before phase 1 starts.
+
+#### Exit test — PASSED (2026-09-06)
+
+Built both configs of `X2CashShopTool/Ui/X2CashShopTool_2010.vcxproj`
+(`Release|Win32` and `Debug|Win32`, MSBuild pulling `Core`'s
+`X2CashShopCore_2010.vcxproj` in as a project reference). Both produced
+`X2CashShopTool.exe` with **0 Warning(s), 0 Error(s)** — no LNK2038, LNK2005 or
+LNK4098 anywhere in the verbose (`/v:normal`) log. Running the exe (both
+configs) prints:
+
+```
+sqlite3 : 3.53.4
+lua     : Lua 5.1.4 (state created: true)
+zlib    : 1.2.3
+libxml  : 2.7.2
+CLR round-trip : X2CashShopTool phase 0 probe
+```
+
+exit code 0 (the round-trip string compares equal after the managed ->
+native `std::string` -> managed hop). **The 2014-vintage `zlib.lib` linked
+clean** with no `/MT` vs `/MD` fight, exactly as the plan's link-time table
+predicted. The two-project split does contain the `/clr:nostdlib` injection:
+`Probe.cpp` and `sqlite3.c` (native, in `Core`, `CLRSupport` absent) compiled
+with plain `/TC`/`/TP`, and only `Main.cpp` (in `Ui`) got `/clr:nostdlib` —
+confirmed both by the canary staying silent in `Core` and by reading the
+actual `cl.exe`/`link.exe` command lines out of `/v:normal`.
+
+**One thing worth recording precisely**: `link.exe`'s own printed command
+line does *not* list `X2CashShopCore.lib` among its visible arguments — only
+`Main.obj` and the system libs appear there. That looks alarming on a first
+read, and was chased down: MSBuild's `<ProjectReference>` handling appends
+the referenced static lib as a tracked link input outside the argument list
+this build shows, and `Release\link.command.1.tlog` (UTF-16, undocumented by
+the visible log) confirms `X2CashShopCore.lib` *is* actually there, ahead of
+`Main.obj`. Trust the tlog over the printed command line if this comes up
+again; the exe's own output (correct native version strings) is the more
+direct proof that linking against `Core` actually worked.
+
+#### Corrections to this plan, found by doing it
+
+- **`Probe.h`'s canary placement, not its existence, was the trap.** The
+  first draft put `#ifdef _MANAGED / #error` in `Probe.h` itself, reasoning
+  it should cover "every native TU in `Core`". But `Probe.h` is legitimately
+  included from `Main.cpp` too — that shared declaration is the entire point
+  of the split — and `Main.cpp` is *supposed* to compile managed. Putting the
+  canary in the header makes it fire on the one file it must never fire on.
+  The canary belongs only in the `.cpp` files that actually touch
+  Lua/sqlite3/zlib/libxml (`Probe.cpp`, and `sqlite3.c` itself, which now
+  carries its own copy prepended by hand — see below); a shared header
+  declaring the call boundary carries no canary at all.
+- **`msclr::interop::marshal_as<std::string, String^>` needs a second header.**
+  `<msclr/marshal.h>` alone gives `C4996` ("this conversion is not supported")
+  for the `std::string` specialization; `<msclr/marshal_cppstd.h>` is required
+  in addition. Worth knowing before phase 5/6, which will want the same
+  conversion for search-box text and CSV fields.
+- **`Libs/ExternalLib/sqlite3/sqlite3.c` is untracked by git** (matched by a
+  `.gitignore` rule), not merely large. The canary was still added to it
+  (prepended by hand, ASCII, no encoding risk — confirmed with `file` before
+  and after) because it is the same physical file `X2Lib_2010.vcxproj`
+  compiles, and the guard is inert for that build (`_MANAGED` is never
+  defined there). Anyone diffing this repo against a pristine checkout of the
+  external lib will see the 6-line addition at the top of that one file.
+- **VS2010's actual install path here is `D:\Program Files\VS\Microsoft
+  Visual Studio 10.0\`, not the default `C:\Program Files (x86)\...`.** Not a
+  plan defect — MSBuild resolves it from
+  `HKLM\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VC7` regardless of
+  where it sits on disk — but worth recording since a plain filesystem search
+  for `cl.exe` under `C:\Program Files (x86)` finds nothing on this machine.
+
+#### Decisions made while implementing phase 0
+
+- **Two configs, named `Release` and `Debug`, both `NDEBUG` /
+  `MultiThreadedDLL`**, differing only in `Optimization`
+  (`MaxSpeed`/`Disabled`) — exactly the plan's prescription. Both vcxproj
+  files carry a comment block warning against ever giving either config the
+  normal debug CRT. Both configs were built and run in this phase precisely
+  to prove the `_ITERATOR_DEBUG_LEVEL` trap really is avoided, not just
+  documented.
+- **`Ui`'s subsystem is `Console`, not `Windows`, for phase 0.** There is no
+  WinForms UI yet, so `int main(array<String^>^)` under the default
+  `mainCRTStartup` entry point needs no `EntryPointSymbol` override. That
+  trap (section 7: `SubSystem=Windows` needs `EntryPointSymbol=main`) is
+  real but not yet exercised — it becomes live in phase 4 when the actual
+  WinForms `MainForm` replaces `Main.cpp`'s console probe, and both vcxproj
+  files carry a comment flagging that in advance.
+- **`TargetName` set explicitly on both projects** (`X2CashShopCore`,
+  `X2CashShopTool`) rather than left to the vcxproj-file-name default
+  (`X2CashShopCore_2010`, `X2CashShopTool_2010`) — the latter produced a
+  `MSB8012` warning and an exe name that didn't match the plan's
+  Verification section.
+- No fallback to a native-only (MFC/Win32) front end was needed — `/clr`
+  works cleanly against this tree, so phase 1 onward proceeds on the
+  `Core`/`Ui` split as designed.
 
 ### Phase 1 — The archive index and the item catalog
 
