@@ -503,34 +503,243 @@ bool CX2OfflineServer::Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ( KOfflineSession&
 	if( false == ReadReq( kEvent, kReq ) )
 		return false;
 
-	// AI party members (AI_PARTY_PLAN.md phase 1). Auto-party used to be
+	// AI party members (AI_PARTY_PLAN.md phases 1 and 3). Auto-party used to be
 	// refused with ERR_PARTY_23 because there is nobody offline to be matched
 	// with; it now fills the remaining slots with AI-controlled hero NPCs
 	// instead of searching for humans.
 	//
 	// KEGS_AUTO_PARTY_DUNGEON_GAME_REQ is a typedef of
 	// KEGS_QUICK_START_DUNGEON_GAME_REQ (ClientPacket.h:7804) - same dungeon
-	// id, difficulty, get-item type and mode - so this is the solo path with
-	// bots added and a different ACK, sharing OpenDungeonGameRoom and
-	// SendDungeonGameStartNot with it rather than copying them. The ONLY thing
-	// that differs between the two buttons is the MakePartyBots call below.
+	// id, difficulty, get-item type and mode - so this ends up at the solo
+	// path's OpenDungeonGameRoom and SendDungeonGameStartNot rather than
+	// copying them. The only things that differ between the two buttons are
+	// the MakePartyBots call and the ceremony below.
 	//
-	// This is the shortest legal auto-party path: ACK, then straight to
-	// EGS_PARTY_GAME_START_NOT. The matchmaking ceremony the client's own flow
-	// expects in between - EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT, the accept
-	// popup, the cancel path - is phase 3. The player presses the button and
-	// arrives in the dungeon with no queue.
+	// PHASE 3 - THE CEREMONY. Phase 1 answered this with an ACK and
+	// EGS_PARTY_GAME_START_NOT in the same breath, so pressing auto-party
+	// teleported. The client's own flow has three steps in between and it
+	// already knows how to draw every one of them:
+	//
+	//     EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT   queued; the panel switches
+	//     EGS_AUTO_PARTY_MAKING_SUCCESS_NOT          matched; the accept popup
+	//     EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT    the player's answer, C->S
+	//     EGS_PARTY_GAME_START_NOT                   into the dungeon
+	//
+	// so this handler now only queues, and the dungeon is opened by the accept.
+	// See KAutoPartyMatch for why the room cannot be opened here and held.
 	KEGS_AUTO_PARTY_DUNGEON_GAME_ACK kAck;
 	kAck.m_iOK					= NetError::NET_OK;
 	kAck.m_wstrFailUserNickName	= L"";
 
+	// The same two things OpenRoom checks, asked here instead - read-only, so
+	// nothing is opened or cleared by asking. Failing now costs one ACK;
+	// failing after the ceremony has started costs an EGS_AUTO_PARTY_CLOSE_NOT
+	// and leaves the player watching a queue that was never going to finish.
 	KOfflineUnitRow kRow;
-	if( false == OpenDungeonGameRoom( kSes, kReq, kRow ) )
+	if( 0 == kSes.m_nSelectedUnitUID ||
+		false == CX2OfflineDB::Instance()->LoadUnit( kSes.m_nSelectedUnitUID, kRow ) )
 	{
-		CX2OfflineLog::Server( L"AIPARTY  auto-party refused - could not open the dungeon room" );
+		CX2OfflineLog::Server( L"AIPARTY  auto-party refused - no character to build a party around" );
 
 		kAck.m_iOK = NetError::ERR_PARTY_23;
 		return Reply( kSes, EGS_AUTO_PARTY_DUNGEON_GAME_ACK, kAck );
+	}
+
+	Reply( kSes, EGS_AUTO_PARTY_DUNGEON_GAME_ACK, kAck );
+
+	m_kAutoParty.Clear();
+	m_kAutoParty.m_eState			= KAutoPartyMatch::APS_QUEUED;
+	m_kAutoParty.m_kReq				= kReq;
+	m_kAutoParty.m_nUnitUID			= kSes.m_nSelectedUnitUID;
+	m_kAutoParty.m_dwMatchDueTick	= ::GetTickCount() + (DWORD)AUTO_PARTY_QUEUE_MS;
+	m_kAutoParty.m_nAutoPartyUID	= m_nNextAutoPartyUID++;
+
+	// What this NOT actually does, all of it in
+	// CX2PartyManager::Handler_EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT
+	// (X2PartyManager.cpp:2749): the estimated time goes on the panel, the
+	// dungeon button becomes WAIT and the PvP button becomes CANCEL, and
+	// SetProcessDungeonMatch( true ) latches. That last one is what makes the
+	// cancel path exist at all - CX2PartyManager::
+	// Handler_EGS_CANCEL_AUTO_PARTY_MAKING_REQ does nothing while it is false -
+	// and it is only ever cleared again by the cancel ACK, by
+	// EGS_AUTO_PARTY_CLOSE_NOT, or by EGS_PARTY_GAME_START_NOT. Leave it
+	// latched with none of those coming and the player cannot open the party
+	// window again for the rest of the session.
+	KEGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT kNot;
+	kNot.m_iWaitNumber			= m_kAutoParty.m_nAutoPartyUID;
+	kNot.m_iEstimatedTime		= AUTO_PARTY_ESTIMATE_SEC;
+	kNot.m_bRemakingAutoParty	= false;	///< true pops the "re-making the party" message
+	kNot.m_bAutoPartyBonus		= false;	///< read by nothing on the client
+#ifdef SERV_AUTO_PARTY_WAIT_USER_COUNT_VIEW
+	kNot.m_iAutoPartyWaitUserCount = 1;		///< one person is in this queue and always will be
+#endif SERV_AUTO_PARTY_WAIT_USER_COUNT_VIEW
+
+	CX2OfflineLog::Server( L"AIPARTY  auto-party %I64d queued for dungeonID=%d dif=%d mode=%d - matching in %d ms",
+		(__int64)m_kAutoParty.m_nAutoPartyUID, kReq.m_iDungeonID,
+		(int)kReq.m_DifficultyLevel, (int)kReq.m_cDungeonMode, AUTO_PARTY_QUEUE_MS );
+
+	return Reply( kSes, EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT, kNot );
+}
+
+void CX2OfflineServer::TickAutoPartyMatch( KOfflineSession& kSes )
+{
+	if( KAutoPartyMatch::APS_QUEUED != m_kAutoParty.m_eState )
+		return;
+
+	// A match belongs to the character that asked for it. Going back to
+	// character select and picking a different one would otherwise leave this
+	// armed, and the next status push would drop somebody else into a dungeon
+	// they never asked for.
+	if( kSes.m_nSelectedUnitUID != m_kAutoParty.m_nUnitUID )
+	{
+		CX2OfflineLog::Server( L"AIPARTY  auto-party %I64d dropped - the character that queued it is no longer selected",
+			(__int64)m_kAutoParty.m_nAutoPartyUID );
+
+		m_kAutoParty.Clear();
+		return;
+	}
+
+	// Unsigned tick subtraction, so this stays correct across the 49-day wrap -
+	// the same test TickField's respawn queue uses.
+	if( ( ::GetTickCount() - m_kAutoParty.m_dwMatchDueTick ) > 0x80000000UL )
+		return;
+
+	m_kAutoParty.m_eState = KAutoPartyMatch::APS_WAIT_REPLY;
+
+	// The accept popup: CX2PartyManager::Handler_EGS_AUTO_PARTY_MAKING_SUCCESS_NOT
+	// (X2PartyManager.cpp:2828) plays Battle_Atena_Success.ogg and raises a
+	// ten-second OK/Cancel timed popup naming the dungeon and the member count.
+	// Its timeOutMsg is SMUCM_DUNGEON_MATCH_GAME_DENY, so a player who walks
+	// away denies by default and the reply below still arrives - there is no
+	// way out of that popup that leaves this state machine waiting forever.
+	KEGS_AUTO_PARTY_MAKING_SUCCESS_NOT kNot;
+	kNot.m_iAutoPartyUID	= m_kAutoParty.m_nAutoPartyUID;
+
+	// Always a full party. The plan left this open - "does offline auto-party
+	// always fill to 4, or offer a count?" - and four is the answer: this
+	// number is only what the popup reads out, and it has to agree with
+	// AUTO_PARTY_BOT_NUM or the popup promises a party the room will not
+	// contain. Offering a count would need a UI that does not exist.
+	kNot.m_iMemberCount		= 1 + AUTO_PARTY_BOT_NUM;
+	kNot.m_iDungeonID		= m_kAutoParty.m_kReq.m_iDungeonID;
+	kNot.m_cDifficultyLevel	= m_kAutoParty.m_kReq.m_DifficultyLevel;
+#ifdef SERV_FIX_MANUAL_PARTY_DUNGEON_POPUP_BUG
+	kNot.m_cDungeonMode		= m_kAutoParty.m_kReq.m_cDungeonMode;
+#endif SERV_FIX_MANUAL_PARTY_DUNGEON_POPUP_BUG
+
+	CX2OfflineLog::Server( L"AIPARTY  auto-party %I64d matched - %d member(s), accept popup up",
+		(__int64)m_kAutoParty.m_nAutoPartyUID, kNot.m_iMemberCount );
+
+	Reply( kSes, EGS_AUTO_PARTY_MAKING_SUCCESS_NOT, kNot );
+}
+
+bool CX2OfflineServer::Handler_EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT( KOfflineSession& kSes,
+																		const KEvent& kEvent )
+{
+	KEGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	// The accept popup answering. A NOT, not a REQ - the client expects no ACK
+	// and is not waiting on one, so everything below is a push.
+	if( KAutoPartyMatch::APS_WAIT_REPLY != m_kAutoParty.m_eState )
+	{
+		// Normal, not an error: the party panel's cancel button and this popup
+		// can both be live at the same moment, and cancelling first leaves the
+		// popup on screen to time out and deny into an idle match. Acting on it
+		// would re-open something the player has already closed.
+		CX2OfflineLog::Server( L"AIPARTY  making-success reply (agree=%d) ignored - no match is waiting on one",
+			kReq.m_bGameStartAgree ? 1 : 0 );
+		return true;
+	}
+
+	if( false == kReq.m_bGameStartAgree )
+	{
+		CX2OfflineLog::Server( L"AIPARTY  auto-party %I64d declined - back to the village",
+			(__int64)m_kAutoParty.m_nAutoPartyUID );
+
+		// The client has already dismissed the popup and put the buttons back
+		// (X2PartyManager.cpp:2857-2882), but it has NOT cleared
+		// SetProcessDungeonMatch on this path. NOT_LEAVE_AUTO_PARTY_REASON_03
+		// - "a party member did not agree to the auto-party game start" - is
+		// the reason that does, and it is the honest one: the party member who
+		// declined is the player.
+		CloseAutoPartyMatch( kSes, NetError::NOT_LEAVE_AUTO_PARTY_REASON_03 );
+		return true;
+	}
+
+	// Accepted. Copy the request out first: StartAutoPartyDungeon opens a room,
+	// and OpenRoom clears any pending match by design.
+	const KEGS_AUTO_PARTY_DUNGEON_GAME_REQ kStartReq = m_kAutoParty.m_kReq;
+
+	CX2OfflineLog::Server( L"AIPARTY  auto-party %I64d accepted - opening the dungeon",
+		(__int64)m_kAutoParty.m_nAutoPartyUID );
+
+	return StartAutoPartyDungeon( kSes, kStartReq );
+}
+
+bool CX2OfflineServer::Handler_EGS_CANCEL_AUTO_PARTY_MAKING_REQ( KOfflineSession& kSes,
+																 const KEvent& /*kEvent*/ )
+{
+	// Sent with no body (SendID) by CX2PartyManager::
+	// Handler_EGS_CANCEL_AUTO_PARTY_MAKING_REQ - the party panel's cancel
+	// button, plus the two places that reset party state while a match is
+	// running - and only while SetProcessDungeonMatch is latched.
+	//
+	// The client has already put its own UI back before this arrives. What it
+	// is waiting for is the ACK: Handler_EGS_CANCEL_AUTO_PARTY_MAKING_ACK
+	// (X2PartyManager.cpp:2795) is the only place that unlatches the flag on
+	// this path, and it is armed with AddServerPacket, so an unanswered cancel
+	// locks the player out of the party window for the rest of the session.
+	if( KAutoPartyMatch::APS_IDLE != m_kAutoParty.m_eState )
+	{
+		CX2OfflineLog::Server( L"AIPARTY  auto-party %I64d cancelled by the player",
+			(__int64)m_kAutoParty.m_nAutoPartyUID );
+
+		m_kAutoParty.Clear();
+	}
+
+	KEGS_CANCEL_AUTO_PARTY_MAKING_ACK kAck;
+	kAck.m_iOK = NetError::NET_OK;
+
+	return Reply( kSes, EGS_CANCEL_AUTO_PARTY_MAKING_ACK, kAck );
+}
+
+void CX2OfflineServer::CloseAutoPartyMatch( KOfflineSession& kSes, int iReason )
+{
+	KEGS_AUTO_PARTY_CLOSE_NOT kNot;
+	kNot.m_iReason			= iReason;
+	kNot.m_iCancelUnitUID	= m_kAutoParty.m_nUnitUID;
+
+	CX2OfflineLog::Server( L"AIPARTY  auto-party %I64d closed, reason=%d",
+		(__int64)m_kAutoParty.m_nAutoPartyUID, iReason );
+
+	m_kAutoParty.Clear();
+
+	// Deliberately not sent on the success path. Every branch of
+	// CX2PartyManager::Handler_EGS_AUTO_PARTY_CLOSE_NOT falls through to
+	// Battle_Atena_Fail.ogg (X2PartyManager.cpp:2937), and
+	// EGS_PARTY_GAME_START_NOT already clears the matching flag on its own
+	// (X2PartyManager.cpp:1457), so a "match closed because the game started"
+	// NOT would buy nothing and play a failure sting over a successful match.
+	Reply( kSes, EGS_AUTO_PARTY_CLOSE_NOT, kNot );
+}
+
+bool CX2OfflineServer::StartAutoPartyDungeon( KOfflineSession& kSes,
+											  const KEGS_AUTO_PARTY_DUNGEON_GAME_REQ& kReq )
+{
+	KOfflineUnitRow kRow;
+	if( false == OpenDungeonGameRoom( kSes, kReq, kRow ) )
+	{
+		CX2OfflineLog::Server( L"AIPARTY  auto-party failed - could not open the dungeon room" );
+
+		// The ACK went out when the queue started, so the close NOT is the only
+		// way left to tell the client. REASON_00 is the studio's "the auto
+		// party ended because of the dungeon game start", which is what
+		// happened, just not successfully - and it is one of the three reasons
+		// that put the party panel back and unlatch the matching flag.
+		CloseAutoPartyMatch( kSes, NetError::NOT_LEAVE_AUTO_PARTY_REASON_00 );
+		return true;
 	}
 
 	// The one line that separates auto-party from the solo button. Everything
@@ -538,8 +747,6 @@ bool CX2OfflineServer::Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ( KOfflineSession&
 	// NPC create handler hands out - reads m_kRoom.m_vecBot, which every other
 	// entry point leaves empty.
 	MakePartyBots( kRow, AUTO_PARTY_BOT_NUM );
-
-	Reply( kSes, EGS_AUTO_PARTY_DUNGEON_GAME_ACK, kAck );
 
 	return SendDungeonGameStartNot( kSes, kRow );
 }

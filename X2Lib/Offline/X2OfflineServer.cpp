@@ -12,6 +12,7 @@ CX2OfflineServer::CX2OfflineServer()
 , m_iUnitSlots( CX2OfflineDB::DEFAULT_UNIT_SLOTS )
 , m_wstrLoginID( L"" )
 , m_nNextRoomUID( 1000 )
+, m_nNextAutoPartyUID( 1 )
 , m_bQuitRequested( false )
 {
 }
@@ -671,6 +672,9 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_PARTY_GAME_START_REQ:          return Handler_EGS_PARTY_GAME_START_REQ( kSes, kEvent );
 	case EGS_REQUEST_MATCH_MAKING_REQ:      return Handler_EGS_REQUEST_MATCH_MAKING_REQ( kSes, kEvent );
 	case EGS_AUTO_PARTY_DUNGEON_GAME_REQ:   return Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ( kSes, kEvent );
+	case EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT:
+                                        return Handler_EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT( kSes, kEvent );
+	case EGS_CANCEL_AUTO_PARTY_MAKING_REQ:  return Handler_EGS_CANCEL_AUTO_PARTY_MAKING_REQ( kSes, kEvent );
 	case EGS_PVP_PARTY_CHANGE_MATCH_INFO_REQ:
                                         return Handler_EGS_PVP_PARTY_CHANGE_MATCH_INFO_REQ( kSes, kEvent );
 

@@ -401,6 +401,52 @@ public:
 	};
 
 	//////////////////////////////////////////////////////////////////////////
+	/// The auto-party matchmaking ceremony (AI_PARTY_PLAN.md phase 3): what the
+	/// player has asked for, and how far through the queue it has got.
+	///
+	/// Phase 1 answered EGS_AUTO_PARTY_DUNGEON_GAME_REQ with an ACK and then
+	/// EGS_PARTY_GAME_START_NOT in the same breath, so the button teleported.
+	/// The client's own flow has three steps in between - queued, matched,
+	/// everyone accepted - and every one of them is a packet it already knows
+	/// how to draw, so reproducing them costs nothing but this state.
+	///
+	/// The room is deliberately NOT opened until the player accepts.
+	/// OpenDungeonGameRoom -> OpenRoom clears m_kRoom and puts the session in
+	/// S_ROOM, and there is no path back out of that short of another room, so
+	/// opening it at request time would leave a cancelled match holding a live
+	/// dungeon room while the player stands in the village. Hence m_kReq: the
+	/// request is kept whole and replayed when the accept arrives.
+	struct KAutoPartyMatch
+	{
+		enum STATE
+		{
+			APS_IDLE,			///< no auto-party in progress
+			APS_QUEUED,			///< EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT sent; waiting out the fake queue
+			APS_WAIT_REPLY,		///< EGS_AUTO_PARTY_MAKING_SUCCESS_NOT sent; the accept popup is up
+		};
+
+		int									m_eState;
+		KEGS_AUTO_PARTY_DUNGEON_GAME_REQ	m_kReq;			///< replayed when the player accepts
+		UidType								m_nUnitUID;		///< whose match this is; a different character clears it
+		DWORD								m_dwMatchDueTick;	///< when APS_QUEUED becomes APS_WAIT_REPLY
+		UidType								m_nAutoPartyUID;	///< cosmetic, echoed in the making-success NOT
+
+		KAutoPartyMatch()
+		{
+			Clear();
+		}
+
+		void Clear()
+		{
+			m_eState			= APS_IDLE;
+			m_kReq				= KEGS_AUTO_PARTY_DUNGEON_GAME_REQ();
+			m_nUnitUID			= 0;
+			m_dwMatchDueTick	= 0;
+			m_nAutoPartyUID		= 0;
+		}
+	};
+
+	//////////////////////////////////////////////////////////////////////////
 	/// What a finished quest still owes the client once its ACK has gone out:
 	/// the level-up effect, the quest updates the reward triggered, and the
 	/// title work. Carried between CompleteOneQuest and AfterQuestComplete
@@ -669,6 +715,45 @@ private:
 	/// Handlers_Social.cpp. MakePartyBots clamps it to the three free slots and
 	/// to the size of the cast, so this cannot overfill the room.
 	static const int AUTO_PARTY_BOT_NUM = 3;
+
+	/// How long the fake matchmaking queue runs before it "finds" a party, in
+	/// milliseconds (AI_PARTY_PLAN.md phase 3).
+	///
+	/// It is quantised upward by whatever drives TickAutoPartyMatch, which is
+	/// the client's three-second EGS_UPDATE_PLAY_STATUS_NOT push - the emulator
+	/// has no timer of its own, and this is the same beat PushRemainingPlayTime
+	/// and TickField already ride. So the popup actually appears somewhere in
+	/// [AUTO_PARTY_QUEUE_MS, AUTO_PARTY_QUEUE_MS + 3000] ms after the button.
+	/// That variance is the reason to keep the value low: 2.5 s here reads as a
+	/// two-to-five second search, which is what matchmaking looks like, and it
+	/// can never collapse back into the instant teleport phase 1 had.
+	static const int AUTO_PARTY_QUEUE_MS = 2500;
+
+	/// What EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT reports as the expected
+	/// wait, in seconds. CX2PartyUI::UpdateMatchingUI (X2PartyUI.cpp:1382)
+	/// only ever divides it by 60, and anything under a minute draws as
+	/// "less than 1 minute (expected)" - which is both the honest answer and
+	/// the one the panel is built to show.
+	static const int AUTO_PARTY_ESTIMATE_SEC = 10;
+
+	/// The queue's heartbeat: promote APS_QUEUED to APS_WAIT_REPLY once the
+	/// fake search time has elapsed, by pushing EGS_AUTO_PARTY_MAKING_SUCCESS_NOT.
+	/// Driven by EGS_UPDATE_PLAY_STATUS_NOT for the reason on
+	/// AUTO_PARTY_QUEUE_MS.
+	void TickAutoPartyMatch( KOfflineSession& kSes );
+
+	/// Hand the player the dungeon the match promised: open the room, fill it
+	/// with bots and send EGS_PARTY_GAME_START_NOT. This is what phase 1's
+	/// auto-party handler did inline; phase 3 moved it behind the accept.
+	bool StartAutoPartyDungeon( KOfflineSession& kSes,
+								const KEGS_AUTO_PARTY_DUNGEON_GAME_REQ& kReq );
+
+	/// End a running match and tell the client, with EGS_AUTO_PARTY_CLOSE_NOT
+	/// carrying one of NetError's NOT_LEAVE_AUTO_PARTY_REASON_* values. Not
+	/// used on the success path: EGS_PARTY_GAME_START_NOT already clears the
+	/// client's matching flag, and this one plays the failure sound
+	/// unconditionally (X2PartyManager.cpp:2937).
+	void CloseAutoPartyMatch( KOfflineSession& kSes, int iReason );
 
 	/// Fill m_kRoom.m_vecBot with iBotCount AI party members at the player's
 	/// level, drawn at random - and without replacement - from BOT_CAST.
@@ -984,6 +1069,8 @@ private:
 	bool Handler_EGS_PARTY_GAME_START_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_REQUEST_MATCH_MAKING_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_CANCEL_AUTO_PARTY_MAKING_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_PVP_PARTY_CHANGE_MATCH_INFO_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_COMMUNITY_USER_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_COMMUNITY_USER_LIST_MONITORING_MODE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
@@ -1101,6 +1188,10 @@ private:
 
 	KOfflineRoom								m_kRoom;			///< the one room; see KOfflineRoom
 	UidType										m_nNextRoomUID;
+
+	/// The auto-party queue, if one is running; see KAutoPartyMatch.
+	KAutoPartyMatch								m_kAutoParty;
+	UidType										m_nNextAutoPartyUID;
 
 	KQuestAfter									m_kQuestAfter;		///< see KQuestAfter
 };

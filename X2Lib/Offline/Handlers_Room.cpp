@@ -471,6 +471,13 @@ bool CX2OfflineServer::OpenRoom( KOfflineSession& kSes, int iRoomType, const KRo
 		return false;
 	}
 
+	// Any room at all ends a pending auto-party match (AI_PARTY_PLAN.md phase
+	// 3). The ceremony's state only means anything while the player is standing
+	// in a village with the party panel open, and this is every path into a
+	// room - including auto-party's own accept, which is why
+	// StartAutoPartyDungeon copies the request out before it calls here.
+	m_kAutoParty.Clear();
+
 	m_kRoom.Clear();
 	m_kRoom.m_bActive		= true;
 	m_kRoom.m_nUnitUID		= kRow.m_nUnitUID;

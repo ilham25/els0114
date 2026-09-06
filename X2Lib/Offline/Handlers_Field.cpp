@@ -202,6 +202,13 @@ bool CX2OfflineServer::Handler_EGS_UPDATE_PLAY_STATUS_NOT( KOfflineSession& kSes
 	// into every dungeon. See PushRemainingPlayTime for the full story.
 	PushRemainingPlayTime( kSes );
 
+	// ...and the auto-party queue's, for the same reason. This packet is the
+	// only regular beat the village has - CX2StateMenu::OnFrameMove pushes it
+	// every three seconds through m_TimerForSendingPlayStatus - so the fake
+	// matchmaking wait is counted out on it rather than on a timer the
+	// emulator does not have. See AUTO_PARTY_QUEUE_MS for what that costs.
+	TickAutoPartyMatch( kSes );
+
 	// Note this one carries a bare KGamePlayStatus, not the
 	// KGamePlayStatusContainer that EGS_SELECT_UNIT_4_NOT uses.
 	const KGamePlayStatus& kStatus = kReq.m_kGamePlayStatus;

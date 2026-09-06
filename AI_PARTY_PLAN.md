@@ -1,20 +1,23 @@
 # AI party members in offline dungeons
 
-**Status:** **phases 0 and 1 done 2026-09-05, both play-tested. Phase 2 is
-implemented and play-tested three times, and is NOT closed** — the cast, count,
-draw and placement are right and the solo button still spawns nobody. Both
-defects found in play are now fixed, but **the last two fixes are unverified**:
-defect 2 (the first spawn of every stage was silently deleted) and the staggered
-one-at-a-time spawn. Revive and the EXP/ED check have never been run. See
-*Picking phase 2 up in a new conversation* under *Phase 2* first. Phase 0 was a
-gate and it FAILED for the intended cast, so the plan is re-pointed at
-`NUI_CSM_PVP_HERO_*` — see *Phase 0*. Phase 1 PASSED: pressing auto-party puts
-one AI party member (Lowe) in the dungeon, fighting on your team, and the
-normal start button still goes in alone. Getting there took three build/play
-cycles and cost three defects and five corrections, all written up under
-*Phase 1* — **read those before starting phase 2**, because two of them change
-what later phases can assume. Phases 2-5 planned, nothing else implemented.
-Written 2026-09-05.
+**Status:** **phases 0-2 done and play-tested; phase 3 is implemented and
+deployed but NOT yet played.** Phase 0 was a gate and it FAILED for the intended
+cast, so the plan is re-pointed at `NUI_CSM_PVP_HERO_*` — see *Phase 0*.
+Phase 1 PASSED (2026-09-05): auto-party puts an AI party member in the dungeon,
+fighting on your team, and the normal start button still goes in alone. Phase 2
+PASSED (2026-09-06) after two defects and a redesign: three heroes drawn at
+random, placed on the line map's own party start slots, and the party now
+*survives* a stage change rather than being rebuilt at each one. Two things
+phase 2 built have still never been exercised in play — **a bot death**
+(nothing at this level hits hard enough) and the **EXP/ED comparison** against a
+solo run; both are play-test work, not code work. Phase 3 (2026-09-06) put the
+matchmaking ceremony in front of it all — a queue, an accept popup, a cancel
+and a deny path — entirely in the offline server, with no client file touched;
+it is built and deployed and its exit test is unrun. Phases 4-5 planned, nothing
+else implemented.
+**Read before starting a phase:** phase 1's three defects and phase 2's two,
+which between them change what later phases may assume about the dungeon path.
+Written 2026-09-05, last updated 2026-09-06.
 **Flag:** none of its own. This is an extension of offline mode, so every edit
 goes behind the existing **`SERV_IRUHADEV_OFFLINE`** — there is no
 `SERV_IRUHADEV_AI_PARTY`. Offline mode's nine phases are done; see
@@ -1245,6 +1248,15 @@ backlog, not to this plan.
 
 # Phase 3 — The matchmaking ceremony
 
+> **Implemented and deployed 2026-09-06, NOT play-tested.** The whole ceremony
+> is offline-server work - no client file was touched, and no packet or packet
+> field was added on either side. The five numbered steps below are the plan
+> **as written beforehand** and are kept unedited; for what the code does, read
+> *What phase 3 actually built* and *Decisions made while implementing phase 3*
+> underneath. One thing the plan got backwards is worth knowing before reading
+> it: `EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT` is sent **by the client**, not
+> to it - see correction 1.
+
 Auto-party already reaches the dungeon after phase 1; what it does not do is
 *look* like matchmaking. Right now the ACK is followed immediately by
 `EGS_PARTY_GAME_START_NOT`, so the player presses a button and teleports. The
@@ -1276,6 +1288,168 @@ Exit test: press auto-party in the village, watch it queue and match, land in
 the dungeon with three bots. Cancel mid-queue and end up back in the village
 with the UI reset. Start the same dungeon with the normal button and go in
 alone.
+
+### Exit test — NOT YET RUN (built and deployed 2026-09-06)
+
+Implemented in one pass, built, and deployed as `X2_offline.exe`
+(14,342,144 bytes, 07:33). Nothing here has been played yet. The exit test is
+the four rows below; paste what happens and this table gets filled in.
+
+| Check | Result |
+|---|---|
+| Auto-party queues instead of teleporting — the party panel switches to the waiting view with a running clock | |
+| It "matches" a few seconds later: success sting, accept popup naming the dungeon and **4** members | |
+| Accept lands in the dungeon with three bots, as before | |
+| Deny (or let the popup time out) puts the party panel back and the button works again | |
+| Cancel mid-queue returns to the village with the UI reset, and auto-party can be pressed again | |
+| The normal start button still spawns nobody | |
+| `grep -E "UNHANDLED\|EXCEPTION" offline_packets.log` stays empty | |
+
+### What phase 3 actually built
+
+The whole ceremony is offline-server work; **no client file was touched at
+all**, and no packet or packet field was added, on either side. Every one of
+the five packets already exists and `CX2PartyManager` already draws all of
+them — phase 1 simply skipped four of them.
+
+The flow now, with the client-side handler that reacts to each:
+
+```
+C->S  EGS_AUTO_PARTY_DUNGEON_GAME_REQ
+S->C  EGS_AUTO_PARTY_DUNGEON_GAME_ACK              (NET_OK; nothing else happens on it)
+S->C  EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT     X2PartyManager.cpp:2749 - panel -> waiting,
+                                                   SetProcessDungeonMatch( true ) latches
+        ...2.5 s of fake queue, counted on the status push...
+S->C  EGS_AUTO_PARTY_MAKING_SUCCESS_NOT            X2PartyManager.cpp:2828 - success sting,
+                                                   10 s OK/Cancel popup
+C->S  EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT      the player's answer
+   accept -> S->C EGS_PARTY_GAME_START_NOT         room opened here, bots made here
+   deny   -> S->C EGS_AUTO_PARTY_CLOSE_NOT         reason 03
+and at any point in the queue:
+C->S  EGS_CANCEL_AUTO_PARTY_MAKING_REQ
+S->C  EGS_CANCEL_AUTO_PARTY_MAKING_ACK             X2PartyManager.cpp:2795 - unlatches the flag
+```
+
+New in `X2Lib/Offline/`: `CX2OfflineServer::KAutoPartyMatch` (a three-state
+machine plus the request), `TickAutoPartyMatch`, `StartAutoPartyDungeon`,
+`CloseAutoPartyMatch`, and handlers for the two client packets that had never
+been sent before. `Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ` shrank to
+"validate, ACK, queue".
+
+### Decisions made while implementing phase 3
+
+- **The room is not opened until the player accepts, and this is the decision
+  the rest of the shape hangs off.** The obvious build — open the room at
+  request time, hold it, send `EGS_PARTY_GAME_START_NOT` on accept — is a trap:
+  `OpenDungeonGameRoom` -> `OpenRoom` calls `m_kRoom.Clear()`, sets
+  `m_bActive`, and puts the session in `S_ROOM`
+  ([Handlers_Room.cpp:458](X2Lib/Offline/Handlers_Room.cpp#L458)), and there is
+  no path back out of that short of opening another room. A cancelled or denied
+  match would leave a live dungeon room behind a player standing in the
+  village. So `KAutoPartyMatch` keeps the *request* whole and replays it, and
+  `OpenRoom` clears any pending match on the way in — which makes every other
+  entry into a room (the solo button, a battlefield, the tutorial) abandon a
+  stale queue for free, without any of those handlers being edited.
+- **The queue is counted on `EGS_UPDATE_PLAY_STATUS_NOT`, not on a timer.** The
+  emulator has no clock — it only runs when the client sends something — and
+  the plan named `TickField` / `PushRemainingPlayTime` as the precedent to
+  reuse rather than inventing a second mechanism. Both ride that packet, and it
+  turns out to be exactly as regular in a **village** as in a dungeon: it is
+  pushed by `CX2State::CheckAndSendingPlayStatus` off
+  `m_TimerForSendingPlayStatus`, constructed at `3.0f`
+  ([X2InstanceData.cpp:78](X2Lib/X2InstanceData.cpp#L78)), from
+  `CX2StateMenu::OnFrameMove` ([X2StateMenu.cpp:161](X2Lib/X2StateMenu.cpp#L161)).
+  The previous run's log confirms it: 24 consecutive pushes 3.00-3.05 s apart
+  while standing in the village.
+- **2.5 s of queue, which is really 2.5-5.5 s.** The three-second beat
+  quantises the wait upward, so `AUTO_PARTY_QUEUE_MS` is a floor and the beat
+  adds up to 3 s of jitter on top. Picked low deliberately: the failure mode
+  worth avoiding is collapsing back into phase 1's instant teleport, and 2.5 s
+  cannot — the first eligible beat is at least that late. The variance reads as
+  matchmaking rather than as a bug.
+- **A client-side per-frame tick was considered and rejected.** Phase 2 already
+  added `TickOfflinePartyBots` to `CX2DungeonGame::OnFrameMove`, so ticking the
+  offline server from the village's frame move would have been an easy 200 ms
+  resolution. It would also have called `Reply` -> `KSession::QueueingEvent`
+  from the render thread rather than the `KSession::Run` thread, outside
+  `m_csDispatch` and outside the per-packet SQLite savepoint — i.e. it would
+  break both of offline mode's two stated invariants at once to buy two seconds
+  of precision on a fake queue.
+- **Four members, always.** The plan left this open. `m_iMemberCount` is only
+  what the accept popup reads out, and it has to agree with
+  `AUTO_PARTY_BOT_NUM` or the popup promises a party the room will not contain,
+  so it is written as `1 + AUTO_PARTY_BOT_NUM` rather than as a second
+  constant. Offering a count would need UI that does not exist.
+- **Deny closes with `NOT_LEAVE_AUTO_PARTY_REASON_03`; success closes with
+  nothing.** `Handler_EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT( false )` puts
+  the client's own buttons back but does **not** clear
+  `SetProcessDungeonMatch` ([X2PartyManager.cpp:2857](X2Lib/X2PartyManager.cpp#L2857)),
+  so something has to. `EGS_AUTO_PARTY_CLOSE_NOT` is that something, and
+  reason 03 — "a party member did not agree to the auto-party game start" — is
+  both the branch that clears the flag and the honest description: the party
+  member who declined is the player. It is **not** sent on the success path,
+  because every branch of that handler falls through to
+  `Battle_Atena_Fail.ogg` ([X2PartyManager.cpp:2937](X2Lib/X2PartyManager.cpp#L2937))
+  and `EGS_PARTY_GAME_START_NOT` already clears the flag itself
+  ([X2PartyManager.cpp:1457](X2Lib/X2PartyManager.cpp#L1457)) — so it would buy
+  nothing and play a failure sting over a successful match.
+- **The popup cannot hang the state machine.** It is armed with
+  `SMUCM_DUNGEON_MATCH_GAME_DENY` as its `timeOutMsg`
+  ([X2PartyManager.cpp:2853](X2Lib/X2PartyManager.cpp#L2853)), and
+  `AddTimedMessagePopup`'s third command id *is* the timeout one
+  ([X2Main.h:1607](X2Lib/X2Main.h#L1607)), so a player who walks away denies by
+  default after ten seconds and the reply still arrives. There is no way out of
+  that popup that leaves `APS_WAIT_REPLY` waiting forever, which is why no
+  server-side popup timeout was built.
+- **`EGS_UNREG_AUTO_PARTY_WAIT_LIST_NOT` is deliberately never sent.** The plan
+  listed it with the cancel path, but it is the *server-initiated* unregister —
+  the player-initiated one is answered by the cancel ACK, and offline nothing
+  ever kicks a player out of a queue of one. Its client handler
+  ([X2PartyManager.cpp:2813](X2Lib/X2PartyManager.cpp#L2813)) does exactly what
+  the cancel ACK path already does.
+- **A match is tagged with the character that made it.** `TickAutoPartyMatch`
+  drops the match if `kSes.m_nSelectedUnitUID` no longer matches. Without that,
+  queueing, going back to character select and picking a different character
+  would leave the match armed, and the next status push would drop somebody
+  else into a dungeon they never asked for.
+- **A reply arriving at an idle match is logged and ignored, not an error.**
+  The panel's cancel button and the accept popup can be live at the same
+  moment; cancelling first leaves the popup on screen to time out and deny into
+  `APS_IDLE`. Acting on it would re-open a match the player has already closed.
+
+### Corrections to this plan, found by doing it
+
+1. **`EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT` is client-to-server, not
+   server-to-client.** The plan's ordered list annotates it "everyone
+   accepted", which reads as a broadcast the server sends. It is the opposite:
+   `CX2PartyManager::Handler_EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT( bool )`
+   ([X2PartyManager.cpp:2857](X2Lib/X2PartyManager.cpp#L2857)) is a *sender*,
+   called from the accept popup's OK, Cancel and timeout commands. So the
+   ceremony has one more inbound packet than the plan implies and one fewer
+   outbound, and the offline server has to *handle* it rather than push it.
+   Both it and `EGS_CANCEL_AUTO_PARTY_MAKING_REQ` had never once been sent
+   before this phase, because the client gates both on
+   `GetProcessDungeonMatch()`, which only phase 3 ever latches.
+2. **The plan's `TickField` / `PushRemainingPlayTime` line refs are stale**
+   (`Handlers_Room.cpp:400` and `:571`); they are at
+   [:669](X2Lib/Offline/Handlers_Room.cpp#L669) and
+   [:840](X2Lib/Offline/Handlers_Room.cpp#L840). The shape they demonstrate is
+   the right one and was reused; only the numbers had drifted.
+3. **Nothing needed a scope guard for the solo button, again.** The whole
+   ceremony hangs off `EGS_AUTO_PARTY_DUNGEON_GAME_REQ`, which only the
+   auto-party button sends, and `m_kAutoParty` is cleared by any room opening.
+   `Handler_EGS_QUICK_START_DUNGEON_GAME_REQ` is untouched for the third phase
+   running.
+
+### What to watch for in the play-test
+
+| Symptom | Where to look |
+|---|---|
+| The button teleports as before, no queue | `grep "queued for dungeonID" offline_server.log` — if it is there, the client ignored the NOT; if not, the ACK failed and the handler returned early |
+| Queue never resolves, panel sits at 00:0x forever | `grep "matched -" offline_server.log`. Empty means `TickAutoPartyMatch` is not being reached — check that `id=905` is still arriving in `offline_packets.log` while the panel is up |
+| Accept popup appears, accepting does nothing | `grep "accepted - opening" offline_server.log`. Missing means the reply NOT is not being dispatched; look for it as `*** UNHANDLED ***` |
+| Party window will not open again after a cancel or deny | `SetProcessDungeonMatch` is still latched — the cancel ACK or the close NOT did not arrive. Both are logged |
+| Bots stop appearing | The accept path is the only one that calls `MakePartyBots` now. `grep "bot slot" offline_server.log` |
 
 ---
 
