@@ -40,35 +40,10 @@ namespace
 
 	//////////////////////////////////////////////////////////////////////
 
-	class CStopwatch
-	{
-	public:
-		CStopwatch()
-		{
-			::QueryPerformanceFrequency( &m_liFrequency );
-			Restart();
-		}
-
-		void Restart()
-		{
-			::QueryPerformanceCounter( &m_liStart );
-		}
-
-		double Seconds() const
-		{
-			LARGE_INTEGER liNow;
-			::QueryPerformanceCounter( &liNow );
-
-			if( 0 == m_liFrequency.QuadPart )
-				return 0.0;
-
-			return (double)( liNow.QuadPart - m_liStart.QuadPart ) / (double) m_liFrequency.QuadPart;
-		}
-
-	private:
-		LARGE_INTEGER	m_liStart;
-		LARGE_INTEGER	m_liFrequency;
-	};
+	// Phase 2 moved this into KomArchive.h as CToolStopwatch so the icon
+	// locator can report its own timings from the same clock. The local
+	// name is kept because it reads better at the call sites here.
+	typedef CToolStopwatch	CStopwatch;
 
 	//////////////////////////////////////////////////////////////////////
 	// What the Lua callbacks write into.

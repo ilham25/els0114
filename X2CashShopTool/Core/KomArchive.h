@@ -99,6 +99,11 @@ public:
 	size_t				NameCount() const		{ return m_mapName.size(); }
 	size_t				ShadowedCount() const	{ return m_uShadowed; }
 
+	// For walking every member of every archive - which is what building
+	// the icon locator does (phase 2). Only the archives that actually
+	// opened are in here, so the index may be shorter than 145.
+	const CKomArchive&	ArchiveAt( size_t uIndex ) const	{ return m_vecArchives[uIndex]; }
+
 private:
 	struct SLocation
 	{
@@ -125,3 +130,36 @@ bool			GetFileStamp( const std::wstring& wstrPath, __int64* piSize, __int64* piM
 std::string		NarrowPath( const std::wstring& wstr );
 std::wstring	WidenPath( const std::string& str );
 std::string		UpperAscii( const std::string& str );
+
+// dir + leaf, inserting a separator only when the directory does not
+// already end in one. Four copies of this had accumulated across the
+// tool by phase 2; one is enough.
+std::wstring	JoinPath( const std::wstring& wstrDir, const std::wstring& wstrLeaf );
+
+// Reads and inflates one member given only its coordinates, with no
+// CKomArchive in hand. This is what lets the icon store work straight off
+// the cached locator table - resolving an icon then costs one open, one
+// seek and one inflate, and never a re-mount of the 145 manifests.
+//
+// uSizeHint is the manifest's Size attribute, used only as the initial
+// output capacity: 121 of the 88,723 members state a Size smaller than
+// what they really inflate to, so the buffer grows rather than trusting it.
+bool			InflateMemberAt( const std::wstring& wstrArchivePath, __int64 iOffset,
+									long lCompSize, size_t uSizeHint,
+									std::vector<char>& vecOut, std::string& strError );
+
+// QueryPerformanceCounter wrapper. Shared because both the extractor and
+// the icon locator report their own timings, and a phase that cannot say
+// how long it took cannot be judged.
+class CToolStopwatch
+{
+public:
+	CToolStopwatch();
+
+	void	Restart();
+	double	Seconds() const;
+
+private:
+	__int64	m_iStart;
+	__int64	m_iFrequency;
+};

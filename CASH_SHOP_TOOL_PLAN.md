@@ -390,7 +390,11 @@ X2CashShopTool/
     KomArchive.{h,cpp}                 V.0.3 only, ~200 lines, fresh
     LuaXor.{h,cpp}                     ~20 lines, in-place DWORD XOR
     ItemIndex.{h,cpp}                  Lua state + stubs + extraction
-    DdsDecode.{h,cpp}                  DXT1/DXT5 -> BGRA32 (nothing in-tree does this)
+    DdsDecode.{h,cpp}                  DXT1/3/5 + uncompressed -> BGRA32 (phase 2:
+                                       the plan said DXT1/DXT5 only; the shipped set
+                                       has DXT3 and two uncompressed shapes as well)
+    IconStore.{h,cpp}                  the .dds locator over all 145 archives, the
+                                       client's Noimage fallback, and the bounded LRU
     CashDb.{h,cpp}                     sqlite3 over els_db.sql
     IndexCache.{h,cpp}                 the SQLite item index, next to the tool exe
     ../../Libs/ExternalLib/sqlite3/sqlite3.c   (X2Lib_2010.vcxproj:3133-3138 verbatim)
@@ -432,6 +436,9 @@ CREATE TABLE cash_category( tab_idx INTEGER, real_id INTEGER, sub_ordinal INTEGE
                             cssc_enum INTEGER, billing_category_no INTEGER );
 
 -- icons are a LOCATOR table; never the bytes, never decoded bitmaps
+-- (phase 2: these two are versioned and stamped SEPARATELY from the item
+--  half, via icon_locator_version + icon_kom, because the catalog depends
+--  on data036.kom alone and the locator on all 145 archives)
 CREATE TABLE icon( name TEXT PRIMARY KEY, kom TEXT, offset INTEGER,
                    comp_size INTEGER, real_size INTEGER );
 CREATE TABLE icon_kom( kom TEXT PRIMARY KEY, size INTEGER, mtime INTEGER );
@@ -897,6 +904,270 @@ does not accumulate 43,000 bitmaps.
 **Exit test**: a scratch form showing a wall of ~200 decoded icons, correct
 colours and alpha, with a count of how many items resolved to a real file versus
 the fallback.
+
+#### Exit test — PASSED, bar the user's own look at the wall (2026-09-06)
+
+Built both configs (`Release|Win32` and `Debug|Win32`) on a full rebuild,
+**0 Warning(s), 0 Error(s)**, no `LNK2038` / `LNK2005` / `LNK4098`. The
+`/clr` split still holds: the eight `Core` translation units compiled with
+no `/clr` on the command line at all and only `Main.cpp` got
+`/clr:nostdlib` — read out of the `-v:normal` log, not assumed. Deployed to
+`F:\...\237311\22191271\data\X2CashShopTool.exe`, landing confirmed by
+listing the directory programmatically, and run with that directory as the
+working directory.
+
+First run, `--rebuild --no-window --decode-all`:
+
+```
+archives : mounted 145 of 145 (88723 names, 0 shadowed by an earlier archive)
+           mount took 0.15 s
+icons    : 28680 .dds locator entr(ies) from 88723 member(s) across 145 archive(s), 0.05 s (manifests only)
+           28680 locator row(s) + 145 archive stamp(s) written in 81 ms
+           fallback HQ_SHOP_UI_NOIMAGE.DDS: present
+
+--- icon resolution across the whole catalog ---
+  48754 item(s) total
+  48419 resolve to a real file  (15098 distinct image(s) - many items share one icon)
+  145 fall back: m_ShopImage is empty
+  190 fall back: m_ShopImage names a file no archive holds
+  335 would show HQ_Shop_Ui_Noimage.dds in the client, and will here
+
+--- the wall: 240 tile(s), 4208 Get() call(s), 0.45 s ---
+  DXT1           decoded 199
+  DXT3           decoded 3
+  DXT5           decoded 10
+  uncompressed   decoded 12
+  fallback (no m_ShopImage)      7
+  fallback (no such file)        7
+  fallback (undecodable)         2
+  2 shown through GDI+ (a real image under a .dds name, not a DDS)
+  LRU: 1391 hit(s), 2665 miss(es), 1639 eviction(s), 1024 entr(ies) holding 16384 KB of 16384 KB
+
+--- decoding every distinct image the catalog names ---
+  15265 distinct name(s), 2.44 s
+  DXT1           14521
+  DXT3           141
+  DXT5           190
+  uncompressed   245
+  fallback (no such file)        167
+  fallback (undecodable)         1
+  the ones that are there but did not decode as a DDS:
+    HQ_Shop_Common_Elite_AC_FACE2_30035.dds - fallback (undecodable): magic is 89 50 4E 47, not 'DDS '
+
+peak working set : 116.0 MB
+```
+
+Second run, no switches — the path every later phase actually takes:
+
+```
+archives : not mounted - both halves of the index are current
+catalog  : 48754 item(s), 31 category row(s) loaded from the cache in 86 ms
+icons    : 28680 locator row(s) loaded from the cache in 48 ms
+peak working set : 62.0 MB
+```
+
+**The archives are not opened at all on a cached run** — that is what
+persisting the locator bought, and it is why the peak working set halves
+from 116 MB to 62 MB.
+
+**The decoder was verified by arithmetic, not by eye.** The exit test asks
+for "correct colours and alpha", and a wall of thumbnails cannot actually
+settle that, so `--dump <name> [outfile]` was added: it writes one decoded
+surface out as raw BGRA, which anything can read without an image library.
+A second, independently written implementation of the same block formats
+(in Python, straight from the format description — `scratchpad/crosscheck_dds.py`)
+then decodes the same member out of the same archive and compares
+byte-for-byte. Seven files, covering every shape in the shipped set:
+
+| file | shape | result |
+|---|---|---|
+| `HQ_Shop_Item_100000.dds` | 64×64 DXT1, opaque | identical |
+| `HQ_SHOP_ARA_SET_ED_WEAPON140.DDS` | 64×64 DXT1, **1-bit alpha / 3-colour mode** (alpha ∈ {0,255}) | identical |
+| `HQ_SHOP_ARME_CASH_FOOT120.DDS` | 64×64 DXT3 | identical |
+| `HQ_Shop_Ui_Noimage.dds` | 64×64 DXT5, **graduated alpha** (0, 21, 243, 247, 255) | identical |
+| `HQ_SHOP_ARA_INT_CASH_ONEPIECE110.DDS` | 64×64 uncompressed 24-bit | identical |
+| `HQ_SHOP_ARME_ED_FOOT100.DDS` | 64×64 uncompressed 32-bit | identical |
+| `HQ_SHOP_COMMON_AC_UPBODY_129630.DDS` | **55×55** uncompressed — partial block column and row | identical |
+
+All 16,384 bytes (12,100 for the 55×55) match in every case, so the 565
+expansion, both DXT1 colour modes, the DXT3 nibble alpha, the DXT5 3-bit
+alpha palette in both of its modes, the mask-driven uncompressed unpack and
+the edge clipping are all confirmed against a second transcription.
+
+**What is left for the user is one look at the wall**, which is the half no
+measurement replaces: whether the pictures are the right pictures. The
+window opened and stayed up with no exception (verified by launching it and
+watching the process live for 7 s before closing it), the tiles are drawn
+over a checkerboard so a wrongly-decoded alpha shows as a hard square, the
+fallback tiles carry a gold border, and each tile's tooltip names the item,
+its `m_Name`, its `m_ShopImage`, what was actually decoded and the outcome.
+The tiles are laid out in **labelled groups by outcome**, so the three DXT3
+and ten DXT5 tiles are together rather than scattered through 200 DXT1 ones.
+
+#### Corrections to this plan, found by doing it
+
+- **Section 4 is wrong about the formats: it is not just DXT1 and DXT5.**
+  Measured over all 15,098 distinct `m_ShopImage` files the catalog names —
+  and confirmed twice, once by the tool and once by an independent Python
+  pass over the same archives:
+
+  | format | files |
+  |---|---|
+  | DXT1 | 14,521 |
+  | DXT5 | 190 |
+  | uncompressed 24-bit (`DDPF_RGB`) | 168 |
+  | DXT3 | 141 |
+  | uncompressed 32-bit (`DDPF_RGB \| DDPF_ALPHAPIXELS`) | 77 |
+  | PNG, under a `.dds` name | 1 |
+
+  A DXT1/DXT5-only decoder would have shown the fallback for 386 icons and
+  had nothing to say about why. `DdsDecode` therefore handles DXT1, DXT3,
+  DXT5 and mask-driven uncompressed 16/24/32-bit. **DXT3's and DXT5's colour
+  block always uses the four-colour interpolation** regardless of how `c0`
+  and `c1` compare — only DXT1 has the `c0 <= c1` three-colour mode with a
+  transparent fourth entry. Getting that wrong is invisible on opaque icons
+  and produces dark blocky edges on exactly the ones with real alpha.
+- **The plan's "64×64" is right for the shop images but not for `.dds` in
+  general, and ten shop images are 55×55.** 55 is 13.75 blocks, so the last
+  block column and row are partial. The decoder clips rather than assuming a
+  multiple of four; the 55×55 case is one of the seven files cross-checked
+  above precisely because it is the one that would have overrun the surface.
+- **One shipped shop image is a PNG stored under a `.dds` name** —
+  `HQ_Shop_Common_Elite_AC_Face2_30035.dds`, 10,070 bytes, magic
+  `89 50 4E 47`. It is a perfectly good picture, so showing the fallback for
+  it would be a lie about it: `EDdsError` keeps `DdsError_NotDds` apart from
+  `DdsError_Corrupt`, `CIconStore::ReadRaw` hands the undecoded bytes up, and
+  the Ui puts them through GDI+. Reported as its own line so it is never
+  mistaken for a decode bug. (This is why the wall shows two "undecodable"
+  tiles for one distinct file: two items share that icon.)
+- **The plan's icon-count estimate was low, in the useful direction.**
+  Section 4 says "5,277 follow the `HQ_Shop_Item_<id>` convention" out of
+  88,723 member names, and warns that many more icons use other names. The
+  measured figure: **28,680 `.dds` members** across the 145 archives, of
+  which 22,720 begin `HQ_SHOP_`, and the catalog's own `m_ShopImage` values
+  resolve to **15,098 distinct** files. The locator stores all 28,680 —
+  16 MB of SQLite, written in 81 ms — because phase 4 and 5 will want to
+  resolve any icon name, not only the ones some item happens to reference
+  today.
+- **Phase 1's decision to "bump the extractor version" for phase 2 was the
+  wrong instrument, and doing it would have cost a needless rebuild.** The
+  item catalog depends on `data036.kom` alone; the icon locator depends on
+  all 145 archives. Sharing one version number means every change to either
+  half discards the other. So `IconLocatorVersion()` is separate (now 1),
+  `ItemExtractorVersion()` stays at **2**, `icon_kom` stamps each archive's
+  size and mtime, and `CreateSchema` adds the two tables with
+  `CREATE TABLE IF NOT EXISTS` — a phase 1 cache gains them on its next open
+  and keeps its 48,754 items. This also required `Store()` to stop doing
+  `DELETE FROM index_meta`: it now deletes only the four keys it owns, or it
+  would silently drop the icon locator's stamp every time the catalog was
+  rebuilt.
+- **`m_ShopImage` names a file no archive holds for 190 items, and is empty
+  for 145.** So **335 of 48,754** items would show
+  `HQ_Shop_Ui_Noimage.dds` in the client and do so here too — the client's
+  rule verbatim (`IsValidFile( GetShopImage() )` else
+  `L"HQ_Shop_Ui_Noimage.dds"`, [X2SlotItem.cpp:255-265](X2Lib/X2SlotItem.cpp#L255),
+  re-read and confirmed). The 190 are 167 distinct missing names; `data036`
+  and friends simply do not carry them. Phase 3's dropped-row report is a
+  different number from a different join and these two must not be conflated.
+- **The manifest step of the VS2010 build fails on this machine, reproducibly,
+  and it is not a code problem.** After `X2CashShopTool.exe` links cleanly,
+  MSBuild runs `mt.exe` to embed the manifest, which reopens the just-written
+  exe **for write**; Defender's real-time scan of the fresh binary holds it
+  and `mt.exe` fails with `general error c101008d: ... being used by another
+  process`. Two consecutive Release builds failed that way while Debug
+  succeeded. The fix in the project is `<GenerateManifest>false</GenerateManifest>`
+  on the Ui project, with the reasoning in a comment: VC10 dropped the
+  side-by-side CRT binding VC8/VC9 used, so `msvcr100.dll` is found by plain
+  DLL search, and the execution level would have been the default
+  `asInvoker` anyway. The manifest-less exe was then built and run to
+  confirm. Same family as `CLAUDE.md`'s Defender note; expect it on the
+  other tool projects too.
+- **A scripted patch silently truncated a wide backslash literal.** Editing
+  `IndexCache.cpp` through a bash heredoc turned `L'\\'` into `L'\'` — an
+  unterminated char literal — in two places, while `L"\\"` two lines below
+  survived intact. Exactly the hazard the `bash-heredoc-eats-double-backslashes`
+  note warns about, and it does not fire uniformly, so "the other one came
+  out right" is no evidence. The repair was to delete the construct rather
+  than re-escape it: `JoinPath( dir, leaf )` now lives in `KomArchive.cpp`
+  (there were four hand-rolled copies of that concatenation by this point)
+  and uses a named `SEPARATOR = (wchar_t) 92` so no wide backslash literal
+  has to survive a shell round-trip at all.
+
+#### Decisions made while implementing phase 2
+
+- **`CIconStore::Get` returns a BORROWED pointer, valid only until the next
+  call to `Get`.** The alternative was copying 16 KB per lookup into a
+  caller-owned buffer, which is pure waste when the Ui's next act is always
+  to turn the pixels into a `Bitmap`. The contract is stated in capitals in
+  `IconStore.h` and honoured in exactly one place in the Ui (`ToBitmap`),
+  which is called immediately after each `Get`. It is also the right shape
+  for phase 5's virtualized grid: paint the row, move on.
+- **The fallback is pinned outside the LRU.** It is the single most-drawn
+  image in the tool, so evicting it is the one eviction guaranteed to be
+  wrong. It is decoded once, lazily, on the first `Get`.
+- **The LRU budget is 16 MB, about a thousand 64×64 icons, and it is
+  measured rather than asserted.** Hits, misses, evictions, entries and
+  bytes held are printed on every run. `--decode-all` deliberately thrashes
+  it (15,061 misses, 15,060 evictions, 37 hits over 15,265 distinct names)
+  which is what proves the eviction path runs at all; the wall's own numbers
+  (1,391 hits, 2,665 misses) are the realistic case.
+- **`CIconStore` never XOR-decrypts.** The `.lua` members carry the XOR and
+  the `.dds` members do not — the bytes straight out of `uncompress()` begin
+  `DDS `. Re-verified across all 15,098 shop images in this phase, not taken
+  on trust from section 4.
+- **The icon locator holds every `.dds` member, not only shop images**, and
+  is built from manifests alone — the 60-byte header, the three DWORDs and
+  the XML, then stop, exactly as the plan prescribes. No payload is read
+  during indexing; the whole sweep is 0.05 s once the archives are mounted.
+- **`Adopt()` re-resolves archive file names against the directory given
+  now**, rather than trusting the `icon_dir` the locator was built in. So a
+  copied install with byte-identical archives reuses the cache correctly,
+  and a changed one fails the size/mtime check per archive. `icon_dir` is
+  stored for information only.
+- **`AreIconsCurrent` also counts how many `data###.kom` are present**, not
+  just whether the stamped ones still match. A 146th archive appearing, or
+  one of the 145 having been absent at build time and present now, changes
+  what the locator should contain and no stamp comparison would notice.
+- **The wall is one owner-drawn `Panel`, not 240 `PictureBox`es.** 240
+  child controls is 240 window handles and a visibly slow resize, and phase
+  5's picker needs the same paint-on-demand discipline over 48,754 rows
+  anyway. Fonts and pens are created once in the constructor rather than per
+  `OnPaint`.
+- **`SubSystem` stays `Console` even though there is now a window.** A
+  console-subsystem `/clr` exe opens a `Form` perfectly well, and keeping
+  stdout means the census and the wall come out of one run. The
+  `EntryPointSymbol=main` trap from section 7 is therefore still not
+  exercised; it goes live in phase 4, and both vcxproj files still say so.
+- **`Control::Layout`, `Rectangle`, `Size` and `Point` all had to be worked
+  around in the WinForms header**, and the errors are worth knowing before
+  phase 4 writes a lot more of this: `Rectangle` collides with `wingdi.h`'s
+  `Rectangle()` function (windows.h arrives via `msclr/marshal.h`), `Size`
+  and `Point` collide with `Control`'s own inherited *properties* inside a
+  `Control`-derived ref class — `Size( 900, 700 )` parses as a call to the
+  property and gives "term does not evaluate to a function taking 2
+  arguments" — and a private method named `Layout()` hides `Control`'s
+  `Layout` **event**. All three are fixed by spelling out
+  `System::Drawing::` and by renaming to `EnsureLayout()`.
+- **Every managed timing is now printed in the invariant culture.** This
+  machine's locale writes `0,45`, so the `{0:F2}` figures came out with
+  commas while Core's own `printf` figures came out with dots — one report,
+  two number formats. Every number this tool prints is meant to be compared
+  against another run.
+- **`CToolStopwatch` moved out of `ItemIndex.cpp`'s anonymous namespace into
+  `KomArchive.h`**, and `ItemIndex.cpp` keeps its local `CStopwatch` name as
+  a typedef. One clock, and the icon locator can report its own timings from
+  it.
+- **`--dump` is staying.** It was written for this phase's cross-check, but
+  a switch that turns "does the decoder work" into a byte comparison is
+  worth more than a switch that opens a window, and phase 4 will want it the
+  first time an icon looks wrong.
+- **The two DXT3/uncompressed-32 alpha paths could not be exercised on this
+  data.** All 141 DXT3 and all 77 uncompressed-32 shop images are fully
+  opaque, so their alpha handling is confirmed only against the second
+  implementation's *agreement on opaque output*, not against a graduated
+  case. DXT1's 1-bit mode and DXT5's 3-bit palette both had real cases and
+  both matched. Recorded rather than glossed: if a future icon set ever
+  shows blocky alpha on a DXT3 tile, this is the untested corner.
 
 ### Phase 3 — The database layer
 

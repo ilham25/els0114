@@ -65,6 +65,27 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <TargetName>X2CashShopTool</TargetName>
+    <!--
+      No embedded manifest, on purpose. The separate mt.exe step VS2010 runs
+      after linking reopens the freshly written exe for WRITE, and on this
+      machine Defender's real-time scan of the new binary holds it long
+      enough that mt.exe fails with
+
+        mt.exe : general error c101008d: Failed to write the updated
+        manifest to the resource of file ".\Release\X2CashShopTool.exe".
+        The process cannot access the file because it is being used by
+        another process.
+
+      - reproducibly, after the exe has already linked fine. (Same family as
+      the Defender note in CLAUDE.md's "Deploying the offline client".)
+
+      Nothing here needs the manifest: VC10 dropped the side-by-side CRT
+      binding VC8/VC9 used, so msvcr100.dll is found by plain DLL search,
+      and the requested execution level would have been the default
+      asInvoker anyway. Turning the step off removes a build failure that
+      has nothing to do with the code.
+    -->
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -113,7 +134,20 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IconWallForm.h" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System" />
+    <!--
+      Phase 2's exit test is a window, so the WinForms assemblies arrive
+      here. The SubSystem stays Console on purpose: a console-subsystem
+      /clr exe can still open a Form, and keeping stdout means the icon
+      census and the wall are both visible from one run. Flipping to
+      SubSystem=Windows (phase 4) is what makes EntryPointSymbol=main
+      necessary - see the comment at the top of this file.
+    -->
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
     <!--

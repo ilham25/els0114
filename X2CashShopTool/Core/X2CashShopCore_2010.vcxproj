@@ -119,6 +119,8 @@
     <ClCompile Include="KomArchive.cpp" />
     <ClCompile Include="LuaXor.cpp" />
     <ClCompile Include="ItemIndex.cpp" />
+    <ClCompile Include="DdsDecode.cpp" />
+    <ClCompile Include="IconStore.cpp" />
     <ClCompile Include="IndexCache.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -126,6 +128,8 @@
     <ClInclude Include="KomArchive.h" />
     <ClInclude Include="LuaXor.h" />
     <ClInclude Include="ItemIndex.h" />
+    <ClInclude Include="DdsDecode.h" />
+    <ClInclude Include="IconStore.h" />
     <ClInclude Include="IndexCache.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

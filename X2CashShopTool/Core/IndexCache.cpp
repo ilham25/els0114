@@ -22,6 +22,11 @@ namespace
 	const char* const	META_KOM_MTIME		= "kom_mtime";
 	const char* const	META_EXTRACTOR		= "extractor_version";
 
+	// The icon locator's own stamp, kept apart from the four above.
+	const char* const	META_ICON_VERSION	= "icon_locator_version";
+	const char* const	META_ICON_DIR		= "icon_dir";
+	const char* const	META_ICON_COUNT		= "icon_count";
+
 	std::string I64ToString( __int64 iValue )
 	{
 		char szBuffer[32];
@@ -175,10 +180,16 @@ bool CIndexCache::Exec( const char* pszSql, std::string& strError )
 
 bool CIndexCache::CreateSchema( std::string& strError )
 {
-	// Phase 1 populates these three. The icon locator tables the plan
-	// sketches belong to phase 2, which will add them and bump
-	// ItemExtractorVersion - creating them empty here would only look like
-	// they meant something.
+	// Phase 1 populated the first three; phase 2 adds the last two. Every
+	// statement is IF NOT EXISTS, so a cache written by phase 1 gains the
+	// icon tables on its next open without losing the 48,754 items it
+	// already holds - which is why the item extractor version did NOT have
+	// to be bumped for this phase.
+	//
+	// The icon tables are a LOCATOR, never the bytes and never decoded
+	// bitmaps (plan, "The item index is a cache"). 64x64 BGRA is 16 KB; a
+	// cache of 28,000 of those would be 460 MB of something rebuildable in
+	// milliseconds from the archive it is sitting next to.
 	static const char* const s_pszSchema =
 		"CREATE TABLE IF NOT EXISTS index_meta( key TEXT PRIMARY KEY, value TEXT );"
 		"CREATE TABLE IF NOT EXISTS item( item_id INTEGER PRIMARY KEY, name TEXT,"
@@ -186,7 +197,11 @@ bool CIndexCache::CreateSchema( std::string& strError )
 		" is_fashion INTEGER, equip_position INTEGER );"
 		"CREATE INDEX IF NOT EXISTS ix_item_name ON item( name );"
 		"CREATE TABLE IF NOT EXISTS cash_category( tab_idx INTEGER, real_id INTEGER,"
-		" sub_ordinal INTEGER, cssc_enum INTEGER, billing_category_no INTEGER );";
+		" sub_ordinal INTEGER, cssc_enum INTEGER, billing_category_no INTEGER );"
+		"CREATE TABLE IF NOT EXISTS icon( name TEXT PRIMARY KEY, kom TEXT,"
+		" offset INTEGER, comp_size INTEGER, real_size INTEGER );"
+		"CREATE TABLE IF NOT EXISTS icon_kom( kom TEXT PRIMARY KEY, size INTEGER,"
+		" mtime INTEGER );";
 
 	return Exec( s_pszSchema, strError );
 }
@@ -307,7 +322,12 @@ bool CIndexCache::Store( const SExtractResult& kResult, const std::wstring& wstr
 	if( false == Exec( "BEGIN;", strError ) )
 		return false;
 
-	if( false == Exec( "DELETE FROM item; DELETE FROM cash_category; DELETE FROM index_meta;", strError ) )
+	// Only the keys this half owns are cleared. A blanket DELETE FROM
+	// index_meta here would silently drop the icon locator's stamp and
+	// force phase 2's index to rebuild every time the catalog did.
+	if( false == Exec( "DELETE FROM item; DELETE FROM cash_category;"
+			" DELETE FROM index_meta WHERE key IN"
+			" ( 'kom_path', 'kom_size', 'kom_mtime', 'extractor_version' );", strError ) )
 	{
 		std::string strIgnored;
 		Exec( "ROLLBACK;", strIgnored );
@@ -483,6 +503,262 @@ bool CIndexCache::Load( SExtractResult& kResult, std::string& strError ) const
 	if( kResult.vecItems.empty() )
 	{
 		strError = "the cache holds no items";
+		return false;
+	}
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// The icon locator.
+
+bool CIndexCache::AreIconsCurrent( const std::wstring& wstrDir, std::string& strReason ) const
+{
+	if( NULL == m_pDb )
+	{
+		strReason = "cache is not open";
+		return false;
+	}
+
+	std::string strVersion;
+	if( false == ReadMeta( META_ICON_VERSION, strVersion ) )
+	{
+		strReason = "no icon locator has been built yet";
+		return false;
+	}
+
+	if( strVersion != IntToString( IconLocatorVersion() ) )
+	{
+		strReason = "built by icon locator version " + strVersion
+			+ ", this build is " + IntToString( IconLocatorVersion() );
+		return false;
+	}
+
+	// Every archive the locator was built from, stamped. mtime + size
+	// rather than a content hash: hashing a gigabyte of archives costs more
+	// than re-reading the 145 manifests it is meant to save.
+	sqlite3_stmt* pStmt = NULL;
+	if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
+		"SELECT kom, size, mtime FROM icon_kom;", -1, &pStmt, NULL ) )
+	{
+		strReason = "icon_kom cannot be read";
+		return false;
+	}
+
+	int			iChecked	= 0;
+	bool		bStale		= false;
+	std::string	strStale;
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		const std::string	strKom	= ColumnText( pStmt, 0 );
+		const __int64		iSize	= sqlite3_column_int64( pStmt, 1 );
+		const __int64		iMTime	= sqlite3_column_int64( pStmt, 2 );
+
+		++iChecked;
+
+		const std::wstring wstrPath = JoinPath( wstrDir, WidenPath( strKom ) );
+
+		__int64 iNowSize	= 0;
+		__int64 iNowMTime	= 0;
+		if( false == GetFileStamp( wstrPath, &iNowSize, &iNowMTime ) )
+		{
+			bStale		= true;
+			strStale	= strKom + " is gone";
+			break;
+		}
+
+		if( iNowSize != iSize || iNowMTime != iMTime )
+		{
+			bStale		= true;
+			strStale	= strKom + " changed";
+			break;
+		}
+	}
+
+	sqlite3_finalize( pStmt );
+
+	if( bStale )
+	{
+		strReason = strStale;
+		return false;
+	}
+
+	if( 0 == iChecked )
+	{
+		strReason = "the icon locator names no archives";
+		return false;
+	}
+
+	// A 146th archive appearing, or one of the 145 having been absent when
+	// the locator was built and present now, both show up as a count
+	// mismatch rather than as a stale stamp - nothing above would catch it.
+	int iPresent = 0;
+	for( int i = 1; i <= 145; ++i )
+	{
+		wchar_t wszName[64];
+		::swprintf_s( wszName, 64, L"data%03d.kom", i );
+
+		const std::wstring wstrPath = JoinPath( wstrDir, wszName );
+
+		if( GetFileStamp( wstrPath, NULL, NULL ) )
+			++iPresent;
+	}
+
+	if( iPresent != iChecked )
+	{
+		strReason = "the game directory now holds " + IntToString( iPresent )
+			+ " archive(s), the locator was built from " + IntToString( iChecked );
+		return false;
+	}
+
+	return true;
+}
+
+bool CIndexCache::StoreIcons( const std::vector<SIconLocation>& vecLocations,
+								const std::vector<SKomStamp>& vecStamps,
+								const std::wstring& wstrDir, std::string& strError )
+{
+	if( NULL == m_pDb )
+	{
+		strError = "cache is not open";
+		return false;
+	}
+
+	if( false == Exec( "BEGIN;", strError ) )
+		return false;
+
+	if( false == Exec( "DELETE FROM icon; DELETE FROM icon_kom;"
+			" DELETE FROM index_meta WHERE key IN"
+			" ( 'icon_locator_version', 'icon_dir', 'icon_count' );", strError ) )
+	{
+		std::string strIgnored;
+		Exec( "ROLLBACK;", strIgnored );
+		return false;
+	}
+
+	{
+		sqlite3_stmt* pStmt = NULL;
+		if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
+			"INSERT INTO icon( name, kom, offset, comp_size, real_size )"
+			" VALUES( ?, ?, ?, ?, ? );", -1, &pStmt, NULL ) )
+		{
+			strError = sqlite3_errmsg( m_pDb );
+			std::string strIgnored;
+			Exec( "ROLLBACK;", strIgnored );
+			return false;
+		}
+
+		for( size_t u = 0; u != vecLocations.size(); ++u )
+		{
+			const SIconLocation& kRow = vecLocations[u];
+
+			BindText( pStmt, 1, kRow.strName );
+			BindText( pStmt, 2, kRow.strKom );
+			sqlite3_bind_int64( pStmt, 3, kRow.iOffset );
+			sqlite3_bind_int( pStmt, 4, (int) kRow.lCompSize );
+			sqlite3_bind_int( pStmt, 5, (int) kRow.lStatedSize );
+
+			if( SQLITE_DONE != sqlite3_step( pStmt ) )
+			{
+				strError = sqlite3_errmsg( m_pDb );
+				sqlite3_finalize( pStmt );
+				std::string strIgnored;
+				Exec( "ROLLBACK;", strIgnored );
+				return false;
+			}
+
+			sqlite3_reset( pStmt );
+		}
+
+		sqlite3_finalize( pStmt );
+	}
+
+	{
+		sqlite3_stmt* pStmt = NULL;
+		if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
+			"INSERT INTO icon_kom( kom, size, mtime ) VALUES( ?, ?, ? );", -1, &pStmt, NULL ) )
+		{
+			strError = sqlite3_errmsg( m_pDb );
+			std::string strIgnored;
+			Exec( "ROLLBACK;", strIgnored );
+			return false;
+		}
+
+		for( size_t u = 0; u != vecStamps.size(); ++u )
+		{
+			BindText( pStmt, 1, vecStamps[u].strKom );
+			sqlite3_bind_int64( pStmt, 2, vecStamps[u].iSize );
+			sqlite3_bind_int64( pStmt, 3, vecStamps[u].iMTime );
+
+			if( SQLITE_DONE != sqlite3_step( pStmt ) )
+			{
+				strError = sqlite3_errmsg( m_pDb );
+				sqlite3_finalize( pStmt );
+				std::string strIgnored;
+				Exec( "ROLLBACK;", strIgnored );
+				return false;
+			}
+
+			sqlite3_reset( pStmt );
+		}
+
+		sqlite3_finalize( pStmt );
+	}
+
+	// Version last, for the same reason Store() writes it last: an
+	// interrupted write leaves no version, which reads as "not built yet"
+	// and rebuilds, rather than as a valid but half-written locator.
+	bool bOk = true;
+	if( bOk )	bOk = WriteMeta( META_ICON_DIR,		NarrowPath( wstrDir ),						strError );
+	if( bOk )	bOk = WriteMeta( META_ICON_COUNT,	IntToString( (int) vecLocations.size() ),	strError );
+	if( bOk )	bOk = WriteMeta( META_ICON_VERSION,	IntToString( IconLocatorVersion() ),		strError );
+
+	if( false == bOk )
+	{
+		std::string strIgnored;
+		Exec( "ROLLBACK;", strIgnored );
+		return false;
+	}
+
+	return Exec( "COMMIT;", strError );
+}
+
+bool CIndexCache::LoadIcons( std::vector<SIconLocation>& vecLocations, std::string& strError ) const
+{
+	vecLocations.clear();
+
+	if( NULL == m_pDb )
+	{
+		strError = "cache is not open";
+		return false;
+	}
+
+	sqlite3_stmt* pStmt = NULL;
+	if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
+		"SELECT name, kom, offset, comp_size, real_size FROM icon;", -1, &pStmt, NULL ) )
+	{
+		strError = sqlite3_errmsg( m_pDb );
+		return false;
+	}
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		SIconLocation kRow;
+		kRow.strName		= ColumnText( pStmt, 0 );
+		kRow.strKom			= ColumnText( pStmt, 1 );
+		kRow.iOffset		= sqlite3_column_int64( pStmt, 2 );
+		kRow.lCompSize		= (long) sqlite3_column_int( pStmt, 3 );
+		kRow.lStatedSize	= (long) sqlite3_column_int( pStmt, 4 );
+
+		vecLocations.push_back( kRow );
+	}
+
+	sqlite3_finalize( pStmt );
+
+	if( vecLocations.empty() )
+	{
+		strError = "the cache holds no icon locations";
 		return false;
 	}
 

@@ -34,6 +34,11 @@ namespace
 
 	const char* const	KOM_VERSION_PREFIX	= "KOG GC TEAM MASSFILE V.0.3.";
 
+	// Spelled this way on purpose: a wide backslash char literal is the
+	// one token in this tool that a scripted edit has already corrupted
+	// once, silently turning L'\\' into an unterminated L'\'.
+	const wchar_t		SEPARATOR			= (wchar_t) 92;	// backslash
+
 	// Sanity ceiling on the manifest. The largest real one is ~1.1 MB.
 	const DWORD		KOM_MAX_HEADER_SIZE		= 64u * 1024u * 1024u;
 
@@ -277,6 +282,86 @@ std::string UpperAscii( const std::string& str )
 	return strOut;
 }
 
+std::wstring JoinPath( const std::wstring& wstrDir, const std::wstring& wstrLeaf )
+{
+	if( wstrDir.empty() )
+		return wstrLeaf;
+
+	std::wstring wstrPath( wstrDir );
+
+	const wchar_t wcLast = wstrPath[wstrPath.size() - 1];
+	if( SEPARATOR != wcLast && L'/' != wcLast )
+		wstrPath += SEPARATOR;
+
+	wstrPath += wstrLeaf;
+	return wstrPath;
+}
+
+bool InflateMemberAt( const std::wstring& wstrArchivePath, __int64 iOffset,
+						long lCompSize, size_t uSizeHint,
+						std::vector<char>& vecOut, std::string& strError )
+{
+	vecOut.clear();
+
+	if( lCompSize <= 0 )
+	{
+		strError = "member is empty";
+		return false;
+	}
+
+	HANDLE hFile = OpenForRead( wstrArchivePath );
+	if( INVALID_HANDLE_VALUE == hFile )
+	{
+		strError = "cannot open archive";
+		return false;
+	}
+
+	std::vector<char> vecCompressed( (size_t) lCompSize );
+	const bool bRead = ReadAt( hFile, iOffset, &vecCompressed[0], (DWORD) lCompSize );
+	::CloseHandle( hFile );
+
+	if( false == bRead )
+	{
+		strError = "cannot read member payload";
+		return false;
+	}
+
+	return InflateBuffer( &vecCompressed[0], vecCompressed.size(), uSizeHint, vecOut, strError );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// CToolStopwatch
+
+CToolStopwatch::CToolStopwatch()
+: m_iStart( 0 )
+, m_iFrequency( 0 )
+{
+	LARGE_INTEGER liFrequency;
+	if( ::QueryPerformanceFrequency( &liFrequency ) )
+		m_iFrequency = liFrequency.QuadPart;
+
+	Restart();
+}
+
+void CToolStopwatch::Restart()
+{
+	LARGE_INTEGER liNow;
+	if( ::QueryPerformanceCounter( &liNow ) )
+		m_iStart = liNow.QuadPart;
+}
+
+double CToolStopwatch::Seconds() const
+{
+	if( 0 == m_iFrequency )
+		return 0.0;
+
+	LARGE_INTEGER liNow;
+	if( FALSE == ::QueryPerformanceCounter( &liNow ) )
+		return 0.0;
+
+	return (double)( liNow.QuadPart - m_iStart ) / (double) m_iFrequency;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // CKomArchive
 
@@ -405,30 +490,8 @@ bool CKomArchive::ReadMember( size_t uIndex, std::vector<char>& vecOut, std::str
 	}
 
 	const SKomMember& kMember = m_vecMembers[uIndex];
-	if( kMember.lCompSize <= 0 )
-	{
-		strError = "member is empty";
-		return false;
-	}
 
-	HANDLE hFile = OpenForRead( m_wstrPath );
-	if( INVALID_HANDLE_VALUE == hFile )
-	{
-		strError = "cannot open archive";
-		return false;
-	}
-
-	std::vector<char> vecCompressed( (size_t) kMember.lCompSize );
-	const bool bRead = ReadAt( hFile, kMember.iOffset, &vecCompressed[0], (DWORD) kMember.lCompSize );
-	::CloseHandle( hFile );
-
-	if( false == bRead )
-	{
-		strError = "cannot read member payload";
-		return false;
-	}
-
-	return InflateBuffer( &vecCompressed[0], vecCompressed.size(),
+	return InflateMemberAt( m_wstrPath, kMember.iOffset, kMember.lCompSize,
 		(size_t)( kMember.lStatedSize > 0 ? kMember.lStatedSize : 0 ), vecOut, strError );
 }
 
@@ -465,10 +528,7 @@ bool CKomIndex::Mount( const std::wstring& wstrDir, IToolLog* pLog )
 		wchar_t wszName[64];
 		::swprintf_s( wszName, 64, L"data%03d.kom", i );
 
-		std::wstring wstrPath = wstrDir;
-		if( false == wstrPath.empty() && L'\\' != wstrPath[wstrPath.size() - 1] && L'/' != wstrPath[wstrPath.size() - 1] )
-			wstrPath += L"\\";
-		wstrPath += wszName;
+		const std::wstring wstrPath = JoinPath( wstrDir, wszName );
 
 		__int64 iSize = 0;
 		if( false == GetFileStamp( wstrPath, &iSize, NULL ) )
