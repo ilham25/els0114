@@ -216,6 +216,76 @@ What each one does:
   See the *Deploying the offline client* section of `CLAUDE.md` for the
   diagnostic pattern.
 
+### Offline 3x EXP and 3x drop rate
+
+**Defined in** `KTDXLIB/Always.h` -- `SERV_IRUHADEV_OFFLINE_EXP_BOOST` and
+`SERV_IRUHADEV_OFFLINE_DROP_BOOST`, both nested under `SERV_IRUHADEV_OFFLINE`.
+**Rates** live together at the tail of `X2Lib/X2Define.h`: `_EXP_RATE`,
+`_ED_RATE`, `_QUEST_ITEM_RATE` (all `3.0f`) and `_DROP_DRAWS` /
+`_STATIC_DROP_DRAWS` (both `3`). That is the one place to retune -- set a rate
+to `1.0f` or a draw count to `1` to switch that half off without touching the
+flags.
+
+Quality of life for solo play. Offline has none of the live server's rate
+bonuses: party, PC bang, premium, event and channel EXP are all either
+display-only or not compiled in offline, and `X2OfflineDropTable.h:99` records
+that the four multipliers the real server folds into a drop are hard-coded to
+1.0 here. So the curve is the full retail one with nothing on top of it.
+
+Covered: monster EXP and ED, dungeon-clear bonus EXP (for free -- it is 30% of
+the run total), quest reward EXP and ED, monster and static/place item drops,
+and quest collection items. Not covered, deliberately: cube/box contents
+(`X2OfflineRandomItem`), and the display-only bonus fields (`m_iPartyEXP`,
+`m_iSocketOptEXP`, `m_nPremiumBonusEXP`, ...) -- filling those would make the
+EXP bar disagree with the database.
+
+Two things here are not the obvious implementation, and both matter:
+
+- **EXP is multiplied where the reward is *minted*, not where it is stored.**
+  `Handlers_Room.cpp` scales `iEXP` immediately after the battlefield factor
+  and before `m_kRoom.m_iRewardEXP` accumulates, because every figure the
+  player sees and every figure that is stored derives from that one local: the
+  `ApplyDungeonReward` write, the `m_EXPList` number the client adds to its own
+  bar as `EGS_NPC_UNIT_DIE_NOT` arrives, the clear bonus, and the result
+  screen's `m_nOldEXP` / `m_nEXP`. Multiplying inside `ApplyDungeonReward`
+  instead -- the one-line change, and the tempting one -- would triple the
+  stored total while still telling the client the unboosted number, and the
+  result screen's bar can then animate **backwards**.
+
+- **Drops repeat the draw; they do not scale the probability.**
+  `CX2OfflineDropTable::Decide` is a weighted *single pick* over one
+  accumulated list, not a per-item coin flip. Tripling `m_fProb` would not give
+  3x: real rows already sum to ~82% (`DropTable.lua:1686`), so tripling pins
+  the total at 100% -- about 1.2x actual -- and silently makes every case
+  listed after the accumulator passes 100 unreachable. Repeating the draw is
+  what the studio's own drop-rate event does
+  (`KncWX2Server/CenterServer/KDropTable.cpp:1284`, under
+  `SERV_ITEM_DROP_EVENT`), and it multiplies the expected item count exactly
+  while leaving every rarity ratio alone. The **inner group draw stays at one**
+  -- a group is a near-uniform selector (group 1 is eight rows of 12.5), not a
+  rarity gate, so repeating it would saturate the group and pin every group win
+  to its first item.
+
+  The quest collection-item roll is the exception: that one *is* a true
+  per-item roll, so it is scaled directly and clamped to 100.
+
+The monster row and the static (place) row have separate draw counts because
+they are different kinds of loot -- the monster row is where gear comes from,
+the static row is where the ordinary consumables come from (Aqua has a static
+row in nearly every dungeon at 5-10%). Drop `_STATIC_DROP_DRAWS` back to `1`
+on its own if the potion clutter gets tiresome.
+
+`offline_server.log` gets a `BOOST` line at startup naming all five values. It
+is printed unconditionally -- with the vanilla numbers when the flags are off
+-- because the question it answers is "did my rebuild actually take", and a
+line that only appears when the boost is compiled in cannot tell a disabled
+boost apart from a stale PCH.
+
+Client-only; no server rebuild. Nothing under `KncWX2Server/Common/` is
+touched, so the wire format is unchanged. Reverting is safe at any time: only
+future gains are scaled, nothing migrates, and the character is untouched.
+
+
 ## Reverting to stock
 
 Comment out every `#define` listed in the *Defined in* column and rebuild.

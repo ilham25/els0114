@@ -32,6 +32,35 @@ CX2OfflineServer* CX2OfflineServer::Instance()
 
 		CX2OfflineLog::Server( L"---- offline server up (SERV_IRUHADEV_OFFLINE, phase 4) ----" );
 
+		//{{ Iruha : 2026-09-06 // offline QoL: say what the reward rates are
+		// Printed unconditionally, and with the vanilla numbers when the flags are
+		// off, because the question this line answers is "did my rebuild actually
+		// take" - and a line that only appears when the boost is compiled in
+		// cannot tell a disabled boost apart from a stale precompiled header.
+		{
+			float fEXPRate		= 1.0f;
+			float fEDRate		= 1.0f;
+			int	  iDropDraws	= 1;
+			int	  iStaticDraws	= 1;
+			float fQuestRate	= 1.0f;
+
+#ifdef SERV_IRUHADEV_OFFLINE_EXP_BOOST
+			fEXPRate		= SERV_IRUHADEV_OFFLINE_EXP_RATE;
+			fEDRate			= SERV_IRUHADEV_OFFLINE_ED_RATE;
+#endif SERV_IRUHADEV_OFFLINE_EXP_BOOST
+
+#ifdef SERV_IRUHADEV_OFFLINE_DROP_BOOST
+			iDropDraws		= SERV_IRUHADEV_OFFLINE_DROP_DRAWS;
+			iStaticDraws	= SERV_IRUHADEV_OFFLINE_STATIC_DROP_DRAWS;
+			fQuestRate		= SERV_IRUHADEV_OFFLINE_QUEST_ITEM_RATE;
+#endif SERV_IRUHADEV_OFFLINE_DROP_BOOST
+
+			CX2OfflineLog::Server(
+				L"BOOST    exp x%.1f, ED x%.1f, drop draws %d (static %d), quest item x%.1f",
+				fEXPRate, fEDRate, iDropDraws, iStaticDraws, fQuestRate );
+		}
+		//}} Iruha : 2026-09-06
+
 		// els_db.sql sits next to the two logs, in the process working
 		// directory - which is the game data\ folder (X2Main mounts the .kom
 		// archives through a "./" prefix, so it can be nothing else).

@@ -2560,3 +2560,44 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 #define SERV_IRUHADEV_AIPARTY_PERSIST
 #endif SERV_IRUHADEV_OFFLINE
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-06
+// Description: Offline quality-of-life. Multiply every EXP and ED reward
+//              the offline server pays by SERV_IRUHADEV_OFFLINE_EXP_RATE
+//              and SERV_IRUHADEV_OFFLINE_ED_RATE (X2Lib/X2Define.h).
+//              Solo offline play has none of the live server's rate
+//              bonuses - party, PC bang, premium, event and channel EXP
+//              are all either display-only or not compiled in offline
+//              (X2OfflineDropTable.h:99) - so the curve is the full
+//              retail one with nothing on top of it. Applied at the one
+//              point every stored and displayed EXP figure derives from,
+//              so the DB, the in-game bar and the result screen agree.
+//              Meaningless without SERV_IRUHADEV_OFFLINE, so defined
+//              under it rather than beside it.
+#ifdef SERV_IRUHADEV_OFFLINE
+#define SERV_IRUHADEV_OFFLINE_EXP_BOOST
+#endif SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-06
+// Description: Offline quality-of-life. Repeat the drop lottery
+//              SERV_IRUHADEV_OFFLINE_DROP_DRAWS times per kill instead of
+//              once, which is how the studio's own drop rate event works
+//              (KncWX2Server/CenterServer/KDropTable.cpp:1284, under
+//              SERV_ITEM_DROP_EVENT). Scaling the probabilities instead
+//              would NOT give 3x: CX2OfflineDropTable::Decide is a single
+//              weighted pick over one accumulated list, so a row that
+//              already sums near 100 percent saturates and every case
+//              listed after that point becomes unreachable. The quest
+//              collection item roll IS a real per-item roll, so that one
+//              is scaled directly by SERV_IRUHADEV_OFFLINE_QUEST_ITEM_RATE.
+//              Meaningless without SERV_IRUHADEV_OFFLINE, so defined
+//              under it rather than beside it.
+#ifdef SERV_IRUHADEV_OFFLINE
+#define SERV_IRUHADEV_OFFLINE_DROP_BOOST
+#endif SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////

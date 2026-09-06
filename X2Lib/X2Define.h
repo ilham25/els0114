@@ -1825,3 +1825,35 @@ const float SERV_IRUHADEV_PARTY_BOT_ATK_RATE = 1.0f;
 const float SERV_IRUHADEV_PARTY_BOT_DEF_RATE = 1.0f;
 #endif SERV_IRUHADEV_OFFLINE
 //}} Iruha : 2026-09-06
+
+
+//{{ Iruha : 2026-09-06 // offline quality-of-life reward rates
+//
+//   The one place to retune the offline EXP / drop boost. Set a rate to 1.0f
+//   (or a draw count to 1) to switch that half off without touching the flags
+//   in KTDXLIB/Always.h; undefine the flag itself to remove the code entirely.
+#ifdef SERV_IRUHADEV_OFFLINE_EXP_BOOST
+const float SERV_IRUHADEV_OFFLINE_EXP_RATE = 3.0f;
+const float SERV_IRUHADEV_OFFLINE_ED_RATE  = 3.0f;
+#endif SERV_IRUHADEV_OFFLINE_EXP_BOOST
+
+#ifdef SERV_IRUHADEV_OFFLINE_DROP_BOOST
+//   These two are DRAW COUNTS, not probability multipliers - see the note on
+//   SERV_IRUHADEV_OFFLINE_DROP_BOOST in Always.h for why tripling a probability
+//   in CX2OfflineDropTable::Decide would not give three times the drops. Whole
+//   numbers only; 3 draws is exactly 3x the expected number of items.
+//
+//   They are split because the two rows are different kinds of loot: the
+//   monster row is where gear comes from, the static (place) row is where the
+//   ordinary consumables come from - Aqua has a static row in nearly every
+//   dungeon in the game at 5-10 percent. Drop the static count back to 1 on its
+//   own if the potion clutter gets tiresome.
+const int   SERV_IRUHADEV_OFFLINE_DROP_DRAWS        = 3;
+const int   SERV_IRUHADEV_OFFLINE_STATIC_DROP_DRAWS = 3;
+
+//   The quest collection item roll is a true per-item roll rather than a
+//   weighted single pick, so this one really is a multiplier - clamped to 100
+//   at the call site.
+const float SERV_IRUHADEV_OFFLINE_QUEST_ITEM_RATE   = 3.0f;
+#endif SERV_IRUHADEV_OFFLINE_DROP_BOOST
+//}} Iruha : 2026-09-06

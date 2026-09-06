@@ -459,9 +459,22 @@ int CX2OfflineServer::CompleteOneQuest( KOfflineSession& kSes,
 	// a quest level-up identical to a dungeon one.
 	int iOldLevel = kRow.m_iLevel;
 
+	//{{ Iruha : 2026-09-06 // offline QoL: 3x EXP and ED
+	// A quest turn-in is a second, separate EXP path - the per-kill boost in
+	// Handler_EGS_NPC_UNIT_DIE_REQ never reaches it - so it is scaled here, with
+	// the same two constants, or quests would silently fall behind grinding.
+	int iRewardEXP = pTemplet->m_Reward.m_iEXP;
+	int iRewardED  = pTemplet->m_Reward.m_iED;
+
+#ifdef SERV_IRUHADEV_OFFLINE_EXP_BOOST
+	iRewardEXP = (int)( (float)iRewardEXP * SERV_IRUHADEV_OFFLINE_EXP_RATE );
+	iRewardED  = (int)( (float)iRewardED  * SERV_IRUHADEV_OFFLINE_ED_RATE );
+#endif SERV_IRUHADEV_OFFLINE_EXP_BOOST
+	//}} Iruha : 2026-09-06
+
 	const int iNewLevel = ApplyDungeonReward( kRow.m_nUnitUID,
-											  pTemplet->m_Reward.m_iEXP,
-											  pTemplet->m_Reward.m_iED,
+											  iRewardEXP,
+											  iRewardED,
 											  &iOldLevel );
 
 	// m_Reward.m_iSP is a *skill* point grant on top of the level-up ones. The

@@ -2106,6 +2106,27 @@ bool CX2OfflineServer::Handler_EGS_NPC_UNIT_DIE_REQ( KOfflineSession& kSes, cons
 			iED  = (int)( (float)iED  * pBF->GetEDFactor() );
 		}
 
+		//{{ Iruha : 2026-09-06 // offline QoL: 3x EXP and ED
+#ifdef SERV_IRUHADEV_OFFLINE_EXP_BOOST
+		// Applied HERE, and not in ApplyDungeonReward or GetNpcReward, because
+		// everything the player is shown and everything that is stored derives
+		// from this one iEXP: the DB write below, the m_EXPList figure the client
+		// adds to its own bar as EGS_NPC_UNIT_DIE_NOT arrives
+		// (CX2Game::ProcessExpListByNpcUnitDie), the 30 percent clear bonus in
+		// Handler_EGS_END_GAME_REQ - which is 30 percent of m_iRewardEXP and so
+		// scales along for free - and the result screen's m_nOldEXP / m_nEXP.
+		// Boosting further downstream, in ApplyDungeonReward, would multiply the
+		// stored total while still telling the client the unboosted number, and
+		// the result screen's bar can then animate BACKWARDS.
+		//
+		// After the battlefield factor on purpose: a field keeps its own 1.5x on
+		// top, so a field pays 4.5x - the same relationship to a dungeon that it
+		// has at vanilla rates.
+		iEXP = (int)( (float)iEXP * SERV_IRUHADEV_OFFLINE_EXP_RATE );
+		iED  = (int)( (float)iED  * SERV_IRUHADEV_OFFLINE_ED_RATE );
+#endif SERV_IRUHADEV_OFFLINE_EXP_BOOST
+		//}} Iruha : 2026-09-06
+
 		m_kRoom.m_iRewardEXP += iEXP;
 		++m_kRoom.m_iKillNPCNum;
 

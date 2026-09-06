@@ -2323,7 +2323,23 @@ void CX2OfflineQuest::GetQuestItemDrops( int iDungeonID, char cDifficulty, int i
 			float fRoll = (float)( ::rand() % 10000 ) + 1.0f;
 			fRoll /= 100.0f;
 
-			if( fRoll > pSub->m_ClearCondition.m_fQuestItemDropRate )
+			//{{ Iruha : 2026-09-06 // offline QoL: 3x quest collection item rate
+			// Unlike the ordinary drop table this IS a true per-item roll, so here
+			// the rate really is a multiplier rather than a repeated draw - and the
+			// clamp is meaningful, because a single roll cannot exceed certainty.
+			// Overshooting the requirement is impossible: the iHave check above has
+			// already skipped this sub-quest once the bag holds enough.
+			float fRate = pSub->m_ClearCondition.m_fQuestItemDropRate;
+
+#ifdef SERV_IRUHADEV_OFFLINE_DROP_BOOST
+			fRate *= SERV_IRUHADEV_OFFLINE_QUEST_ITEM_RATE;
+
+			if( fRate > 100.0f )
+				fRate = 100.0f;
+#endif SERV_IRUHADEV_OFFLINE_DROP_BOOST
+			//}} Iruha : 2026-09-06
+
+			if( fRoll > fRate )
 				continue;
 
 			vecItemID.push_back( pSub->m_ClearCondition.m_iCollectionItemID );
@@ -2331,7 +2347,7 @@ void CX2OfflineQuest::GetQuestItemDrops( int iDungeonID, char cDifficulty, int i
 			CX2OfflineLog::Server( L"QUEST    %d sub %d quest item %d drops (%d/%d held, rate %.2f)",
 				mit->first, iSubQuestID, pSub->m_ClearCondition.m_iCollectionItemID,
 				iHave, pSub->m_ClearCondition.m_iCollectionItemNum,
-				pSub->m_ClearCondition.m_fQuestItemDropRate );
+				fRate );
 		}
 	}
 }

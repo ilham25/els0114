@@ -537,29 +537,55 @@ void CX2OfflineDropTable::GetNpcItemDrop( int iKey, bool bBattleField, int iNpcI
 	if( mit == mapDrop.end() )
 		return;
 
-	bool bGroup = false;
+	//{{ Iruha : 2026-09-06 // offline QoL: repeat the draw for a 3x drop rate
+	// One draw is the shipped behaviour, so iDraws == 1 restores it exactly and
+	// there is no #else branch to keep in sync. See the flag comment in
+	// KTDXLIB/Always.h for why the draw is repeated rather than the probability
+	// scaled: Decide is a single weighted pick over one accumulated list, so
+	// tripling m_fProb saturates a row that already sums near 100 percent and
+	// silently makes every case listed after that point unreachable. Repeating
+	// the draw is what the studio's own drop rate event does
+	// (KncWX2Server/CenterServer/KDropTable.cpp:1284) and it multiplies the
+	// expected item count exactly, leaving every rarity ratio alone.
+	int iDraws = 1;
 
-	const int iCase = Decide( mit->second.m_vecItemCase, bGroup );
-	if( iCase <= 0 )
-		return;							///< CASE_BLANK - nothing dropped
+#ifdef SERV_IRUHADEV_OFFLINE_DROP_BOOST
+	iDraws = SERV_IRUHADEV_OFFLINE_DROP_DRAWS;
+#endif SERV_IRUHADEV_OFFLINE_DROP_BOOST
 
-	if( false == bGroup )
+	for( int iDraw = 0; iDraw < iDraws; ++iDraw )
 	{
-		vecItemID.push_back( iCase );
-		return;
+		bool bGroup = false;
+
+		const int iCase = Decide( mit->second.m_vecItemCase, bGroup );
+		if( iCase <= 0 )
+			continue;					///< CASE_BLANK - nothing dropped
+
+		if( false == bGroup )
+		{
+			vecItemID.push_back( iCase );
+			continue;
+		}
+
+		// The case was a group, so draw once more inside it. A group draw that
+		// comes up blank drops nothing, which is how the real one behaves.
+		//
+		// ONE inner draw however many outer draws there are: a group is a
+		// near-uniform selector, not a rarity gate - group 1 is eight rows of
+		// 12.5 - so repeating it would saturate the group and pin every group
+		// win to its first item. All of the rarity lives in the outer draw's
+		// DropGroupList probability, which is what iDraws already multiplies.
+		std::map< int, std::vector<KDropCase> >::const_iterator git = m_mapDropGroup.find( iCase );
+		if( git == m_mapDropGroup.end() )
+			continue;
+
+		bool bInner = false;
+
+		const int iItemID = Decide( git->second, bInner );
+		if( iItemID > 0 )
+			vecItemID.push_back( iItemID );
 	}
-
-	// The case was a group, so draw once more inside it. A group draw that
-	// comes up blank drops nothing, which is how the real one behaves.
-	std::map< int, std::vector<KDropCase> >::const_iterator git = m_mapDropGroup.find( iCase );
-	if( git == m_mapDropGroup.end() )
-		return;
-
-	bool bInner = false;
-
-	const int iItemID = Decide( git->second, bInner );
-	if( iItemID > 0 )
-		vecItemID.push_back( iItemID );
+	//}} Iruha : 2026-09-06
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -586,11 +612,25 @@ void CX2OfflineDropTable::GetStaticDrop( int iKey, bool bBattleField,
 	// contribution is 1.0 for a solo player who did all the damage, and
 	// multiplying every case by 1.0 is a no-op. The same simplification phases
 	// 4 and 5 already made for EXP, ED and the monster lottery.
-	bool bGroup = false;
+	//{{ Iruha : 2026-09-06 // offline QoL: repeat the draw for a 3x drop rate
+	// Its own count, because this row is a different kind of loot: the monster
+	// row is where gear comes from, this one is where the ordinary consumables
+	// come from. Covers GetEventDrop too, which is StaticDropItem( 0 ) verbatim.
+	int iDraws = 1;
 
-	const int iItemID = Decide( mit->second, bGroup );
-	if( iItemID > 0 )
-		vecItemID.push_back( iItemID );
+#ifdef SERV_IRUHADEV_OFFLINE_DROP_BOOST
+	iDraws = SERV_IRUHADEV_OFFLINE_STATIC_DROP_DRAWS;
+#endif SERV_IRUHADEV_OFFLINE_DROP_BOOST
+
+	for( int iDraw = 0; iDraw < iDraws; ++iDraw )
+	{
+		bool bGroup = false;
+
+		const int iItemID = Decide( mit->second, bGroup );
+		if( iItemID > 0 )
+			vecItemID.push_back( iItemID );
+	}
+	//}} Iruha : 2026-09-06
 }
 
 void CX2OfflineDropTable::GetEventDrop( OUT std::vector<int>& vecItemID )
