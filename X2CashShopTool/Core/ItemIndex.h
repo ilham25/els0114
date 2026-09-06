@@ -49,6 +49,21 @@ struct SCashCategoryRow
 	int	iCsscEnum;
 	int	iBillingCategoryNo;
 
+	// The CSC_* and CSSC_* names, reversed out of Enum.lua's own
+	// CASH_SHOP_CATEGORY and CASH_SHOP_SUB_CATEGORY tables rather than
+	// transcribed into the tool - the same discipline phase 1 adopted for
+	// UC_NONE and IG_NORMAL, and for the same reason: a transcribed name
+	// drifts from the data and nothing says so.
+	//
+	// These are the SCRIPT's names, not the captions the game paints on
+	// its tabs - those are localized strings this tool does not read. They
+	// are here so a tab in the tool can be matched against a tab in the
+	// game by something better than an ordinal. Empty when a value appears
+	// in CashShopCategory.lua and not in Enum.lua, which is information
+	// rather than an error.
+	std::string	strTabName;
+	std::string	strSubName;
+
 	SCashCategoryRow()
 	: iTabIdx( 0 ), iRealID( 0 ), iSubOrdinal( 0 ), iCsscEnum( 0 ), iBillingCategoryNo( 0 )
 	{}

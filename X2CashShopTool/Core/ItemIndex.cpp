@@ -120,6 +120,52 @@ namespace
 		return iValue;
 	}
 
+	// value -> name for one of Enum.lua's tables, e.g. CASH_SHOP_CATEGORY.
+	// The tables are written name = number, so this is the reverse
+	// direction from ReadEnumConstant, and it is what lets the tool label
+	// a tab CSC_FASHION instead of "tab 1".
+	//
+	// The first name wins when two share a value: Enum.lua traverses in
+	// hash order, so a table with aliases would otherwise label the same
+	// tab differently from one run to the next.
+	typedef std::map<int, std::string> TEnumNameMap;
+
+	void ReadEnumNames( lua_State* pLua, const char* pszTable, TEnumNameMap& mapOut )
+	{
+		mapOut.clear();
+
+		lua_getglobal( pLua, pszTable );
+		if( lua_istable( pLua, -1 ) )
+		{
+			lua_pushnil( pLua );
+			while( 0 != lua_next( pLua, -2 ) )
+			{
+				// key at -2, value at -1. lua_tostring on a key would
+				// convert a NUMBER key in place and break this traversal,
+				// so the type is checked first and only genuine strings
+				// are read - for those lua_tostring converts nothing.
+				if( LUA_TSTRING == lua_type( pLua, -2 ) && lua_isnumber( pLua, -1 ) )
+				{
+					const int	iValue	= (int) lua_tointeger( pLua, -1 );
+					const char*	pszName	= lua_tostring( pLua, -2 );
+
+					if( NULL != pszName && mapOut.end() == mapOut.find( iValue ) )
+						mapOut[ iValue ] = pszName;
+				}
+
+				lua_pop( pLua, 1 );		// value, leaving the key for lua_next
+			}
+		}
+
+		lua_pop( pLua, 1 );
+	}
+
+	std::string LookupEnumName( const TEnumNameMap& mapNames, int iValue )
+	{
+		TEnumNameMap::const_iterator it = mapNames.find( iValue );
+		return ( mapNames.end() != it ) ? it->second : std::string();
+	}
+
 	int GetBoolField( lua_State* pLua, int iTable, const char* pszKey )
 	{
 		lua_getfield( pLua, iTable, pszKey );
@@ -550,6 +596,15 @@ namespace
 	// is the second element and not the enum.
 	bool ReadCategoryTable( lua_State* pLua, SExtractResult& kResult, IToolLog* pLog )
 	{
+		// Enum.lua has already run in this same state, so its two cash shop
+		// tables are reachable here and the tab/sub names come out of the
+		// data rather than out of a transcription.
+		TEnumNameMap mapTabNames;
+		TEnumNameMap mapSubNames;
+
+		ReadEnumNames( pLua, "CASH_SHOP_CATEGORY",     mapTabNames );
+		ReadEnumNames( pLua, "CASH_SHOP_SUB_CATEGORY", mapSubNames );
+
 		lua_getglobal( pLua, "CASH_SHOP_REAL_CATEGORY_ID" );
 
 		if( false == lua_istable( pLua, -1 ) )
@@ -596,6 +651,9 @@ namespace
 						kRow.iBillingCategoryNo = lua_isnumber( pLua, -1 ) ? (int) lua_tointeger( pLua, -1 ) : 0;
 						lua_pop( pLua, 1 );
 
+						kRow.strTabName = LookupEnumName( mapTabNames, kRow.iTabIdx );
+						kRow.strSubName = LookupEnumName( mapSubNames, kRow.iCsscEnum );
+
 						kResult.vecCategories.push_back( kRow );
 
 						lua_pop( pLua, 1 );		// the pair
@@ -608,6 +666,22 @@ namespace
 		}
 
 		lua_pop( pLua, 1 );						// CASH_SHOP_REAL_CATEGORY_ID
+
+		if( NULL != pLog )
+		{
+			int iNamedTabs = 0;
+			int iNamedSubs = 0;
+
+			for( size_t u = 0; u != kResult.vecCategories.size(); ++u )
+			{
+				iNamedTabs += kResult.vecCategories[u].strTabName.empty() ? 0 : 1;
+				iNamedSubs += kResult.vecCategories[u].strSubName.empty() ? 0 : 1;
+			}
+
+			pLog->Linef( "    tab names   : %d of %d row(s) carry a CSC_* name, %d a CSSC_* one"
+						 " (from Enum.lua, not transcribed)",
+				iNamedTabs, (int) kResult.vecCategories.size(), iNamedSubs );
+		}
 
 		return false == kResult.vecCategories.empty();
 	}
@@ -647,7 +721,11 @@ int ItemExtractorVersion()
 	//              UC_NONE, and m_ItemID / m_Name / m_ItemType required),
 	//              and the client's defaults for grade and equip position.
 	//              A version-1 cache holds ~6,000 items the client refuses.
-	return 2;
+	// 3 - phase 4: the cash category table gained the CSC_* / CSSC_* names,
+	//              reversed out of Enum.lua's own tables, so the main
+	//              window can label a tab by what the script calls it. A
+	//              version-2 cache has the rows and not the names.
+	return 3;
 }
 
 const char* ItemCatalogArchiveName()

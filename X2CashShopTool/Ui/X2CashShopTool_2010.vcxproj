@@ -135,6 +135,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IconWallForm.h" />
+    <ClInclude Include="MainForm.h" />
+    <ClInclude Include="EditProductForm.h" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

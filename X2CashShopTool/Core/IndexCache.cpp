@@ -12,6 +12,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
+#include <string.h>		// strcmp, for the cash_category column probe
 
 #include "sqlite3.h"
 
@@ -178,6 +179,14 @@ bool CIndexCache::Exec( const char* pszSql, std::string& strError )
 	return true;
 }
 
+// The one definition of the cash_category table, used both by CreateSchema
+// and by the migration that follows it. Two spellings of the same CREATE
+// drifting apart is exactly the failure the extractor version cannot catch.
+#define CASH_CATEGORY_SCHEMA																\
+	"CREATE TABLE IF NOT EXISTS cash_category( tab_idx INTEGER, real_id INTEGER,"		\
+	" sub_ordinal INTEGER, cssc_enum INTEGER, billing_category_no INTEGER,"				\
+	" tab_name TEXT, sub_name TEXT );"
+
 bool CIndexCache::CreateSchema( std::string& strError )
 {
 	// Phase 1 populated the first three; phase 2 adds the last two. Every
@@ -196,14 +205,59 @@ bool CIndexCache::CreateSchema( std::string& strError )
 		" shop_image TEXT, item_type INTEGER, item_grade INTEGER,"
 		" is_fashion INTEGER, equip_position INTEGER );"
 		"CREATE INDEX IF NOT EXISTS ix_item_name ON item( name );"
-		"CREATE TABLE IF NOT EXISTS cash_category( tab_idx INTEGER, real_id INTEGER,"
-		" sub_ordinal INTEGER, cssc_enum INTEGER, billing_category_no INTEGER );"
+		CASH_CATEGORY_SCHEMA
 		"CREATE TABLE IF NOT EXISTS icon( name TEXT PRIMARY KEY, kom TEXT,"
 		" offset INTEGER, comp_size INTEGER, real_size INTEGER );"
 		"CREATE TABLE IF NOT EXISTS icon_kom( kom TEXT PRIMARY KEY, size INTEGER,"
 		" mtime INTEGER );";
 
-	return Exec( s_pszSchema, strError );
+	if( false == Exec( s_pszSchema, strError ) )
+		return false;
+
+	// cash_category gained tab_name and sub_name in extractor version 3.
+	//
+	// CREATE TABLE IF NOT EXISTS will not add a column to a table that is
+	// already there, and the version bump only clears ROWS (see Store), so
+	// an existing cache would keep the five-column table and every SELECT
+	// naming the new columns would fail. Dropping and recreating it is
+	// safe precisely because the version bump forces a full re-extract
+	// anyway - this table is never the only copy of anything.
+	if( false == HasColumn( "cash_category", "tab_name" ) )
+	{
+		if( false == Exec( "DROP TABLE IF EXISTS cash_category;" CASH_CATEGORY_SCHEMA, strError ) )
+			return false;
+	}
+
+	return true;
+}
+
+// One column of one table, out of PRAGMA table_info. Used only by the
+// cash_category migration above, and written as a query rather than as a
+// try-it-and-see because a failed ALTER leaves an error on the connection
+// that the next real failure would be confused with.
+bool CIndexCache::HasColumn( const char* pszTable, const char* pszColumn ) const
+{
+	if( NULL == m_pDb )
+		return false;
+
+	std::string strSql = "PRAGMA table_info(";
+	strSql += pszTable;
+	strSql += ");";
+
+	sqlite3_stmt* pStmt = NULL;
+	if( SQLITE_OK != sqlite3_prepare_v2( m_pDb, strSql.c_str(), -1, &pStmt, NULL ) )
+		return false;
+
+	bool bFound = false;
+	while( false == bFound && SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		const unsigned char* pszName = sqlite3_column_text( pStmt, 1 );
+		if( NULL != pszName && 0 == ::strcmp( (const char*) pszName, pszColumn ) )
+			bFound = true;
+	}
+
+	sqlite3_finalize( pStmt );
+	return bFound;
 }
 
 bool CIndexCache::ReadMeta( const char* pszKey, std::string& strValue ) const
@@ -377,7 +431,8 @@ bool CIndexCache::Store( const SExtractResult& kResult, const std::wstring& wstr
 		sqlite3_stmt* pStmt = NULL;
 		if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
 			"INSERT INTO cash_category( tab_idx, real_id, sub_ordinal, cssc_enum,"
-			" billing_category_no ) VALUES( ?, ?, ?, ?, ? );", -1, &pStmt, NULL ) )
+			" billing_category_no, tab_name, sub_name ) VALUES( ?, ?, ?, ?, ?, ?, ? );",
+			-1, &pStmt, NULL ) )
 		{
 			strError = sqlite3_errmsg( m_pDb );
 			std::string strIgnored;
@@ -394,6 +449,9 @@ bool CIndexCache::Store( const SExtractResult& kResult, const std::wstring& wstr
 			sqlite3_bind_int( pStmt, 3, kRow.iSubOrdinal );
 			sqlite3_bind_int( pStmt, 4, kRow.iCsscEnum );
 			sqlite3_bind_int( pStmt, 5, kRow.iBillingCategoryNo );
+
+			sqlite3_bind_text( pStmt, 6, kRow.strTabName.c_str(), -1, SQLITE_TRANSIENT );
+			sqlite3_bind_text( pStmt, 7, kRow.strSubName.c_str(), -1, SQLITE_TRANSIENT );
 
 			if( SQLITE_DONE != sqlite3_step( pStmt ) )
 			{
@@ -478,8 +536,9 @@ bool CIndexCache::Load( SExtractResult& kResult, std::string& strError ) const
 	{
 		sqlite3_stmt* pStmt = NULL;
 		if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
-			"SELECT tab_idx, real_id, sub_ordinal, cssc_enum, billing_category_no"
-			" FROM cash_category ORDER BY tab_idx, sub_ordinal;", -1, &pStmt, NULL ) )
+			"SELECT tab_idx, real_id, sub_ordinal, cssc_enum, billing_category_no,"
+			" tab_name, sub_name FROM cash_category ORDER BY tab_idx, sub_ordinal;",
+			-1, &pStmt, NULL ) )
 		{
 			strError = sqlite3_errmsg( m_pDb );
 			return false;
@@ -493,6 +552,14 @@ bool CIndexCache::Load( SExtractResult& kResult, std::string& strError ) const
 			kRow.iSubOrdinal		= sqlite3_column_int( pStmt, 2 );
 			kRow.iCsscEnum			= sqlite3_column_int( pStmt, 3 );
 			kRow.iBillingCategoryNo	= sqlite3_column_int( pStmt, 4 );
+
+			const unsigned char* pszTabName = sqlite3_column_text( pStmt, 5 );
+			const unsigned char* pszSubName = sqlite3_column_text( pStmt, 6 );
+
+			if( NULL != pszTabName )
+				kRow.strTabName = (const char*) pszTabName;
+			if( NULL != pszSubName )
+				kRow.strSubName = (const char*) pszSubName;
 
 			kResult.vecCategories.push_back( kRow );
 		}

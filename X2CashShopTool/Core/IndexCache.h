@@ -68,6 +68,7 @@ private:
 
 	bool	Exec( const char* pszSql, std::string& strError );
 	bool	CreateSchema( std::string& strError );
+	bool	HasColumn( const char* pszTable, const char* pszColumn ) const;
 	bool	ReadMeta( const char* pszKey, std::string& strValue ) const;
 	bool	WriteMeta( const char* pszKey, const std::string& strValue, std::string& strError );
 

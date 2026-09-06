@@ -57,6 +57,7 @@ using namespace System;
 #include "../Core/CashDb.h"
 
 #include "IconWallForm.h"
+#include "MainForm.h"
 
 using namespace X2CashShopTool;
 
@@ -65,16 +66,12 @@ namespace
 	// Every narrow string crossing this boundary is UTF-8 - item names
 	// included, because that is what the scripts hold and what KLuaManager
 	// decodes with (luaLib/KLuaManager.h:803).
+	// Phase 4 moved the body into MainForm.h's NativeBridge, so the window
+	// and the console report share one conversion rather than two copies
+	// that can disagree about the encoding.
 	String^ Utf8( const std::string& str )
 	{
-		if( str.empty() )
-			return String::Empty;
-
-		array<Byte>^ abBytes = gcnew array<Byte>( (int) str.size() );
-		System::Runtime::InteropServices::Marshal::Copy(
-			IntPtr( (void*) str.data() ), abBytes, 0, (int) str.size() );
-
-		return System::Text::Encoding::UTF8->GetString( abBytes );
+		return NativeBridge::Utf8( str );
 	}
 
 	String^ Utf8( const char* psz )
@@ -120,26 +117,7 @@ namespace
 	// a per-pixel shuffle.
 	Drawing::Bitmap^ ToBitmap( const SDecodedImage* pImage )
 	{
-		if( NULL == pImage || pImage->IsEmpty() )
-			return nullptr;
-
-		Drawing::Bitmap^ kBitmap = gcnew Drawing::Bitmap(
-			pImage->iWidth, pImage->iHeight, Drawing::Imaging::PixelFormat::Format32bppArgb );
-
-		Drawing::Imaging::BitmapData^ kData = kBitmap->LockBits(
-			Drawing::Rectangle( 0, 0, pImage->iWidth, pImage->iHeight ),
-			Drawing::Imaging::ImageLockMode::WriteOnly,
-			Drawing::Imaging::PixelFormat::Format32bppArgb );
-
-		const unsigned char*	pSrc		= &pImage->vecBGRA[0];
-		const size_t			uSrcStride	= pImage->Stride();
-		unsigned char*			pDst		= (unsigned char*) kData->Scan0.ToPointer();
-
-		for( int y = 0; y < pImage->iHeight; ++y )
-			::memcpy( pDst + (size_t) y * kData->Stride, pSrc + (size_t) y * uSrcStride, uSrcStride );
-
-		kBitmap->UnlockBits( kData );
-		return kBitmap;
+		return NativeBridge::ToBitmap( pImage );
 	}
 
 	// The one shipped shop image that is not a DDS at all (a PNG under a
@@ -147,22 +125,7 @@ namespace
 	// picture and the fallback would be a lie about it.
 	Drawing::Bitmap^ FromRawBytes( const std::vector<char>& vecBytes )
 	{
-		if( vecBytes.empty() )
-			return nullptr;
-
-		try
-		{
-			array<Byte>^ abBytes = gcnew array<Byte>( (int) vecBytes.size() );
-			System::Runtime::InteropServices::Marshal::Copy(
-				IntPtr( (void*) &vecBytes[0] ), abBytes, 0, (int) vecBytes.size() );
-
-			System::IO::MemoryStream^ kStream = gcnew System::IO::MemoryStream( abBytes, false );
-			return gcnew Drawing::Bitmap( kStream );
-		}
-		catch( Exception^ )
-		{
-			return nullptr;
-		}
+		return NativeBridge::FromRawBytes( vecBytes );
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -171,7 +134,7 @@ namespace
 	{
 		SProbeResult r = RunNativeProbe();
 
-		Console::WriteLine( "X2CashShopTool - phases 1-3 (item catalog, icons, els_db.sql)" );
+		Console::WriteLine( "X2CashShopTool - the offline cash shop catalog editor" );
 		Console::WriteLine( "native libs : sqlite3 {0} / {1} / zlib {2} / libxml {3}",
 			Utf8( r.pszSqliteVersion ), Utf8( r.pszLuaRelease ),
 			Utf8( r.pszZlibVersion ), Utf8( r.pszLibxmlVersion ) );
@@ -728,6 +691,7 @@ int main( array<String^>^ args )
 	bool bShowItems		= false;
 	bool bDecodeAll		= false;
 	bool bNoWindow		= false;
+	bool bWall			= false;
 	bool bDb			= false;
 	bool bDbTest		= false;
 	bool bLive			= false;
@@ -743,6 +707,7 @@ int main( array<String^>^ args )
 		if( args[i]->Equals( "--items",		StringComparison::OrdinalIgnoreCase ) )	bShowItems		= true;
 		if( args[i]->Equals( "--decode-all",StringComparison::OrdinalIgnoreCase ) )	bDecodeAll		= true;
 		if( args[i]->Equals( "--no-window",	StringComparison::OrdinalIgnoreCase ) )	bNoWindow		= true;
+		if( args[i]->Equals( "--wall",		StringComparison::OrdinalIgnoreCase ) )	bWall			= true;
 		if( args[i]->Equals( "--db",		StringComparison::OrdinalIgnoreCase ) )	bDb				= true;
 		if( args[i]->Equals( "--db-test",	StringComparison::OrdinalIgnoreCase ) )	bDbTest			= true;
 		if( args[i]->Equals( "--live",		StringComparison::OrdinalIgnoreCase ) )	bLive			= true;
@@ -1095,6 +1060,78 @@ int main( array<String^>^ args )
 	}
 
 	//////////////////////////////////////////////////////////////////////
+	// Phase 4 - the catalog editor, and the DEFAULT action of the tool.
+	//
+	// Everything below this block is phase 2's icon wall and its census,
+	// which is now reached with --wall (or --no-window / --decode-all, both
+	// of which are census switches). The wall is kept because it is the
+	// evidence phase 2's exit test rests on and re-running it is the only
+	// way to re-check the decoder against a changed archive set.
+
+	if( false == bWall && false == bNoWindow && false == bDecodeAll )
+	{
+		const std::wstring wstrSavePath = ( nullptr != sDbPath )
+			? msclr::interop::marshal_as<std::wstring>( System::IO::Path::GetFullPath( sDbPath ) )
+			: JoinPath( wstrDataDir, SaveFileName() );
+
+		Console::WriteLine();
+		Console::WriteLine( "--- the catalog editor ---" );
+		Console::WriteLine( "save     : {0}", msclr::interop::marshal_as<String^>( wstrSavePath ) );
+
+		// Read-WRITE, and the lock check inside Open is what makes that
+		// safe: the tool refuses to open a save the client still holds, so
+		// there is no window in which both processes write.
+		CCashDb kDb;
+		const ECashDbResult eOpen = kDb.Open( wstrSavePath, false, strError );
+
+		Console::WriteLine( "open     : {0}", DbOpenLine( eOpen, kDb, strError ) );
+
+		if( CashDb_OK != eOpen )
+		{
+			Console::WriteLine();
+			Console::WriteLine( "Nothing was opened and nothing was changed." );
+
+			MessageBox::Show(
+				String::Format( "{0}\r\n\r\n{1}\r\n\r\nNothing was opened and nothing was changed.",
+					msclr::interop::marshal_as<String^>( wstrSavePath ),
+					Utf8( strError ) ),
+				"X2CashShopTool", MessageBoxButtons::OK, MessageBoxIcon::Error );
+
+			return 12;
+		}
+
+		// So an edit naming an item the client cannot resolve is refused
+		// where it is typed, instead of becoming a row the shop silently
+		// drops (X2OfflineCashShop.cpp:85-89).
+		kDb.SetKnownItems( kCatalog.vecItems );
+
+		if( bShowItems )
+		{
+			PrintItems( kCatalog );
+			PrintCategories( kCatalog );
+		}
+
+		Console::WriteLine();
+		Console::WriteLine( "opening the catalog editor - every write is echoed here as well as to the" );
+		Console::WriteLine( "status bar, so the trail survives the window being closed." );
+		Console::WriteLine();
+
+		Application::EnableVisualStyles();
+		Application::SetCompatibleTextRenderingDefault( false );
+		Application::Run( gcnew MainForm( &kDb, &kIcons, &kCatalog ) );
+
+		// Checkpoints the WAL into the main file, so the save is left the
+		// way the client leaves it.
+		kDb.Close();
+
+		Console::WriteLine();
+		Console::WriteLine( "peak working set : {0:F1} MB",
+			(double) System::Diagnostics::Process::GetCurrentProcess()->PeakWorkingSet64 / ( 1024.0 * 1024.0 ) );
+
+		return 0;
+	}
+
+	//////////////////////////////////////////////////////////////////////
 	// The census the exit test asks for: how many items resolve to a real
 	// file versus the fallback. Locator lookups only - no payload is read,
 	// so this is the same question the client's IsValidFile answers
@@ -1391,7 +1428,7 @@ int main( array<String^>^ args )
 	Console::WriteLine();
 	Console::WriteLine( "peak working set : {0:F1} MB",
 		(double) System::Diagnostics::Process::GetCurrentProcess()->PeakWorkingSet64 / ( 1024.0 * 1024.0 ) );
-	Console::WriteLine( "switches : --rebuild  --items  --decode-all  --no-window  --dump <name> [outfile]" );
+	Console::WriteLine( "switches : --rebuild  --items  --wall  --decode-all  --no-window  --dump <name> [outfile]" );
 	Console::WriteLine( "           --db  --db-test [--live]  --db-path <file>" );
 
 	if( bNoWindow )

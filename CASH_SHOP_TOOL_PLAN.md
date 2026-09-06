@@ -1397,6 +1397,202 @@ tab and its report of orphaned categories.
 one product edited in the tool appears changed in the game after a restart.
 Entering 128 or 0 in a quantity or category cell is refused, not clamped.
 
+#### Exit test — BUILT, DEPLOYED AND RUNNING; the two halves that need the game are the user's (2026-09-06)
+
+Built both configs (`Release|Win32` and `Debug|Win32`) on a full rebuild,
+**0 Warning(s), 0 Error(s)**, no `LNK2038` / `LNK2005` / `LNK4098`. The
+`/clr` split still holds: the nine `Core` translation units compiled with no
+`/clr` on the command line at all and only `Main.cpp` got `/clr:nostdlib` —
+read out of the `-v:normal` log, not assumed. Deployed to
+`F:/.../237311/22191271/data/X2CashShopTool.exe`, landing confirmed by
+reading the directory programmatically (present, 1,326,080 bytes, fresh
+mtime), and run with that directory as the working directory.
+
+The index cache migrated on its own, which is the half of this phase that
+could have gone wrong silently:
+
+```
+items    : rebuilding: built by extractor version 2, this build is 3
+  CashShopCategory.lua         3193 bytes  luac  load 0.00s  run 0.00s
+    tab names   : 31 of 31 row(s) carry a CSC_* name, 31 a CSSC_* one (from Enum.lua, not transcribed)
+extract  : 0.47 s in total   cache : 48754 item(s) + 31 category row(s) written in 228 ms
+```
+
+and the second run took the cached path with the archives never opened:
+
+```
+archives : not mounted - both halves of the index are current
+catalog  : 48754 item(s), 31 category row(s) loaded from the cache in 89 ms
+icons    : 28680 locator row(s) loaded from the cache in 48 ms
+open     : ok (read-write), PRAGMA user_version = 11
+2360 product(s) loaded, 7 tab(s) from CashShopCategory.lua, 31 sub-categor(ies).   388 of them the game will not show.
+peak working set : 47.6 MB
+```
+
+That last line is the window reporting what it built, and it is the only
+thing that would have said so if the tab lists had come back empty — a
+window that opens with nothing in its lists throws no exception. The load
+announces itself for the same reason every write does.
+
+The parsed tab table, now with the names the window labels its tabs by —
+read back out of the cache rather than out of the tool's own report:
+
+| tab | REAL_ID | CSC_* | billing category numbers |
+|---|---|---|---|
+| 1 | 10 | `CSC_FASHION` | 11..17 |
+| 2 | 20 | `CSC_ACCESSORY` | 21..27 |
+| 3 | 30 | `CSC_CONSUME` | 31..34 |
+| 4 | 40 | `CSC_INSTALL` | 41..43 |
+| 5 | 60 | `CSC_PET` | 61..63 |
+| 6 | 50 | `CSC_EVENT` | 51..56 |
+| 7 | 1112 | `CSC_AUTO_PAYMENT` | 1113 |
+
+`--db`'s report is unchanged by any of this — still **2,360 rows, 1,972 the
+client will show, 388 dropped, 0 orphaned, 0 out of range, 18 duplicated
+items, price 1..1** — so the tab names were added without disturbing the
+join phase 3 proved against the client's own log line.
+
+The window opens, stays up and closes cleanly (launched, watched live for
+8 s, closed through `CloseMainWindow`, exit 0, nothing on stderr). **The
+save was verified untouched afterwards, from outside the tool**: `els_db.sql`
+reads `user_version` 11, 2,360 rows, `min(price) = max(price) = 1`,
+`cash_start` 999999, `PRAGMA integrity_check` ok, the WAL truncated away,
+and `db_backup/` still holding only phase 3's nine files — the backup is
+taken by the first *write*, so opening the editor and closing it leaves it
+alone.
+
+**What is left is the half no measurement replaces**, and it is the half the
+exit test is actually about:
+
+1. **every tab matches what the game shows for the same category** — open a
+   tab in the tool and the same tab in the game side by side. The tool
+   labels its tabs with the script's own `CSC_*` / `CSSC_*` names, so the
+   comparison is by name and category number rather than by ordinal;
+2. **one product edited in the tool appears changed in the game after a
+   restart** — edit a price, close the tool, launch `start_offline.bat`,
+   open the shop. The window says in as many words that a restart is
+   required, because `EnsureLoaded` reads `cash_product` once per process;
+3. **entering 128 or 0 in a quantity or category cell is refused, not
+   clamped** — this one needs no game: open Edit on any product and type
+   either.
+
+#### Corrections to this plan, found by doing it
+
+- **The plan gave phase 4 no way to check a tab against the game except by
+  ordinal, which is the one thing the exit test asks it to do.** Phase 1
+  parsed `CashShopCategory.lua` into `(tab_idx, real_id, sub_ordinal,
+  cssc_enum, billing_category_no)` and stopped there, so the window could
+  only have offered "tab 5" against a game tab with a picture and a
+  localized caption on it. `SCashCategoryRow` now also carries the `CSC_*`
+  and `CSSC_*` names, **reversed out of `Enum.lua`'s own
+  `CASH_SHOP_CATEGORY` and `CASH_SHOP_SUB_CATEGORY` tables** rather than
+  transcribed — the same discipline phase 1 adopted for `UC_NONE` and
+  `IG_NORMAL`, and it resolved **31 of 31** rows on the first run. These are
+  the script's names and not the captions the game paints; that distinction
+  is stated on the struct.
+- **A version bump alone would NOT have added the two columns, and the
+  failure would have been a broken tool rather than a stale one.**
+  `CIndexCache::CreateSchema` builds every table with
+  `CREATE TABLE IF NOT EXISTS`, which does nothing to a table that already
+  exists, and `Store()` clears *rows*, not columns. So bumping
+  `ItemExtractorVersion()` to 3 would have forced a re-extract into a
+  five-column `cash_category` while every `SELECT` named seven. The fix is a
+  `HasColumn` probe over `PRAGMA table_info` and a `DROP TABLE` + recreate
+  when the column is absent — safe precisely because the version bump
+  re-extracts anyway. **Phases 5 and 6 will hit this the moment either adds
+  a column**; the schema text now exists once, as `CASH_CATEGORY_SCHEMA`, so
+  the create and the recreate cannot drift apart.
+- **Tab 7 can never legally hold a product, and now there is a reason for
+  it.** Phase 1 recorded `1112/1113` as "the odd one out in every respect"
+  without saying why. It is `CSC_AUTO_PAYMENT` / `CSSC_AUTO_PAYMENT_BASIC` —
+  a subscription tab, not a tab of goods — and its billing category, 1113,
+  is **above `CASH_FIELD_MAX`**. Narrowed to the wire's signed char it
+  arrives as 89, which matches no category in the table, so a row put there
+  would be invisible in the game rather than merely misfiled. The tool shows
+  the tab, because it is in the data, and the edit dialog refuses 1113,
+  because `Validate` refuses anything over 127 — the two are consistent, and
+  the reason is worth having written down before someone "fixes" one of
+  them.
+- **The heredoc backslash hazard fired twice in one session, and one of the
+  two was silent.** The known variant (`bash-heredoc-eats-double-backslashes`)
+  turned an escaped CR-LF in a format string into two real newlines — noisy,
+  caught immediately. The new variant ate the line continuations off a
+  multi-line `#define`, collapsing `CASH_CATEGORY_SCHEMA` onto a single
+  250-character line that **compiled perfectly**. A scripted patch that
+  writes valid code is the one nobody re-reads. Both were caught by reading
+  the bytes back after every scripted edit; the repairs were made with the
+  Edit tool, which puts no shell between the text and the file.
+
+#### Decisions made while implementing phase 4
+
+- **`SubSystem` stays `Console`, and `EntryPointSymbol=main` is therefore
+  still not exercised.** Section 7 lists it as a link-time fact and both
+  vcxproj files predict that phase 4 makes it live. It does not, and the
+  reason is the verification loop: there is no test suite, every phase of
+  this tool is judged by reading what it printed, and a Windows-subsystem
+  exe prints nothing back to the terminal that launched it without
+  `AttachConsole` gymnastics. Keeping the console also gives the editor an
+  **audit log** — every write is echoed to stdout as well as to the status
+  bar, which is worth having for a tool whose only job is writing into the
+  only copy of the character. The trap is real and the comments describing
+  it stay; it is simply not this phase's trap.
+- **The editor is now the DEFAULT action, and phase 2's icon wall moved to
+  `--wall`.** `--no-window`, `--decode-all`, `--dump`, `--db`, `--db-test`
+  and `--db-path` all behave exactly as before, so phase 2's and phase 3's
+  exit tests are still runnable verbatim from the same exe.
+- **Every numeric field is a plain `TextBox`, and the category field is an
+  EDITABLE `ComboBox` — never `NumericUpDown`, never a `DropDownList`.**
+  This is the phase's exit test expressed as a control choice:
+  `NumericUpDown` silently clamps 128 to its Maximum, and a closed list
+  makes 128 impossible to type — either one turns "refused, not clamped"
+  into a claim that cannot be tested. The list is the convenience; the free
+  text is the contract. There is a comment saying so at the top of
+  `EditProductForm.h`, because this is exactly the kind of thing a later
+  tidy-up "improves".
+- **The dialog calls `CCashDb::Validate` — the same `const` method the write
+  path calls — and shows the reason it gives.** A value refused where it is
+  typed is refused for the database layer's reason, not for a second opinion
+  written in the Ui that can drift from it. This is what phase 3's decision
+  to make `Validate` public and `const` was for.
+- **The item a product sells is shown and not editable.** Changing it needs
+  the picker, which is phase 5; a free-text item id box would have been a
+  way to create exactly the row the client silently drops, which is the
+  failure the tool exists to expose.
+- **The "All" pseudo-tab's sub-list IS the report the plan asked for**:
+  everything / orphaned - no tab shows it / dropped - no item templet / out
+  of range - not 1..127, each with its count. On this save that reads
+  2,360 / 0 / 388 / 0. **The 388 rows that until now existed only as a
+  number in one log line are individually reachable**, listed by product,
+  item and category, painted with a dark band and labelled in the row
+  itself.
+- **The grid is one owner-drawn `Panel` painting only the visible band**,
+  the discipline phase 2 settled on and the one phase 5's picker needs over
+  48,754 rows. Two things a `Panel` does not give for free and had to be
+  written: `IsInputKey` must be overridden or the arrow keys never reach
+  `OnKeyDown` at all, and `ControlStyles::Selectable` plus a `Focus()` on
+  mouse-down is what makes it keyboard-driven in the first place.
+- **`IconProvider` is a SECOND, thinner cache above `CIconStore`'s own.**
+  The native store caches decoded BGRA in a 16 MB LRU; this one caches the
+  managed `Bitmap` made from it, name-keyed, FIFO, capped at 1,500. Without
+  it every repaint would rebuild a `Bitmap` per visible row and churn GDI+
+  handles on every scroll. FIFO rather than LRU because the access pattern
+  is a scrolling list. **Eviction disposes**, which is why the modal edit
+  dialog is handed a `gcnew Bitmap( kIcon )` copy: the grid repaints behind
+  a modal dialog, and a repaint that evicts would dispose the bitmap the
+  dialog is still showing.
+- **The backup is taken by the first write, not at startup.** `EnsureBackup`
+  is idempotent and public precisely so the Ui *could* take it up front, but
+  doing so would drop three files into `db_backup/` every time the tool was
+  opened merely to look at something. The status bar names the backup the
+  moment one exists. Verified by opening and closing the editor and finding
+  `db_backup/` unchanged.
+- **`String^ == String^` is a REFERENCE comparison in C++/CLI**, unlike C#.
+  A first draft laid the header out by walking `Controls` and comparing
+  `kChild->Text` against a literal, which would have silently matched
+  nothing and left the wallet label sitting under its text box. Same class
+  of bug as indexing `Controls[2]` to find a button, which the same draft
+  also did; both are now held as members.
+
 ### Phase 5 — Insert, with the virtualized picker
 
 `InsertItemForm`: VirtualMode `ListView` over the whole catalog, search by name
