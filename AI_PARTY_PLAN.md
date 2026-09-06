@@ -1,20 +1,20 @@
 # AI party members in offline dungeons
 
-**Status:** **phases 0-2 done and play-tested; phase 3 is implemented and
-deployed but NOT yet played.** Phase 0 was a gate and it FAILED for the intended
-cast, so the plan is re-pointed at `NUI_CSM_PVP_HERO_*` — see *Phase 0*.
-Phase 1 PASSED (2026-09-05): auto-party puts an AI party member in the dungeon,
-fighting on your team, and the normal start button still goes in alone. Phase 2
-PASSED (2026-09-06) after two defects and a redesign: three heroes drawn at
-random, placed on the line map's own party start slots, and the party now
-*survives* a stage change rather than being rebuilt at each one. Two things
-phase 2 built have still never been exercised in play — **a bot death**
-(nothing at this level hits hard enough) and the **EXP/ED comparison** against a
-solo run; both are play-test work, not code work. Phase 3 (2026-09-06) put the
-matchmaking ceremony in front of it all — a queue, an accept popup, a cancel
-and a deny path — entirely in the offline server, with no client file touched;
-it is built and deployed and its exit test is unrun. Phases 4-5 planned, nothing
-else implemented.
+**Status:** **phases 0-3 done and play-tested.** Phase 0 was a gate and it
+FAILED for the intended cast, so the plan is re-pointed at
+`NUI_CSM_PVP_HERO_*` — see *Phase 0*. Phase 1 PASSED (2026-09-05): auto-party
+puts an AI party member in the dungeon, fighting on your team, and the normal
+start button still goes in alone. Phase 2 PASSED (2026-09-06) after two defects
+and a redesign: three heroes drawn at random, placed on the line map's own party
+start slots, and the party now *survives* a stage change rather than being
+rebuilt at each one. Phase 3 PASSED (2026-09-06) on its first cycle with no
+defects: the matchmaking ceremony — queue, accept popup, cancel and deny — sits
+in front of it all, entirely in the offline server, with no client file touched.
+**Three things have still never been exercised in play**, all of them carried
+forward rather than open defects: a **bot death** (nothing at this level hits
+hard enough), the **EXP/ED comparison** between an auto-party run and a solo
+one, and the **solo-button regression check**, which phase 3's run happened to
+skip. Phases 4-5 planned, nothing else implemented.
 **Read before starting a phase:** phase 1's three defects and phase 2's two,
 which between them change what later phases may assume about the dungeon path.
 Written 2026-09-05, last updated 2026-09-06.
@@ -1248,14 +1248,16 @@ backlog, not to this plan.
 
 # Phase 3 — The matchmaking ceremony
 
-> **Implemented and deployed 2026-09-06, NOT play-tested.** The whole ceremony
-> is offline-server work - no client file was touched, and no packet or packet
-> field was added on either side. The five numbered steps below are the plan
+> **Done and play-tested 2026-09-06, first cycle, no defects.** The whole
+> ceremony is offline-server work - no client file was touched, and no packet
+> or packet field was added on either side. The paragraphs below are the plan
 > **as written beforehand** and are kept unedited; for what the code does, read
-> *What phase 3 actually built* and *Decisions made while implementing phase 3*
-> underneath. One thing the plan got backwards is worth knowing before reading
-> it: `EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT` is sent **by the client**, not
-> to it - see correction 1.
+> *Exit test*, *What phase 3 actually built* and *Decisions made while
+> implementing phase 3* underneath. One thing the plan got backwards is worth
+> knowing before reading it: `EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT` is sent
+> **by the client**, not to it - see correction 1. Two checks are still owed
+> and are not phase 3's: the solo-button regression went unexercised this run,
+> and phase 2's bot death and EXP/ED comparison have still never happened.
 
 Auto-party already reaches the dungeon after phase 1; what it does not do is
 *look* like matchmaking. Right now the ACK is followed immediately by
@@ -1289,21 +1291,95 @@ the dungeon with three bots. Cancel mid-queue and end up back in the village
 with the UI reset. Start the same dungeon with the normal button and go in
 alone.
 
-### Exit test — NOT YET RUN (built and deployed 2026-09-06)
+### Exit test — PASSED (2026-09-06)
 
-Implemented in one pass, built, and deployed as `X2_offline.exe`
-(14,342,144 bytes, 07:33). Nothing here has been played yet. The exit test is
-the four rows below; paste what happens and this table gets filled in.
+One build/play cycle, no defects. All three ways out of the ceremony — deny,
+cancel, accept — were exercised in a single 18-second stretch of the same run,
+which is what makes the trace below worth keeping: it is the whole state
+machine on one page.
 
 | Check | Result |
 |---|---|
-| Auto-party queues instead of teleporting — the party panel switches to the waiting view with a running clock | |
-| It "matches" a few seconds later: success sting, accept popup naming the dungeon and **4** members | |
-| Accept lands in the dungeon with three bots, as before | |
-| Deny (or let the popup time out) puts the party panel back and the button works again | |
-| Cancel mid-queue returns to the village with the UI reset, and auto-party can be pressed again | |
-| The normal start button still spawns nobody | |
-| `grep -E "UNHANDLED\|EXCEPTION" offline_packets.log` stays empty | |
+| Auto-party queues instead of teleporting; the panel switches to the waiting view with a running clock | **PASS** |
+| It "matches" a few seconds later: success sting, accept popup naming the dungeon and **4** members | **PASS** — `matched - 4 member(s), accept popup up` |
+| Accept lands in the dungeon with three bots, as before | **PASS** — Edan, Apple, Lowe at uid −2/−3/−4, staggered 0.5 s apart |
+| Deny puts the party panel back and auto-party works again | **PASS** — `declined`, then `closed, reason=1042`, and the very next press queued normally |
+| Cancel mid-queue returns to the village with the UI reset, and auto-party can be pressed again | **PASS** — cancelled 1.15 s into the queue, before the match could fire |
+| No new failures | **PASS** — `UNHANDLED` and `EXCEPTION` are **0** across the whole file, including the `EGS_SECRET_STAGE_LOAD_REQ` the previous run hit |
+| Clean exit | **PASS** — one `SHUTDOWN clean` |
+| **The normal start button still spawns nobody** | **NOT RUN this cycle.** No `EGS_QUICK_START_DUNGEON_GAME_REQ` in the log at all. Phase 3 does not touch that handler, but the standing regression check went unexercised and should ride along with the next run |
+
+Also not exercised, and still carried forward from phase 2: **a bot death** and
+the **EXP/ED comparison** against a solo run. This run left the dungeon early
+(`leaving room 1001 (reason=114)`) and never changed stage, so
+`kept across the stage change` is 0 — phase 2's persistence was proven in the
+06:49 run, not this one.
+
+#### What the run said
+
+The full ceremony, three presses, straight out of `offline_packets.log`:
+
+```
+07:37:09.995  C->S  EGS_AUTO_PARTY_DUNGEON_GAME_REQ
+07:37:09.995  S->C  EGS_AUTO_PARTY_DUNGEON_GAME_ACK
+07:37:09.995  S->C  EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT
+07:37:12.509  S->C  EGS_AUTO_PARTY_MAKING_SUCCESS_NOT          <- 2.514 s of queue
+07:37:17.422  C->S  EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT    <- denied
+07:37:17.422  S->C  EGS_AUTO_PARTY_CLOSE_NOT
+
+07:37:19.269  C->S  EGS_AUTO_PARTY_DUNGEON_GAME_REQ            <- 1.8 s later, so the deny
+07:37:19.269  S->C  EGS_AUTO_PARTY_DUNGEON_GAME_ACK               really did unlatch the UI
+07:37:19.269  S->C  EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT
+07:37:20.418  C->S  EGS_CANCEL_AUTO_PARTY_MAKING_REQ           <- cancelled mid-queue
+07:37:20.418  S->C  EGS_CANCEL_AUTO_PARTY_MAKING_ACK
+
+07:37:21.671  C->S  EGS_AUTO_PARTY_DUNGEON_GAME_REQ            <- 1.3 s later, likewise
+07:37:21.671  S->C  EGS_AUTO_PARTY_DUNGEON_GAME_ACK
+07:37:21.671  S->C  EGS_REG_AUTO_PARTY_WAIT_LIST_SUCCESS_NOT
+07:37:24.484  S->C  EGS_AUTO_PARTY_MAKING_SUCCESS_NOT          <- 2.813 s of queue
+07:37:27.732  C->S  EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT    <- accepted
+07:37:27.732  S->C  EGS_PARTY_GAME_START_NOT
+```
+
+The two follow-up presses at :19.269 and :21.671 are the real result of the
+deny and cancel rows, and they are worth more than the screenshot: the client
+will not send `EGS_AUTO_PARTY_DUNGEON_GAME_REQ` again while
+`SetProcessDungeonMatch` is latched, so a second press arriving at all is proof
+that the close NOT and the cancel ACK each unlatched it. That was the one thing
+in this phase that could have silently half-worked — the panel looking right
+while the flag stayed set, locking the party window for the rest of the
+session.
+
+`reason=1042` in `offline_server.log` is `NOT_LEAVE_AUTO_PARTY_REASON_03`
+resolved to its enum value; there is no name table for `NetError` on this side.
+
+**Every one of the six `S->C` packets above lands on the same millisecond as
+the `C->S` that provoked it, except the two `MAKING_SUCCESS_NOT`s, which land
+on the same millisecond as an `EGS_UPDATE_PLAY_STATUS_NOT`.** That is the
+emulator's whole timing model made visible: it runs only when the client sends
+something, and the queue is counted on the one packet that arrives whether the
+player does anything or not.
+
+#### The queue latency, measured
+
+The status push was rock-steady at 2.99 s across the whole run
+(`00.428, 03.524, 06.521, 09.519, 12.509, 15.500, 18.492, 21.492, 24.484,
+27.479`). Both presses landed early in a window, so both queues came in near
+the 2.5 s floor:
+
+| Press | Previous beat | δ into the window | Queue actually taken |
+|---|---|---|---|
+| 07:37:09.995 | 09.519 | 0.476 s | **2.514 s** |
+| 07:37:21.671 | 21.492 | 0.179 s | **2.813 s** |
+
+That is the lucky branch, and the arithmetic should be written down before
+somebody is surprised by the other one. With a 3.0 s beat and a 2.5 s floor,
+the deadline falls inside the *next* window only when δ ≤ 0.5 s — a 1-in-6
+slice — and the wait is then 2.5-3.0 s. Otherwise the deadline slips past the
+next beat and the wait is **3.0-5.5 s**. Both observed presses hit the 1-in-6
+branch; a five-second search is normal, not a regression. If that ever reads as
+too long, the fix is to lower `AUTO_PARTY_QUEUE_MS`, which shrinks the long
+branch and never the short one — not to add a second timer.
 
 ### What phase 3 actually built
 
@@ -1440,8 +1516,29 @@ been sent before. `Handler_EGS_AUTO_PARTY_DUNGEON_GAME_REQ` shrank to
    auto-party button sends, and `m_kAutoParty` is cleared by any room opening.
    `Handler_EGS_QUICK_START_DUNGEON_GAME_REQ` is untouched for the third phase
    running.
+4. **"The cancel path" in the plan is three different exits, not one.** The
+   plan lists `EGS_CANCEL_AUTO_PARTY_MAKING_REQ/ACK`,
+   `EGS_UNREG_AUTO_PARTY_WAIT_LIST_NOT` and `EGS_AUTO_PARTY_CLOSE_NOT`
+   together as "for the cancel path". They are not interchangeable: the ACK
+   answers a cancel *during the queue*, the close NOT answers a *deny at the
+   popup*, and the UNREG NOT is server-initiated and is never sent offline at
+   all. Each clears `SetProcessDungeonMatch` down a different branch, and
+   picking the wrong one for a given exit leaves the flag latched - which
+   looks like nothing at all until the player tries to press the button a
+   second time. The play-test's two follow-up presses are what proved the
+   right ones were picked.
+5. **`EGS_REQUEST_GET_AUTO_PARTY_BONUS_INFO_NOT` (id=903) is part of this flow
+   and needed nothing.** It arrives in pairs, several times, while the party
+   panel is open - eight times in the eighteen seconds of the play-test. It
+   was already stubbed in `Handlers_Stub.cpp` from offline mode's own work and
+   decorates the hero-recruit banner. Worth naming only so the next reader of
+   the packet log does not mistake it for part of the ceremony.
 
-### What to watch for in the play-test
+### If any of this regresses later, where to look
+
+Written before the play-test and kept because none of it fired - which means
+none of these symptoms has ever been seen and each row is a prediction, not a
+recollection.
 
 | Symptom | Where to look |
 |---|---|
@@ -1552,4 +1649,5 @@ sqlite3 els_db.sql "select unit_uid, nickname, level, exp, ed from unit;"
 | Bots play an entrance animation on every stage change | Normal — a stage change destroys every NPC and the bot is rebuilt. Force it past its lua `START` state at creation. Phase 1 defect 3 |
 | **Twice as many bots as slots, all the right heroes** | A spawn was requested more than once inside the several frames between `CreateNPCReq` and the NPC actually existing. `GetNPCUnitByUID( uid ) == NULL` does **not** mean “not asked for” — the create is a packet round-trip. Guard with the in-flight timer in `CreateOfflinePartyBots`. Phase 2 defect 1 |
 | **Bots fan out correctly in one stage and stack on one spot in another** | `GetLandPosition` returned its far-away fallback — the same one for every input — because no line was loaded under the point yet. Accept a snap only if it lands near what was asked for. Phase 2 decisions |
-| **`AIPARTY … never arrived after 3s` once per stage** | Phase 2 defect 2, open. The first spawn after a stage change does not land; whether that NPC is absent or merely carrying the wrong UID is unsettled. Log the UID inside `CreateNPC` for an `IsPvpBot()` unit rather than counting bots on screen |
+| **`AIPARTY … never arrived after 3s`** | A spawn request the offline server answered never produced an NPC. This was phase 2 defect 2 — a stale spawn position at a stage change, silently deleted by `CreateNPC` — and it is fixed twice over: the position now comes from the line map's start slots, and there is no per-stage spawn left at all. The line reappearing means something regressed |
+| **The party window will not open again, and the P key does nothing** | `SetProcessDungeonMatch` is still latched from an auto-party that was queued and never closed. Only three packets clear it — the cancel ACK, `EGS_AUTO_PARTY_CLOSE_NOT` and `EGS_PARTY_GAME_START_NOT` — and each belongs to a different exit. Phase 3 correction 4 |
