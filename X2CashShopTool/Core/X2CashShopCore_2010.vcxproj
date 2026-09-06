@@ -122,6 +122,7 @@
     <ClCompile Include="DdsDecode.cpp" />
     <ClCompile Include="IconStore.cpp" />
     <ClCompile Include="IndexCache.cpp" />
+    <ClCompile Include="CashDb.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Probe.h" />
@@ -131,6 +132,7 @@
     <ClInclude Include="DdsDecode.h" />
     <ClInclude Include="IconStore.h" />
     <ClInclude Include="IndexCache.h" />
+    <ClInclude Include="CashDb.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

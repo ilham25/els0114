@@ -1188,6 +1188,205 @@ The dropped-row report must say **388**; then launch the game and confirm
 `offline_server.log` still reports `1972 product(s) from 2360` — the tool's count
 and the client's must agree, and that is the check that proves the join is right.
 
+#### Exit test — PASSED (2026-09-06)
+
+Built both configs (`Release|Win32` and `Debug|Win32`) on a full rebuild,
+**0 Warning(s), 0 Error(s)**, no `LNK2038` / `LNK2005` / `LNK4098`. The
+`/clr` split still holds: `CashDb.cpp` compiled in the same `/TP` batch as
+the other eight `Core` translation units with no `/clr` on the command line
+at all, and only `Main.cpp` got `/clr:nostdlib` — read out of the
+`-v:normal` log, not assumed. Deployed to
+`F:\...\237311\22191271\data\X2CashShopTool.exe`, landing confirmed by
+listing the directory programmatically, and run with that directory as the
+working directory.
+
+`--db` against the live save:
+
+```
+--- els_db.sql ---
+save     : F:\...\237311\22191271\data\els_db.sql
+open     : ok (read-only), PRAGMA user_version = 11
+wallet   : settings.cash_start = 999999
+products : 2360 row(s), next free product_no 2361
+
+--- the dropped-row report ---
+  2360 cash_product row(s)
+  1972 the client will show
+  388 dropped for having no item templet
+  ...
+  0 categor(ies) reaching no tab, holding 0 row(s)
+  0 row(s) with category or quantity outside 1..127
+  18 item(s) sold as more than one product - deliberate, not a defect
+  price ranges 1..1
+```
+
+**The report says 388, which is what the exit test asked for**, and 1,972
+kept — the client's own logged line, verbatim
+(`OFFLINE_MODE_PHASE9_PLAN.md:3848-3854`). The **18** duplicated items are a
+second, unasked-for agreement: `X2OfflineCashShop.cpp:100-103` says
+"eighteen items are sold as two products each", and the join found exactly
+eighteen without being told the number.
+
+`--db-test --live` — the round-trip, first against a copy of the save and
+then, only after that passed, against the live one:
+
+```
+--- round-trip 1 of 2: a COPY of the save ---
+  copy     : C:\Users\Iruha\AppData\Local\X2CashShopTool\selftest\els_db.sql
+  open     : ok (read-write), PRAGMA user_version = 11
+  baseline : 2360 product(s), next free product_no 2361, wallet 999999
+  refusals : the limits are enforced, not clamped -
+    refused  quantity 0 / quantity 128 / category 0 / category 128
+    refused  an item id no templet resolves
+    refused  price -1
+  insert   : product_no 2361 allocated (max+1 was 2361), item 1 "Elsword's basic hair.",
+             category 11, qty 7, price 4242, event
+  backup   : cashtool-20260906-172418
+             ...\db_backup\els_db.sql.bak-pre-cashtool-20260906-172418      (290816 byte(s))
+             ...\db_backup\els_db.sql-wal.bak-pre-cashtool-20260906-172418  (0 byte(s))
+             ...\db_backup\els_db.sql-shm.bak-pre-cashtool-20260906-172418  (32768 byte(s))
+  reopen   : product 2361 reads back item 1, category 11, qty 3, price 777, event 0 - matches the edit
+  wallet   : settings.cash_start 999999 -> 1000000 -> 999999, restored
+  delete   : product 2361 gone; 2360 row(s) left, identical row for row to the catalog this started with
+  backup   : re-read at the end - 2360 row(s), the catalog as it was before the first write
+  PASSED   : the copy round-tripped.
+
+--- round-trip 2 of 2: the LIVE save ---
+  ... the same sequence, against els_db.sql itself ...
+  PASSED   : the live save round-tripped and ends as it started.
+```
+
+Verified afterwards from outside the tool, with Python against the real
+file rather than by reading the tool's own claim: `user_version` 11, 2,360
+rows, `min(price) = max(price) = 1`, no `product_no` 2361, `cash_start`
+999999, `els_db.sql-wal` back to **0 bytes** (so the close-time
+`wal_checkpoint(TRUNCATE)` ran), and the backup trio on disk with the main
+file passing `PRAGMA integrity_check` and holding the character rows.
+
+**Both refusal paths were exercised against real files, not just written.**
+A `--db-path <file>` switch was added for exactly that (see the decisions
+below):
+
+| refusal | how it was provoked | result |
+|---|---|---|
+| schema is not 11 | a scratch copy of the save with `PRAGMA user_version = 12` | `REFUSED - unexpected PRAGMA user_version: ... is 12, this tool only writes version 11 saves`, exit 12; the same file back at 11 opened fine, so the refusal is the version and not the file |
+| the client holds the save | a second process holding the file open while the tool ran | `REFUSED - another process holds the save: ... close the game (X2_offline.exe) first`, exit 12 |
+
+Phases 1 and 2 re-run clean after the surgery on `Main.cpp`: cached load
+81 ms / 52 ms, the same 48,754 items and 28,680 locator rows, the icon wall
+and `--dump` both unchanged.
+
+**The game was then launched, and `offline_server.log` reported the same
+two numbers** — `CASH  catalog: 1972 product(s) from 2360 cash_product
+row(s); 388 dropped` — confirmed by the user after the live round-trip had
+run against the save. That is the check the phase actually turns on: the
+tool's join and the client's own load agree on both figures, from two
+independent code paths over the same table, so the catalog the tool reports
+is the catalog the game sees.
+
+#### Corrections to this plan, found by doing it
+
+- **A backup silently overwrote another backup, and only an end-of-run
+  re-read caught it.** The first live round-trip's
+  `els_db.sql.bak-pre-cashtool-...` held **2,361** rows — one more than the
+  catalog it claimed to predate. Three things combined: `Open()` resets the
+  "backup taken" flag (correctly — a fresh connection that writes must be
+  able to guarantee a snapshot exists), the round-trip closes and reopens
+  three times, and `MakeBackupLabel` is second-granular while
+  `BackupSaveSet` copied with `bFailIfExists = FALSE`. So the second
+  connection's backup landed on the first one's name inside the same second
+  and replaced a pre-edit snapshot with a mid-edit one. **A backup that a
+  later, worse backup can overwrite is worse than no backup, because it
+  still looks like one.** Three changes came out of it: `BackupSaveSet` now
+  uniques its label against what is already in `db_backup/` (`-2`, `-3` …)
+  and copies `bFailIfExists`; `CCashDb::AdoptBackup` carries one run's
+  backup across a `Close()`/`Open()` pair, so a run leaves one backup rather
+  than three; and the round-trip **reopens the backup at the very end and
+  counts its rows**, because the size printed at the moment it was written
+  was correct and the content was wrong forty milliseconds later. The plan's
+  "back up the whole WAL set" caution was right and was followed from the
+  first draft; this is a failure it does not cover.
+- **Reading a WAL-mode backup creates `-wal` and `-shm` beside it**, so the
+  backup re-check above dropped `els_db.sql.bak-pre-<label>-wal` into
+  `db_backup/` — one character away from the real
+  `els_db.sql-wal.bak-pre-<label>` and holding something entirely different.
+  `db_backup/` is the safety net and has to stay legible under stress, so
+  the check now removes the two sidecars it created, and only when the
+  `-wal` is empty, which is the only shape a read can leave behind.
+- **`db_backup/` still holds one mislabelled file from before that fix**:
+  `els_db.sql.bak-pre-cashtool-20260906-171443` and its `-wal`/`-shm`
+  partners carry 2,361 rows — the mid-test state, not a "pre" anything.
+  They are safe to delete, and were left in place rather than removed on the
+  tool's own initiative. The two later trios (`-172118`, `-172418`) are
+  correct pre-edit snapshots at 2,360 rows.
+- **The plan's "refuse to open if the client holds the file" covers reads
+  too, and that is deliberate.** It reads like a write-path rule and an
+  argument for letting `--db` through while the game runs is easy to make.
+  It was implemented as written — refuse either way — because the report's
+  whole subject is a shop the running client has *already cached*
+  (`EnsureLoaded` reads `cash_product` once per process), so an answer
+  produced while the game is up describes a catalog the game is no longer
+  reading. Refusing says that; allowing it would not.
+
+#### Decisions made while implementing phase 3
+
+- **`--db-path <file>` was added, and it is not scope creep.** Without it
+  the `user_version != 11` and "another process holds it" refusals could be
+  written but never run, because the tool otherwise only ever opens
+  `./els_db.sql` and the live save is neither of those things. It also
+  serves phase 4 onward (open a backup, open a copy). The archives still
+  come from the working directory; only the save moves.
+- **The report opens read-only, the round-trip read-write.** `--db` cannot
+  write even by accident, because the connection is `SQLITE_OPEN_READONLY`
+  and not because the code path happens not to call a write.
+  `SQLITE_OPEN_CREATE` is absent from both: a mistyped directory must
+  produce an error, never an empty new save beside the real one.
+- **`EnsureBackup` checkpoints before it copies.** The convention in
+  `db_backup/` copies all three files either way; checkpointing first makes
+  the copied main file complete on its own and the copied `-wal` empty, so
+  the three are consistent with each other rather than a stale main file
+  plus a live WAL. The existing `-wal.bak-pre-*` files at 4 MB are what the
+  other shape looks like, and the v6/v7 mismatch the plan warns about is
+  what it costs.
+- **`journal_mode` is never touched; `synchronous` is set to `FULL` on a
+  read-write open.** The first is a persistent property of the file that the
+  client expects to find as WAL. The second is the exact opposite of what
+  the phase 1 index cache gets (`MEMORY` / `OFF`), for the reason the plan
+  gives: that one is a pure cache rebuildable in half a second, this one is
+  the only copy of the character.
+- **Every write is one `BEGIN IMMEDIATE` … `COMMIT`**, `IMMEDIATE` rather
+  than `DEFERRED` so a lock conflict fails before the work rather than at
+  the commit — the same shape as `CX2OfflineServer`'s one-packet-one-
+  transaction rule, for the same reason.
+- **`UPDATE` and `DELETE` treat "matched no rows" as an error.** SQL calls
+  that success, while the caller believes a product changed.
+  `sqlite3_changes()` is checked and the transaction rolled back.
+- **Validation lives in `CCashDb::Validate` and is `const`**, so the Ui can
+  refuse a value where it is typed without opening a transaction — and,
+  importantly, without taking the backup. The round-trip asserts exactly
+  that: six bad rows are refused and `BackupTaken()` must still be false
+  afterwards.
+- **The item-exists check is optional and says so.** `SetKnownItems` hands
+  the phase 1 catalog over; without it `Validate` skips that one rule rather
+  than pretending to have checked it. With it, an insert naming an item the
+  client cannot resolve is refused with the reason, so the row the client
+  would silently drop can no longer be created in the first place.
+- **`price` is rejected below 0 and unconstrained above.** The plan says
+  `price` is "a plain `int` and is unconstrained", which is true of the wire
+  format; negative is still refused, because the value is compared against
+  the wallet and nothing sensible comes of that.
+- **The report already counts what phase 4 will want**: rows per billing
+  category with the tab each belongs to, categories matching no
+  `CashShopCategory.lua` pair (the "All" tab's orphan report — **0** on this
+  save; every category present is 11..16 / 21..27 / 31..34 / 41 / 51 /
+  61..63, all legal), rows outside the 1..127 limits (**0**), and the
+  duplicate-item count. None of it costs a second pass.
+- **The round-trip ends where it started by construction.** It inserts one
+  product, edits it, deletes it, and moves the wallet up and back — then
+  compares all 2,360 rows field by field against the baseline it read at the
+  start. That property is what makes running it against the live save
+  defensible at all, and it is checked rather than argued.
+
 ### Phase 4 — The main window
 
 Tabs and sub-tabs from the parsed category table; the product grid with icon,

@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////
 // Author: Iruha
 // Date: 2026-09-06
-// Description: X2CashShopTool phase 2 - console entry point plus the icon
-// wall that is this phase's exit test. See CASH_SHOP_TOOL_PLAN.md,
-// "Phase 2 - Icons".
+// Description: X2CashShopTool phases 2-3 - console entry point, the icon
+// wall that was phase 2's exit test, and the els_db.sql report and
+// round-trip that are phase 3's. See CASH_SHOP_TOOL_PLAN.md.
 //
 // This TU is the /clr half. It never includes a Lua, sqlite3, zlib or
 // libxml header directly - everything native lives in X2CashShopCore,
@@ -26,9 +26,22 @@
 //                  decode one image and write its raw BGRA out, so the
 //                  decoder can be checked against a second implementation
 //                  by arithmetic rather than by eye
+//   --db           open els_db.sql read-only and print the catalog and the
+//                  dropped-row report; no icons, no window
+//   --db-test      --db, then the insert/edit/delete round-trip against a
+//                  COPY of the save
+//   --live         with --db-test, run the same round-trip against the LIVE
+//                  save afterwards - and only if the copy passed
+//   --db-path <file>
+//                  open that save instead of ./els_db.sql. The archives are
+//                  still read from the working directory. Exists so the two
+//                  refusal paths (a schema that is not 11, a file another
+//                  process holds) can be exercised against a real file
+//                  without going near the live save
 //////////////////////////////////////////////////////////////////////////
 #include <msclr/marshal.h>
 #include <msclr/marshal_cppstd.h>  // needed for marshal_as<std::string, String^> specifically
+#include <algorithm>
 #include <string>
 #include <string.h>
 #include <vector>
@@ -41,6 +54,7 @@ using namespace System;
 #include "../Core/DdsDecode.h"
 #include "../Core/IconStore.h"
 #include "../Core/IndexCache.h"
+#include "../Core/CashDb.h"
 
 #include "IconWallForm.h"
 
@@ -157,7 +171,7 @@ namespace
 	{
 		SProbeResult r = RunNativeProbe();
 
-		Console::WriteLine( "X2CashShopTool - phase 2 (icons)" );
+		Console::WriteLine( "X2CashShopTool - phases 1-3 (item catalog, icons, els_db.sql)" );
 		Console::WriteLine( "native libs : sqlite3 {0} / {1} / zlib {2} / libxml {3}",
 			Utf8( r.pszSqliteVersion ), Utf8( r.pszLuaRelease ),
 			Utf8( r.pszZlibVersion ), Utf8( r.pszLibxmlVersion ) );
@@ -242,6 +256,447 @@ namespace
 			Console::WriteLine( "stubbed  : none - the scripts called nothing the stand-ins do not implement" );
 		}
 	}
+
+	//////////////////////////////////////////////////////////////////////
+	// Phase 3 - els_db.sql.
+	//
+	// The report first, then the round-trip. The round-trip runs against a
+	// COPY of the save and only touches the live one when --live is also
+	// given, and only after the copy has passed - the plan's own ordering,
+	// and the reason is that els_db.sql is the only copy of the character.
+
+	String^ DbOpenLine( ECashDbResult eResult, const CCashDb& kDb, const std::string& strError )
+	{
+		if( CashDb_OK == eResult )
+		{
+			return String::Format( "ok ({0}), PRAGMA user_version = {1}",
+				kDb.IsReadOnly() ? "read-only" : "read-write", kDb.UserVersion() );
+		}
+
+		return String::Format( "REFUSED - {0}: {1}",
+			Utf8( CashDbResultName( eResult ) ), Utf8( strError ) );
+	}
+
+	void PrintCatalogReport( const SCashCatalogReport& kReport )
+	{
+		Console::WriteLine();
+		Console::WriteLine( "--- the dropped-row report ---" );
+		Console::WriteLine( "  {0} cash_product row(s)", kReport.iRows );
+		Console::WriteLine( "  {0} the client will show", kReport.iKept );
+		Console::WriteLine( "  {0} dropped for having no item templet", kReport.iDropped );
+		Console::WriteLine( "      (the client logs exactly this as"
+			" \"CASH  catalog: {0} product(s) from {1} cash_product row(s); {2} dropped\")",
+			kReport.iKept, kReport.iRows, kReport.iDropped );
+
+		if( false == kReport.vecDropped.empty() )
+		{
+			Console::WriteLine( "  the first ten dropped:" );
+			for( size_t u = 0; u != kReport.vecDropped.size() && u < 10; ++u )
+			{
+				Console::WriteLine( "    product {0} item {1} category {2} - {3}",
+					Pad( kReport.vecDropped[u].iProductNo.ToString(), 6 ),
+					Pad( kReport.vecDropped[u].iItemID.ToString(), 9 ),
+					Pad( kReport.vecDropped[u].iCategoryNo.ToString(), 5 ),
+					Utf8( kReport.vecDropped[u].strDetail ) );
+			}
+		}
+
+		Console::WriteLine();
+		Console::WriteLine( "  per billing category - the number cash_product.category holds:" );
+		Console::WriteLine( "    {0} {1} {2} {3}",
+			Pad( "cat", 6 ), Pad( "rows", 7 ), Pad( "dropped", 9 ), "tab" );
+
+		for( size_t u = 0; u != kReport.vecCategories.size(); ++u )
+		{
+			const SCashCategoryCount& kCount = kReport.vecCategories[u];
+
+			Console::WriteLine( "    {0} {1} {2} {3}",
+				Pad( kCount.iCategoryNo.ToString(), 6 ),
+				Pad( kCount.iRows.ToString(), 7 ),
+				Pad( kCount.iDropped.ToString(), 9 ),
+				kCount.bInTabTable
+					? String::Format( "{0}", kCount.iTabIdx )
+					: "*** no tab in CashShopCategory.lua shows this ***" );
+		}
+
+		Console::WriteLine();
+		Console::WriteLine( "  {0} categor(ies) reaching no tab, holding {1} row(s)",
+			kReport.iOrphanCategories, kReport.iOrphanRows );
+		Console::WriteLine( "  {0} row(s) with category or quantity outside 1..127", (int) kReport.vecOutOfRange.size() );
+		Console::WriteLine( "  {0} item(s) sold as more than one product - deliberate, not a defect",
+			kReport.iDuplicateItems );
+		Console::WriteLine( "  price ranges {0}..{1}", kReport.iMinPrice, kReport.iMaxPrice );
+	}
+
+	// An item the catalog holds that nothing currently sells - so the
+	// round-trip's insert is a row that could not have been there already.
+	// Returns an index into kCatalog.vecItems, or -1.
+	int PickUnsoldItem( const SExtractResult& kCatalog, const std::vector<SCashProductRow>& vecProducts )
+	{
+		std::vector<int> vecSold;
+		for( size_t u = 0; u != vecProducts.size(); ++u )
+			vecSold.push_back( vecProducts[u].iItemID );
+		std::sort( vecSold.begin(), vecSold.end() );
+
+		for( size_t u = 0; u != kCatalog.vecItems.size(); ++u )
+		{
+			if( false == std::binary_search( vecSold.begin(), vecSold.end(),
+					kCatalog.vecItems[u].iItemID ) )
+			{
+				return (int) u;
+			}
+		}
+
+		return -1;
+	}
+
+	bool CheckRefused( const CCashDb& kDb, const SCashProductRow& kRow, String^ sWhat )
+	{
+		std::string strError;
+		const bool bRefused = ( false == kDb.Validate( kRow, true, strError ) );
+
+		Console::WriteLine( "    {0} {1}", bRefused ? "refused " : "*** ACCEPTED ***", sWhat );
+		if( bRefused )
+			Console::WriteLine( "               {0}", Utf8( strError ) );
+
+		return bRefused;
+	}
+
+	// insert -> edit -> delete -> reopen -> confirm, against whatever save
+	// file it is pointed at. Ends with the table exactly as it found it, so
+	// it is safe to run against the live save once the copy has passed.
+	bool RunRoundTrip( const std::wstring& wstrDbPath, const SExtractResult& kCatalog )
+	{
+		std::string strError;
+		CCashDb kDb;
+
+		const ECashDbResult eOpen = kDb.Open( wstrDbPath, false, strError );
+		Console::WriteLine( "  open     : {0}", DbOpenLine( eOpen, kDb, strError ) );
+		if( CashDb_OK != eOpen )
+			return false;
+
+		kDb.SetKnownItems( kCatalog.vecItems );
+
+		std::vector<SCashProductRow> vecBefore;
+		if( false == kDb.LoadProducts( vecBefore, strError ) )
+		{
+			Console::WriteLine( "  ERROR    : {0}", Utf8( strError ) );
+			return false;
+		}
+
+		int iWalletBefore = 0;
+		kDb.GetWallet( iWalletBefore, strError );
+
+		int iNext = 0;
+		kDb.NextProductNo( iNext, strError );
+
+		Console::WriteLine( "  baseline : {0} product(s), next free product_no {1}, wallet {2}",
+			(int) vecBefore.size(), iNext, iWalletBefore );
+
+		const int iItemIndex = PickUnsoldItem( kCatalog, vecBefore );
+		if( iItemIndex < 0 )
+		{
+			Console::WriteLine( "  ERROR    : every catalog item is already sold - nothing to insert." );
+			return false;
+		}
+
+		const int	iItemID	= kCatalog.vecItems[iItemIndex].iItemID;
+		String^		sName	= Utf8( kCatalog.vecItems[iItemIndex].strName );
+
+		const int iCategory = kCatalog.vecCategories.empty()
+			? 11 : kCatalog.vecCategories[0].iBillingCategoryNo;
+
+		//////////////////////////////////////////////////////////////////
+		// Validation runs BEFORE the first write, and nothing here may
+		// take the backup - which is checked, not assumed.
+
+		Console::WriteLine( "  refusals : the limits are enforced, not clamped -" );
+
+		SCashProductRow kBad;
+		kBad.iItemID	= iItemID;
+		kBad.iCategoryNo= iCategory;
+		kBad.iQuantity	= 1;
+		kBad.iPrice		= 1;
+
+		int iRefused = 0;
+
+		SCashProductRow kTry = kBad;	kTry.iQuantity		= 0;
+		iRefused += CheckRefused( kDb, kTry, "quantity 0" ) ? 1 : 0;
+
+		kTry = kBad;					kTry.iQuantity		= 128;
+		iRefused += CheckRefused( kDb, kTry, "quantity 128" ) ? 1 : 0;
+
+		kTry = kBad;					kTry.iCategoryNo	= 0;
+		iRefused += CheckRefused( kDb, kTry, "category 0" ) ? 1 : 0;
+
+		kTry = kBad;					kTry.iCategoryNo	= 128;
+		iRefused += CheckRefused( kDb, kTry, "category 128" ) ? 1 : 0;
+
+		kTry = kBad;					kTry.iItemID		= 999999999;
+		iRefused += CheckRefused( kDb, kTry, "an item id no templet resolves" ) ? 1 : 0;
+
+		kTry = kBad;					kTry.iPrice			= -1;
+		iRefused += CheckRefused( kDb, kTry, "price -1" ) ? 1 : 0;
+
+		if( 6 != iRefused )
+		{
+			Console::WriteLine( "  FAILED   : {0} of 6 bad rows were refused.", iRefused );
+			return false;
+		}
+
+		if( kDb.BackupTaken() )
+		{
+			Console::WriteLine( "  FAILED   : a refusal took the backup - validation must not write." );
+			return false;
+		}
+
+		//////////////////////////////////////////////////////////////////
+		// Insert.
+
+		SCashProductRow kRow;
+		kRow.iItemID		= iItemID;
+		kRow.iCategoryNo	= iCategory;
+		kRow.iQuantity		= 7;
+		kRow.iPrice			= 4242;
+		kRow.iIsEvent		= 1;
+
+		if( false == kDb.Insert( kRow, strError ) )
+		{
+			Console::WriteLine( "  FAILED   : insert: {0}", Utf8( strError ) );
+			return false;
+		}
+
+		Console::WriteLine( "  insert   : product_no {0} allocated (max+1 was {1}), item {2} \"{3}\","
+			" category {4}, qty 7, price 4242, event",
+			kRow.iProductNo, iNext, kRow.iItemID, sName, kRow.iCategoryNo );
+
+		if( kRow.iProductNo != iNext )
+		{
+			Console::WriteLine( "  FAILED   : product_no {0}, expected {1}.", kRow.iProductNo, iNext );
+			return false;
+		}
+
+		//////////////////////////////////////////////////////////////////
+		// The backup. Taken by the first write, once, and verified on disk
+		// rather than believed.
+
+		if( false == kDb.BackupTaken() )
+		{
+			Console::WriteLine( "  FAILED   : the first write took no backup." );
+			return false;
+		}
+
+		Console::WriteLine( "  backup   : {0}", msclr::interop::marshal_as<String^>( kDb.BackupLabel() ) );
+
+		const std::vector<std::wstring>& vecBackup = kDb.BackupFiles();
+		for( size_t u = 0; u != vecBackup.size(); ++u )
+		{
+			String^ sPath = msclr::interop::marshal_as<String^>( vecBackup[u] );
+
+			if( false == System::IO::File::Exists( sPath ) )
+			{
+				Console::WriteLine( "  FAILED   : the backup names {0}, which is not on disk.", sPath );
+				return false;
+			}
+
+			Console::WriteLine( "             {0}  ({1} byte(s))",
+				sPath, ( gcnew System::IO::FileInfo( sPath ) )->Length );
+		}
+
+		// The backup is re-checked at the END of the round-trip too, against
+		// the row count it should hold. A file that is the right size at the
+		// moment it is written and the wrong content by the time the run
+		// finishes is exactly the defect this phase found, and only a check
+		// after everything else has run can see it.
+		String^ sMainBackup = ( vecBackup.empty() )
+			? nullptr : msclr::interop::marshal_as<String^>( vecBackup[0] );
+
+		//////////////////////////////////////////////////////////////////
+		// Edit, then close and reopen - because a value that only survives
+		// inside the connection that wrote it has proved nothing.
+
+		SCashProductRow kEdited = kRow;
+		kEdited.iQuantity	= 3;
+		kEdited.iPrice		= 777;
+		kEdited.iIsEvent	= 0;
+
+		if( false == kDb.Update( kEdited, strError ) )
+		{
+			Console::WriteLine( "  FAILED   : update: {0}", Utf8( strError ) );
+			return false;
+		}
+
+		// The backup this run already took is carried across the reopen. Open
+		// resets the flag by design, and without this the next write would
+		// take a SECOND backup - which, before BackupSaveSet learned to
+		// unique its label, landed on the first one's name within the same
+		// second and replaced a pre-edit snapshot with a mid-edit one.
+		const std::wstring				wstrBackupLabel	= kDb.BackupLabel();
+		const std::vector<std::wstring>	vecBackupFiles	= kDb.BackupFiles();
+
+		kDb.Close();
+
+		if( CashDb_OK != kDb.Open( wstrDbPath, false, strError ) )
+		{
+			Console::WriteLine( "  FAILED   : reopen: {0}", Utf8( strError ) );
+			return false;
+		}
+		kDb.SetKnownItems( kCatalog.vecItems );
+		kDb.AdoptBackup( wstrBackupLabel, vecBackupFiles );
+
+		SCashProductRow kReadBack;
+		if( false == kDb.FindProduct( kRow.iProductNo, kReadBack, strError ) )
+		{
+			Console::WriteLine( "  FAILED   : the inserted product is gone after reopening: {0}",
+				Utf8( strError ) );
+			return false;
+		}
+
+		const bool bMatches = ( kReadBack.iItemID == kEdited.iItemID )
+			&& ( kReadBack.iCategoryNo	== kEdited.iCategoryNo )
+			&& ( kReadBack.iQuantity	== kEdited.iQuantity )
+			&& ( kReadBack.iPrice		== kEdited.iPrice )
+			&& ( kReadBack.iIsEvent		== kEdited.iIsEvent );
+
+		Console::WriteLine( "  reopen   : product {0} reads back item {1}, category {2}, qty {3},"
+			" price {4}, event {5} - {6}",
+			kReadBack.iProductNo, kReadBack.iItemID, kReadBack.iCategoryNo,
+			kReadBack.iQuantity, kReadBack.iPrice, kReadBack.iIsEvent,
+			bMatches ? "matches the edit" : "*** DOES NOT MATCH ***" );
+
+		if( false == bMatches )
+			return false;
+
+		//////////////////////////////////////////////////////////////////
+		// The wallet, out and back, so the live save ends where it started.
+
+		int iWalletNow = 0;
+		if( false == kDb.SetWallet( iWalletBefore + 1, strError )
+			|| false == kDb.GetWallet( iWalletNow, strError )
+			|| iWalletNow != iWalletBefore + 1 )
+		{
+			Console::WriteLine( "  FAILED   : wallet write: {0}", Utf8( strError ) );
+			return false;
+		}
+
+		if( false == kDb.SetWallet( iWalletBefore, strError )
+			|| false == kDb.GetWallet( iWalletNow, strError )
+			|| iWalletNow != iWalletBefore )
+		{
+			Console::WriteLine( "  FAILED   : wallet restore: {0}", Utf8( strError ) );
+			return false;
+		}
+
+		Console::WriteLine( "  wallet   : settings.cash_start {0} -> {1} -> {2}, restored",
+			iWalletBefore, iWalletBefore + 1, iWalletNow );
+
+		//////////////////////////////////////////////////////////////////
+		// Delete, reopen, confirm - and confirm the table is back to what
+		// it was, which is what makes this safe against the live save.
+
+		if( false == kDb.Delete( kRow.iProductNo, strError ) )
+		{
+			Console::WriteLine( "  FAILED   : delete: {0}", Utf8( strError ) );
+			return false;
+		}
+
+		kDb.Close();
+
+		if( CashDb_OK != kDb.Open( wstrDbPath, false, strError ) )
+		{
+			Console::WriteLine( "  FAILED   : reopen after delete: {0}", Utf8( strError ) );
+			return false;
+		}
+		kDb.AdoptBackup( wstrBackupLabel, vecBackupFiles );
+
+		SCashProductRow kGone;
+		if( kDb.FindProduct( kRow.iProductNo, kGone, strError ) )
+		{
+			Console::WriteLine( "  FAILED   : product {0} is still there after the delete.", kRow.iProductNo );
+			return false;
+		}
+
+		std::vector<SCashProductRow> vecAfter;
+		if( false == kDb.LoadProducts( vecAfter, strError ) )
+		{
+			Console::WriteLine( "  FAILED   : {0}", Utf8( strError ) );
+			return false;
+		}
+
+		bool bIdentical = ( vecAfter.size() == vecBefore.size() );
+		for( size_t u = 0; bIdentical && u != vecAfter.size(); ++u )
+		{
+			bIdentical = ( vecAfter[u].iProductNo	== vecBefore[u].iProductNo )
+				&& ( vecAfter[u].iItemID		== vecBefore[u].iItemID )
+				&& ( vecAfter[u].iCategoryNo	== vecBefore[u].iCategoryNo )
+				&& ( vecAfter[u].iQuantity		== vecBefore[u].iQuantity )
+				&& ( vecAfter[u].iPrice			== vecBefore[u].iPrice )
+				&& ( vecAfter[u].iIsEvent		== vecBefore[u].iIsEvent );
+		}
+
+		Console::WriteLine( "  delete   : product {0} gone; {1} row(s) left, {2}",
+			kRow.iProductNo, (int) vecAfter.size(),
+			bIdentical ? "identical row for row to the catalog this started with"
+					   : "*** THE CATALOG CHANGED ***" );
+
+		kDb.Close();
+
+		if( false == bIdentical )
+			return false;
+
+		//////////////////////////////////////////////////////////////////
+		// The backup, re-read now that everything else has run. It must
+		// still be the PRE-edit catalog - the whole word "pre" in its name
+		// is the claim being checked.
+
+		if( nullptr == sMainBackup )
+		{
+			Console::WriteLine( "  FAILED   : no backup file to re-check." );
+			return false;
+		}
+
+		CCashDb kBackup;
+		const ECashDbResult eBackup = kBackup.Open(
+			msclr::interop::marshal_as<std::wstring>( sMainBackup ), true, strError );
+
+		if( CashDb_OK != eBackup )
+		{
+			Console::WriteLine( "  FAILED   : the backup will not open: {0}", Utf8( strError ) );
+			return false;
+		}
+
+		const int iBackupRows = kBackup.ProductCount( strError );
+		kBackup.Close();
+
+		// Reading a WAL-mode database creates a -wal and a -shm beside it,
+		// and beside a backup those land in db_backup/ as
+		// "els_db.sql.bak-pre-<label>-wal" - one character away from the real
+		// "els_db.sql-wal.bak-pre-<label>" and holding something completely
+		// different. db_backup/ is the safety net; it has to stay legible.
+		// Only an EMPTY -wal is removed, which is the only shape a read can
+		// leave behind.
+		for each( String^ sSuffix in gcnew array<String^>{ "-wal", "-shm" } )
+		{
+			String^ sSide = sMainBackup + sSuffix;
+
+			if( false == System::IO::File::Exists( sSide ) )
+				continue;
+
+			if( sSuffix->Equals( "-wal" ) && ( gcnew System::IO::FileInfo( sSide ) )->Length != 0 )
+				continue;
+
+			try					{ System::IO::File::Delete( sSide ); }
+			catch( Exception^ )	{ /* someone else has it; leaving it is harmless */ }
+		}
+
+		Console::WriteLine( "  backup   : re-read at the end - {0} row(s), {1}",
+			iBackupRows,
+			( iBackupRows == (int) vecBefore.size() )
+				? "the catalog as it was before the first write"
+				: "*** NOT THE PRE-EDIT CATALOG ***" );
+
+		return ( iBackupRows == (int) vecBefore.size() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -273,6 +728,11 @@ int main( array<String^>^ args )
 	bool bShowItems		= false;
 	bool bDecodeAll		= false;
 	bool bNoWindow		= false;
+	bool bDb			= false;
+	bool bDbTest		= false;
+	bool bLive			= false;
+
+	String^ sDbPath		= nullptr;
 
 	String^ sDumpName = nullptr;
 	String^ sDumpFile = nullptr;
@@ -283,6 +743,15 @@ int main( array<String^>^ args )
 		if( args[i]->Equals( "--items",		StringComparison::OrdinalIgnoreCase ) )	bShowItems		= true;
 		if( args[i]->Equals( "--decode-all",StringComparison::OrdinalIgnoreCase ) )	bDecodeAll		= true;
 		if( args[i]->Equals( "--no-window",	StringComparison::OrdinalIgnoreCase ) )	bNoWindow		= true;
+		if( args[i]->Equals( "--db",		StringComparison::OrdinalIgnoreCase ) )	bDb				= true;
+		if( args[i]->Equals( "--db-test",	StringComparison::OrdinalIgnoreCase ) )	bDbTest			= true;
+		if( args[i]->Equals( "--live",		StringComparison::OrdinalIgnoreCase ) )	bLive			= true;
+
+		if( args[i]->Equals( "--db-path", StringComparison::OrdinalIgnoreCase ) && i + 1 < args->Length )
+		{
+			sDbPath	= args[i + 1];
+			bDb		= true;
+		}
 
 		if( args[i]->Equals( "--dump", StringComparison::OrdinalIgnoreCase ) && i + 1 < args->Length )
 		{
@@ -415,6 +884,122 @@ int main( array<String^>^ args )
 	Console::WriteLine( "catalog  : {0} item(s), {1} category row(s) loaded from the cache in {2} ms",
 		(int) kCatalog.vecItems.size(), (int) kCatalog.vecCategories.size(),
 		kLoadWatch->ElapsedMilliseconds );
+
+	//////////////////////////////////////////////////////////////////////
+	// Phase 3 - els_db.sql.
+	//
+	// Returns before the icon locator is even loaded: nothing in this
+	// section needs a picture, and the whole point of persisting the
+	// locator was that a run which does not draw never opens an archive.
+
+	if( bDb || bDbTest )
+	{
+		const std::wstring wstrSavePath = ( nullptr != sDbPath )
+			? msclr::interop::marshal_as<std::wstring>( System::IO::Path::GetFullPath( sDbPath ) )
+			: JoinPath( wstrDataDir, SaveFileName() );
+
+		Console::WriteLine();
+		Console::WriteLine( "--- els_db.sql ---" );
+		Console::WriteLine( "save     : {0}", msclr::interop::marshal_as<String^>( wstrSavePath ) );
+
+		{
+			// Read-only for the report: it cannot write even by accident,
+			// and it does not have to, so it does not get the chance.
+			CCashDb kDb;
+			const ECashDbResult eOpen = kDb.Open( wstrSavePath, true, strError );
+
+			Console::WriteLine( "open     : {0}", DbOpenLine( eOpen, kDb, strError ) );
+
+			if( CashDb_OK != eOpen )
+			{
+				Console::WriteLine();
+				Console::WriteLine( "Nothing was opened and nothing was changed." );
+				return 12;
+			}
+
+			int iWallet = 0;
+			if( kDb.GetWallet( iWallet, strError ) )
+				Console::WriteLine( "wallet   : settings.cash_start = {0}", iWallet );
+			else
+				Console::WriteLine( "wallet   : {0}", Utf8( strError ) );
+
+			std::vector<SCashProductRow> vecProducts;
+			if( false == kDb.LoadProducts( vecProducts, strError ) )
+			{
+				Console::WriteLine( "ERROR: {0}", Utf8( strError ) );
+				return 13;
+			}
+
+			int iNext = 0;
+			kDb.NextProductNo( iNext, strError );
+
+			Console::WriteLine( "products : {0} row(s), next free product_no {1}",
+				(int) vecProducts.size(), iNext );
+
+			SCashCatalogReport kReport;
+			BuildCashCatalogReport( vecProducts, kCatalog.vecItems, kCatalog.vecCategories, kReport );
+			PrintCatalogReport( kReport );
+		}
+
+		if( bDbTest )
+		{
+			// The copy first, always. Nothing in this phase touches the
+			// live save until this has passed.
+			String^ sScratchDir = System::IO::Path::Combine(
+				System::IO::Path::GetDirectoryName(
+					msclr::interop::marshal_as<String^>( wstrCachePath ) ), "selftest" );
+
+			System::IO::Directory::CreateDirectory( sScratchDir );
+
+			const std::wstring wstrScratch = msclr::interop::marshal_as<std::wstring>(
+				System::IO::Path::Combine( sScratchDir, gcnew String( SaveFileName() ) ) );
+
+			Console::WriteLine();
+			Console::WriteLine( "--- round-trip 1 of 2: a COPY of the save ---" );
+			Console::WriteLine( "  copy     : {0}", msclr::interop::marshal_as<String^>( wstrScratch ) );
+
+			if( false == CopySaveSet( wstrSavePath, wstrScratch, strError ) )
+			{
+				Console::WriteLine( "  ERROR    : {0}", Utf8( strError ) );
+				return 14;
+			}
+
+			if( false == RunRoundTrip( wstrScratch, kCatalog ) )
+			{
+				Console::WriteLine();
+				Console::WriteLine( "FAILED on the copy. The live save was not touched." );
+				return 15;
+			}
+
+			Console::WriteLine( "  PASSED   : the copy round-tripped." );
+
+			if( false == bLive )
+			{
+				Console::WriteLine();
+				Console::WriteLine( "--- round-trip 2 of 2: the LIVE save --- skipped. Pass --live to run it." );
+			}
+			else
+			{
+				Console::WriteLine();
+				Console::WriteLine( "--- round-trip 2 of 2: the LIVE save ---" );
+
+				if( false == RunRoundTrip( wstrSavePath, kCatalog ) )
+				{
+					Console::WriteLine();
+					Console::WriteLine( "FAILED on the live save. The backup named above is in db_backup/." );
+					return 16;
+				}
+
+				Console::WriteLine( "  PASSED   : the live save round-tripped and ends as it started." );
+			}
+		}
+
+		Console::WriteLine();
+		Console::WriteLine( "peak working set : {0:F1} MB",
+			(double) System::Diagnostics::Process::GetCurrentProcess()->PeakWorkingSet64 / ( 1024.0 * 1024.0 ) );
+
+		return 0;
+	}
 
 	//////////////////////////////////////////////////////////////////////
 	// The icon locator.
@@ -807,6 +1392,7 @@ int main( array<String^>^ args )
 	Console::WriteLine( "peak working set : {0:F1} MB",
 		(double) System::Diagnostics::Process::GetCurrentProcess()->PeakWorkingSet64 / ( 1024.0 * 1024.0 ) );
 	Console::WriteLine( "switches : --rebuild  --items  --decode-all  --no-window  --dump <name> [outfile]" );
+	Console::WriteLine( "           --db  --db-test [--live]  --db-path <file>" );
 
 	if( bNoWindow )
 		return 0;
