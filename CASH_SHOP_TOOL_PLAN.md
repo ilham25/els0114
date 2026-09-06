@@ -18,8 +18,9 @@ That leaves the catalog frozen in a shape nobody chose:
   were not in the source table, so `SEED_CASH_PRICE` is a flat 1
   ([X2OfflineDB.h:432](X2Lib/Offline/X2OfflineDB.h#L432)). The wallet is a
   cosmetic 999,999 that is compared but never deducted.
-- **No way to add an item.** ~43,000 items exist in the client's own `Item.lua`;
-  2,360 of them are purchasable, and the other ~40,000 are unreachable.
+- **No way to add an item.** 48,754 items exist in the client's own `Item.lua`
+  (measured in phase 1; the "~43,000" this plan estimated before running it was
+  low); 2,360 of them are purchasable, and the other ~46,000 are unreachable.
 - **No way to remove or recategorise one**, or to fix a product that landed in a
   tab that makes no sense.
 - **388 of the 2,360 rows never reach the shop at all.** A real logged run,
@@ -145,7 +146,7 @@ Everything needed is in one archive, `data036.kom`:
 | File | Decompressed | Role |
 |---|---|---|
 | `Enum.lua` | 473,104 | defines `ITEM_TYPE`, `CASH_SHOP_CATEGORY`, `CASH_SHOP_SUB_CATEGORY` … as **tables**. Must run first or every later chunk errors on its first index |
-| `Item.lua` | 34,211,379 | ~43k `g_pItemManager:AddItemTemplet{ … }` calls |
+| `Item.lua` | 34,211,379 | 48,754 `g_pItemManager:AddItemTemplet{ … }` calls (counted in phase 1; this table estimated "~43k" beforehand and was low) |
 | `ItemTrans.lua` | 6,601,013 | localized name overlay, `AddItemTempletTrans{ … }` |
 | `CashShopCategory.lua` | 3,193 | the tab → billing-category table above |
 
@@ -182,6 +183,14 @@ are `nil`, `lua_tonumber` yields **0**, and the result is a silently wrong index
 rather than an error. Assert a couple of known enum globals are non-nil straight
 after `Enum.lua` and fail loudly. `CashShopCategory.lua` needs no stub at all —
 it only assigns a table, so run it and walk the global.
+
+> **Corrected by phase 1 — `Enum.lua` publishes TABLES, not flat globals.**
+> `IT_WEAPON` and friends come back `nil`; the scripts write
+> `m_ItemType = ITEM_TYPE.IT_WEAPON`. The ordering requirement above is real and
+> unchanged, but the assertion must probe `ITEM_TYPE` / `ITEM_GRADE` /
+> `USE_CONDITION` / `EQIP_POSITION`, not the bare names. See phase 1's
+> corrections; the tool now also *reads* its enum constants out of those tables
+> rather than transcribing them.
 
 **Expected cost**, to be replaced with measurements in phase 1: inflate is
 sub-second; the in-place XOR is ~20 ms; `luaL_loadbuffer` on 34 MB of bytecode is
@@ -438,8 +447,8 @@ costs seconds and defeats the purpose.
 Build the icon locator from **manifests only** — for each of the 145 archives
 read the 60-byte header, the 12 bytes and the XML, then stop. No payload reads.
 Decode one DDS on demand as the grid scrolls, and announce a rebuild in the
-status bar (`item index rebuilt from data036.kom: 43,102 items, 6.2 s`) for the
-same reason the offline server logs its decisions.
+status bar (`item index rebuilt from data036.kom: 48,754 items, 0.46 s` — the
+real phase 1 numbers) for the same reason the offline server logs its decisions.
 
 ### The flow, mapped onto the data
 
@@ -688,6 +697,196 @@ direct proof that linking against `Core` actually worked.
 **Exit test**: dumps a count near 43,000 items, prints ten known ids with their
 names and `m_ShopImage`, prints the parsed tab table with its billing category
 numbers, and reports first-run vs cached load times.
+
+#### Exit test — PASSED (2026-09-06)
+
+Built both configs (`Release|Win32` and `Debug|Win32`), **0 Warning(s), 0
+Error(s)** on a full rebuild of each, no `LNK2038` / `LNK2005` / `LNK4098`.
+Deployed to `F:\...\237311\22191271\data\X2CashShopTool.exe` — landing
+confirmed by re-listing the directory — and run with that directory as the
+working directory. Exit code 0.
+
+```
+archives : mounted 145 of 145 (88723 names, 0 shadowed by an earlier archive)
+index    : C:\Users\Iruha\AppData\Local\X2CashShopTool\ItemIndex.db
+
+  Enum.lua                   473104 bytes  luac  load 0.00s  run 0.00s
+    enum tables : ITEM_TYPE=table  ITEM_GRADE=table  USE_CONDITION=table
+                  EQIP_POSITION=table  CASH_SHOP_CATEGORY=table  CASH_SHOP_SUB_CATEGORY=table
+    enum values : UC_NONE=0  UC_ANYONE=1  IG_NORMAL=4  EP_QUICK_SLOT=1
+  Item.lua                 34211379 bytes  luac  load 0.16s  run 0.20s
+  ItemTrans.lua             6601013 bytes  luac  load 0.04s  run 0.03s
+  CashShopCategory.lua         3193 bytes  luac  load 0.00s  run 0.00s
+
+items    : 48754 captured, 0 duplicate id(s) dropped
+rejected : 0 row(s) ... 48609 with a non-empty m_ShopImage
+           0 with m_ItemType 0
+trans    : 48754 name(s) overlaid from ItemTrans.lua, 0 orphan id(s)
+stubbed  : none - the scripts called nothing the stand-ins do not implement
+
+extract  : 0.46 s in total (0.01 Enum, 0.35 Item, 0.07 ItemTrans, 0.00 CashShopCategory)
+cache    : 48754 item(s) + 31 category row(s) written in 176 ms
+cached load : 48754 item(s), 31 category row(s), 79 ms
+```
+
+All four exit-test items are covered: the count (48,754 — see the corrections
+below, it is **not** near 43,000 and the plan's estimate was low), ten sampled
+items with names and `m_ShopImage`, the full tab table with its billing
+category numbers, and both timings. **First run 0.46 s + 176 ms to write the
+cache; every run after that 79 ms**, and `--rebuild` forces the slow path so
+both numbers are reachable on demand.
+
+The parsed tab table, which phase 4 builds its tabs from — 7 tabs, 31
+sub-category pairs. The right-hand column is what `cash_product.category`
+holds:
+
+| tab | REAL_ID | billing category numbers |
+|---|---|---|
+| 1 | 10 | 11, 12, 13, 14, 15, 16, 17 |
+| 2 | 20 | 21, 22, 23, 24, 25, 26, 27 |
+| 3 | 30 | 31, 32, 33, 34 |
+| 4 | 40 | 41, 42, 43 |
+| 5 | 60 | 61, 62, 63 |
+| 6 | 50 | 51, 52, 53, 54, 55, 56 |
+| 7 | 1112 | 1113 |
+
+Note tab 5 carries `REAL_ID` 60 and tab 6 carries 50 — the tab order and the
+`REAL_ID` order genuinely disagree, and that is the studio's data, not a
+parsing error. Tab 7's 1112/1113 is the odd one out in every respect.
+
+**Two numbers the plan asked phase 1 to measure, both far better than
+predicted**: extraction is **0.46 s**, not the estimated 2–6 s plus 1–3 s, and
+peak working set is **114.7 MB**, not the estimated 200–350 MB. So
+`LargeAddressAware` is not load-bearing after all — it stays set, because it
+costs nothing and phase 2 adds decoded bitmaps.
+
+#### Corrections to this plan, found by doing it
+
+- **`Enum.lua` publishes TABLES, not flat globals — section 3 is wrong about
+  this.** The plan says "`Item.lua`'s `m_ItemType = IT_WEAPON` are plain global
+  reads" and tells phase 1 to "assert a couple of known enum globals are
+  non-nil straight after `Enum.lua`". Probing both shapes on the real file:
+  `ITEM_TYPE`, `ITEM_GRADE`, `USE_CONDITION`, `EQIP_POSITION`,
+  `CASH_SHOP_CATEGORY` and `CASH_SHOP_SUB_CATEGORY` all resolve as **tables**,
+  while bare `IT_WEAPON`, `IG_NORMAL` and `EP_QUICK_SLOT` all come back
+  **nil**. The scripts write `m_ItemType = ITEM_TYPE.IT_WEAPON`. An assertion
+  written the way the plan describes would have failed on a perfectly healthy
+  load. The check now probes the tables, and the ordering requirement the
+  assertion exists to protect is unchanged and still real.
+- **This turned out to be a gift**: because the enum values are reachable as
+  table members, the tool *reads* `USE_CONDITION.UC_NONE`, `ITEM_GRADE.IG_NORMAL`
+  and `EQIP_POSITION.EP_QUICK_SLOT` out of `Enum.lua` at runtime instead of
+  transcribing them. `IG_NORMAL` came back 4, which independently matches the
+  C++ enum in `KncWX2Server/Common/X2Data/XSLItem.h:34-42` — two genuinely
+  independent sources agreeing, which is the standard `CLAUDE.md` sets.
+- **There are 48,754 items, not ~43,000.** The plan's "~43k" appears in the
+  Context, in section 3 and in this phase's exit test; it was an estimate and
+  it was low. 34,211,379 bytes / 48,754 items = 702 bytes per item, which is
+  the right order for these table constructors. Corroboration that the number
+  is real rather than double-counting: zero duplicate ids, and `ItemTrans.lua`
+  overlaid **exactly** 48,754 names with **zero** orphans — a second,
+  separately exported file whose id set matches the first one one-for-one.
+- **The client rejects items on more than a missing id, and its defaults are
+  not zero.** `CX2ItemManager::KProxy::AddItemTemplet_LUA`
+  ([X2ItemManager_Preprocessing.cpp:13-35](X2Lib/X2ItemManager_Preprocessing.cpp#L13))
+  refuses an item whose `m_UseCondition` is `UC_NONE`, and `LUA_GET_VALUE_RETURN`
+  refuses one missing `m_ItemID`, `m_Name` or `m_ItemType`. Separately,
+  `m_ItemGrade` defaults to `IG_NORMAL` (4) and `m_EqipPosition` to
+  `EP_QUICK_SLOT` (1), **not** to 0 ([X2ItemManager.cpp:430](X2Lib/X2ItemManager.cpp#L430),
+  [:486](X2Lib/X2ItemManager.cpp#L486)). The first draft of the extractor got
+  the defaults wrong and every grade-less item read back as `IG_NONE`. The
+  catalog now mirrors the client's rule exactly — which matters because
+  phase 3 joins this catalog against `cash_product` to reproduce the client's
+  own dropped-row count, and a catalog holding items the client refuses would
+  make that join disagree with the game in the flattering direction.
+  **On this data all four rejection counters are 0**, so the accepted set is
+  every `AddItemTemplet` call — but that is now a measured fact printed on
+  every rebuild rather than an assumption.
+- **The manifest's `Size` attribute is not authoritative.** 121 of the 88,723
+  members state `CompressedSize == Size` while still holding a real zlib
+  stream (they all begin `78 9C`), so their stated `Size` is smaller than what
+  they actually inflate to. A reader that sized its output buffer from `Size`
+  and called `uncompress()` would get `Z_BUF_ERROR` on those 121 and, if it
+  treated that as "absent", drop them silently. `KomArchive` inflates with a
+  **growing** buffer and uses `Size` only as the initial hint. None of the four
+  scripts phase 1 needs is in that set, but phase 2's icons are drawn from the
+  same 88,723.
+- **Do not copy the engine's `case 3:` offset expression literally.** Section 5
+  points at [KGCMassFileManager.cpp:1355](KTDXLIB/KGCMassFileManager.cpp#L1355)
+  as the reference, and it is the right reference for the *structure* — three
+  DWORDs, then the XML manifest, then payloads at a running sum of
+  `CompressedSize`. But its initial offset,
+  `72 + headersize - (sizeof(MASSFILE_HEADER) + sizeof(MASSFILE_MEMBERFILEHEADER) * iTotalFileNo)`
+  ([:1395](KTDXLIB/KGCMassFileManager.cpp#L1395)), does not reproduce the real
+  layout: `data036.kom` states `iTotalFileNo` 187, which is genuinely its
+  member count, giving **9706** where the first payload actually begins at
+  `72 + headersize` = **23230**. Proven, not inferred — the bytes at 23230
+  inflate and XOR-decrypt to `1B 4C 75 61 51`, the Lua 5.1 bytecode header of
+  `AccountQuest.lua`, the manifest's first entry. The plan's own stated rule
+  ("cumulative `CompressedSize`, starting at `72 + headersize`") is the correct
+  one and is what got implemented.
+- **Lua strings in these scripts are UTF-8**, so nothing is converted anywhere.
+  `KLuaManager`'s `wstring` getters decode with `CP_UTF8`
+  ([luaLib/KLuaManager.h:803](luaLib/KLuaManager.h#L803)), not `CP_ACP`. Item
+  names therefore go from the Lua state into SQLite `TEXT` and out to the
+  console unchanged; the console just needs
+  `Console::OutputEncoding = Encoding::UTF8`. Worth knowing for phase 6's CSV.
+- **The cache location the plan gives contradicts the plan's own standing
+  rule.** "A SQLite file next to the tool exe — *not* in the game directory,
+  where a stray `.db` beside `els_db.sql` is the sort of thing someone deletes
+  at 2am" and "deploy to the game directory after every build, every phase"
+  are the same directory. The first run duly wrote `X2CashShopIndex.db` next to
+  `els_db.sql`. The stated *reason* is the load-bearing half, so the cache now
+  lives at **`%LOCALAPPDATA%\X2CashShopTool\ItemIndex.db`**, and the tool prints
+  the full path on every run so it is never hidden. The stray file the first
+  run created was deleted; `els_db.sql` and its WAL set were never opened.
+
+#### Decisions made while implementing phase 1
+
+- **`lua_tinker` is not used, as the plan prescribed**, and the stand-in shape
+  in section 3 worked exactly as written: a plain table of C closures with a
+  catch-all `__index` returning one shared no-op. The catch-all recorded
+  **zero** unknown method names across all four scripts, so the shipped data
+  calls nothing but `AddItemTemplet` and `AddItemTempletTrans`. It stays in
+  anyway — it costs one metatable and it is what makes that a measured result
+  instead of a hope.
+- **Both call shapes are registered**: `AddItemTemplet` / `AddItemTempletTrans`
+  as methods on the `g_pItemManager` stand-in *and* as bare globals, with the
+  callbacks taking the first table argument they find in slots 1–2. The two
+  shapes are indistinguishable from outside 34 MB of bytecode, and this way
+  the question never had to be answered.
+- **`g_pCX2SetItemManager` gets a stand-in too** (catch-all only, no methods) —
+  the client binds the same proxy object under both names
+  ([X2ItemManager.cpp:276-277](X2Lib/X2ItemManager.cpp#L276)), and set-item
+  data is not wanted here.
+- **No catch-all on `_G`.** It was considered and rejected: a global `__index`
+  would mask exactly the "an enum is missing" failure the `Enum.lua` check
+  exists to catch, and would turn `if SomeGlobal then` into an always-true
+  test. A genuinely missing global now surfaces as a loud `lua_pcall` error.
+- **`ItemExtractorVersion()` is 2, not 1.** It was bumped the moment the
+  acceptance rule changed, because a version-1 cache was already sitting on
+  disk and would otherwise have been served as valid. The comment on that
+  function now says to bump it for a change to the captured fields **or** the
+  acceptance rule — the plan only said fields.
+- **The icon locator tables (`icon`, `icon_kom`) are not created yet.** The
+  plan sketches the whole schema in one block, but creating them empty in
+  phase 1 would only make them look meaningful. Phase 2 adds them and bumps
+  the extractor version, which is the invalidation path that already exists.
+- **The index cache is `journal_mode=MEMORY` / `synchronous=OFF`.** It is a
+  pure cache, rebuildable in half a second, and the 48,754 inserts run inside
+  one transaction with a prepared statement. `els_db.sql` in phase 3 gets the
+  opposite treatment.
+- **`libxml` stays linked but unused.** The manifest is read by a ~40-line
+  attribute scanner, as section 5 suggests. Keeping the lib in the link line
+  costs nothing (the linker drops what is unreferenced), keeps phase 0's proof
+  that it links intact, and leaves the documented fallback available.
+- **The `_MANAGED` canary is in all four new `.cpp` files** and in none of the
+  four new headers — the phase 0 lesson. `KomArchive.h`, `LuaXor.h`,
+  `ItemIndex.h` and `IndexCache.h` are all included from the `/clr` `Main.cpp`
+  and deliberately pull in no lua / sqlite3 / zlib / libxml header; `sqlite3*`
+  is reached through a forward declaration. The rebuild log confirms the split
+  still holds: the five `Core` files compiled `/TP` with no `/clr`, `sqlite3.c`
+  `/TC`, and only `Main.cpp` got `/clr:nostdlib`.
 
 ### Phase 2 — Icons
 

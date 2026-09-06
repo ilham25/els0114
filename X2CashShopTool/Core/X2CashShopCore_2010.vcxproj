@@ -116,9 +116,17 @@
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
     </ClCompile>
     <ClCompile Include="Probe.cpp" />
+    <ClCompile Include="KomArchive.cpp" />
+    <ClCompile Include="LuaXor.cpp" />
+    <ClCompile Include="ItemIndex.cpp" />
+    <ClCompile Include="IndexCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Probe.h" />
+    <ClInclude Include="KomArchive.h" />
+    <ClInclude Include="LuaXor.h" />
+    <ClInclude Include="ItemIndex.h" />
+    <ClInclude Include="IndexCache.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
