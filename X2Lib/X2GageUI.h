@@ -630,6 +630,24 @@ public:
 	virtual	void			UpdateBuffIcon();
 #endif //BUFF_ICON_UI
 
+#ifdef SERV_IRUHADEV_OFFLINE
+	/// AI_PARTY_PLAN.md phase 4. Which side of the screen this widget puts
+	/// itself on.
+	///
+	/// SetPosition compares m_uiMyTeam against the player's own team and
+	/// answers x=6 (the left column, where a real dungeon party's HP bars
+	/// live - CX2PartyMemberGageUI::SetPosition uses exactly 6, 121+i*44 too)
+	/// or x=868 (the opposing column). The RoomNpcSlot constructor above
+	/// hardcodes TN_BLUE, because in PvP a bot IS the opponent. An offline AI
+	/// party member is the opposite case, so it has to be told.
+	///
+	/// A setter rather than a constructor argument so the studio's two
+	/// constructors keep their signatures and every PvP call site is
+	/// untouched. Must be called BEFORE InitUI(), which is what calls
+	/// SetPosition.
+	void	SetOfflinePartyBotTeam( const UINT uiTeam_ )	{ m_uiMyTeam = uiTeam_; }
+#endif SERV_IRUHADEV_OFFLINE
+
 protected:
 	virtual void CX2PVPPlayerGageUI::SetCharacterImage( const CX2Unit::UNIT_CLASS eGameUnitClass_ );
 

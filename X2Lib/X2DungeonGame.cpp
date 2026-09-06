@@ -2101,6 +2101,18 @@ bool CX2DungeonGame::Handler_EGS_END_GAME_DUNGEON_RESULT_DATA_NOT( KEGS_END_GAME
 {
 	g_pData->ResetDungeonResultInfo( kPacket );
 
+#ifdef SERV_IRUHADEV_OFFLINE
+	//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 4b.
+	//
+	// This is the packet that fills the reward screen in - the line above is
+	// literally it - so it is the moment the AI party leaves. See
+	// CX2Game::EndOfflinePartyBots for why this packet and not one of the
+	// other three the end of a dungeon offers. Costs a solo run nothing: the
+	// first thing it looks at is whether the room has bot slots at all.
+	EndOfflinePartyBots();
+	//}}
+#endif SERV_IRUHADEV_OFFLINE
+
 // 	if( g_pData != NULL && 
 // 		g_pData->GetUIManager() != NULL && 
 // 		g_pData->GetUIManager()->GetUIQuickSlot() != NULL )

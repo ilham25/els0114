@@ -3620,6 +3620,61 @@ void CX2GageManager::InsertPvpMemberUI( const CX2Room::RoomNpcSlot& npcSlotData_
 // 				}
 // 			}
 // 			else
+#ifdef SERV_IRUHADEV_OFFLINE
+			//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 4 - gate 3.
+			//
+			// An offline AI party member is an ally, and the studio's branch just
+			// above is written for one that is not: in PvP a bot IS the opponent,
+			// which is why the my-team half of this function is commented out with
+			// the note that an NPC has no allies. In a dungeon it has one - the
+			// player.
+			//
+			// Going on the my-team list rather than the other-team one buys two
+			// things beyond ordering. It puts the widget at x=6, y=121+i*44, which
+			// is exactly where CX2PartyMemberGageUI::SetPosition puts a REAL
+			// dungeon party's bars, so a bot's bar lands in the slot a human party
+			// member's would have. And UpdatePvpMemberGageData only fills MP in
+			// for the my-team list; the other-team one zeroes MP unless the viewer
+			// bought the show-opponent-MP cash item.
+			//
+			// The team has to be pushed into the widget because the RoomNpcSlot
+			// constructor hardcodes TN_BLUE - see SetOfflinePartyBotTeam - and it
+			// has to happen before InitUI(), which is what calls SetPosition.
+			if( NULL != g_pX2Game && CX2Game::GT_DUNGEON == g_pX2Game->GetGameType() )
+			{
+				CX2PVPPlayerGageUI* pBotGageUI =
+					new CX2PVPPlayerGageUI( npcSlotData_, pGageData, m_vecGageSetPvpMyTeam.size(), cRank );
+
+				pBotGageUI->SetOfflinePartyBotTeam( NULL != g_pX2Game->GetMyUnit() ?
+					(UINT)g_pX2Game->GetMyUnit()->GetTeam() : (UINT)CX2Room::TN_RED );
+
+				m_vecGageSetPvpMyTeam.push_back(
+					CX2GageSetPtr( new CX2GageSet( pBotGageUI, pGageData, npcSlotData_.m_iNpcUid ) ) );
+
+				// No SetPartyMemberGameUnit here, and the absence is deliberate.
+				// The overload taking an index reaches into m_vecGageSetPartyMember,
+				// NOT into the vector the bar was just pushed onto, so both PvP
+				// branches of this function write the owner unit into a different
+				// list - usually an empty one. Nothing here needs it:
+				// UpdateGageDataFromGameUnit only walks the party-member list, and a
+				// PvP bar is fed by UpdatePvpMemberGageData, which is handed the
+				// unit explicitly every frame - by CX2Game::TickOfflinePartyBots on
+				// this path.
+
+				pBotGageUI->InitUI();
+
+				// After InitUI, which sets the level string from the constructor's
+				// -1 - the value that means "hide it", correct for a PvP bot whose
+				// level is meaningless. A party member's is not: the offline server
+				// gives every bot the player's own level, and showing it is part of
+				// what makes the row read as a party list rather than as pets.
+				pBotGageUI->SetLevelString( (UINT)npcSlotData_.m_iLevel );
+
+				pGageUI = pBotGageUI;
+			}
+			else
+			//}}
+#endif SERV_IRUHADEV_OFFLINE
 			{
 				pGageUI = new CX2PVPPlayerGageUI( npcSlotData_, pGageData, m_vecGageSetPvpOtherTeam.size(), cRank );
 				if ( NULL != pGageUI )

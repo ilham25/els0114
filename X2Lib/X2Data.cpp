@@ -3059,6 +3059,37 @@ void CX2Data::SetServerCurrentTime( wstring wstrTime )
 #ifdef SERV_PVP_NEW_SYSTEM
 /*static*/ bool CX2Data::GetPvpNpcImageName( OUT wstring& fileName, OUT wstring& pieceName, CX2UnitManager::NPC_UNIT_ID iNpcId )
 {
+#ifdef SERV_IRUHADEV_OFFLINE
+	//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 4 - the party bar's portrait.
+	//
+	// The switch below knows the ten NUI_PVP_HERO_* ids and none of the ten
+	// NUI_CSM_PVP_HERO_* ones, so an offline AI party member fell through to
+	// the default, came back with empty strings, and drew whatever portrait
+	// DLG_PVP_Game_Other_State_NEW.lua ships with. The two groups are the same
+	// ten characters - phase 0 re-pointed the cast at the card-summoned
+	// variants because the plain ones have no templet in this build's .kom -
+	// so the picture is the same picture, and mapping the id across is enough.
+	//
+	// Done as a remap at the top rather than as ten extra case labels so the
+	// studio's table stays one table with one entry per portrait. Anything
+	// that is not one of the ten falls through untouched.
+	switch( iNpcId )
+	{
+	case CX2UnitManager::NUI_CSM_PVP_HERO_LOW:				iNpcId = CX2UnitManager::NUI_PVP_HERO_LOW;				break;
+	case CX2UnitManager::NUI_CSM_PVP_HERO_PENENSIO:			iNpcId = CX2UnitManager::NUI_PVP_HERO_PENENSIO;			break;
+	case CX2UnitManager::NUI_CSM_PVP_HERO_NOA:				iNpcId = CX2UnitManager::NUI_PVP_HERO_NOA;				break;
+	case CX2UnitManager::NUI_CSM_PVP_HERO_SPIKA:			iNpcId = CX2UnitManager::NUI_PVP_HERO_SPIKA;				break;
+	case CX2UnitManager::NUI_CSM_PVP_HERO_LIME:				iNpcId = CX2UnitManager::NUI_PVP_HERO_LIME;				break;
+	case CX2UnitManager::NUI_CSM_PVP_HERO_AMELIA:			iNpcId = CX2UnitManager::NUI_PVP_HERO_AMELIA;			break;
+	case CX2UnitManager::NUI_CSM_PVP_HERO_EDAN:				iNpcId = CX2UnitManager::NUI_PVP_HERO_EDAN;				break;
+	case CX2UnitManager::NUI_CSM_PVP_HERO_BALAK:			iNpcId = CX2UnitManager::NUI_PVP_HERO_BALAK;				break;
+	case CX2UnitManager::NUI_CSM_PVP_HERO_CODE_Q_PROTO_00:	iNpcId = CX2UnitManager::NUI_PVP_HERO_CODE_Q_PROTO_00;	break;
+	case CX2UnitManager::NUI_CSM_PVP_HERO_APPLE:			iNpcId = CX2UnitManager::NUI_PVP_HERO_APPLE;				break;
+	default:												break;
+	}
+	//}}
+#endif SERV_IRUHADEV_OFFLINE
+
 	switch(iNpcId)
 	{
 	case CX2UnitManager::NUI_PVP_HERO_LOW:

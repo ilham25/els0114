@@ -627,6 +627,23 @@ class CX2Game : public CKTDXStage
 		/// on this path.
 		void						TickOfflinePartyBots( float fElapsedTime );
 
+		/// AI_PARTY_PLAN.md phase 4b. Take the AI party down: delete what is
+		/// left of it, remove its HP bars, and stop tending it. Called from
+		/// CX2DungeonGame::Handler_EGS_END_GAME_DUNGEON_RESULT_DATA_NOT - the
+		/// packet that fills the reward screen in, so the party leaves at the
+		/// moment the run is being paid out. One-way for the life of this
+		/// CX2DungeonGame; a new dungeon builds a new one.
+		void						EndOfflinePartyBots();
+
+		/// True once EndOfflinePartyBots has run. The whole of what it does to
+		/// TickOfflinePartyBots is stop it: with the dungeon over there is
+		/// nothing to respawn into, and the tick would otherwise notice the
+		/// party is dead and ask for it back once a second until the result
+		/// screen takes the state away. It did exactly that in the 2026-09-06
+		/// run - nine spawn requests in four seconds, every one answered and
+		/// none of them ever arriving.
+		bool						m_bOfflinePartyOver;
+
 		/// Seconds each bot has been at 0 HP, keyed by its negative room-slot
 		/// UID. Only TickOfflinePartyBots reads or writes it; an entry is
 		/// erased the moment the bot is alive again, so the map is empty for
