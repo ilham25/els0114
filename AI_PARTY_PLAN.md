@@ -1,7 +1,7 @@
 # AI party members in offline dungeons
 
-**Status:** **phases 0-3 done and play-tested.** Phase 0 was a gate and it
-FAILED for the intended cast, so the plan is re-pointed at
+**Status:** **phases 0-4 done and play-tested, with nothing owed.**
+Phase 0 was a gate and it FAILED for the intended cast, so the plan is re-pointed at
 `NUI_CSM_PVP_HERO_*` — see *Phase 0*. Phase 1 PASSED (2026-09-05): auto-party
 puts an AI party member in the dungeon, fighting on your team, and the normal
 start button still goes in alone. Phase 2 PASSED (2026-09-06) after two defects
@@ -10,13 +10,18 @@ start slots, and the party now *survives* a stage change rather than being
 rebuilt at each one. Phase 3 PASSED (2026-09-06) on its first cycle with no
 defects: the matchmaking ceremony — queue, accept popup, cancel and deny — sits
 in front of it all, entirely in the offline server, with no client file touched.
-**Three things have still never been exercised in play**, all of them carried
-forward rather than open defects: a **bot death** (nothing at this level hits
-hard enough), the **EXP/ED comparison** between an auto-party run and a solo
-one, and the **solo-button regression check**, which phase 3's run happened to
-skip. Phases 4-5 planned, nothing else implemented.
-**Read before starting a phase:** phase 1's three defects and phase 2's two,
-which between them change what later phases may assume about the dungeon path.
+Phase 4 PASSED (2026-09-06) after one defect: the party now has HP/MP bars in
+the real party HUD's own slots, with portraits, names and levels. Its first
+play-test produced **a bot death** - which turned out to be the studio killing
+every ally at dungeon clear, and left the bars behind (*Defect 1*, fixed and
+re-tested the same day). Its second closed **both** of the checks carried since
+phase 2: the solo button still goes in alone, and an auto-party run pays
+**exactly the same EXP** as a solo one. Phase 5 planned, nothing else
+implemented.
+**Read before starting a phase:** phase 1's three defects, phase 2's two and
+phase 4's one, which between them change what later phases may assume about the
+dungeon path - and phase 4's is the one that says what happens to the party in
+the last seven seconds of a run.
 Written 2026-09-05, last updated 2026-09-06.
 **Flag:** none of its own. This is an extension of offline mode, so every edit
 goes behind the existing **`SERV_IRUHADEV_OFFLINE`** — there is no
@@ -1578,6 +1583,280 @@ three pets.
    `GetNpcSlot()` for the PvP result. Check what the dungeon result screen does
    with a party of one versus four, and whether bots should appear there at all.
 
+### Exit test — PASSED (2026-09-06), after one defect and a second cycle
+
+Two build/play cycles. The bars worked first time; one defect at the very end
+of the run needed the second. **The re-test run also closed both of the checks
+that had been carried since phase 2**, so phase 4 ends with nothing owed.
+
+| Check | Result |
+|---|---|
+| Each AI party member has an HP/MP bar, in the left column | **PASS** |
+| Portrait, name and level read as a party member's | **PASS** |
+| The bar tracks the fight | **PASS** |
+| Bars survive a stage change | **PASS** — two stage changes in the 08:10 run, `kept across the stage change` ×3 each time |
+| A dead party member's bar empties, and there is one bar per slot after the respawn | **PASS** — the first bot deaths this project has ever seen in play, three at once at 08:11:20, all three respawned and no duplicate bar |
+| **Bars are gone by the result screen** | **FAIL** on cycle 1 — *Defect 1* below. **PASS** on cycle 2: `AIPARTY dungeon paid out - party stood down (3 of 3 still in the world)` at 08:38:54, one line after the clear |
+| The end-of-dungeon respawn spam is gone | **PASS** — `never arrived` is **0** across the whole file, against nine in four seconds before the fix |
+| No new failures | **PASS** — `UNHANDLED` and `EXCEPTION` are 0 |
+| **The normal start button still spawns nobody** | **PASS at last.** Owed since phase 2 and skipped by every run since. `dungeon room 1002 dungeonID=30080 dif=2 mode=0 for unitUID=12, 0 bot(s)`, against `room 1001 … 3 bot(s)` for the auto-party run into the same dungeon ninety seconds earlier |
+| **EXP and ED are not reduced by having a party** | **PASS.** Same dungeon, same difficulty, back to back:<br>auto-party `CLEARED in 85s: 31 kill(s), +972 exp (+291 clear bonus), +1656 ED`<br>solo `CLEARED in 94s: 32 kill(s), +972 exp (+291 clear bonus), +2106 ED` |
+
+**The EXP figure is exactly equal and that is the point of the row.** A bot
+takes no share: it deals damage, and the kill credit and the clear bonus are
+the player's either way. The ED differs because ED is picked up off the ground
+— the solo run had one more kill and better drop luck — and drop RNG is the
+only thing separating the two numbers. So an AI party is a pure help: faster
+clears at identical reward. Whether that is *too* generous is a phase 5
+question, and now it is a phase 5 question with a measurement behind it.
+
+The 08:37-08:41 session had no `SHUTDOWN clean` because the client was still
+open when the logs were read, not because it fell over.
+
+### Defect 1 — the party's HP bars outlived the party
+
+**What the player saw.** At the end of the dungeon the bots vanish, and their
+three bars stay on screen with empty gauges until the result screen replaces
+everything. Invisible before phase 4, because there were no bars to be left
+behind — which is what makes this a phase 4 defect and not a phase 2 one.
+
+**What the logs said, and it is a better story than the symptom.** The client
+kills its own ally NPCs at dungeon clear. Three lines of `offline_packets.log`
+have the whole thing:
+
+```
+08:11:12.555  S->C  EGS_DUNGEON_KILLALLNPC_CHECK_NOT     <- the dungeon is cleared
+08:11:12.584  C->S  EGS_NPC_UNIT_DIE_REQ  x3             <- ...and the client kills all three bots
+08:11:19.618  S->C  EGS_END_GAME_DUNGEON_RESULT_DATA_NOT <- 7 s later, the reward screen
+```
+
+with `offline_server.log` naming the reason: `NPC uid=-2 id=0 lv=0 died:
+KILL_SELF`, three times. Nothing in this mod asked for that; it is the studio
+tidying the field once there is nothing left to fight.
+
+So the empty bars were only half of it. `TickOfflinePartyBots` did exactly what
+it is built to do with a dead party member — waited out `RESPAWN_DELAY`,
+deleted it, asked for it back — and there is no longer a sub-stage to spawn
+into, so **nine spawn requests went out in four seconds and not one of them
+arrived**, until the state change stopped the tick. That loop has been running
+since phase 2 and nobody saw it, because a bot that never comes back looks
+identical to a dungeon that has ended.
+
+**The fix** is one new method, `CX2Game::EndOfflinePartyBots()`, called from
+`CX2DungeonGame::Handler_EGS_END_GAME_DUNGEON_RESULT_DATA_NOT`
+([X2DungeonGame.cpp:2100](X2Lib/X2DungeonGame.cpp#L2100)). It deletes whatever
+is left of the party, removes every bar, and latches `m_bOfflinePartyOver`,
+which is the entire thing `TickOfflinePartyBots` needs to stop.
+
+**Why that packet, out of the four the end of a dungeon offers** — this was the
+only real decision in the fix, and the user picked it: the party should leave
+when the rewards come up.
+
+- `EGS_DUNGEON_KILLALLNPC_CHECK_NOT` (the clear) is **too early**. It opens a
+  seven-second victory cinematic the party should still be standing in.
+- `EGS_END_GAME_NOT` and `EGS_END_GAME_DUNGEON_RESULT_DATA_NOT` land 19 ms
+  apart, and of the two it is the second that fills the reward screen in — its
+  handler's first line is `g_pData->ResetDungeonResultInfo( kPacket )`.
+- `EGS_STATE_CHANGE_RESULT_NOT` is **too late**: that is the state change
+  itself, and `~CX2Game`'s `ClearPvpMemberUI` already covers it.
+
+**The paths that do not reach it need nothing.** Quitting a dungeon early or
+dying out of one never produces a result packet — and never needs to, because
+the game object is destroyed on the way out and `~CX2Game` clears every bar
+([X2Game.cpp:775](X2Lib/X2Game.cpp#L775)). That is also why the defect was
+confined to a *successful* clear.
+
+**What this teaches, in general form:** a UI element and the thing it describes
+have separate lifetimes, and the client is under no obligation to end them
+together. Phase 4 added an element whose owner is deleted by code phase 4 never
+looked at — and the same run showed the reverse, a tick still tending an object
+the game had finished with. Both were silent. When adding a display for
+something the client owns, find who deletes that thing, not just who creates it.
+
+### What phase 4 built
+
+Option 1 of the plan's four items, plus the two things it turned out to need,
+plus an answer to item 4 that needed no code. Four client files, all behind the
+existing `SERV_IRUHADEV_OFFLINE`.
+
+1. **The bar itself** — `CX2Game::CreateNPC` now inserts a PvP-member gage for
+   a dungeon bot. Not by widening the `GT_PVP` arm the plan pointed at
+   ([X2Game.cpp:6493](X2Lib/X2Game.cpp#L6493)): that arm is the `else` of an
+   `if ( GT_DUNGEON )`, so a dungeon can never reach it, and widening it would
+   have meant restructuring the studio's if/else. The insert went into phase
+   1's existing `IsPvpBot() && GT_DUNGEON` block a hundred lines below instead —
+   same condition, already written, and *after* `SetUserSummonedNPCInfo`, so
+   the first frame of the bar is drawn from the stats the bot actually fights
+   with.
+   **The plan's caution was right to be there, and the answer is yes**: unlike
+   gates 1 and 2, `CreateNPC` really is on the dungeon path. The proof is not
+   that it sits in `CX2Game` — that is exactly the reasoning that failed for
+   the other two — but that phase 1's entrance-animation fix is in the same
+   function and has been firing in play since 2026-09-05.
+2. **The left column, not the right** —
+   `CX2GageManager::InsertPvpMemberUI( const RoomNpcSlot& )` gained an offline
+   branch that pushes the bar onto `m_vecGageSetPvpMyTeam`. The studio's
+   version pushes every NPC onto the *other* team's list and has the my-team
+   half commented out with the note that an NPC has no allies — true in PvP,
+   where a bot is the opponent, and backwards here.
+   That branch also has to tell the widget which side it is on, because
+   `CX2PVPPlayerGageUI`'s `RoomNpcSlot` constructor hardcodes
+   `m_uiMyTeam = TN_BLUE` ([X2GageUI.h:584](X2Lib/X2GageUI.h#L584)) and
+   `SetPosition` picks the column by comparing that against the player's team.
+   Hence the one header edit: `SetOfflinePartyBotTeam`, which must be called
+   before `InitUI()` because `InitUI` is what calls `SetPosition`.
+   **The left column is not a preference, it is the party HUD's own address.**
+   `CX2PVPPlayerGageUI::SetPosition`'s my-team case and
+   `CX2PartyMemberGageUI::SetPosition` both resolve to `(6, 121 + i*44)`. A
+   bot's bar therefore lands in the slot a human party member's bar would have
+   occupied, which is the whole of what phase 4 was for. It also fills MP in:
+   `UpdatePvpMemberGageData` zeroes MP on the other-team list unless the viewer
+   bought the show-opponent-MP cash item.
+3. **The portrait** — `CX2Data::GetPvpNpcImageName` knew the ten
+   `NUI_PVP_HERO_*` ids and none of the ten `NUI_CSM_PVP_HERO_*` ones, so every
+   bot fell through to `default`, came back with empty strings, and drew
+   whatever `DLG_PVP_Game_Other_State_NEW.lua` ships with. **This was invisible
+   until the bar existed** — nothing else in the client asks for a bot's
+   portrait on the dungeon path — and it would have read as "phase 4
+   half-worked".
+   Fixed as a remap at the top of the function rather than ten extra `case`
+   labels: the two groups are the same ten characters (phase 0 re-pointed the
+   cast at the card-summoned variants because the plain ones have no templet in
+   this build), so the id is translated on the way in and the studio's table
+   stays one entry per portrait.
+4. **Keeping it honest per frame** — a PvP gage set is *not* driven by
+   `CX2GageManager::UpdateGageDataFromGameUnit`, which walks only the my-gage
+   and the party-member lists. Whoever owns the game type has to feed it, and
+   `CX2PVPGame::OnFrameMove` does that in a loop over the room's NPC slots
+   ([X2PVPGame.cpp:176](X2Lib/X2PVPGame.cpp#L176)). The dungeon's equivalent
+   went into `CX2Game::TickOfflinePartyBots`, which was already walking every
+   bot slot every frame with the `CX2GUNPC` in hand — one loop instead of two,
+   and no new call site in `CX2DungeonGame::OnFrameMove`.
+5. **Names needed nothing.** The plan's item 3 was already satisfied by phase 1:
+   `BOT_CAST` ([Handlers_Room.cpp:118](X2Lib/Offline/Handlers_Room.cpp#L118))
+   names each bot after the hero it actually is — Lowe, Lime, Edan, Penensio,
+   Noah, Speka, Amelia, Valak, Code: Q-Proto_00, Apple. Phase 4 only made those
+   names visible somewhere other than the log.
+
+### No new packets, and the four that phase 4 turned out to depend on
+
+**Phase 4 is the mirror image of phase 3.** Phase 3 was entirely offline-server
+work and touched no client file; phase 4 is entirely client work and touched no
+file under `X2Lib/Offline/` at all. Between them they add **no packet and no
+packet field on either side**, and `KncWX2Server/Common/` is still untouched by
+the whole feature.
+
+What phase 4 *did* need was four packets the plan never named, three of them
+only discovered by reading a log at the end of a run. Worth listing because
+none of them is inferable from the phase 4 section as written:
+
+| Packet | What it turned out to be |
+|---|---|
+| `EGS_NPC_UNIT_DIE_REQ` (id=180) ×3 | **The one that mattered.** At 29 ms after the clear the client kills its own ally NPCs, reason `KILL_SELF`. Nothing in this mod asks for it and nothing in the plan predicted it; it is the whole cause of *Defect 1* |
+| `EGS_DUNGEON_KILLALLNPC_CHECK_NOT` (id=1087) | The clear itself, and the obvious hook that is **wrong** — it opens a seven-second victory cinematic the party should still be standing in |
+| `EGS_END_GAME_NOT` (id=201) | The near-miss: 19 ms before the one that was chosen, and it does not carry the result |
+| `EGS_END_GAME_DUNGEON_RESULT_DATA_NOT` (id=202) | The hook that was chosen — the packet that fills the reward screen in, and so the moment the party leaves |
+
+**And a warning about how the defect hid.** The end-of-dungeon respawn loop sent
+nine `EGS_NPC_UNIT_CREATE_REQ` in four seconds, and the offline server answered
+every one of them correctly: nine `HANDLED` lines, no `UNHANDLED`, no
+`EXCEPTION`. The packet-log census — the core debugging loop this whole project
+runs on — **cannot see a bug made of well-formed packets**. It caught nothing
+here, and the thing that did was `grep AIPARTY offline_server.log`, where the
+same four seconds read as `never arrived after 2s - asking again` over and
+over. Keep logging decisions, not just packets.
+
+### Decisions made while implementing phase 4
+
+- **The dead bot's bar stays on screen, empty, for the whole 8-second
+  respawn** - mid-dungeon. At the *end* of a dungeon it does not, and that
+  distinction cost a build cycle: see *Defect 1*. `TickOfflinePartyBots` revives by deleting the NPC and letting the
+  spawn path rebuild it, so the obvious move is to drop the bar at the same
+  time. Leaving it is better: a downed party member reads as *down*, and an
+  empty bar that refills is the clearest possible signal that the respawn timer
+  is running. What that costs is a duplicate-bar hazard, closed by the
+  remove-before-insert in `CreateNPC` — `RemovePvpMemberUIByUserUid` on the
+  slot UID immediately before `InsertPvpMemberUI`. Without it the rebuild
+  stacks a second bar on the same UID, and `UpdatePvpMemberGageData` updates
+  *every* match it finds, so the duplicate would have tracked the fight
+  correctly and never looked wrong — just eaten a row.
+- **The level is shown, not hidden.** `SetLevelString( -1 )` is the "hide it"
+  value and the `RoomNpcSlot` constructor passes exactly that, which is right
+  for a PvP bot whose level means nothing. The offline server gives every bot
+  the player's own level, so the branch re-sets it *after* `InitUI()` — setting
+  it before is overwritten by the constructor's -1.
+- **`SetPartyMemberGameUnit` is deliberately not called**, breaking symmetry
+  with both of the studio's branches. The overload taking an index reaches into
+  `m_vecGageSetPartyMember`, **not** into the vector the bar was just pushed
+  onto, so both PvP branches have been writing the owner unit into a different
+  and usually empty list for years. Nothing on this path needs it: the bar is
+  handed `UpdatePvpMemberGageData( uid, unit )` explicitly every frame.
+- **No `SetShow` change, and nothing new clears the bars at the end of a run.**
+  `CX2GageManager::SetShow` touches only the my-gage and party-member lists, so
+  the state-change hook that hides the HUD for `XS_DUNGEON_RESULT` does not
+  reach a PvP bar. It does not need to: `CX2Main::StateChange` calls
+  `RemoveStage( m_pNowState, true )` **before** constructing the new state
+  ([X2Main.cpp:4867](X2Lib/X2Main.cpp#L4867)), which runs
+  `~CX2StateDungeonGame` → `~CX2Game` → `ClearPvpMemberUI`
+  ([X2Game.cpp:775](X2Lib/X2Game.cpp#L775)). The bars are gone before the
+  result screen exists. If they ever are not, that ordering is what changed.
+- **Option 2 was not built, and the plan said not to build it yet.**
+  Fabricating a `KPartyUserInfo` per bot plus periodic `KPartyMemberStatus`
+  pushes is strictly better looking and meaningfully more work; the instruction
+  was to pick after seeing option 1 on screen, and that has not happened yet.
+  Two things the option-1 run should settle: whether the PvP widget's
+  cosmetics — the hidden rank emblem, the buff-icon strip — read wrong next to
+  a real party HUD, and whether the offline server would then also have to fake
+  party membership everywhere else `CX2PartyManager` looks.
+
+### Corrections to this plan, found by doing it
+
+1. **The plan's `X2Game.cpp:6437` is not a branch a dungeon can be "widened"
+   into.** It is the `else if ( GT_PVP )` of an `if ( GT_DUNGEON )`, so the
+   dungeon already has its own arm and the two are mutually exclusive. The work
+   is an *addition* on the dungeon side, not a widened condition. The line is
+   also now at [:6493](X2Lib/X2Game.cpp#L6493), phase 1 having grown the
+   function.
+2. **Item 4's answer is "the dungeon result screen needs nothing, and bots
+   should not appear on it".** It counts *player* slots — `GetSlotNum()` with
+   `pSlotData->m_pUnit != NULL`
+   ([X2StateDungeonResult.cpp:961](X2Lib/X2StateDungeonResult.cpp#L961) and
+   [:1351](X2Lib/X2StateDungeonResult.cpp#L1351)) — to pick the
+   `Reward_Box_<n>_<i>` layout, and `DeleteNpcSlot()` has already moved every
+   bot out of `m_SlotDataList` before the dungeon even starts. An offline
+   auto-party run therefore shows the identical solo result screen, which is
+   also the honest one: a bot earns no EXP, no ED and no reward box.
+3. **Phase 5's MODS.md list is now eight client files, not five.** Phase 4 adds
+   `X2Lib/X2GageManager.cpp`, `X2Lib/X2GageUI.h` and `X2Lib/X2Data.cpp` to
+   `X2Game.h`, `X2Game.cpp`, `X2DungeonGame.cpp`, `X2Room.h`, `X2Room.cpp`.
+   Note `X2Data.cpp` is on that list twice over — phase 0's probe is still in
+   it and phase 5 plans to delete that; the `GetPvpNpcImageName` remap stays,
+   so the file does **not** come off the list when the probe goes.
+4. **`X2Lib/X2GageUI.h` is UTF-8 with LF endings**, unlike almost everything
+   else in `X2Lib`, which is CP949 with CRLF. Match what the file has rather
+   than what the directory usually has — run `file` on it before editing, as
+   `CLAUDE.md` says.
+5. **`msbuild "/p:SolutionDir=$TRUNK\"` fails from PowerShell** with
+   `MSB6001: ... contains an odd number of double-quote characters`: the
+   trailing backslash escapes the closing quote and the rest of the command
+   line is swallowed into an include path. The plan's own snippet uses a
+   forward slash for exactly this reason; from PowerShell, build the value with
+   `(Get-Location).Path.Replace('\','/')` and a trailing `/`.
+
+
+6. **The plan never once mentions that the client kills its own allies at
+   dungeon clear**, and every phase before this one got away with it. The
+   evidence table's *Revive* row even points at `RebirthUserUnit`'s bot
+   branch as though something would bring them back. Phase 2 already found
+   that branch unreachable offline; phase 4 found the other half - they are
+   killed on purpose, by `EGS_NPC_UNIT_DIE_REQ` with `KILL_SELF`, the
+   moment the last monster dies. Anything a later phase hangs on a bot
+   being alive has to answer what happens in those last seven seconds.
+7. **The `#endif SERV_IRUHADEV_AIPARTY_PERSIST` block inside phase 4's
+   changes is untouched and stays that way.** `EndOfflinePartyBots` deletes
+   the party deliberately and does *not* go through the persist exemption,
+   because this is the one stage teardown the party is not meant to survive.
+
 ---
 
 # Phase 5 — Tuning and honesty
@@ -1651,3 +1930,5 @@ sqlite3 els_db.sql "select unit_uid, nickname, level, exp, ed from unit;"
 | **Bots fan out correctly in one stage and stack on one spot in another** | `GetLandPosition` returned its far-away fallback — the same one for every input — because no line was loaded under the point yet. Accept a snap only if it lands near what was asked for. Phase 2 decisions |
 | **`AIPARTY … never arrived after 3s`** | A spawn request the offline server answered never produced an NPC. This was phase 2 defect 2 — a stale spawn position at a stage change, silently deleted by `CreateNPC` — and it is fixed twice over: the position now comes from the line map's start slots, and there is no per-stage spawn left at all. The line reappearing means something regressed |
 | **The party window will not open again, and the P key does nothing** | `SetProcessDungeonMatch` is still latched from an auto-party that was queued and never closed. Only three packets clear it — the cancel ACK, `EGS_AUTO_PARTY_CLOSE_NOT` and `EGS_PARTY_GAME_START_NOT` — and each belongs to a different exit. Phase 3 correction 4 |
+| **Empty party HP bars linger after a dungeon clear** | `EndOfflinePartyBots` did not run. It hangs off `EGS_END_GAME_DUNGEON_RESULT_DATA_NOT`; `grep "stood down" offline_server.log` says whether it fired. Phase 4 defect 1 |
+| **`AIPARTY … never arrived` repeating once a second at the END of a run** | Same cause: the tick is still tending a party the dungeon has finished with, deleting and re-requesting into a world with no sub-stage left. Every one of those requests is answered normally, so `offline_packets.log` shows nothing wrong — only `offline_server.log` does. Phase 4 defect 1 |
