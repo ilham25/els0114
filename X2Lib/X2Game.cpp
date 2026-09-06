@@ -13782,12 +13782,62 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 				{
 					fStatScale *= fHyperModeStatScale;
 
+//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 5 - AI party member difficulty.
+//
+//   This is the LAST word on an AI party member's stats and therefore the
+//   only place the difficulty knob can go. The RoomNpcSlot override in
+//   CX2GUNPC (X2GUNPC.cpp:3915) has already run by the time we get here and
+//   the SetNPCStat below overwrites it, which is why the knob the plan
+//   originally described - scaling the five slot stats - would have changed
+//   nothing visible. See AI_PARTY_PLAN.md phase 1 correction 2.
+//
+//   Tested with IsPvpBot() rather than with a unitID case, the way the Nasod
+//   Watch and Wally entries below are, because the same ten
+//   NUI_CSM_PVP_HERO_* ids are also summonable by monster card: the id alone
+//   does not mean "AI party member", the id PLUS a claimed bot slot does, and
+//   IsPvpBot() is exactly that test (X2GUNPC.cpp:2153). A monster-card summon
+//   never reaches this function anyway - the call site skips it for anything
+//   but NCT_NONE - so this is belt and braces, but it is the honest condition
+//   and it is the one phase 1 correction 5 already settled on.
+#ifdef SERV_IRUHADEV_OFFLINE
+					float fBotHPRate  = 1.f;
+					float fBotAtkRate = 1.f;
+					float fBotDefRate = 1.f;
+
+					if( true == pNPC->IsPvpBot() )
+					{
+						fBotHPRate  = SERV_IRUHADEV_PARTY_BOT_HP_RATE;
+						fBotAtkRate = SERV_IRUHADEV_PARTY_BOT_ATK_RATE;
+						fBotDefRate = SERV_IRUHADEV_PARTY_BOT_DEF_RATE;
+
+						// The stat line the party actually fought with, in the log
+						// beside everything else the party does. Without it the only
+						// way to answer "did the rate apply?" is another build.
+						CX2OfflineLog::Server( L"AIPARTY  bot uid=%I64d stats hp=%.0f atkP=%.0f atkM=%.0f defP=%.0f defM=%.0f (rates hp=%.2f atk=%.2f def=%.2f)",
+										pNPC->GetUnitUID(),
+										npcStat.m_fBaseHP		* fStatScale	* fBotHPRate,
+										npcStat.m_fAtkPhysic	* fStatScale	* fBotAtkRate,
+										npcStat.m_fAtkMagic		* fStatScale	* fBotAtkRate,
+										npcStat.m_fDefPhysic	* fStatScale	* fBotDefRate,
+										npcStat.m_fDefMagic		* fStatScale	* fBotDefRate,
+										fBotHPRate, fBotAtkRate, fBotDefRate );
+					}
+
+					pNPC->SetNPCStat( 
+						npcStat.m_fBaseHP		* fStatScale	* fBotHPRate,
+						npcStat.m_fAtkPhysic	* fStatScale	* fBotAtkRate,
+						npcStat.m_fAtkMagic		* fStatScale	* fBotAtkRate,
+						npcStat.m_fDefPhysic	* fStatScale	* fBotDefRate,
+						npcStat.m_fDefMagic		* fStatScale	* fBotDefRate );
+#else
 					pNPC->SetNPCStat( 
 						npcStat.m_fBaseHP		* fStatScale	* 1.f,
 						npcStat.m_fAtkPhysic	* fStatScale	* 1.f,
 						npcStat.m_fAtkMagic		* fStatScale	* 1.f,
 						npcStat.m_fDefPhysic	* fStatScale	* 1.f,
 						npcStat.m_fDefMagic		* fStatScale	* 1.f );
+#endif SERV_IRUHADEV_OFFLINE
+//}} Iruha : 2026-09-06
 				} break;
 
 

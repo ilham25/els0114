@@ -1,6 +1,6 @@
 # AI party members in offline dungeons
 
-**Status:** **phases 0-4 done and play-tested, with nothing owed.**
+**Status:** **all six phases done and play-tested, with nothing owed.**
 Phase 0 was a gate and it FAILED for the intended cast, so the plan is re-pointed at
 `NUI_CSM_PVP_HERO_*` — see *Phase 0*. Phase 1 PASSED (2026-09-05): auto-party
 puts an AI party member in the dungeon, fighting on your team, and the normal
@@ -16,8 +16,12 @@ play-test produced **a bot death** - which turned out to be the studio killing
 every ally at dungeon clear, and left the bars behind (*Defect 1*, fixed and
 re-tested the same day). Its second closed **both** of the checks carried since
 phase 2: the solo button still goes in alone, and an auto-party run pays
-**exactly the same EXP** as a solo one. Phase 5 planned, nothing else
-implemented.
+**exactly the same EXP** as a solo one. Phase 5 PASSED (2026-09-06) on its first
+cycle with no defects, and closed the feature: the difficulty knob exists as three
+constants in `X2Lib/X2Define.h`, and the play-test's verdict was that **1.0 is
+right and no constant needs turning** - a bot is exactly as strong as the player,
+because the client re-stats it that way. Phase 0's probe is deleted and `MODS.md`
+is updated. Nothing is owed.
 **Read before starting a phase:** phase 1's three defects, phase 2's two and
 phase 4's one, which between them change what later phases may assume about the
 dungeon path - and phase 4's is the one that says what happens to the party in
@@ -1609,6 +1613,9 @@ the player's either way. The ED differs because ED is picked up off the ground
 only thing separating the two numbers. So an AI party is a pure help: faster
 clears at identical reward. Whether that is *too* generous is a phase 5
 question, and now it is a phase 5 question with a measurement behind it.
+**Answered in phase 5 (2026-09-06): it is not too generous, and nothing was
+turned down.** The judgement was made by playing it rather than by arguing from
+the numbers — the party reads as help, not as a run being played for you.
 
 The 08:37-08:41 session had no `SHUTDOWN clean` because the client was still
 open when the logs were read, not because it fell over.
@@ -1861,10 +1868,19 @@ over. Keep logging decisions, not just packets.
 
 # Phase 5 — Tuning and honesty
 
+> **Done and play-tested 2026-09-06 (exit test below), PASSED on the first cycle
+> with no defects.** The one thing the play-test had to decide was a **number** —
+> how strong an AI party member should be — and the answer was that the shipped
+> 1.0 is right: a bot is exactly as strong as the player and reads correctly that
+> way. The three constants stay where they are, unturned, as the knob for anyone
+> who later disagrees.
+
+The original bullets, kept because two of them were wrong in instructive ways:
+
 - Bot difficulty. **The plan's knob does not work on this path** — see phase 1
   correction 2. `RoomNpcSlot`'s five stats are overridden a second time, after
   the slot override, by `SetUserSummonedNPCInfo`
-  ([X2Game.cpp:12900](X2Lib/X2Game.cpp#L12900)), which re-stats any ally with an
+  ([X2Game.cpp:13691](X2Lib/X2Game.cpp#L13691)), which re-stats any ally with an
   owner from **the player's own** HP/atk/def. So a bot currently has the
   player's stat line, which is a defensible default and is why nothing looked
   wrong in phase 1. Scaling `RoomNpcSlot` would change nothing visible.
@@ -1879,20 +1895,225 @@ over. Keep logging decisions, not just packets.
   (`server-lua-packing-is-users-job`).
 - Delete phase 0's probe block — `grep AIPARTY` across `X2Lib/` finds it, and it
   should be one block in one function. Phase 0 is the only thing that needed it.
-- Update `MODS.md` by **extending the existing `SERV_IRUHADEV_OFFLINE` row** —
-  add a sentence about AI party members to its description, saying explicitly
-  that they are auto-party only. No new row: there is no new flag.
-  (`X2Lib/Offline/` is already listed as a whole directory, so
-  `Handlers_Social.cpp` and `Handlers_Room.cpp` need no separate mention.)
-  The *Client files* column gains **five** entries, not the two the plan
-  guessed, because the hook moved to the dungeon game object and both room
-  files were touched:
-  `X2Lib/X2Game.h`, `X2Lib/X2Game.cpp`, `X2Lib/X2DungeonGame.cpp`,
-  `X2Lib/X2Room.h`, `X2Lib/X2Room.cpp`. `X2Lib/X2Data.cpp` is there too, from
-  phase 0's probe — remove it from the list in the same edit that deletes the
-  probe, if nothing else in offline mode has claimed that file by then.
-- Write the phase history and every correction back into this file, the way
-  `OFFLINE_MODE_PLAN.md` does. That record is worth more than the plan was.
+- Update `MODS.md` by **extending the existing `SERV_IRUHADEV_OFFLINE` row**.
+- Write the phase history and every correction back into this file.
+
+## What phase 5 built
+
+**1. The difficulty knob, in the only place it can go.** Three constants at the
+end of `X2Lib/X2Define.h` ([:1822](X2Lib/X2Define.h#L1822)), under
+`SERV_IRUHADEV_OFFLINE`:
+
+```c
+const float SERV_IRUHADEV_PARTY_BOT_HP_RATE  = 1.0f;
+const float SERV_IRUHADEV_PARTY_BOT_ATK_RATE = 1.0f;
+const float SERV_IRUHADEV_PARTY_BOT_DEF_RATE = 1.0f;
+```
+
+They are applied in `CX2Game::SetUserSummonedNPCInfo`'s `default:` branch
+([X2Game.cpp:13802](X2Lib/X2Game.cpp#L13802)), which is the **last** write to a
+bot's stats and therefore the only effective one. The studio's five
+`SetNPCStat` arguments are kept verbatim in the `#else`.
+
+**Shipped at 1.0, deliberately.** 1.0 is exactly the behaviour phases 1-4 were
+played and passed at, so this build changes no number — it only makes the
+numbers reachable. Shipping a guess instead would have meant the play-test
+measuring an invented value rather than the one the feature has always had.
+Three rates rather than one because "tanky but not out-damaging me" is the
+shape a companion usually wants, and one scalar cannot say it.
+
+**2. It says what it did.** A bot's spawn now logs its final stat line and the
+three rates that produced it:
+
+```
+AIPARTY  bot uid=-2 stats hp=108286 atkP=10361 atkM=11892 defP=2197 defM=2506 (rates hp=1.00 atk=1.00 def=1.00)
+```
+
+(that is the real line from the play-test, not an illustration — and it turned
+out to be the phase's best single piece of evidence; see the exit test)
+
+Without it the only way to answer "did the rate apply?" is another build —
+exactly the cost `CLAUDE.md`'s *add a temporary diagnostic* rule exists to
+avoid. This one is not temporary, because the question recurs every time the
+number is turned.
+
+**3. Phase 0's probe is gone.** 132 lines out of `CX2Data::ResetUnitManager`,
+restoring that function to its shipped shape. `grep AIPARTY X2Lib/X2Data.cpp`
+now returns nothing, and no `AIPARTY` line is written before login any more.
+
+**4. `MODS.md`'s `SERV_IRUHADEV_OFFLINE` row was extended, not duplicated** —
+a paragraph saying what the AI party is and that it is auto-party only, the
+`X2Define.h` constants noted beside the flag's definition sites, and the client
+files column filled in.
+
+### Exit test — PASSED (2026-09-06), first cycle, no defects
+
+One session: an auto-party run of a four-stage dungeon through to the reward
+screen, then a solo entry. Player `reyaa` (uid 12), level 50.
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Auto-party still queues, matches, and puts three heroes in the dungeon | **PASS** — queued 10:17:21, matched, accepted, and Edan / Amelia / Noah spawned at 10:17:29-30 |
+| 2 | `grep "AIPARTY  bot uid" offline_server.log` prints one line per bot with `rates hp=1.00 atk=1.00 def=1.00` | **PASS** — exactly three lines, rates as shipped |
+| 3 | The stats on that line are the player's, not a hero row's | **PASS** — see below; the proof is stronger than the check asked for |
+| 4 | **The difficulty judgement** | **PASS — 1.0 stays.** The user's verdict: "bots feel okay, nothing to worry about". No constant is being turned |
+| 5 | Nothing regressed from phase 4 | **PASS, with one part not exercised** — bars, placement, stage-change persistence and the stand-down all held; nothing died, so revive did not run. See below |
+| 6 | The solo button still goes in alone | **PASS** — `EGS_QUICK_START_DUNGEON_GAME_REQ` at 10:21:50, after the party run had paid out, produced no bot slot and no `AIPARTY` line |
+| 7 | `grep -E "UNHANDLED\|EXCEPTION" offline_packets.log` is empty | **PASS** — zero of each |
+| 8 | No probe lines at start-up | **PASS** — zero `probe complete` / `NO_TEMPLET` / `LUA_NOT_LOADED` |
+
+**Check 3 came back better evidence than the check was written to get.** The
+plan asked for "thousands, not 160k-285k", expecting to tell the player's line
+from a hero row by size. What the log actually shows is three *different*
+heroes carrying byte-identical stats:
+
+```
+AIPARTY  bot uid=-2 stats hp=108286 atkP=10361 atkM=11892 defP=2197 defM=2506 (rates hp=1.00 atk=1.00 def=1.00)
+AIPARTY  bot uid=-3 stats hp=108286 atkP=10361 atkM=11892 defP=2197 defM=2506 (rates hp=1.00 atk=1.00 def=1.00)
+AIPARTY  bot uid=-4 stats hp=108286 atkP=10361 atkM=11892 defP=2197 defM=2506 (rates hp=1.00 atk=1.00 def=1.00)
+```
+
+Edan (npcID 1108), Amelia (1107) and Noah (1104) have three different rows in
+`NPCStat.lua` — phase 0 measured them at 159k-285k HP, all distinct. Identical
+output from distinct inputs can only be a re-stat from a common source, and the
+common source is the player. That settles phase 1 correction 2 by observation
+rather than by reading the call chain, and it is the reason the three constants
+had to go where they went. 108286 is also nothing like the "few thousand" the
+plan's phase 0 correction 4 imagined a player would have — that guess was made
+about a low-level character and this one is level 50 with gear.
+
+**What check 5 did not cover.** No bot went down in the whole run — the
+stand-down line reads `party stood down (3 of 3 still in the world)` — so
+`TickOfflinePartyBots`' revive path did not execute. It is proven by phases 2
+and 4 and nothing here suggests it regressed, but this run is not evidence for
+it. Recording that rather than letting a PASS row imply more than it saw.
+
+Everything else in check 5 did run: three spawns one at a time, placement on
+the line map's start slots at x = -16436 / -16264 / -16096 (168 apart, the
+fan-out working), `ally of 12`, three stage changes with all three bots kept
+across each, and one `dungeon paid out - party stood down` at the reward packet.
+
+### No new packets — and phase 5 is the first phase that added no code path at all
+
+Phase 3 added no client file, phase 4 added no offline-server file. **Phase 5
+added neither, and no packet or packet field on either side** — the whole of it
+is one branch inside a function the client was already calling on every bot
+spawn, plus three constants, plus a deletion. Nothing was added to
+`X2Lib/Offline/`, nothing under `KncWX2Server/Common/` was touched, and the
+servers still do not need rebuilding.
+
+Worth saying explicitly because "tuning" sounds like it might need somewhere to
+put a setting. It did not: `SetUserSummonedNPCInfo` already receives the `unitID`
+and the `CX2GUNPC`, and `IsPvpBot()` was already true by the time it runs
+(`m_bPvpBot` is set in the `CX2GUNPC` constructor,
+[X2GUNPC.cpp:2153](X2Lib/X2GUNPC.cpp#L2153), and the call site is downstream of
+it). Every fact the knob needed was already in scope.
+
+The four packets phase 5's *verification* leans on, none of them new: the
+auto-party trio from phase 3 (`EGS_AUTO_PARTY_DUNGEON_GAME_REQ` and its match /
+accept replies), `EGS_NPC_UNIT_CREATE_NOT` — which is what gets `CreateNPC`, and
+therefore `SetUserSummonedNPCInfo`, onto the dungeon path at all —
+`EGS_END_GAME_DUNGEON_RESULT_DATA_NOT` for the stand-down, and
+`EGS_QUICK_START_DUNGEON_GAME_REQ` as the solo control.
+
+### Decisions made while implementing phase 5
+
+- **`IsPvpBot()`, not a `unitID` case.** The plan said to add a case the way the
+  Nasod Watch and Wally entries are written. That is wrong here, and phase 1
+  correction 5 had already said why: the same ten `NUI_CSM_PVP_HERO_*` ids are
+  summonable by monster card, so the id alone does not mean "AI party member" —
+  the id *plus* a claimed bot slot does, and `IsPvpBot()`
+  ([X2GUNPC.cpp:2153](X2Lib/X2GUNPC.cpp#L2153)) is exactly that test. Ten extra
+  case labels would also have been ten chances for the cast list here to drift
+  out of step with the one in `CreateOfflinePartyBots`. (A card summon never
+  reaches this function anyway — the call site skips it for any
+  `NPC_CREATE_TYPE` but `NCT_NONE` — so this is belt and braces. It is still
+  the honest condition.)
+- **`SetHardLevel` was left alone.** It is the second knob phase 1 named, and it
+  is the wrong one: it sets the bot's *level*, which the party HUD displays, so
+  turning it would make a party member's shown level disagree with the level the
+  matchmaking ceremony advertised. A stat multiplier is invisible to the UI; a
+  level is not.
+- **Dropping `iAllyUID` was ruled out without a play-test.** It is the third
+  knob phase 1 named and it does work — no owner means no re-stat, so the bot
+  keeps its 160k-285k hero row. It also takes the follow behaviour with it, and
+  a party member who does not follow you is not a party member. The plan already
+  said this; it is recorded here so nobody re-derives it.
+- **`CX2AllyNPCAI`'s Lua was not touched, and nothing is owed on it.** No
+  play-test so far has reported the bots chasing badly, losing the player, or
+  jumping at the wrong times, so there is no tuning to ask for. If one ever
+  does, the file is the studio's and packing it is the user's job — name it and
+  stop, per `server-lua-packing-is-users-job`. Written down so a future reader
+  does not read the phase-5 bullet as an outstanding task.
+- **1.0 stands, and the knob stays anyway.** The play-test's verdict was that a
+  bot at the player's own stat line feels right, so no constant was turned and
+  this feature ships behaviourally identical to phase 4. That is the outcome the
+  phase was built to be able to *have*: shipping at 1.0 meant the play-test
+  measured the real thing, and "no change needed" is a real answer rather than an
+  admission that the phase did nothing. The three constants are worth keeping
+  even unturned — the next person to disagree has one place to go, and the
+  reasoning for why it is the only place that works is in the comment beside
+  them.
+- **The probe went; the operational logging stayed.** `grep AIPARTY` across
+  `X2Lib/` still finds around 25 lines, and every one is the running party
+  reporting a decision — the spawn, the revive, the stage-change reposition, the
+  stand-down at payout, and now the stat line. Phase 0's block was the only
+  scaffolding. The distinction is worth keeping: `AIPARTY` in
+  `offline_server.log` is now a log of what the party *did*.
+
+### Corrections to this plan, found by doing it
+
+1. **`X2Lib/X2Data.cpp` stays in `MODS.md`'s client file list.** Phase 5's
+   bullet said to remove it "if nothing else in offline mode has claimed that
+   file by then" — two things have: `ResetServerProtocol`'s seam
+   ([:2135](X2Lib/X2Data.cpp#L2135), offline mode's seam 2, which predates the AI
+   party) and phase 4's portrait remap in `GetPvpNpcImageName`
+   ([:2930](X2Lib/X2Data.cpp#L2930)). Only the probe left.
+2. **"The client files column gains five entries" was low — it gains eight
+   files, and one of them is not the AI party's.** The five the plan predicted
+   (`X2Game.h`, `X2Game.cpp`, `X2DungeonGame.cpp`, `X2Room.h`, `X2Room.cpp`)
+   were all real, but phase 4 also touched `X2Lib/X2GageManager.cpp:3623` and
+   `X2Lib/X2GageUI.h:633` for the party HP bars, and the audit that found those
+   turned up `X2Lib/X2StateBeginning.cpp:1607` as well — an offline-mode PvP
+   emblem fix from before the AI party that had never been listed at all. The
+   general lesson: enumerate a flag's edit sites with a grep at the *end* of a
+   feature rather than trusting a list written at the start of it.
+3. **The reference `X2Lib/X2Data.cpp:2136` survived the probe's deletion by
+   coincidence**, and is now `:2135`. Deleting 132 lines above a reference moves
+   it; this one happened to land one line off its old value, which is the most
+   dangerous kind of stale reference because it still points at plausible code.
+   Both `X2Data.cpp` references in `MODS.md` were re-derived by grep, not
+   adjusted by arithmetic.
+4. **A named constant in a header inside the PCH is a build-loop hazard, and
+   the log line is the fix.** `X2Define.h` is precompiled, so turning one of
+   these three rates needs `touch X2Lib/stdafx.cpp` before the rebuild or the
+   change silently does nothing (`pch-hides-header-edits`). Printing the rates
+   at spawn makes that failure visible in `offline_server.log` in one play-test,
+   instead of being guessed at from how hard the bots hit.
+5. **`UidType` is `__int64`, and `%d` on one silently garbles the rest of the
+   line.** The new log line was written with `uid=%d` and
+   `CX2GameUnit::GetUnitUID()`, which returns `UidType`
+   (`KncWX2Server/Common/KncUidType.h:3`, `typedef __int64 UidType`). In a
+   varargs call that pushes 8 bytes where `%d` reads 4, so every `%.0f` after it
+   would have read shifted and the whole stat line would have been noise - while
+   compiling without a warning and looking entirely plausible in review. Caught
+   before the play-test only by checking the typedef; fixed to `%I64d`, which is
+   what every other AI party log line that prints a UID already uses
+   ([X2Game.cpp:7215](X2Lib/X2Game.cpp#L7215)). Copy the format specifier from a
+   neighbouring line rather than choosing one, and if a diagnostic is being added
+   specifically so a play-test can be trusted, verify the diagnostic itself first
+   - a broken one costs the cycle it was meant to save.
+6. **The exit test's own check 3 was written to the wrong expectation, and the
+   log answered a better question than it asked.** The check said the bot's stats
+   should be "thousands, not 160k-285k", inheriting phase 0 correction 4's picture
+   of a low-level player. The real player is level 50 with gear and the number is
+   108286 — inside the hero rows' range, so the size test would have been
+   inconclusive if the run had gone slightly differently. What actually proved it
+   was three *different* heroes logging *identical* stats, which is only possible
+   if something re-stats them from one shared source. Logging the value per bot
+   rather than logging "the rate applied" is what made that visible; a diagnostic
+   that prints the raw number can answer questions its author did not think of,
+   and one that prints a verdict cannot.
 
 ---
 

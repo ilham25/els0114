@@ -1803,3 +1803,25 @@ const float SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC = 50.0f;
 #endif SERV_IRUHADEV_MP_REGEN_BOOST
 //}} Iruha : 2026-09-04
 
+
+//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 5 - AI party member difficulty.
+//
+//   An offline AI party member's final stat line is the PLAYER's, not the hero
+//   NPC's. CX2Game::SetUserSummonedNPCInfo re-stats any ally that has an owner
+//   from the player's own HP/atk/def, and it runs AFTER the RoomNpcSlot
+//   override in CX2GUNPC (X2GUNPC.cpp:3915) and overwrites it - so scaling the
+//   slot, which is what this plan originally proposed as the knob, changes
+//   nothing visible. These three are the multipliers that do: they are applied
+//   in that function's default: branch, to AI party members only.
+//
+//   1.0 means "exactly as strong as you are", which is the stat line phases
+//   1-4 were played at and is a defensible default for a party member. Turn a
+//   number down to make the party carry less of the run. They are separate so
+//   that "tanky but not out-damaging me" is expressible, which is the shape a
+//   companion usually wants.
+#ifdef SERV_IRUHADEV_OFFLINE
+const float SERV_IRUHADEV_PARTY_BOT_HP_RATE  = 1.0f;
+const float SERV_IRUHADEV_PARTY_BOT_ATK_RATE = 1.0f;
+const float SERV_IRUHADEV_PARTY_BOT_DEF_RATE = 1.0f;
+#endif SERV_IRUHADEV_OFFLINE
+//}} Iruha : 2026-09-06
