@@ -187,8 +187,9 @@ either order works, but running them as parallel conversations will conflict.
 screen — its whole purpose is to correct their bias.
 
 `ISSUES_2.md` #5 has two halves. **5a** (the ED display) is phase 34 and is
-confirmed. **5b** ("cover all box item function") is an audit step inside phase
-34, not a separate phase — see that section.
+confirmed. **5b** ("cover all box item function") was an audit step inside phase
+34; it is now `ISSUES_2.md` #7 and owns its own document,
+`OFFLINE_MODE_PHASE36_PLAN.md` (phases 36-45). See the note in phase 34.
 
 ---
 
@@ -756,7 +757,8 @@ Technical letters improve relative to phase 32's run.
 
 ### Symptom
 Opening a "box" item empties the displayed ED. The saved value is intact; only
-the UI is wrong. The user asks for **all** box items to be covered.
+the UI is wrong. (The user's wider ask — cover **all** box items — is
+`ISSUES_2.md` #7 and lives in `OFFLINE_MODE_PHASE36_PLAN.md`, not here.)
 
 ### Diagnosis — CONFIRMED
 It is not specific to boxes: **every successful use of any item from the bag
@@ -812,29 +814,24 @@ that always reply an error, so the client never reads it.
    struct has no constructor, so the next reader does not assume 0. Worth a
    sweep for other constructor-less `DECL_PACKET`s the offline server replies
    with.
-4. **`ISSUES_2.md` #5b — "cover all box item function".** With the ED fixed,
-   check whether a box's *contents* actually arrive. A box whose templet has
-   `GetCanUseInventory() == true` reaches this handler, which implements only
-   unseal items and the skill note; anything else is consumed and delivers
-   nothing. Reproduce with a box, read `offline_packets.log` and the
-   `ITEM used item <id> from the bag` line, then:
-   - **name the item** by decrypting `ItemTrans.lua` out of `data036/` (~43,577
-     id → English name pairs) and `Item.lua` for its abilities. Do not
-     pattern-match on names — phase-9 §0.2 point 5 is about exactly that
-     mistake.
-   - if it has a `RandomItemTable.lua` row, route it through the existing
-     `CX2OfflineRandomItem` rather than writing a second box implementation.
-   - if it does not, **refuse it with the item intact** and log the id; the
-     handler already has that shape at `:216-233`. An item consumed for nothing
-     is unrecoverable player data, whereas a refusal is a bug report.
+4. **`ISSUES_2.md` #5b is no longer this phase's job.** It became `ISSUES_2.md`
+   #7 and is planned in full as `OFFLINE_MODE_PHASE36_PLAN.md`, phases 36-45.
+   Two findings from writing that document change what this phase should do:
+   - **Phase 36 fixes the ED on `EGS_USE_ITEM_IN_INVENTORY_REQ`**, because the
+     Philosopher's Scroll (item 160267) cannot be verified while the same reply
+     zeroes the wallet. So this phase keeps only `EGS_RESOLVE_ITEM_REQ` and
+     `EGS_ATTRIB_ENCHANT_ITEM_REQ` — and whichever of 34/36 runs second inherits
+     the `FillAckED` helper rather than adding it twice.
+   - **34, 35 and 36 all edit this handler.** Do not run them as parallel
+     conversations.
 5. `Handler_EGS_RESOLVE_ITEM_REQ` also contains the phase-29 pattern at `:2369`
    and gets it right — worth reading as the counter-example.
 
 ### Exit test
 Note the ED, then: use a potion from the bag, open a box, dismantle an item, add
-an attribute. The displayed ED matches `select ed from unit` after each one. A
-box either delivers its contents or is left in the bag with a log line naming
-it.
+an attribute. The displayed ED matches `select ed from unit` after each one.
+Whether the box *delivers* anything is phase 36/37's exit test, not this one —
+here it only has to leave the wallet alone.
 
 ---
 
