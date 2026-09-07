@@ -204,6 +204,30 @@ void CX2OfflineServer::MakeRoomUserInfo( const KOfflineUnitRow& kRow, OUT KRoomU
 	// and the client reads the int.
 	kOut.m_iTitleID			= kRow.m_iTitleID;
 
+	// The PvP emblem, and it is here for exactly the same reason the title is.
+	// SetKRoomUserInfo does
+	//     m_cRank = data.m_cRank;
+	// unconditionally under PVP_SEASON2 ([X2Unit.cpp:3356](X2Lib/X2Unit.cpp#L3356)),
+	// against my own CX2Unit, so leaving it zero did not merely omit the emblem
+	// inside the room - it wiped the rank off the character for the rest of the
+	// session. PVPRANK_NONE = 0 is a key PVPEmblem_Season2.lua never registers, so
+	// the character-select screen then drew an untextured quad, a black box, for
+	// whichever character had been played. That is ISSUES_2.md #3.
+	//
+	// Reached from MakeRoomSlots, which EGS_CREATE_TUTORIAL_ROOM_REQ also uses, so
+	// before this a brand-new character could show the black box before its first
+	// dungeon. CX2Room::SlotData::Set_KRoomSlotInfo copies the same field into the
+	// slot's own m_cRank (X2Room.cpp:2329), which is what the PvP room, the PvP
+	// result screen and the in-game party gauge read.
+	//
+	// m_cRankForServer, the field next to it in KRoomUserInfo, is deliberately
+	// left at the zero its constructor gives it (CommonPacket.h:2320). The live
+	// GameServer fills it with the unranked-suppressing GetPvpRank() while m_cRank
+	// gets GetPvpRankForClient() (GSUserFunction.cpp:10786-10787), but there is
+	// not one read of m_cRankForServer anywhere in X2Lib or X2ServerProtocol - it
+	// exists for the CenterServer's matchmaking, which offline does not have.
+	kOut.m_cRank			= DefaultPvpRank();
+
 	// No stamina pair here on purpose. SERV_DELETE_ROOM_USER_INFO_DATA is
 	// defined in this build, so KRoomUserInfo no longer carries m_iSpirit /
 	// m_iSpiritMax and the block in CX2Unit::UnitData::SetKRoomUserInfo that

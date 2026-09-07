@@ -514,6 +514,12 @@ public:
 	/// or a weapon stops mattering the moment the player leaves the village.
 	static void MakeGameStat( const KOfflineUnitRow& kRow, OUT KStat& kOut );
 
+	/// The PvP rank every offline character carries. One source of truth for
+	/// KUnitInfo::m_cRank and KRoomUserInfo::m_cRank both - the two disagreed
+	/// until phase 31, and the room's zero silently overwrote the login value on
+	/// the player's own CX2Unit. See the definition for why the value is what it is.
+	static char DefaultPvpRank();
+
 	static const wchar_t* KindStr( PROXY_KIND eKind );
 
 	/// Which server a session stands in for, derived from the event ID's own

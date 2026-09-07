@@ -315,6 +315,29 @@ void CX2OfflineSkill::FillUnitSkillData( OUT KUnitSkillData& kOut ) const
 			break;
 		}
 	}
+
+	// The registered skill-note memos, and this one is not filled "anyway" - it
+	// is load-bearing. CX2UserSkillTree::SetEqipSkillMemo is a plain assignment
+	// (X2UserSkillTree.h:362) and both SetKUnitInfo (X2Unit.cpp:3267) and
+	// SetKRoomUserInfo (X2Unit.cpp:3441) call it unconditionally, the latter
+	// against the player's own CX2Unit. Leaving the vector empty therefore did not
+	// merely fail to send the memos: entering a dungeon room erased the ones
+	// EGS_REG_SKILL_NOTE_MEMO_ACK had just put on the unit, and
+	// CX2GUUser::IsEquipSkillMemo (X2GUUser.cpp:5845) - which is what makes a
+	// memo's effect actually apply in combat - went false in the dungeon the memo
+	// was registered for. Invisibly, too: the skill-note UI reads
+	// CX2Unit::m_mapSkillNote (X2Unit.cpp:1811), a different member fed by a
+	// different packet, so the pages still showed their memos.
+	//
+	// Same page order as Handler_EGS_REG_SKILL_NOTE_MEMO_REQ sends, from the same
+	// map. Order is not actually load-bearing - GetEqipSkillMemo is a linear
+	// membership test - but the two lists having one shape is worth keeping.
+	std::map< char, int >::const_iterator nit;
+	for( nit = m_mapSkillNote.begin(); nit != m_mapSkillNote.end(); ++nit )
+	{
+		if( nit->second > 0 )
+			kOut.m_vecSkillNote.push_back( nit->second );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

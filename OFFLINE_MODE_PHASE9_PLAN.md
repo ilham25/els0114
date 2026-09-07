@@ -1769,6 +1769,34 @@ consistent with the "keep the original code reachable" rule in `CLAUDE.md`.
   accessor without also fixing the default would have left the same black box.
   Both changes were necessary; neither alone was sufficient.
 
+**CORRECTION, 2026-09-07 (phase 31).** The last two sentences above are wrong,
+and so is half of the claim they rest on.
+
+- **`X2StateBeginning.cpp` is dead code in this build.** `ELSWORD_NEW_BEGINNING`
+  is commented out ([InHouse3.h:275](KTDXLIB/InHouse3.h#L275)) and
+  [X2Main.cpp:4930-4944](X2Lib/X2Main.cpp#L4930) only ever constructs
+  `CX2StateServerSelect`, so the `XS_BEGINNING` arm is unreachable. The
+  character list is drawn by `CX2StateServerSelect::CreateUnitButton()`
+  ([X2StateServerSelect.cpp:1993-2007](X2Lib/X2StateServerSelect.cpp#L1993)),
+  which **already called the type-correct `GetPvpRank()` in the shipped
+  source**. The `X2StateBeginning.cpp` edit compiles and never runs; it was
+  never necessary and it is not what fixed anything.
+- **Only the `MakeDefaultUnitInfo` half ever did any work**, and it was
+  sufficient on its own.
+- **It was also incomplete.** `MakeRoomUserInfo` in `Handlers_Room.cpp` builds a
+  `KRoomUserInfo` for the same character and left `m_cRank` at 0, and
+  `CX2Unit::UnitData::SetKRoomUserInfo` assigns that straight onto the player's
+  own `CX2Unit` ([X2Unit.cpp:3356](X2Lib/X2Unit.cpp#L3356)) — so entering any
+  room put the black box back, on that character, for the rest of the session.
+  That is `ISSUES_2.md` #3, and phase 31 fixed it by giving both sites one
+  source of truth (`CX2OfflineServer::DefaultPvpRank()`).
+
+The `X2StateBeginning.cpp` edit is **left in place**, deliberately: reverting it
+means another byte-level patch of a CP949 file for zero behavioural gain (see
+the process note below for what that risks), and the guarded version is the
+type-correct one that would be right if the state were ever constructed. The
+`#else` branch still holds the original call.
+
 **Process note for the next phase that touches `X2StateBeginning.cpp` or any
 other CP949/ISO-8859 file:** the Edit tool re-encoded this file from ISO-8859 to
 UTF-8 on the first attempt at this exact change — a ~10-line intended diff came
