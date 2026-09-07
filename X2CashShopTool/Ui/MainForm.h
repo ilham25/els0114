@@ -1,11 +1,12 @@
 //////////////////////////////////////////////////////////////////////////
 // Author: Iruha
 // Date: 2026-09-06
-// Description: X2CashShopTool phase 4 - the main window. Tabs and
+// Description: X2CashShopTool phases 4 and 5 - the main window. Tabs and
 // sub-tabs from CashShopCategory.lua as phase 1 parsed it, the product
-// grid over cash_product, Edit and Delete, the wallet, and the "All"
-// pseudo-tab with its report of categories no tab reaches.
-// See CASH_SHOP_TOOL_PLAN.md, "Phase 4 - The main window".
+// grid over cash_product, Add / Edit / Delete, the wallet, and the "All"
+// pseudo-tab with its report of the rows the game will not show.
+// See CASH_SHOP_TOOL_PLAN.md, "Phase 4 - The main window" and "Phase 5 -
+// Insert, with the virtualized picker".
 //
 // Everything here is managed. The native side - the save file, the item
 // catalog and the icon store - is reached only through the three pointers
@@ -36,183 +37,15 @@
 #include "../Core/IconStore.h"
 #include "../Core/ItemIndex.h"
 
+#include "UiBridge.h"
 #include "EditProductForm.h"
+#include "ItemPickerForm.h"
 
 using namespace System;
 using namespace System::Windows::Forms;
 
 namespace X2CashShopTool
 {
-	//////////////////////////////////////////////////////////////////////
-	// The two conversions that cross the managed/native line, in one
-	// place. Main.cpp's own helpers forward to these rather than keeping
-	// a second copy of the same twenty lines.
-
-	ref class NativeBridge abstract sealed
-	{
-	public:
-		// Every narrow string crossing this boundary is UTF-8 - item names
-		// included, because that is what the scripts hold and what
-		// KLuaManager decodes with (luaLib/KLuaManager.h:803).
-		static String^ Utf8( const std::string& str )
-		{
-			if( str.empty() )
-				return String::Empty;
-
-			array<Byte>^ abBytes = gcnew array<Byte>( (int) str.size() );
-			System::Runtime::InteropServices::Marshal::Copy(
-				IntPtr( (void*) str.data() ), abBytes, 0, (int) str.size() );
-
-			return System::Text::Encoding::UTF8->GetString( abBytes );
-		}
-
-		// CIconStore::Get hands back a BORROWED pointer, valid only until
-		// the next call to Get - so the copy happens here, immediately.
-		// Format32bppArgb's scanline layout is B,G,R,A on a little-endian
-		// machine, which is exactly what SDecodedImage holds, so this is a
-		// row-by-row memcpy and not a per-pixel shuffle.
-		static System::Drawing::Bitmap^ ToBitmap( const SDecodedImage* pImage )
-		{
-			if( NULL == pImage || pImage->IsEmpty() )
-				return nullptr;
-
-			System::Drawing::Bitmap^ kBitmap = gcnew System::Drawing::Bitmap(
-				pImage->iWidth, pImage->iHeight,
-				System::Drawing::Imaging::PixelFormat::Format32bppArgb );
-
-			System::Drawing::Imaging::BitmapData^ kData = kBitmap->LockBits(
-				System::Drawing::Rectangle( 0, 0, pImage->iWidth, pImage->iHeight ),
-				System::Drawing::Imaging::ImageLockMode::WriteOnly,
-				System::Drawing::Imaging::PixelFormat::Format32bppArgb );
-
-			const unsigned char*	pSrc		= &pImage->vecBGRA[0];
-			const size_t			uSrcStride	= pImage->Stride();
-			unsigned char*			pDst		= (unsigned char*) kData->Scan0.ToPointer();
-
-			for( int y = 0; y < pImage->iHeight; ++y )
-				::memcpy( pDst + (size_t) y * kData->Stride, pSrc + (size_t) y * uSrcStride, uSrcStride );
-
-			kBitmap->UnlockBits( kData );
-			return kBitmap;
-		}
-
-		// The one shipped shop image that is not a DDS at all (a PNG under
-		// a .dds name). Shown anyway - it is a perfectly good picture and
-		// the fallback would be a lie about it.
-		static System::Drawing::Bitmap^ FromRawBytes( const std::vector<char>& vecBytes )
-		{
-			if( vecBytes.empty() )
-				return nullptr;
-
-			try
-			{
-				array<Byte>^ abBytes = gcnew array<Byte>( (int) vecBytes.size() );
-				System::Runtime::InteropServices::Marshal::Copy(
-					IntPtr( (void*) &vecBytes[0] ), abBytes, 0, (int) vecBytes.size() );
-
-				System::IO::MemoryStream^ kStream = gcnew System::IO::MemoryStream( abBytes, false );
-				return gcnew System::Drawing::Bitmap( kStream );
-			}
-			catch( Exception^ )
-			{
-				return nullptr;
-			}
-		}
-	};
-
-	//////////////////////////////////////////////////////////////////////
-	// Decoded icons, as managed Bitmaps, bounded.
-	//
-	// CIconStore already has its own 16 MB LRU over the decoded BGRA, but
-	// a Bitmap is a GDI+ object and turning one back into a Bitmap on
-	// every repaint would churn a megabyte of handles per scroll. This is
-	// the second, thinner cache: name -> Bitmap, FIFO, capped. FIFO rather
-	// than LRU because the access pattern is a scrolling list, where the
-	// oldest entry really is the least likely to come back.
-	ref class IconProvider
-	{
-	public:
-		IconProvider( CIconStore* pStore, int iCapacity )
-		{
-			m_pStore	= pStore;
-			m_iCapacity	= iCapacity;
-			m_kMap		= gcnew System::Collections::Generic::Dictionary<String^, System::Drawing::Bitmap^>(
-								StringComparer::OrdinalIgnoreCase );
-			m_kOrder	= gcnew System::Collections::Generic::Queue<String^>();
-		}
-
-		// Never null unless the install is broken: an unresolvable name
-		// falls back exactly where the client falls back
-		// (X2Lib/X2SlotItem.cpp:255-265).
-		System::Drawing::Bitmap^ Get( String^ sShopImage )
-		{
-			String^ sKey = ( nullptr == sShopImage ) ? String::Empty : sShopImage;
-
-			System::Drawing::Bitmap^ kFound = nullptr;
-			if( m_kMap->TryGetValue( sKey, kFound ) )
-				return kFound;
-
-			System::Drawing::Bitmap^ kBitmap = Decode( sKey );
-
-			if( m_kMap->Count >= m_iCapacity && m_kOrder->Count > 0 )
-			{
-				String^ sOldest = m_kOrder->Dequeue();
-
-				System::Drawing::Bitmap^ kEvicted = nullptr;
-				if( m_kMap->TryGetValue( sOldest, kEvicted ) )
-				{
-					m_kMap->Remove( sOldest );
-
-					// Safe to dispose: the Ui is single-threaded and no
-					// paint is in flight while this runs.
-					if( nullptr != kEvicted )
-						delete kEvicted;
-				}
-			}
-
-			m_kMap->Add( sKey, kBitmap );
-			m_kOrder->Enqueue( sKey );
-
-			return kBitmap;
-		}
-
-	private:
-		System::Drawing::Bitmap^ Decode( String^ sShopImage )
-		{
-			if( NULL == m_pStore )
-				return nullptr;
-
-			const std::string strName = msclr::interop::marshal_as<std::string>( sShopImage );
-
-			SIconLookup kLookup;
-			const SDecodedImage* pImage = m_pStore->Get( strName.c_str(), kLookup );
-
-			// A real picture stored under a .dds name - one shipped file
-			// is a PNG. DdsError_NotDds is kept apart from _Corrupt for
-			// exactly this, so GDI+ can be given the undecoded bytes.
-			if( IconOutcome_FallbackUndecodable == kLookup.eOutcome && DdsError_NotDds == kLookup.eError )
-			{
-				std::vector<char>	vecRaw;
-				std::string			strIgnored;
-
-				if( m_pStore->ReadRaw( strName.c_str(), vecRaw, strIgnored ) )
-				{
-					System::Drawing::Bitmap^ kRaw = NativeBridge::FromRawBytes( vecRaw );
-					if( nullptr != kRaw )
-						return kRaw;
-				}
-			}
-
-			return NativeBridge::ToBitmap( pImage );
-		}
-
-		CIconStore*	m_pStore;
-		int			m_iCapacity;
-
-		System::Collections::Generic::Dictionary<String^, System::Drawing::Bitmap^>^	m_kMap;
-		System::Collections::Generic::Queue<String^>^								m_kOrder;
-	};
-
 	//////////////////////////////////////////////////////////////////////
 	// One row of cash_product, joined against the item catalog and the
 	// tab table so the grid can paint without asking anything again.
@@ -241,10 +74,19 @@ namespace X2CashShopTool
 		int		TabIdx;
 		String^	CategoryLabel;
 
+		// True = the item is a package component declared with bShowItem
+		// false, so GetAllCashItemList filters it out of the shop AFTER
+		// the catalog packet has carried it (X2ItemManager.cpp:1868 and
+		// :2866-2880). Phase 5 found this; it is the second of the two
+		// silent-drop rules and, unlike the missing-templet one, it is
+		// invisible even in offline_server.log.
+		bool	PackageHidden;
+
 		ProductRow()
 		: ProductNo( 0 ), ItemID( 0 ), CategoryNo( 0 ), Quantity( 1 ), Price( 1 ), IsEvent( 0 )
 		, Name( String::Empty ), ShopImage( String::Empty )
 		, HasTemplet( false ), TabIdx( -1 ), CategoryLabel( String::Empty )
+		, PackageHidden( false )
 		{}
 	};
 
@@ -295,6 +137,7 @@ namespace X2CashShopTool
 		event EventHandler^	SelectionChanged;
 		event EventHandler^	EditRequested;
 		event EventHandler^	DeleteRequested;
+		event EventHandler^	AddRequested;
 
 		void SetRows( System::Collections::Generic::List<ProductRow^>^ kRows, int iKeepProductNo )
 		{
@@ -443,6 +286,10 @@ namespace X2CashShopTool
 				DeleteRequested( this, EventArgs::Empty );
 				return;
 
+			case Keys::Insert:
+				AddRequested( this, EventArgs::Empty );
+				return;
+
 			default:
 				return;
 			}
@@ -493,7 +340,13 @@ namespace X2CashShopTool
 				String::IsNullOrEmpty( kRow->ShopImage ) ? "(none)" : kRow->ShopImage,
 				kRow->CategoryNo, kRow->CategoryLabel,
 				kRow->Quantity, kRow->Price, kRow->IsEvent,
-				kRow->HasTemplet ? "" : "\r\n\r\nTHE CLIENT WILL DROP THIS ROW: no item templet for that item id." );
+				kRow->HasTemplet
+					? ( kRow->PackageHidden
+						? "\r\n\r\nTHE SHOP WILL NOT SHOW THIS ROW: the item is a package component declared"
+						  " with bShowItem false, and GetAllCashItemList filters those out after the catalog"
+						  " packet has carried them."
+						: "" )
+					: "\r\n\r\nTHE CLIENT WILL DROP THIS ROW: no item templet for that item id." );
 		}
 
 		void DrawRow( System::Drawing::Graphics^ g, ProductRow^ kRow, int iIndex, int iY )
@@ -531,6 +384,11 @@ namespace X2CashShopTool
 			else if( kRow->TabIdx < 0 )
 			{
 				g->DrawString( "no tab in CashShopCategory.lua shows this category", m_kMetaFont,
+					System::Drawing::Brushes::Goldenrod, (float) iTextLeft, (float)( iY + 47 ) );
+			}
+			else if( kRow->PackageHidden )
+			{
+				g->DrawString( "the shop hides this item: package component, bShowItem false", m_kMetaFont,
 					System::Drawing::Brushes::Goldenrod, (float) iTextLeft, (float)( iY + 47 ) );
 			}
 
@@ -600,6 +458,7 @@ namespace X2CashShopTool
 		Orphaned,		// category matches no CashShopCategory.lua pair
 		Dropped,		// item has no client templet
 		OutOfRange,		// category or quantity outside 1..127
+		PackageHidden,	// the item is a package component the shop filters out (phase 5)
 	};
 
 	ref class SubEntry
@@ -628,6 +487,11 @@ namespace X2CashShopTool
 
 			m_kIcons	= gcnew IconProvider( pIcons, 1500 );
 			m_kAllRows	= gcnew System::Collections::Generic::List<ProductRow^>();
+
+			// Built on the first Add, not here: it marshals 48,754 items
+			// and most sessions open this window to change a price.
+			m_kCatalogView		= nullptr;
+			m_bPackageDataKnown	= ( NULL != pCatalog ) && pCatalog->bPackageDataRan;
 
 			Text			= "X2CashShopTool - offline cash shop catalog";
 			ClientSize		= System::Drawing::Size( 1180, 760 );
@@ -663,22 +527,25 @@ namespace X2CashShopTool
 			m_kGrid->SelectionChanged	+= gcnew EventHandler( this, &MainForm::OnSelectionChanged );
 			m_kGrid->EditRequested		+= gcnew EventHandler( this, &MainForm::OnEdit );
 			m_kGrid->DeleteRequested	+= gcnew EventHandler( this, &MainForm::OnDelete );
+			m_kGrid->AddRequested		+= gcnew EventHandler( this, &MainForm::OnAdd );
 
 			Panel^ kButtons = gcnew Panel();
 			kButtons->Dock		= DockStyle::Bottom;
 			kButtons->Height	= 44;
 			kButtons->BackColor	= System::Drawing::Color::FromArgb( 24, 24, 28 );
 
-			m_kEditButton	= MakeButton( "Edit  (Enter)",			10, 8, 130, kButtons );
-			m_kDeleteButton	= MakeButton( "Delete  (Del)",			150, 8, 130, kButtons );
-			Button^ kRefresh = MakeButton( "Refresh from the save",	290, 8, 170, kButtons );
+			m_kEditButton	= MakeButton( "Edit  (Enter)",			10, 8, 120, kButtons );
+			m_kDeleteButton	= MakeButton( "Delete  (Del)",			140, 8, 120, kButtons );
+			Button^ kAdd	= MakeButton( "Add product  (Ins)",		270, 8, 150, kButtons );
+			Button^ kRefresh = MakeButton( "Refresh from the save",	430, 8, 170, kButtons );
 
 			m_kEditButton->Click	+= gcnew EventHandler( this, &MainForm::OnEdit );
 			m_kDeleteButton->Click	+= gcnew EventHandler( this, &MainForm::OnDelete );
+			kAdd->Click				+= gcnew EventHandler( this, &MainForm::OnAdd );
 			kRefresh->Click			+= gcnew EventHandler( this, &MainForm::OnRefresh );
 
 			m_kFilterLabel = gcnew Label();
-			m_kFilterLabel->Bounds		= System::Drawing::Rectangle( 480, 12, 640, 20 );
+			m_kFilterLabel->Bounds		= System::Drawing::Rectangle( 620, 12, 640, 20 );
 			m_kFilterLabel->Font		= m_kFixed;
 			m_kFilterLabel->ForeColor	= System::Drawing::Color::FromArgb( 160, 160, 168 );
 			kButtons->Controls->Add( m_kFilterLabel );
@@ -965,6 +832,18 @@ namespace X2CashShopTool
 				AddSub( SubFilterKind::OutOfRange, 0, -1,
 					String::Format( "out of range - not 1..127  ({0})",
 						CountWhere( SubFilterKind::OutOfRange, 0 ) ) );
+
+				// Phase 5's addition to the report. Kept OUT of the
+				// "dropped" bucket on purpose: these rows reach the client
+				// and are filtered by the shop, so they are absent from
+				// offline_server.log's dropped count as well - this list
+				// is the only place they are visible at all.
+				AddSub( SubFilterKind::PackageHidden, 0, -1,
+					String::Format( "{0}  ({1})",
+						m_bPackageDataKnown
+							? "hidden - package component, bShowItem false"
+							: "hidden - package rule UNKNOWN, PackageItemData.lua did not run",
+						CountWhere( SubFilterKind::PackageHidden, 0 ) ) );
 			}
 			else
 			{
@@ -1013,6 +892,7 @@ namespace X2CashShopTool
 			case SubFilterKind::WholeTab:		return kRow->TabIdx == iTabIdx;
 			case SubFilterKind::Orphaned:		return kRow->TabIdx < 0;
 			case SubFilterKind::Dropped:		return false == kRow->HasTemplet;
+			case SubFilterKind::PackageHidden:	return kRow->PackageHidden;
 
 			case SubFilterKind::OutOfRange:
 				return kRow->CategoryNo < CASH_FIELD_MIN || kRow->CategoryNo > CASH_FIELD_MAX
@@ -1092,6 +972,9 @@ namespace X2CashShopTool
 					kRow->Name			= NativeBridge::Utf8( pItem->strName );
 					kRow->ShopImage		= NativeBridge::Utf8( pItem->strShopImage );
 					kRow->HasTemplet	= true;
+
+					kRow->PackageHidden	= IsHiddenPackageItem(
+						m_pCatalog->vecHiddenPackageItems, kSrc.iItemID );
 				}
 				else
 				{
@@ -1115,11 +998,18 @@ namespace X2CashShopTool
 			if( m_pDb->GetWallet( iWallet, strError ) )
 				m_kWalletBox->Text = iWallet.ToString();
 
+			// iKept is what the catalog PACKET will carry, which is the
+			// number offline_server.log prints and the number phase 3
+			// checked against it. The package-hidden count is a further,
+			// client-side filter on top of that and is reported apart from
+			// it rather than folded in - see SExtractResult.
 			m_kSaveLabel->Text = String::Format(
-				"{0}\r\nuser_version {1}   {2} product(s)   {3} the game will show   {4} dropped   {5} orphaned in {6} categor(ies)",
+				"{0}\r\nuser_version {1}   {2} product(s)   {3} in the catalog packet   {4} dropped   "
+				"{5} orphaned in {6} categor(ies)   {7} hidden by the package rule",
 				msclr::interop::marshal_as<String^>( m_pDb->Path() ),
 				m_pDb->UserVersion(), kReport.iRows, kReport.iKept, kReport.iDropped,
-				kReport.iOrphanRows, kReport.iOrphanCategories );
+				kReport.iOrphanRows, kReport.iOrphanCategories,
+				m_bPackageDataKnown ? CountWhere( SubFilterKind::PackageHidden, 0 ).ToString() : "?" );
 
 			// Rebuilt every reload so the per-tab counts follow an insert
 			// or a delete rather than going stale the first time one runs.
@@ -1240,7 +1130,7 @@ namespace X2CashShopTool
 			EditProductForm^ kDialog = gcnew EditProductForm(
 				kRow->ProductNo, kRow->ItemID, kRow->Name, kRow->ShopImage, kIcon,
 				kRow->CategoryNo, kRow->Quantity, kRow->Price, ( 0 != kRow->IsEvent ),
-				CategoryChoices(), m_pDb );
+				CategoryChoices(), m_pDb, false, PackageWarning( kRow->PackageHidden ) );
 
 			if( ::DialogResult::OK != kDialog->ShowDialog( this ) )
 			{
@@ -1276,6 +1166,159 @@ namespace X2CashShopTool
 				"   Restart the game to see it.",
 				kRow->ProductNo, kRow->ItemID, sBefore,
 				kWrite.iCategoryNo, kWrite.iQuantity, kWrite.iPrice, kWrite.iIsEvent ) );
+		}
+
+		//////////////////////////////////////////////////////////////////
+		// Phase 5 - insert.
+		//
+		// Two dialogs in sequence, deliberately: the picker answers "which
+		// item", the field dialog answers "on what terms". Splitting them
+		// is what lets the field dialog stay the same one the edit path
+		// uses, so the 1..127 rule and the refusal text exist once.
+
+		String^ PackageWarning( bool bHidden )
+		{
+			if( false == bHidden )
+				return String::Empty;
+
+			return "THE SHOP WILL NOT SHOW THIS ITEM: PackageItemData.lua declares it a package "
+				"component with bShowItem false, and GetAllCashItemList filters those out.";
+		}
+
+		// Built on first use and kept. Marshalling 48,754 items costs real
+		// milliseconds and most sessions never open the picker at all, so
+		// paying it at startup would slow down the common case to speed up
+		// the rare one.
+		ItemCatalogView^ CatalogView()
+		{
+			if( nullptr == m_kCatalogView )
+			{
+				Say( "building the picker's item list - 48,754 items, marshalled once per run..." );
+
+				// DoEvents is here only so that line gets painted before
+				// an 80 ms pause - and DISABLING THE FORM FIRST is what
+				// makes it safe, because DoEvents pumps input: a second
+				// click on Add would otherwise re-enter this handler and
+				// start a second picker while the first was still
+				// building. Restored in the finally, so an exception in
+				// the build cannot leave the window dead.
+				Enabled = false;
+				Cursor = Cursors::WaitCursor;
+
+				try
+				{
+					Application::DoEvents();
+					m_kCatalogView = gcnew ItemCatalogView( m_pCatalog );
+				}
+				finally
+				{
+					Cursor = Cursors::Default;
+					Enabled = true;
+				}
+
+				Say( String::Format( "picker list built: {0:N0} item(s) in {1} ms, {2:N0} KB managed.",
+					m_kCatalogView->All->Length, m_kCatalogView->BuildMs,
+					m_kCatalogView->ManagedBytes / 1024 ) );
+			}
+
+			// Refreshed every open: an insert made a moment ago changes
+			// which items are already sold, and a stale "already sold"
+			// badge is worse than none.
+			System::Collections::Generic::HashSet<int>^ kSold =
+				gcnew System::Collections::Generic::HashSet<int>();
+
+			for each( ProductRow^ kRow in m_kAllRows )
+				kSold->Add( kRow->ItemID );
+
+			m_kCatalogView->MarkSold( kSold );
+
+			return m_kCatalogView;
+		}
+
+		// The category the new product should default to: whatever the
+		// current sub-tab is showing, so adding to a tab you are looking
+		// at needs no thought. 0 when the "All" tab is selected, which the
+		// dialog shows as an empty combo and Validate then refuses - the
+		// right outcome, because there is no sensible guess.
+		int CurrentCategory()
+		{
+			SubEntry^ kSub = safe_cast<SubEntry^>( m_kSubList->SelectedItem );
+
+			if( nullptr != kSub && SubFilterKind::Category == kSub->Kind )
+				return kSub->BillingNo;
+
+			// A whole-tab selection has no single category; take the first
+			// of that tab's, which is the one its sub-list shows first.
+			const int iTabIdx = ( nullptr != kSub ) ? kSub->TabIdx : -1;
+
+			if( iTabIdx >= 0 && NULL != m_pCatalog )
+			{
+				for( size_t u = 0; u != m_pCatalog->vecCategories.size(); ++u )
+				{
+					if( m_pCatalog->vecCategories[u].iTabIdx == iTabIdx )
+						return m_pCatalog->vecCategories[u].iBillingCategoryNo;
+				}
+			}
+
+			return 0;
+		}
+
+		void OnAdd( Object^ /*kSender*/, EventArgs^ /*kArgs*/ )
+		{
+			ItemPickerForm^ kPicker = gcnew ItemPickerForm( CatalogView(), m_kIcons );
+
+			if( ::DialogResult::OK != kPicker->ShowDialog( this ) )
+			{
+				Say( "nothing added." );
+				return;
+			}
+
+			// A COPY, for the same reason the edit path takes one: the grid
+			// repaints behind the modal dialog and a repaint that evicts
+			// disposes the Bitmap the dialog is still showing.
+			System::Drawing::Bitmap^ kIcon = m_kIcons->Get( kPicker->ItemShopImage );
+			if( nullptr != kIcon )
+				kIcon = gcnew System::Drawing::Bitmap( kIcon );
+
+			EditProductForm^ kDialog = gcnew EditProductForm(
+				0, kPicker->ItemID, kPicker->ItemName, kPicker->ItemShopImage, kIcon,
+				CurrentCategory(), 1, 1, false,
+				CategoryChoices(), m_pDb, true, PackageWarning( kPicker->HiddenPackage ) );
+
+			if( ::DialogResult::OK != kDialog->ShowDialog( this ) )
+			{
+				Say( String::Format( "item {0} ({1}) not added.", kPicker->ItemID, kPicker->ItemName ) );
+				return;
+			}
+
+			SCashProductRow kWrite;
+			kWrite.iProductNo	= 0;			// allocated as max+1 inside Insert's transaction
+			kWrite.iItemID		= kPicker->ItemID;
+			kWrite.iCategoryNo	= kDialog->Category;
+			kWrite.iQuantity	= kDialog->Quantity;
+			kWrite.iPrice		= kDialog->Price;
+			kWrite.iIsEvent		= kDialog->IsEvent ? 1 : 0;
+
+			std::string strError;
+			if( false == m_pDb->Insert( kWrite, strError ) )
+			{
+				Say( String::Format( "REFUSED - item {0} was not added: {1}",
+					kPicker->ItemID, NativeBridge::Utf8( strError ) ) );
+				return;
+			}
+
+			// Reload FIRST: ReloadFromDb ends by announcing itself, and
+			// the write is the thing the reader needs left on screen.
+			ReloadFromDb( kWrite.iProductNo );
+
+			SayWithBackup( String::Format(
+				"product {0} added: item {1} ({2}), category {3}, qty {4}, price {5}, event {6}."
+				"{7}   Restart the game to see it.",
+				kWrite.iProductNo, kWrite.iItemID, kPicker->ItemName,
+				kWrite.iCategoryNo, kWrite.iQuantity, kWrite.iPrice, kWrite.iIsEvent,
+				kPicker->HiddenPackage
+					? "   THE SHOP WILL NOT SHOW IT: package component, bShowItem false."
+					: "" ) );
 		}
 
 		void OnDelete( Object^ /*kSender*/, EventArgs^ /*kArgs*/ )
@@ -1371,6 +1414,14 @@ namespace X2CashShopTool
 
 		IconProvider^										m_kIcons;
 		System::Collections::Generic::List<ProductRow^>^		m_kAllRows;
+
+		// The picker's catalog, built on first Add. Null until then.
+		ItemCatalogView^	m_kCatalogView;
+
+		// False = PackageItemData.lua did not run, so "0 hidden rows"
+		// means nobody could tell rather than that there are none. The
+		// report says which.
+		bool				m_bPackageDataKnown;
 
 		System::Collections::Generic::Dictionary<int, String^>^	m_kCatLabel;
 		System::Collections::Generic::Dictionary<int, int>^		m_kCatTab;

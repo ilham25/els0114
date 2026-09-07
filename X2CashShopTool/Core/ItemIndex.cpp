@@ -7,6 +7,14 @@
 //////////////////////////////////////////////////////////////////////////
 #include "ItemIndex.h"
 
+// Define this to have l_AddPackageItemData print the stack shape of the
+// first few calls. It exists because "7,472 package rows and not one
+// bShowItem false" is a claim worth being able to re-check in one
+// switch rather than by reading argument indices again.
+#ifdef X2CASHTOOL_PACKAGE_ARG_DEBUG
+#include <stdio.h>
+#endif // X2CASHTOOL_PACKAGE_ARG_DEBUG
+
 // Lua is the whole reason this file must stay native: luaconf.h takes its
 // C++ branch in this build, so LUAI_THROW is a C++ throw and every Lua
 // error is an exception. lua_pcall catches its own, but no managed frame
@@ -19,6 +27,7 @@
 #include <windows.h>
 #include <algorithm>
 #include <map>
+#include <set>
 
 // Included directly, never via lua.hpp and never behind our own extern "C":
 // luaLib.lib exports C++-mangled symbols because luaLib_2010.vcxproj
@@ -34,9 +43,19 @@ namespace
 	const char* const	SCRIPT_ENUM		= "Enum.lua";
 	const char* const	SCRIPT_ITEM		= "Item.lua";
 	const char* const	SCRIPT_TRANS	= "ItemTrans.lua";
+	const char* const	SCRIPT_PACKAGE	= "PackageItemData.lua";
 	const char* const	SCRIPT_CATEGORY	= "CashShopCategory.lua";
 
 	const char* const	ARCHIVE_NAME	= "data036.kom";
+
+	// The Enum.lua tables whose value -> name maps are carried into the
+	// cache, for the picker's filters and its grade column. Every one of
+	// them is already probed by ProbeEnumGlobals, so a table that stops
+	// existing is reported there rather than silently yielding no names.
+	const char* const	ENUM_ITEM_TYPE		= "ITEM_TYPE";
+	const char* const	ENUM_ITEM_GRADE		= "ITEM_GRADE";
+	const char* const	ENUM_EQIP_POSITION	= "EQIP_POSITION";
+	const char* const	ENUM_USE_CONDITION	= "USE_CONDITION";
 
 	//////////////////////////////////////////////////////////////////////
 
@@ -53,6 +72,11 @@ namespace
 		SExtractResult*			pResult;
 		std::map<int, size_t>	mapIdToIndex;
 		std::map<std::string, int>	mapStubbedCalls;
+
+		// The package contents PackageItemData.lua declares with
+		// bShowItem false. A set rather than a vector because the same
+		// item appears in many packages and only membership matters.
+		std::set<int>			setHiddenPackageItems;
 
 		// Resolved from Enum.lua once, before Item.lua runs.
 		int	iUcNone;
@@ -164,6 +188,25 @@ namespace
 	{
 		TEnumNameMap::const_iterator it = mapNames.find( iValue );
 		return ( mapNames.end() != it ) ? it->second : std::string();
+	}
+
+	// One of Enum.lua's tables, appended to the flat list that goes into
+	// the cache. Phase 5: the picker's filters read their labels out of
+	// this rather than out of a transcribed enum.
+	void CollectEnumNames( lua_State* pLua, const char* pszTable,
+							std::vector<SEnumNameRow>& vecOut )
+	{
+		TEnumNameMap mapNames;
+		ReadEnumNames( pLua, pszTable, mapNames );
+
+		for( TEnumNameMap::const_iterator it = mapNames.begin(); it != mapNames.end(); ++it )
+		{
+			SEnumNameRow kRow;
+			kRow.strTable	= pszTable;
+			kRow.iValue		= it->first;
+			kRow.strName	= it->second;
+			vecOut.push_back( kRow );
+		}
 	}
 
 	int GetBoolField( lua_State* pLua, int iTable, const char* pszKey )
@@ -353,6 +396,86 @@ namespace
 		return 1;
 	}
 
+	// AddPackageItemData is the one stub in this file that takes POSITIONAL
+	// arguments rather than a field table:
+	//
+	//   AddPackageItemData( iPackageItemID, iItemID, usProductPieces, bShowItem )
+	//
+	// bound at X2Lib/X2Main.cpp:3348 to CX2ItemManager::AddPackageItemData_LUA
+	// (X2ItemManager.cpp:3261). Only the last two arguments matter here:
+	// bShowItem false means the item is a package component the shop must
+	// not offer on its own, and the client records exactly that in
+	// m_setShowPackageItem at :3288-3292.
+	//
+	// Called as a method, so argument 1 is the stand-in receiver and the
+	// four real arguments are 2..5. The bare-call shape is accepted too,
+	// for the same reason FindTableArgument accepts both: the two are
+	// indistinguishable from outside the bytecode.
+	int l_AddPackageItemData( lua_State* pLua )
+	{
+		SCollector* pCollector = Collector( pLua );
+		if( NULL == pCollector )
+		{
+			lua_pushboolean( pLua, 0 );
+			return 1;
+		}
+
+		const int iTop  = lua_gettop( pLua );
+		const int iBase = ( iTop >= 5 && lua_istable( pLua, 1 ) ) ? 1 : 0;
+
+		if( iTop < iBase + 4 )
+		{
+			lua_pushboolean( pLua, 0 );
+			return 1;
+		}
+
+		++pCollector->pResult->iPackageRows;
+
+#ifdef X2CASHTOOL_PACKAGE_ARG_DEBUG
+		// The stack shape of the first few calls, so the argument
+		// positions above are read off the data rather than assumed.
+		//
+		// Run against this install on 2026-09-07 it printed, six times
+		// over:
+		//
+		//   PKGARG top=5 base=1 : [1]table [2]number=200890
+		//                         [3]number=200950 [4]number=0 [5]boolean=true
+		//
+		// which confirms the mapping - receiver, package id, item id,
+		// pieces, bShowItem - and confirms that the zero this build
+		// reports is the data and not a misread.
+		if( pCollector->pResult->iPackageRows <= 6 )
+		{
+			::printf( "  PKGARG top=%d base=%d :", iTop, iBase );
+			for( int i = 1; i <= iTop; ++i )
+			{
+				::printf( " [%d]%s", i, lua_typename( pLua, lua_type( pLua, i ) ) );
+				if( lua_isnumber( pLua, i ) )
+					::printf( "=%d", (int) lua_tointeger( pLua, i ) );
+				else if( LUA_TBOOLEAN == lua_type( pLua, i ) )
+					::printf( "=%s", lua_toboolean( pLua, i ) ? "true" : "false" );
+			}
+			::printf( "\n" );
+		}
+#endif // X2CASHTOOL_PACKAGE_ARG_DEBUG
+
+		const int iItemID = lua_isnumber( pLua, iBase + 2 )
+			? (int) lua_tointeger( pLua, iBase + 2 ) : 0;
+
+		// lua_toboolean, not a number read: the script writes true/false
+		// here and the client's binding takes a bool.
+		const bool bShowItem = ( 0 != lua_toboolean( pLua, iBase + 4 ) );
+
+		if( iItemID > 0 && false == bShowItem )
+		{
+			++pCollector->pResult->iPackageHiddenRows;
+			pCollector->setHiddenPackageItems.insert( iItemID );
+		}
+
+		lua_pushboolean( pLua, 1 );
+		return 1;
+	}
+
 	// Answers for anything the stand-ins do not implement. Without it, one
 	// unknown method name raises "attempt to call a nil value" and the
 	// whole 34 MB chunk is lost; with it, the run completes and the names
@@ -388,22 +511,46 @@ namespace
 		lua_pushcclosure( pLua, pfn, 1 );
 	}
 
-	// Builds one stand-in receiver: a plain table of C functions with a
-	// catch-all metatable. lua_tinker is not needed here - its value is
-	// binding C++ classes with overload resolution, and this is a handful
-	// of functions reading one table each (plan section 3).
-	void InstallStandIn( lua_State* pLua, const char* pszGlobal, bool bWithItemMethods, SCollector* pCollector )
+	// Every name CX2ItemManager::OpenScriptFile declares itself under
+	// (X2Lib/X2ItemManager.cpp:165-172). ALL OF THEM ARE THE SAME OBJECT -
+	// four lua_tinker::decl calls, one `this` - so the stand-in is one
+	// table bound under every one of these names rather than four tables
+	// with different method sets.
+	//
+	// Phase 5 learned this the hard way: PackageItemData.lua calls
+	// g_pCashItemManager:AddPackageItemData, and with only g_pItemManager
+	// and g_pCX2SetItemManager installed the script died on its seventh
+	// line with "attempt to index global 'g_pCashItemManager' (a nil
+	// value)". The list is read out of OpenScriptFile rather than guessed
+	// at, which is also why the QUBE one is here: it is in the shipped
+	// list, behind PACKAGE_IN_QUBE_PREVIEW, and a stand-in nothing calls
+	// costs one table.
+	const char* const	MANAGER_GLOBALS[] =
+	{
+		"g_pItemManager",
+		"g_pManufactureItemManager",
+		"g_pCashItemManager",
+		"g_pCX2SetItemManager",
+		"g_pCX2CubePackageManager",
+	};
+
+	// Builds the stand-in receiver: a plain table of C functions with a
+	// catch-all metatable, bound under every name above. lua_tinker is not
+	// needed here - its value is binding C++ classes with overload
+	// resolution, and this is a handful of functions reading one table
+	// each (plan section 3).
+	void InstallStandIn( lua_State* pLua, SCollector* pCollector )
 	{
 		lua_newtable( pLua );
 
-		if( bWithItemMethods )
-		{
-			PushCollectorClosure( pLua, l_AddItemTemplet, pCollector );
-			lua_setfield( pLua, -2, "AddItemTemplet" );
+		PushCollectorClosure( pLua, l_AddItemTemplet, pCollector );
+		lua_setfield( pLua, -2, "AddItemTemplet" );
 
-			PushCollectorClosure( pLua, l_AddItemTempletTrans, pCollector );
-			lua_setfield( pLua, -2, "AddItemTempletTrans" );
-		}
+		PushCollectorClosure( pLua, l_AddItemTempletTrans, pCollector );
+		lua_setfield( pLua, -2, "AddItemTempletTrans" );
+
+		PushCollectorClosure( pLua, l_AddPackageItemData, pCollector );
+		lua_setfield( pLua, -2, "AddPackageItemData" );
 
 		// metatable = { __index = <closure(collector, shared no-op)> }
 		lua_newtable( pLua );
@@ -413,13 +560,20 @@ namespace
 		lua_setfield( pLua, -2, "__index" );
 		lua_setmetatable( pLua, -2 );
 
-		lua_setglobal( pLua, pszGlobal );
+		// One table, every name. lua_setglobal pops, so each name but the
+		// last needs its own copy of the reference.
+		for( size_t u = 0; u != sizeof( MANAGER_GLOBALS ) / sizeof( MANAGER_GLOBALS[0] ); ++u )
+		{
+			lua_pushvalue( pLua, -1 );
+			lua_setglobal( pLua, MANAGER_GLOBALS[u] );
+		}
+
+		lua_pop( pLua, 1 );		// the stand-in itself
 	}
 
 	void InstallStubs( lua_State* pLua, SCollector* pCollector )
 	{
-		InstallStandIn( pLua, "g_pItemManager",			true,	pCollector );
-		InstallStandIn( pLua, "g_pCX2SetItemManager",	false,	pCollector );
+		InstallStandIn( pLua, pCollector );
 
 		// Also as bare globals. The client binds these as methods on
 		// g_pItemManager (X2Lib/X2Main.cpp:3309, 3338), but the two call
@@ -431,6 +585,9 @@ namespace
 
 		PushCollectorClosure( pLua, l_AddItemTempletTrans, pCollector );
 		lua_setglobal( pLua, "AddItemTempletTrans" );
+
+		PushCollectorClosure( pLua, l_AddPackageItemData, pCollector );
+		lua_setglobal( pLua, "AddPackageItemData" );
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -583,6 +740,23 @@ namespace
 				kCollector.iEpQuickSlot,	bFoundEpQuickSlot	? "" : " (FALLBACK)" );
 		}
 
+		// The whole value -> name maps, for the picker's filters. Read here
+		// and not at the end of the run because this is the one point where
+		// Enum.lua has just been proved to have taken, and because a later
+		// script could in principle shadow one of these globals.
+		CollectEnumNames( pLua, ENUM_ITEM_TYPE,		kCollector.pResult->vecEnumNames );
+		CollectEnumNames( pLua, ENUM_ITEM_GRADE,	kCollector.pResult->vecEnumNames );
+		CollectEnumNames( pLua, ENUM_EQIP_POSITION,	kCollector.pResult->vecEnumNames );
+		CollectEnumNames( pLua, ENUM_USE_CONDITION,	kCollector.pResult->vecEnumNames );
+
+		if( NULL != pLog )
+		{
+			pLog->Linef( "    enum names  : %d value(s) named across %s / %s / %s / %s"
+						 " (from Enum.lua, not transcribed)",
+				(int) kCollector.pResult->vecEnumNames.size(),
+				ENUM_ITEM_TYPE, ENUM_ITEM_GRADE, ENUM_EQIP_POSITION, ENUM_USE_CONDITION );
+		}
+
 		return true;
 	}
 
@@ -705,6 +879,14 @@ namespace
 	{
 		return kLeft.iCount > kRight.iCount;
 	}
+
+	bool LessByTableThenValue( const SEnumNameRow& kLeft, const SEnumNameRow& kRight )
+	{
+		if( kLeft.strTable != kRight.strTable )
+			return kLeft.strTable < kRight.strTable;
+
+		return kLeft.iValue < kRight.iValue;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -725,12 +907,57 @@ int ItemExtractorVersion()
 	//              reversed out of Enum.lua's own tables, so the main
 	//              window can label a tab by what the script calls it. A
 	//              version-2 cache has the rows and not the names.
-	return 3;
+	// 4 - phase 5: the ITEM_TYPE / ITEM_GRADE / EQIP_POSITION /
+	//              USE_CONDITION value -> name maps, so the picker's
+	//              filters can say IT_ARMOR rather than 2; and the
+	//              hidden-package-item set out of PackageItemData.lua,
+	//              which is the second silent-drop rule the shop applies.
+	//              A version-3 cache has neither and no SELECT would say
+	//              so - both tables would simply read as empty.
+	return 4;
 }
 
 const char* ItemCatalogArchiveName()
 {
 	return ARCHIVE_NAME;
+}
+
+const char* EnumTableItemType()
+{
+	return ENUM_ITEM_TYPE;
+}
+
+const char* EnumTableEquipPosition()
+{
+	return ENUM_EQIP_POSITION;
+}
+
+const char* EnumTableItemGrade()
+{
+	return ENUM_ITEM_GRADE;
+}
+
+std::string LookupEnumRowName( const std::vector<SEnumNameRow>& vecNames,
+								const char* pszTable, int iValue )
+{
+	if( NULL == pszTable )
+		return std::string();
+
+	// Sorted by table then value, so this could binary-search; it is a
+	// linear scan because the whole list is a few hundred rows and it is
+	// only ever called while building a dropdown or painting one row.
+	for( size_t u = 0; u != vecNames.size(); ++u )
+	{
+		if( vecNames[u].iValue == iValue && vecNames[u].strTable == pszTable )
+			return vecNames[u].strName;
+	}
+
+	return std::string();
+}
+
+bool IsHiddenPackageItem( const std::vector<int>& vecSorted, int iItemID )
+{
+	return std::binary_search( vecSorted.begin(), vecSorted.end(), iItemID );
 }
 
 bool ExtractItemCatalog( const CKomIndex& kIndex, SExtractResult& kResult, IToolLog* pLog )
@@ -759,6 +986,38 @@ bool ExtractItemCatalog( const CKomIndex& kIndex, SExtractResult& kResult, ITool
 	if( bOk )	bOk = ProbeEnumGlobals( pLua, kCollector, pLog );
 	if( bOk )	bOk = RunScript( pLua, kIndex, SCRIPT_ITEM, pLog, &kResult.dItemSeconds );
 	if( bOk )	bOk = RunScript( pLua, kIndex, SCRIPT_TRANS, pLog, &kResult.dTransSeconds );
+
+	// PackageItemData.lua is the ONE script here whose failure is not
+	// fatal, and deliberately so: what it contributes is an advisory - the
+	// set of items the shop filters out after the catalog packet has
+	// carried them - while the other four produce the catalog itself. If
+	// this build's copy reaches for a global the stand-ins do not provide,
+	// the right outcome is a catalog with the advisory missing and a log
+	// line saying so, not no catalog at all. bPackageDataRan is what tells
+	// the Ui which of the two it is holding, so "no hidden items" and "not
+	// known" never read the same.
+	if( bOk )
+	{
+		kResult.bPackageDataRan =
+			RunScript( pLua, kIndex, SCRIPT_PACKAGE, pLog, &kResult.dPackageSeconds );
+
+		if( NULL != pLog )
+		{
+			if( kResult.bPackageDataRan )
+			{
+				pLog->Linef( "    packages    : %d row(s), %d naming an item the shop will not show"
+							 " on its own (%d distinct)",
+					kResult.iPackageRows, kResult.iPackageHiddenRows,
+					(int) kCollector.setHiddenPackageItems.size() );
+			}
+			else
+			{
+				pLog->Linef( "    packages    : %s did not run - the shop's hidden-package rule"
+							 " cannot be reported. The item catalog is unaffected.", SCRIPT_PACKAGE );
+			}
+		}
+	}
+
 	if( bOk )	bOk = RunScript( pLua, kIndex, SCRIPT_CATEGORY, pLog, &kResult.dCategorySeconds );
 	if( bOk )	bOk = ReadCategoryTable( pLua, kResult, pLog );
 
@@ -788,8 +1047,14 @@ bool ExtractItemCatalog( const CKomIndex& kIndex, SExtractResult& kResult, ITool
 		kResult.vecStubbedCalls.push_back( kCall );
 	}
 
+	// std::set already holds these in ascending order, which is what
+	// IsHiddenPackageItem's binary_search needs.
+	kResult.vecHiddenPackageItems.assign(
+		kCollector.setHiddenPackageItems.begin(), kCollector.setHiddenPackageItems.end() );
+
 	std::sort( kResult.vecItems.begin(), kResult.vecItems.end(), LessByItemID );
 	std::sort( kResult.vecCategories.begin(), kResult.vecCategories.end(), LessByTabThenOrdinal );
+	std::sort( kResult.vecEnumNames.begin(), kResult.vecEnumNames.end(), LessByTableThenValue );
 	std::sort( kResult.vecStubbedCalls.begin(), kResult.vecStubbedCalls.end(), MoreByCount );
 
 	kResult.dTotalSeconds = kTotal.Seconds();

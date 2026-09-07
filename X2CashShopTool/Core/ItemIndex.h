@@ -69,6 +69,24 @@ struct SCashCategoryRow
 	{}
 };
 
+// One value -> name pair out of one of Enum.lua's tables, e.g.
+// ITEM_TYPE.IT_WEAPON = 3 arrives here as ( "ITEM_TYPE", 3, "IT_WEAPON" ).
+//
+// Phase 5 added these because the picker filters by item type and equip
+// slot, and a filter reading "item type 4" is a filter nobody can use. The
+// names are reversed out of the script's own tables rather than
+// transcribed - the same discipline phase 1 took for UC_NONE and phase 4
+// for the CSC_* tab names, and for the same reason: a transcribed table
+// drifts from the data and nothing says so.
+struct SEnumNameRow
+{
+	std::string	strTable;		// "ITEM_TYPE", "EQIP_POSITION", ...
+	int			iValue;
+	std::string	strName;		// "IT_WEAPON", "EP_QUICK_SLOT", ...
+
+	SEnumNameRow() : iValue( 0 ) {}
+};
+
 // A method name the catch-all __index answered for, and how often. Logging
 // these enumerates the full method list in one run instead of one run per
 // missing stub.
@@ -84,7 +102,30 @@ struct SExtractResult
 {
 	std::vector<SItemRow>			vecItems;			// sorted by iItemID
 	std::vector<SCashCategoryRow>	vecCategories;		// sorted by tab then ordinal
+	std::vector<SEnumNameRow>		vecEnumNames;		// sorted by table then value
 	std::vector<SStubbedCall>		vecStubbedCalls;
+
+	// Items the shop will NOT show even with a perfectly valid
+	// cash_product row, and the second silent-drop rule in this client
+	// after the missing-templet one.
+	//
+	// CX2ItemManager::AddCashItem sets m_bShow from IsShowPackageItem
+	// (X2Lib/X2ItemManager.cpp:1868) and GetAllCashItemList erases every
+	// entry whose m_bShow is false (:2866-2880), so an item in this set is
+	// filtered out of the shop AFTER the catalog packet has carried it.
+	// The set is the items PackageItemData.lua declares as package
+	// contents with bShowItem false - AddPackageItemData_LUA at
+	// X2ItemManager.cpp:3288-3292 - i.e. things meant to arrive inside a
+	// bundle and never to be sold on their own.
+	//
+	// Sorted ascending; use IsHiddenPackageItem to test membership. Empty
+	// when PackageItemData.lua could not be run, which is reported rather
+	// than assumed - see the note in ExtractItemCatalog.
+	std::vector<int>				vecHiddenPackageItems;
+
+	int	iPackageRows;			// AddPackageItemData calls seen
+	int	iPackageHiddenRows;		// of those, the ones with bShowItem false
+	bool	bPackageDataRan;	// false = the script failed; the set is empty and unknown, not empty and true
 
 	// The catalog holds exactly the items the CLIENT would hold, because
 	// its whole job is to be joined against cash_product and reproduce the
@@ -114,17 +155,19 @@ struct SExtractResult
 	double	dEnumSeconds;
 	double	dItemSeconds;
 	double	dTransSeconds;
+	double	dPackageSeconds;
 	double	dCategorySeconds;
 	double	dTotalSeconds;
 
 	SExtractResult()
-	: iRejectedRows( 0 ), iRejectedNoID( 0 ), iRejectedNoName( 0 )
+	: iPackageRows( 0 ), iPackageHiddenRows( 0 ), bPackageDataRan( false )
+	, iRejectedRows( 0 ), iRejectedNoID( 0 ), iRejectedNoName( 0 )
 	, iRejectedNoType( 0 ), iRejectedUnusable( 0 )
 	, iDuplicateIDs( 0 ), iTransApplied( 0 ), iTransOrphans( 0 )
 	, iWithShopImage( 0 ), iZeroItemType( 0 )
 	, iEnumUcNone( 0 ), iEnumIgNormal( 0 ), iEnumEpQuickSlot( 0 )
 	, dEnumSeconds( 0.0 ), dItemSeconds( 0.0 ), dTransSeconds( 0.0 )
-	, dCategorySeconds( 0.0 ), dTotalSeconds( 0.0 )
+	, dPackageSeconds( 0.0 ), dCategorySeconds( 0.0 ), dTotalSeconds( 0.0 )
 	{}
 };
 
@@ -142,3 +185,23 @@ int	ItemExtractorVersion();
 
 // The one archive every script above comes from.
 const char*	ItemCatalogArchiveName();
+
+//////////////////////////////////////////////////////////////////////////
+// Reading the two tables above back, phase 5.
+
+// The Enum.lua table names the picker's two filters are built from,
+// returned rather than spelled out at the call site so the extractor and
+// the Ui cannot disagree about the spelling - EQIP_POSITION in particular
+// is the script's own misspelling and typing it twice is asking for it.
+const char*	EnumTableItemType();		// "ITEM_TYPE"
+const char*	EnumTableEquipPosition();	// "EQIP_POSITION"
+const char*	EnumTableItemGrade();		// "ITEM_GRADE"
+
+// Empty when that table has no name for that value, which is information
+// (the value is in the data and not in Enum.lua) and not an error.
+std::string	LookupEnumRowName( const std::vector<SEnumNameRow>& vecNames,
+								const char* pszTable, int iValue );
+
+// vecSorted must be SExtractResult::vecHiddenPackageItems, which is sorted
+// ascending by both ExtractItemCatalog and CIndexCache::Load.
+bool	IsHiddenPackageItem( const std::vector<int>& vecSorted, int iItemID );

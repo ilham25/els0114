@@ -23,6 +23,11 @@ namespace
 	const char* const	META_KOM_MTIME		= "kom_mtime";
 	const char* const	META_EXTRACTOR		= "extractor_version";
 
+	// Phase 5. "1" only when PackageItemData.lua actually ran, so an empty
+	// hidden_package_item table is never mistaken for "the shop hides
+	// nothing" when what it means is "nobody could tell".
+	const char* const	META_PACKAGE_RAN	= "package_data_ran";
+
 	// The icon locator's own stamp, kept apart from the four above.
 	const char* const	META_ICON_VERSION	= "icon_locator_version";
 	const char* const	META_ICON_DIR		= "icon_dir";
@@ -187,6 +192,18 @@ bool CIndexCache::Exec( const char* pszSql, std::string& strError )
 	" sub_ordinal INTEGER, cssc_enum INTEGER, billing_category_no INTEGER,"				\
 	" tab_name TEXT, sub_name TEXT );"
 
+// Phase 5's two tables, each spelled once for the same reason.
+//
+// enum_name is Enum.lua's value -> name maps for the tables the picker
+// filters on; hidden_package_item is the set of items the shop drops after
+// the catalog packet has carried them (see SExtractResult).
+#define ENUM_NAME_SCHEMA																	\
+	"CREATE TABLE IF NOT EXISTS enum_name( table_name TEXT, value INTEGER, name TEXT,"	\
+	" PRIMARY KEY( table_name, value ) );"
+
+#define HIDDEN_PACKAGE_SCHEMA																\
+	"CREATE TABLE IF NOT EXISTS hidden_package_item( item_id INTEGER PRIMARY KEY );"
+
 bool CIndexCache::CreateSchema( std::string& strError )
 {
 	// Phase 1 populated the first three; phase 2 adds the last two. Every
@@ -206,6 +223,8 @@ bool CIndexCache::CreateSchema( std::string& strError )
 		" is_fashion INTEGER, equip_position INTEGER );"
 		"CREATE INDEX IF NOT EXISTS ix_item_name ON item( name );"
 		CASH_CATEGORY_SCHEMA
+		ENUM_NAME_SCHEMA
+		HIDDEN_PACKAGE_SCHEMA
 		"CREATE TABLE IF NOT EXISTS icon( name TEXT PRIMARY KEY, kom TEXT,"
 		" offset INTEGER, comp_size INTEGER, real_size INTEGER );"
 		"CREATE TABLE IF NOT EXISTS icon_kom( kom TEXT PRIMARY KEY, size INTEGER,"
@@ -225,6 +244,23 @@ bool CIndexCache::CreateSchema( std::string& strError )
 	if( false == HasColumn( "cash_category", "tab_name" ) )
 	{
 		if( false == Exec( "DROP TABLE IF EXISTS cash_category;" CASH_CATEGORY_SCHEMA, strError ) )
+			return false;
+	}
+
+	// The same probe for phase 5's two tables. They cannot pre-exist in
+	// any cache written so far, so today these are both no-ops - they are
+	// here because the version bump that adds a column to either one is
+	// the exact edit that looked safe last time and was not, and the
+	// third occurrence of a pattern is where it stops being an accident.
+	if( false == HasColumn( "enum_name", "table_name" ) )
+	{
+		if( false == Exec( "DROP TABLE IF EXISTS enum_name;" ENUM_NAME_SCHEMA, strError ) )
+			return false;
+	}
+
+	if( false == HasColumn( "hidden_package_item", "item_id" ) )
+	{
+		if( false == Exec( "DROP TABLE IF EXISTS hidden_package_item;" HIDDEN_PACKAGE_SCHEMA, strError ) )
 			return false;
 	}
 
@@ -380,8 +416,10 @@ bool CIndexCache::Store( const SExtractResult& kResult, const std::wstring& wstr
 	// index_meta here would silently drop the icon locator's stamp and
 	// force phase 2's index to rebuild every time the catalog did.
 	if( false == Exec( "DELETE FROM item; DELETE FROM cash_category;"
+			" DELETE FROM enum_name; DELETE FROM hidden_package_item;"
 			" DELETE FROM index_meta WHERE key IN"
-			" ( 'kom_path', 'kom_size', 'kom_mtime', 'extractor_version' );", strError ) )
+			" ( 'kom_path', 'kom_size', 'kom_mtime', 'extractor_version',"
+			"   'package_data_ran' );", strError ) )
 	{
 		std::string strIgnored;
 		Exec( "ROLLBACK;", strIgnored );
@@ -468,6 +506,71 @@ bool CIndexCache::Store( const SExtractResult& kResult, const std::wstring& wstr
 		sqlite3_finalize( pStmt );
 	}
 
+	{
+		sqlite3_stmt* pStmt = NULL;
+		if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
+			"INSERT INTO enum_name( table_name, value, name ) VALUES( ?, ?, ? );",
+			-1, &pStmt, NULL ) )
+		{
+			strError = sqlite3_errmsg( m_pDb );
+			std::string strIgnored;
+			Exec( "ROLLBACK;", strIgnored );
+			return false;
+		}
+
+		for( size_t u = 0; u != kResult.vecEnumNames.size(); ++u )
+		{
+			const SEnumNameRow& kRow = kResult.vecEnumNames[u];
+
+			BindText( pStmt, 1, kRow.strTable );
+			sqlite3_bind_int( pStmt, 2, kRow.iValue );
+			BindText( pStmt, 3, kRow.strName );
+
+			if( SQLITE_DONE != sqlite3_step( pStmt ) )
+			{
+				strError = sqlite3_errmsg( m_pDb );
+				sqlite3_finalize( pStmt );
+				std::string strIgnored;
+				Exec( "ROLLBACK;", strIgnored );
+				return false;
+			}
+
+			sqlite3_reset( pStmt );
+		}
+
+		sqlite3_finalize( pStmt );
+	}
+
+	{
+		sqlite3_stmt* pStmt = NULL;
+		if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
+			"INSERT INTO hidden_package_item( item_id ) VALUES( ? );", -1, &pStmt, NULL ) )
+		{
+			strError = sqlite3_errmsg( m_pDb );
+			std::string strIgnored;
+			Exec( "ROLLBACK;", strIgnored );
+			return false;
+		}
+
+		for( size_t u = 0; u != kResult.vecHiddenPackageItems.size(); ++u )
+		{
+			sqlite3_bind_int( pStmt, 1, kResult.vecHiddenPackageItems[u] );
+
+			if( SQLITE_DONE != sqlite3_step( pStmt ) )
+			{
+				strError = sqlite3_errmsg( m_pDb );
+				sqlite3_finalize( pStmt );
+				std::string strIgnored;
+				Exec( "ROLLBACK;", strIgnored );
+				return false;
+			}
+
+			sqlite3_reset( pStmt );
+		}
+
+		sqlite3_finalize( pStmt );
+	}
+
 	__int64 iSize	= 0;
 	__int64 iMTime	= 0;
 	GetFileStamp( wstrArchivePath, &iSize, &iMTime );
@@ -479,6 +582,7 @@ bool CIndexCache::Store( const SExtractResult& kResult, const std::wstring& wstr
 	if( bOk )	bOk = WriteMeta( META_KOM_PATH,	NarrowPath( wstrArchivePath ),	strError );
 	if( bOk )	bOk = WriteMeta( META_KOM_SIZE,	I64ToString( iSize ),			strError );
 	if( bOk )	bOk = WriteMeta( META_KOM_MTIME,	I64ToString( iMTime ),		strError );
+	if( bOk )	bOk = WriteMeta( META_PACKAGE_RAN,	IntToString( kResult.bPackageDataRan ? 1 : 0 ), strError );
 	if( bOk )	bOk = WriteMeta( META_EXTRACTOR,	IntToString( ItemExtractorVersion() ), strError );
 
 	if( false == bOk )
@@ -566,6 +670,53 @@ bool CIndexCache::Load( SExtractResult& kResult, std::string& strError ) const
 
 		sqlite3_finalize( pStmt );
 	}
+
+	{
+		sqlite3_stmt* pStmt = NULL;
+		if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
+			"SELECT table_name, value, name FROM enum_name ORDER BY table_name, value;",
+			-1, &pStmt, NULL ) )
+		{
+			strError = sqlite3_errmsg( m_pDb );
+			return false;
+		}
+
+		while( SQLITE_ROW == sqlite3_step( pStmt ) )
+		{
+			SEnumNameRow kRow;
+			kRow.strTable	= ColumnText( pStmt, 0 );
+			kRow.iValue		= sqlite3_column_int( pStmt, 1 );
+			kRow.strName	= ColumnText( pStmt, 2 );
+
+			kResult.vecEnumNames.push_back( kRow );
+		}
+
+		sqlite3_finalize( pStmt );
+	}
+
+	{
+		// ORDER BY is not decoration: IsHiddenPackageItem binary-searches
+		// this vector.
+		sqlite3_stmt* pStmt = NULL;
+		if( SQLITE_OK != sqlite3_prepare_v2( m_pDb,
+			"SELECT item_id FROM hidden_package_item ORDER BY item_id;", -1, &pStmt, NULL ) )
+		{
+			strError = sqlite3_errmsg( m_pDb );
+			return false;
+		}
+
+		while( SQLITE_ROW == sqlite3_step( pStmt ) )
+			kResult.vecHiddenPackageItems.push_back( sqlite3_column_int( pStmt, 0 ) );
+
+		sqlite3_finalize( pStmt );
+
+		kResult.iPackageHiddenRows = (int) kResult.vecHiddenPackageItems.size();
+	}
+
+	// "0 hidden items" and "nobody could tell" are different answers and
+	// the Ui says so differently, so the flag travels with the rows.
+	std::string strPackageRan;
+	kResult.bPackageDataRan = ReadMeta( META_PACKAGE_RAN, strPackageRan ) && "1" == strPackageRan;
 
 	if( kResult.vecItems.empty() )
 	{

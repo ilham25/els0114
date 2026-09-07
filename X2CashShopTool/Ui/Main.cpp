@@ -32,6 +32,11 @@
 //                  COPY of the save
 //   --live         with --db-test, run the same round-trip against the LIVE
 //                  save afterwards - and only if the copy passed
+//   --picker-test  build phase 5's item picker headless and print what it
+//                  cost: the one-off marshalling of 48,754 items, a filter
+//                  pass over all of them for a handful of queries, and the
+//                  managed delta across a full sweep of every row's icon.
+//                  Opens no window and touches els_db.sql not at all
 //   --db-path <file>
 //                  open that save instead of ./els_db.sql. The archives are
 //                  still read from the working directory. Exists so the two
@@ -203,6 +208,24 @@ namespace
 		Console::WriteLine( "           {0} with a non-empty m_ShopImage", kResult.iWithShopImage );
 		Console::WriteLine( "trans    : {0} name(s) overlaid from ItemTrans.lua, {1} orphan id(s)",
 			kResult.iTransApplied, kResult.iTransOrphans );
+
+		// Phase 5. The hidden-package set is the shop's SECOND silent-drop
+		// rule and, unlike the missing-templet one, nothing in the game's
+		// own logs mentions it - so the tool prints it every rebuild.
+		if( kResult.bPackageDataRan )
+		{
+			Console::WriteLine( "packages : {0} PackageItemData.lua row(s); {1} distinct item(s) the shop will not",
+				kResult.iPackageRows, (int) kResult.vecHiddenPackageItems.size() );
+			Console::WriteLine( "           show on their own (declared package contents with bShowItem false)" );
+		}
+		else
+		{
+			Console::WriteLine( "packages : PackageItemData.lua did NOT run - the shop's hidden-package rule is" );
+			Console::WriteLine( "           unknown for this index. The item catalog itself is unaffected." );
+		}
+
+		Console::WriteLine( "enums    : {0} value(s) named out of Enum.lua's own tables, for the picker's filters",
+			(int) kResult.vecEnumNames.size() );
 
 		if( false == kResult.vecStubbedCalls.empty() )
 		{
@@ -695,6 +718,7 @@ int main( array<String^>^ args )
 	bool bDb			= false;
 	bool bDbTest		= false;
 	bool bLive			= false;
+	bool bPickerTest	= false;
 
 	String^ sDbPath		= nullptr;
 
@@ -711,6 +735,7 @@ int main( array<String^>^ args )
 		if( args[i]->Equals( "--db",		StringComparison::OrdinalIgnoreCase ) )	bDb				= true;
 		if( args[i]->Equals( "--db-test",	StringComparison::OrdinalIgnoreCase ) )	bDbTest			= true;
 		if( args[i]->Equals( "--live",		StringComparison::OrdinalIgnoreCase ) )	bLive			= true;
+		if( args[i]->Equals( "--picker-test", StringComparison::OrdinalIgnoreCase ) ) bPickerTest	= true;
 
 		if( args[i]->Equals( "--db-path", StringComparison::OrdinalIgnoreCase ) && i + 1 < args->Length )
 		{
@@ -828,11 +853,14 @@ int main( array<String^>^ args )
 		kWatch->Stop();
 
 		Console::WriteLine();
-		Console::WriteLine( "extract  : {0:F2} s in total ({1:F2} Enum, {2:F2} Item, {3:F2} ItemTrans, {4:F2} CashShopCategory)",
+		Console::WriteLine( "extract  : {0:F2} s in total ({1:F2} Enum, {2:F2} Item, {3:F2} ItemTrans,"
+			" {4:F2} PackageItemData, {5:F2} CashShopCategory)",
 			kExtracted.dTotalSeconds, kExtracted.dEnumSeconds, kExtracted.dItemSeconds,
-			kExtracted.dTransSeconds, kExtracted.dCategorySeconds );
-		Console::WriteLine( "cache    : {0} item(s) + {1} category row(s) written in {2} ms",
+			kExtracted.dTransSeconds, kExtracted.dPackageSeconds, kExtracted.dCategorySeconds );
+		Console::WriteLine( "cache    : {0} item(s) + {1} category row(s) + {2} enum name(s)"
+			" + {3} hidden package item(s) written in {4} ms",
 			(int) kExtracted.vecItems.size(), (int) kExtracted.vecCategories.size(),
+			(int) kExtracted.vecEnumNames.size(), (int) kExtracted.vecHiddenPackageItems.size(),
 			kWatch->ElapsedMilliseconds );
 	}
 
@@ -846,9 +874,15 @@ int main( array<String^>^ args )
 	}
 	kLoadWatch->Stop();
 
-	Console::WriteLine( "catalog  : {0} item(s), {1} category row(s) loaded from the cache in {2} ms",
+	Console::WriteLine( "catalog  : {0} item(s), {1} category row(s), {2} enum name(s) loaded from the cache in {3} ms",
 		(int) kCatalog.vecItems.size(), (int) kCatalog.vecCategories.size(),
-		kLoadWatch->ElapsedMilliseconds );
+		(int) kCatalog.vecEnumNames.size(), kLoadWatch->ElapsedMilliseconds );
+
+	Console::WriteLine( "packages : {0}",
+		kCatalog.bPackageDataRan
+			? String::Format( "{0} item(s) the shop will not show on their own",
+				(int) kCatalog.vecHiddenPackageItems.size() )
+			: "unknown - PackageItemData.lua did not run when this index was built" );
 
 	//////////////////////////////////////////////////////////////////////
 	// Phase 3 - els_db.sql.
@@ -1018,6 +1052,125 @@ int main( array<String^>^ args )
 
 	Console::WriteLine( "           fallback {0}: {1}", Utf8( CIconStore::FallbackImageName() ),
 		kIcons.HasImage( CIconStore::FallbackImageName() ) ? "present" : "*** MISSING ***" );
+
+	//////////////////////////////////////////////////////////////////////
+	// Phase 5 - the picker, measured rather than felt.
+	//
+	// The exit test says the picker "opens instantly and scrolls the full
+	// ~43k rows without stutter or growth in memory". Two of those three
+	// are numbers, and this is where they get produced: the one-off
+	// marshalling cost and its managed footprint, the cost of a filter
+	// pass over all 48,754 rows for a handful of representative queries,
+	// and what the two icon caches hold after a simulated scroll from one
+	// end of the list to the other. "It felt smooth" is not a
+	// measurement; the third part - whether it feels smooth to a person -
+	// is the half only running it answers.
+	if( bPickerTest )
+	{
+		Console::WriteLine();
+		Console::WriteLine( "--- the picker, headless ---" );
+
+		ItemCatalogView^ kViewTest = gcnew ItemCatalogView( &kCatalog );
+
+		Console::WriteLine( "build    : {0:N0} item(s) marshalled in {1} ms, {2:N0} KB managed",
+			kViewTest->All->Length, kViewTest->BuildMs, kViewTest->ManagedBytes / 1024 );
+		Console::WriteLine( "filters  : {0} item type(s) and {1} equip slot(s) actually occur",
+			kViewTest->TypeChoices->Count - 1, kViewTest->EquipChoices->Count - 1 );
+		Console::WriteLine( "packages : {0}",
+			kViewTest->PackageDataKnown
+				? String::Format( "{0:N0} item(s) the shop hides as package components",
+					kViewTest->HiddenPackageCount )
+				: "unknown - PackageItemData.lua did not run" );
+
+		// Exercised through the same public surface the window uses, so a
+		// number here is a number about the shipped path.
+		ItemPickerForm^ kPicker = gcnew ItemPickerForm( kViewTest, gcnew IconProvider( &kIcons, 1500 ) );
+
+		Console::WriteLine();
+		Console::WriteLine( "  a filter pass is over ALL {0:N0} rows; no index, no debounce:", kViewTest->All->Length );
+
+		static const wchar_t* const s_apszQueries[] =
+		{
+			L"", L"hat", L"aisha", L"aisha hat", L"1316", L"131641", L"zzzznothing",
+		};
+
+		for( size_t u = 0; u != sizeof( s_apszQueries ) / sizeof( s_apszQueries[0] ); ++u )
+		{
+			int iRows	= 0;
+			int iMs		= 0;
+			kPicker->MeasureFilter( gcnew String( s_apszQueries[u] ), iRows, iMs );
+
+			Console::WriteLine( "    {0}   {1,7:N0} row(s)   {2} ms",
+				Pad( ( 0 == ::wcslen( s_apszQueries[u] ) ) ? "(empty)" : gcnew String( s_apszQueries[u] ), 14 ),
+				iRows, iMs );
+		}
+
+		//////////////////////////////////////////////////////////////////
+		// Can the list reach its last row at all?
+
+		{
+			int iRows	= 0;
+			int iMs		= 0;
+			kPicker->MeasureFilter( String::Empty, iRows, iMs );
+
+			int iCanvas	= 0;
+			int iReached	= 0;
+			int iRowReached	= 0;
+			kPicker->MeasureScrollExtent( iCanvas, iReached, iRowReached );
+
+			Console::WriteLine();
+			Console::WriteLine( "  extent   : {0:N0}-pixel canvas for {1:N0} row(s) at 44 px",
+				iCanvas, iRows );
+			Console::WriteLine( "             scrolled to the end: y = {0:N0}, last row visible = {1:N0}   {2}",
+				iReached, iRowReached,
+				( iRowReached >= iRows ) ? "-> the last row is reachable"
+										 : "*** THE END OF THE LIST CANNOT BE REACHED ***" );
+		}
+
+		//////////////////////////////////////////////////////////////////
+		// The scroll. Every icon a full sweep of the list would draw, in
+		// list order, through the same IconProvider the panel uses - so
+		// the FIFO cap and CIconStore's LRU are both exercised the way
+		// scrolling exercises them.
+
+		IconProvider^ kScrollIcons = gcnew IconProvider( &kIcons, 1500 );
+		kIcons.ResetCounters();
+
+		const long long iBeforeScroll = GC::GetTotalMemory( true );
+
+		System::Diagnostics::Stopwatch^ kScrollWatch = System::Diagnostics::Stopwatch::StartNew();
+
+		int iDrawn = 0;
+		for( int i = 0; i < kViewTest->All->Length; ++i )
+		{
+			kScrollIcons->Get( kViewTest->All[i]->ShopImage );
+			++iDrawn;
+		}
+
+		kScrollWatch->Stop();
+
+		const long long iAfterScroll = GC::GetTotalMemory( true );
+
+		Console::WriteLine();
+		Console::WriteLine( "  scroll   : {0:N0} icon fetch(es) - every row in the list - in {1:F2} s",
+			iDrawn, kScrollWatch->Elapsed.TotalSeconds );
+		Console::WriteLine( "             {0:F1} us per row; a screenful is about 20 rows",
+			kScrollWatch->Elapsed.TotalMilliseconds * 1000.0 / (double) Math::Max( 1, iDrawn ) );
+		Console::WriteLine( "  managed  : {0:N0} KB before, {1:N0} KB after - delta {2:N0} KB",
+			iBeforeScroll / 1024, iAfterScroll / 1024, ( iAfterScroll - iBeforeScroll ) / 1024 );
+		Console::WriteLine( "  native   : {0} hit(s), {1} miss(es), {2} eviction(s); {3} entr(ies), {4} of {5} KB",
+			kIcons.CacheHits(), kIcons.CacheMisses(), kIcons.CacheEvictions(),
+			(int) kIcons.EntriesHeld(), (int)( kIcons.BytesHeld() / 1024 ), (int)( kIcons.ByteBudget() / 1024 ) );
+		Console::WriteLine( "  peak ws  : {0:F1} MB",
+			(double) System::Diagnostics::Process::GetCurrentProcess()->PeakWorkingSet64 / ( 1024.0 * 1024.0 ) );
+
+		Console::WriteLine();
+		Console::WriteLine( "Both bounded caches are capped by construction, so the delta above is the" );
+		Console::WriteLine( "whole answer to \"growth in memory\": it is what a full sweep of 48,754 rows" );
+		Console::WriteLine( "leaves behind, not what one screenful costs." );
+
+		return 0;
+	}
 
 	//////////////////////////////////////////////////////////////////////
 	// --dump exists so the decoder can be checked by ARITHMETIC and not by
@@ -1429,7 +1582,7 @@ int main( array<String^>^ args )
 	Console::WriteLine( "peak working set : {0:F1} MB",
 		(double) System::Diagnostics::Process::GetCurrentProcess()->PeakWorkingSet64 / ( 1024.0 * 1024.0 ) );
 	Console::WriteLine( "switches : --rebuild  --items  --wall  --decode-all  --no-window  --dump <name> [outfile]" );
-	Console::WriteLine( "           --db  --db-test [--live]  --db-path <file>" );
+	Console::WriteLine( "           --db  --db-test [--live]  --db-path <file>  --picker-test" );
 
 	if( bNoWindow )
 		return 0;

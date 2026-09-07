@@ -1,12 +1,24 @@
 //////////////////////////////////////////////////////////////////////////
 // Author: Iruha
 // Date: 2026-09-06
-// Description: X2CashShopTool phase 4 - the edit dialog for one row of
-// cash_product. See CASH_SHOP_TOOL_PLAN.md, "Phase 4 - The main window".
+// Description: X2CashShopTool phases 4 and 5 - the field dialog for one
+// row of cash_product, in either of two modes.
+// See CASH_SHOP_TOOL_PLAN.md, "Phase 4 - The main window" and "Phase 5 -
+// Insert, with the virtualized picker".
 //
 // Category, quantity, price and the event flag. The ITEM is shown and not
-// edited: swapping the item a product sells needs the picker, which is
-// phase 5.
+// edited: an existing product's item cannot be swapped here, and a new
+// product's item was chosen in the picker before this dialog opened. A
+// free-text item id box would have been a way to create exactly the row
+// the client silently drops, which is the failure the tool exists to
+// expose.
+//
+// Phase 5 added bIsInsert. It changes the captions and, load-bearingly,
+// which Validate overload runs: an insert has no product_no yet, so
+// Validate must be told not to demand one. This is one dialog with two
+// modes rather than two dialogs because the four fields, their limits and
+// the reason for those limits are identical, and a second copy of them
+// would be a second place for the 1..127 rule to drift.
 //
 // EVERY NUMERIC FIELD IS A PLAIN TEXTBOX, and that is the point of this
 // file rather than an accident of laziness. NumericUpDown silently clamps
@@ -37,18 +49,21 @@ namespace X2CashShopTool
 						 System::Drawing::Bitmap^ kIcon,
 						 int iCategory, int iQuantity, int iPrice, bool bIsEvent,
 						 System::Collections::Generic::List<String^>^ kCategoryChoices,
-						 const CCashDb* pDb )
+						 const CCashDb* pDb, bool bIsInsert, String^ sExtraNote )
 		{
 			m_pDb			= pDb;
 			m_iProductNo	= iProductNo;
 			m_iItemID		= iItemID;
+			m_bIsInsert		= bIsInsert;
 
 			Category	= iCategory;
 			Quantity	= iQuantity;
 			Price		= iPrice;
 			IsEvent		= bIsEvent;
 
-			Text			= String::Format( "Edit product {0}", iProductNo );
+			Text = bIsInsert
+				? String::Format( "Add product - item {0}", iItemID )
+				: String::Format( "Edit product {0}", iProductNo );
 			ClientSize		= System::Drawing::Size( 560, 300 );
 			FormBorderStyle	= ::FormBorderStyle::FixedDialog;
 			StartPosition	= FormStartPosition::CenterParent;
@@ -75,8 +90,20 @@ namespace X2CashShopTool
 			kItem->Font			= kFixedFont;
 			kItem->ForeColor	= System::Drawing::Color::Gainsboro;
 			kItem->Text			= String::Format(
-				"item {0}   {1}\r\nm_ShopImage: {2}\r\nproduct_no {3} - the item a product sells is fixed here; the picker is phase 5",
-				iItemID, sItemName, ( String::IsNullOrEmpty( sShopImage ) ? "(none)" : sShopImage ), iProductNo );
+				"item {0}   {1}\r\nm_ShopImage: {2}\r\n{3}",
+				iItemID, sItemName, ( String::IsNullOrEmpty( sShopImage ) ? "(none)" : sShopImage ),
+				String::IsNullOrEmpty( sExtraNote )
+					? ( bIsInsert
+						? "product_no is allocated as max+1 when this is saved"
+						: String::Format( "product_no {0}", iProductNo ) )
+					: sExtraNote );
+
+			// Amber when the caller had something to warn about - today
+			// that is only the shop's hidden-package rule, which makes an
+			// otherwise perfect row invisible in the game.
+			if( false == String::IsNullOrEmpty( sExtraNote ) )
+				kItem->ForeColor = System::Drawing::Color::Goldenrod;
+
 			Controls->Add( kItem );
 
 			//////////////////////////////////////////////////////////////
@@ -139,7 +166,7 @@ namespace X2CashShopTool
 
 			Button^ kOk = gcnew Button();
 			kOk->Bounds		= System::Drawing::Rectangle( 350, 258, 90, 28 );
-			kOk->Text		= "Save";
+			kOk->Text		= bIsInsert ? "Add" : "Save";
 			kOk->Font		= kFont;
 			kOk->FlatStyle	= ::FlatStyle::Flat;
 			kOk->ForeColor	= System::Drawing::Color::Gainsboro;
@@ -279,8 +306,10 @@ namespace X2CashShopTool
 			kRow.iPrice			= iPrice;
 			kRow.iIsEvent		= m_kEvent->Checked ? 1 : 0;
 
+			// bIsInsert, not a literal false: an insert has no product_no
+			// yet and Validate refuses a non-positive one on the edit path.
 			std::string strError;
-			if( NULL != m_pDb && false == m_pDb->Validate( kRow, false, strError ) )
+			if( NULL != m_pDb && false == m_pDb->Validate( kRow, m_bIsInsert, strError ) )
 			{
 				array<Byte>^ abBytes = gcnew array<Byte>( (int) strError.size() );
 				if( abBytes->Length > 0 )
@@ -305,6 +334,7 @@ namespace X2CashShopTool
 		const CCashDb*	m_pDb;
 		int				m_iProductNo;
 		int				m_iItemID;
+		bool			m_bIsInsert;
 
 		ComboBox^	m_kCategory;
 		TextBox^	m_kQuantity;

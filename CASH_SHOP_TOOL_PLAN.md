@@ -402,9 +402,16 @@ X2CashShopTool/
   Ui/X2CashShopTool_2010.vcxproj       Application. CLRSupport=true,
                                        TargetFrameworkVersion=v4.0, /MD, v100.
     Main.cpp                           [STAThread] int main(array<String^>^)
+    UiBridge.h                         NativeBridge + IconProvider (phase 5: moved
+                                       out of MainForm.h, which includes the picker,
+                                       which needs both - see phase 5's corrections)
     MainForm.h                         tabs, product grid, wallet, bulk actions
-    ItemPickerForm.h                   virtualized picker + search
-    EditProductForm.h                  category / price / quantity / event
+    ItemPickerForm.h                   the picker + search + filters (phase 5: an
+                                       owner-drawn Panel, not a VirtualMode
+                                       ListView - see phase 5's decisions)
+    IconWallForm.h                     phase 2's icon wall, reached with --wall
+    EditProductForm.h                  category / price / quantity / event, in
+                                       either edit or insert mode
 ```
 
 **Every frame between `lua_pcall` and the `AddItemTemplet` callback lives in
@@ -434,6 +441,14 @@ CREATE INDEX ix_item_name ON item( name );
 
 CREATE TABLE cash_category( tab_idx INTEGER, real_id INTEGER, sub_ordinal INTEGER,
                             cssc_enum INTEGER, billing_category_no INTEGER );
+
+-- phase 5: Enum.lua's own value -> name maps, so the picker's filters can say
+-- IT_ARMOR rather than 2; and the items the shop filters out AFTER the catalog
+-- packet has carried them, which is the second silent-drop rule and is not in
+-- offline_server.log at all. Empty vs. unknown is index_meta.package_data_ran.
+CREATE TABLE enum_name( table_name TEXT, value INTEGER, name TEXT,
+                        PRIMARY KEY( table_name, value ) );
+CREATE TABLE hidden_package_item( item_id INTEGER PRIMARY KEY );
 
 -- icons are a LOCATOR table; never the bytes, never decoded bitmaps
 -- (phase 2: these two are versioned and stamped SEPARATELY from the item
@@ -468,9 +483,12 @@ real phase 1 numbers) for the same reason the offline server logs its decisions.
    `m_ShopImage`, the item name from `ItemTrans.lua`, the price, the quantity,
    an event badge, and Edit / Delete. Tiles come from `cash_product` joined in
    memory against the item catalog.
-3. **Insert** opens the picker over the whole ~43k-item catalog in a VirtualMode
-   `ListView` — only visible rows are ever materialised, so it neither lags nor
-   grows without bound. The search box filters on name and on item ID.
+3. **Insert** opens the picker over the whole ~43k-item catalog — only visible
+   rows are ever painted, so it neither lags nor grows without bound. The search
+   box filters on name and on item ID. *(Phase 5: an owner-drawn `Panel` rather
+   than the VirtualMode `ListView` written here, because a virtual `ListView`
+   cannot draw an icon without a pre-populated `ImageList` — see phase 5's
+   decisions. The bound on what is materialised is unchanged, and measured.)*
 4. **The insert form** takes category (pre-filled from the current tab), price,
    quantity and the event flag, allocates `product_no = max+1`, validates the
    ≤127 limits, and inserts.
@@ -1601,6 +1619,236 @@ and id, optional filters by item type and equip slot; then the field form.
 **Exit test**: the picker opens instantly and scrolls the full ~43k rows without
 stutter or growth in memory; an item that was never purchasable is inserted and
 is then buyable in the game.
+
+#### Exit test — BUILT, DEPLOYED, MEASURED; the in-game half is the user's (2026-09-07)
+
+Both configs on a full rebuild, **0 Warning(s), 0 Error(s)**. The `/clr` split
+still holds in both: exactly one `/clr:nostdlib` on each command line, on
+`Main.cpp`, read out of the `-v:normal` log. Deployed to
+`F:/.../237311/22191271/data/X2CashShopTool.exe`, confirmed by reading the
+directory programmatically and by SHA-256 against the build output — 1,378,304
+bytes, identical, and still the only `X2CashShop*` name in the directory.
+
+The first half of the exit test is two measurements and one probe, all from
+`--picker-test`, a new switch that builds the picker headless and touches
+`els_db.sql` not at all:
+
+```
+build    : 48,754 item(s) marshalled in 81 ms, 17,708 KB managed
+filters  : 9 item type(s) and 20 equip slot(s) actually occur
+
+  a filter pass is over ALL 48,754 rows; no index, no debounce:
+    (empty)           48,754 row(s)   1 ms
+    hat                  122 row(s)   4 ms
+    aisha                947 row(s)   4 ms
+    aisha hat             11 row(s)   4 ms
+    1316                  99 row(s)   4 ms
+    131641                 1 row(s)   4 ms
+    zzzznothing            0 row(s)   3 ms
+
+  extent   : 2,145,176-pixel canvas for 48,754 row(s) at 44 px
+             scrolled to the end: y = 2,144,688, last row visible = 48,754   -> the last row is reachable
+
+  scroll   : 48,754 icon fetch(es) - every row in the list - in 3.48 s
+             71.3 us per row; a screenful is about 20 rows
+  managed  : 17,493 KB before, 17,575 KB after - delta 82 KB
+  native   : 0 hit(s), 17943 miss(es), 16917 eviction(s); 1024 entr(ies), 16384 of 16384 KB
+  peak ws  : 109.5 MB
+```
+
+So: **4 ms a keystroke** over the whole catalog, **71 µs a row** to draw, which
+is 1.4 ms for a twenty-row screenful, and **82 KB** left behind by fetching
+every icon in the catalog — the two bounded caches hold at their caps
+(1,024 entries / 16,384 KB on the native LRU) rather than growing. "Without
+stutter or growth in memory" is those three numbers; whether it *feels* smooth
+is the half only a person answers.
+
+Phase 3's round-trip was re-run because `Core` changed under it, and still
+**PASSED**: all six refusals refused (quantity 0 and 128, category 0 and 128, an
+unresolvable item id, a negative price), `product_no 2361` allocated as max+1,
+the edit read back, the wallet restored, the row deleted and the catalog
+identical row-for-row to what it started as.
+
+The editor was launched, watched for 9 s, closed through `CloseMainWindow`
+(exit 0, nothing on stderr, the clean-exit `peak working set : 47.8 MB` line
+printed). **Peak working set is unchanged from phase 4's 47.6 MB**, which is
+the lazy build working: the picker's 18 MB is paid on the first Add and not by
+a session that opened the tool to change a price. The save was verified
+untouched from outside the tool afterwards — `user_version` 11, 2,360 rows,
+`min(price) = max(price) = 1`, `product_no` 1..2360, `cash_start` 999999,
+`integrity_check` ok, the WAL truncated away, and no new `cashtool-20260907-*`
+files in `db_backup/`.
+
+**What is left is the in-game half**, which no measurement replaces: *an item
+that was never purchasable is inserted and is then buyable in the game.* Open
+the tool, pick a tab, press Add or Insert, search the picker for something that
+was never for sale (the picker marks the 2,360 items that already are), set a
+price, close the tool, launch `start_offline.bat`, and buy it. Phase 5 removed
+one obstacle to that test being conclusive: see the `IsShowPackageItem`
+correction below.
+
+#### Corrections to this plan, found by doing it
+
+- **There is a SECOND silent-drop rule in the shop, and the plan did not know
+  about it.** The plan's headline finding is the 388 rows dropped for having no
+  item templet. But `CX2ItemManager::AddCashItem` sets each `CashItem`'s
+  `m_bShow` from `IsShowPackageItem( itemID )`
+  ([X2ItemManager.cpp:1868](X2Lib/X2ItemManager.cpp#L1868)), and
+  `GetAllCashItemList` **erases every entry whose `m_bShow` is false**
+  ([:2866-2880](X2Lib/X2ItemManager.cpp#L2866)) — so an item in
+  `m_setShowPackageItem` is filtered out of the shop *after* the catalog packet
+  has already carried it. That set is the items `PackageItemData.lua` declares
+  as package contents with `bShowItem` false
+  ([:3288-3292](X2Lib/X2ItemManager.cpp#L3288)). This rule is invisible in
+  `offline_server.log` — the emulator's "1972 product(s) … 388 dropped" line is
+  computed before it applies — so a product inserted for such an item would
+  simply never appear, with nothing anywhere saying why. That is exactly the
+  failure mode phase 5's exit test would have hit blind. The tool now runs
+  `PackageItemData.lua`, carries the set, and says so in the picker, in the
+  edit dialog, in the grid row and as a filter in the "All" tab.
+
+  **On this install the set is empty**, and that is a measured answer rather
+  than an assumption: 7,472 `AddPackageItemData` rows, not one with `bShowItem`
+  false. `IsShowPackageItem` returns true for anything not in the set, so every
+  one of the 48,754 items is insertable and will show. The machinery stays
+  because the rule is real and a later `.kom` could populate it; `--picker-test`
+  and the console both report the count, and `package_data_ran` in the cache
+  keeps "the set is empty" distinct from "nobody could tell".
+
+- **`0` from a new extractor is not the same as `0` from a failed one, and the
+  first draft could not tell them apart.** `PackageItemData.lua` failing has to
+  be non-fatal — what it contributes is an advisory, while the other four
+  scripts produce the catalog itself — but "no hidden items" and "the script
+  did not run" then print identically. `SExtractResult::bPackageDataRan` and the
+  `package_data_ran` meta key exist for that, and every place the count is shown
+  says `unknown` instead of `0` when the flag is false. This mattered
+  immediately: the script failed on the first run (below), and the run that
+  followed the fix reported the same `0` for an entirely different reason.
+
+- **The stand-in receiver had to be bound under every name
+  `OpenScriptFile` declares, and the plan's list of two was wrong.**
+  `PackageItemData.lua` died on its seventh line with `attempt to index global
+  'g_pCashItemManager' (a nil value)`. `CX2ItemManager::OpenScriptFile`
+  ([X2ItemManager.cpp:165-172](X2Lib/X2ItemManager.cpp#L165)) calls
+  `lua_tinker::decl` **four times with the same `this`** —
+  `g_pItemManager`, `g_pManufactureItemManager`, `g_pCashItemManager`,
+  `g_pCX2SetItemManager`, plus `g_pCX2CubePackageManager` under
+  `PACKAGE_IN_QUBE_PREVIEW` — so they are one object under five names, and the
+  tool now installs one stand-in table under all five. Phase 1 got away with two
+  because `Item.lua` and `ItemTrans.lua` happen to use `g_pItemManager`. The
+  list is read out of `OpenScriptFile`, not guessed at.
+
+- **`AddPackageItemData` is the one stub that takes positional arguments**, not
+  a field table: `( iPackageItemID, iItemID, usProductPieces, bShowItem )`,
+  bound at [X2Main.cpp:3348](X2Lib/X2Main.cpp#L3348). Since 7,472 rows with not
+  one `bShowItem` false is the sort of answer that is either the truth or an
+  off-by-one in the argument indices, it was settled with a diagnostic rather
+  than by re-reading them — `X2CASHTOOL_PACKAGE_ARG_DEBUG` printed
+  `top=5 base=1 : [1]table [2]number=200890 [3]number=200950 [4]number=0
+  [5]boolean=true` six times over. The switch stays, undefined, with that output
+  quoted next to it, because the surprising number is the one someone will want
+  to re-check.
+
+- **A scroll-extent probe on an unshown form measures nothing, and says so
+  confidently.** 48,754 rows at 44 px is a 2,145,176-pixel virtual canvas, which
+  is the one number in the picker big enough to be worth doubting — a saturating
+  scroll range would leave the last thousands of items unreachable while
+  everything above them looked perfect. The first probe reported
+  `*** THE END OF THE LIST CANNOT BE REACHED ***`, and that was the measurement
+  failing: a `Panel` with `AutoScroll` has no scrollbars until it is laid out on
+  a **visible** form, so assigning `AutoScrollPosition` before that is simply
+  dropped. Shown off-screen at `(-32000, -32000)`, it reaches `y = 2,144,688`
+  and row 48,754. A diagnostic that fails loudly for its own reasons is worse
+  than none, because its output looks exactly like the defect it was written to
+  find.
+
+- **`NativeBridge` and `IconProvider` had to leave `MainForm.h`.** Phase 4 wrote
+  both inside it; phase 5's picker needs both, and `MainForm.h` includes the
+  picker — a cycle. They moved verbatim into a new `Ui/UiBridge.h` that both
+  include. Bodies unchanged; only the file is new.
+
+#### Decisions made while implementing phase 5
+
+- **The picker's list is an owner-drawn `Panel`, NOT the VirtualMode `ListView`
+  the plan's decision table specifies.** Two reasons, and the second is the
+  deciding one. Phase 4's own note already calls the panel "the one phase 5's
+  picker needs over 48,754 rows". And the icons settle it: a virtual `ListView`
+  can only draw an icon from a pre-populated `ImageList`, so 48,754 rows means
+  either decoding the whole catalog up front — 780 MB of 64×64 BGRA — or writing
+  an owner-draw path on top of virtual mode anyway. The panel gets icons on
+  demand through the same `IconProvider` the product grid uses and touches only
+  the ~20 rows on screen. The two `Panel` traps phase 4 documented both applied
+  again unchanged: `IsInputKey` must be overridden or the arrow keys never reach
+  `OnKeyDown`, and `ControlStyles::Selectable` plus a `Focus()` on mouse-down is
+  what makes it keyboard-driven.
+- **The catalog is marshalled once per run, on the first Add, and kept.**
+  48,754 items × (name, shop image, two enum labels, a lower-cased name) is 81 ms
+  and ~18 MB, which is worth paying once and not worth paying at startup: most
+  sessions open this tool to change a price and never open the picker. Measured
+  both ways — peak working set is 47.8 MB for a session that does not open it,
+  against phase 4's 47.6 MB.
+- **`NameLower` is precomputed per item and compared with `StringComparison::Ordinal`.**
+  Culture-aware comparison over 48,754 rows on every keystroke is roughly two
+  orders of magnitude slower and would have been the entire cost of the pass.
+  Space-separated terms are ANDed over the name; an all-digits query
+  additionally matches an item id **prefix**, computed arithmetically
+  (`for( iId = ItemID; iId > 0; iId /= 10 )`) rather than with a `ToString` per
+  row — 48,754 string allocations per keystroke to answer "does 1316 prefix
+  this id" is the sort of thing that makes a list feel slow for no reason.
+- **No debounce timer, and the filter cost is printed in the footer.** A 4 ms
+  pass does not need debouncing, and a window that reports what its own filter
+  cost will say so if that ever stops being true, instead of just feeling
+  sluggish.
+- **The two filter dropdowns are built from the values that actually OCCUR, not
+  from the enum tables** — 9 item types and 20 equip slots out of the 13 and 40
+  `Enum.lua` names — each with its name and a count. A filter that offers a
+  value no item has is a filter that returns an empty list and teaches nothing.
+  The labels come from a new `enum_name` cache table holding
+  `ITEM_TYPE` / `ITEM_GRADE` / `EQIP_POSITION` / `USE_CONDITION` reversed out of
+  `Enum.lua` (63 values), the same discipline phase 1 took for `UC_NONE` and
+  phase 4 for the tab names. A value the script has no name for is shown as
+  `<n>  (no Enum.lua name)`, because that is information rather than something to
+  paper over.
+- **`ItemExtractorVersion()` went to 4, and phase 4's `HasColumn` probe was
+  applied to both new tables** even though neither can pre-exist in any cache
+  written so far. Phase 4's correction predicted phases 5 and 6 would hit that
+  trap; the probes are no-ops today and are there so the version bump that adds
+  a column to `enum_name` later is not the third occurrence of the same defect.
+  Each table's `CREATE` is spelled once, as a macro, for the same reason
+  `CASH_CATEGORY_SCHEMA` is.
+- **One dialog with two modes, not two dialogs.** `EditProductForm` gained
+  `bIsInsert`, which changes the captions and — load-bearingly — passes
+  `bIsInsert` to `CCashDb::Validate`, since an insert has no `product_no` yet
+  and the edit path refuses a non-positive one. A second copy of the four
+  fields would have been a second place for the 1..127 rule and its explanation
+  to drift. It also gained an `sExtraNote` line, amber, which today carries only
+  the hidden-package warning.
+- **The picked item is still not editable in the field dialog.** Add chooses an
+  item in the picker and Edit cannot change one; a free-text item id box remains
+  the one thing that could produce the row the client silently drops.
+- **`AcceptButton` is deliberately NOT set on the picker.** Enter belongs to the
+  list, where it activates the highlighted row; a form-wide accept button would
+  steal it while the search box has focus and commit whatever happened to be
+  selected.
+- **The picker marks items that are already sold and offers to hide them, and
+  does not refuse them.** Eighteen items are deliberately sold as two products
+  each ([X2OfflineCashShop.cpp:100-103](X2Lib/Offline/X2OfflineCashShop.cpp#L100)),
+  so a duplicate is legal; the badge is information, the checkbox is
+  convenience, and neither is a rule.
+- **The new product's category defaults to the sub-tab being viewed**, and to 0
+  on the "All" tab — where `Validate` then refuses it, which is correct, because
+  there is no sensible guess and a silently-chosen category is how a product
+  lands in a tab that makes no sense.
+- **`--picker-test` opens no window and reads no save.** It exists because there
+  is no test suite and the exit test's first half is numbers; it drives the same
+  `ApplyFilter` the keystrokes drive, through `MeasureFilter`, rather than a
+  parallel copy of the loop — a measurement of a parallel implementation is a
+  measurement of nothing.
+- **`iKept` still means "what the catalog packet will carry".** The
+  package-hidden count is reported *beside* it and never folded into it, because
+  `iKept` is the number `offline_server.log` prints and the number phase 3
+  checked the join against. Folding a further client-side filter into it would
+  have broken the one cross-check the report has.
 
 ### Phase 6 — Bulk editing and CSV
 

@@ -137,6 +137,8 @@
     <ClInclude Include="IconWallForm.h" />
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="EditProductForm.h" />
+    <ClInclude Include="UiBridge.h" />
+    <ClInclude Include="ItemPickerForm.h" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
