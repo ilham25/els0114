@@ -372,6 +372,7 @@ project build with no extra properties.
 | Out of scope | `cash_order` (deposit) and `wish_list` editing | Not asked for; both are per-character state the game manages. |
 | Solution | A **new** `X2CashShopTool.sln`, not added to `X2Project_2010.sln` | `X2Project_2010.sln`'s `US_SERVICE` sweeps in ~15 dead projects and does not even build the client exe; a tool has no business in it. |
 | Feature flag | **None** | `CLAUDE.md`'s `SERV_IRUHADEV_` rule governs edits to `X2/`, `X2Lib/`, `KTDXLIB/`. This adds new files under a new directory and edits none of them. |
+| Human labels *(phase 6)* | **`General.ess` through the client's own `enum` → `STR_ID` switches**, the studio's control names where there is no string, and a curated table for the rest — each answer carrying its **origin**, and the number never replaced | An enum name is the script's name for a thing, not the thing's name. There is a real localized string table in the game directory and the client's own switches say which id goes with which enum value, so most labels can be the game's own words rather than the tool's. The ones that cannot are marked as the tool's, because a label that looks sourced and is not is the failure the live-DB section of this plan exists to prevent. See *Phase 6*. |
 
 **Nothing in `X2Lib/`, `KTDXLIB/`, `X2/` or `KncWX2Server/Common/` is modified**,
 so neither the client nor the servers need rebuilding for any of this.
@@ -397,6 +398,11 @@ X2CashShopTool/
                                        client's Noimage fallback, and the bounded LRU
     CashDb.{h,cpp}                     sqlite3 over els_db.sql
     IndexCache.{h,cpp}                 the SQLite item index, next to the tool exe
+    Labels.{h,cpp}                     phase 6: General.ess + the client's own
+                                       enum -> STR_ID switches + the curated
+                                       table, every answer carrying its origin.
+                                       Read every run, never cached - see
+                                       phase 6's label rule
     ../../Libs/ExternalLib/sqlite3/sqlite3.c   (X2Lib_2010.vcxproj:3133-3138 verbatim)
 
   Ui/X2CashShopTool_2010.vcxproj       Application. CLRSupport=true,
@@ -405,7 +411,9 @@ X2CashShopTool/
     UiBridge.h                         NativeBridge + IconProvider (phase 5: moved
                                        out of MainForm.h, which includes the picker,
                                        which needs both - see phase 5's corrections)
-    MainForm.h                         tabs, product grid, wallet, bulk actions
+    MainForm.h                         tabs, product grid, wallet, bulk actions,
+                                       and phase 6's details pane + the
+                                       View -> Technical details toggle
     ItemPickerForm.h                   the picker + search + filters (phase 5: an
                                        owner-drawn Panel, not a VirtualMode
                                        ListView - see phase 5's decisions)
@@ -855,7 +863,7 @@ costs nothing and phase 2 adds decoded bitmaps.
   ([luaLib/KLuaManager.h:803](luaLib/KLuaManager.h#L803)), not `CP_ACP`. Item
   names therefore go from the Lua state into SQLite `TEXT` and out to the
   console unchanged; the console just needs
-  `Console::OutputEncoding = Encoding::UTF8`. Worth knowing for phase 6's CSV.
+  `Console::OutputEncoding = Encoding::UTF8`. Worth knowing for phase 7's CSV.
 - **The cache location the plan gives contradicts the plan's own standing
   rule.** "A SQLite file next to the tool exe — *not* in the game directory,
   where a stray `.db` beside `els_db.sql` is the sort of thing someone deletes
@@ -1850,7 +1858,256 @@ correction below.
   checked the join against. Folding a further client-side filter into it would
   have broken the one cross-check the report has.
 
-### Phase 6 — Bulk editing and CSV
+### Phase 6 — Plain language, and a layout that reads
+
+Phases 4 and 5 built a window that is correct and hard to use. It is laid out
+like the data model it edits: the left-hand lists are headed
+`tab  (CashShopCategory.lua)` and `sub-category  ->  cash_product.category`, a
+tab is called `CSC_FASHION`, a sub-tab `CSSC_FASHION_WEAPON -> 11`, the picker's
+biggest filter offers `IT_DEFENCE` for the 34,083 items it covers, the event
+checkbox is captioned `is_event`, and the 96-pixel header spends three lines of
+goldenrod prose citing `X2OfflineCashShop.h:98`. Every one of those is the
+*script's* name or the *column's* name rather than the thing's name, and the one
+label that is neither is wrong: the price column reads `1  ED`, and the shop
+prints prices in **K-Ching**.
+
+None of that is decoration. The tool's stated outcome is to show the catalog
+"as the game shows it — the game's own tabs, the game's own item icons, the
+game's own item names", and two thirds of that is done: the icons are the
+game's and the names come from `ItemTrans.lua`, so the *primary* text on every
+row is already the localized name a player sees. This phase is about everything
+around it.
+
+**The whole phase turns on one question — where does a human label honestly come
+from?** — so that is settled first, by measurement, before any control moves.
+
+#### Where the labels come from: four tiers, and which enum falls in which
+
+There is a real localized string table in the game directory, and phases 1–5
+never touched it. `Core/ItemIndex.h:58-63` says the `CSC_*` names are "the
+SCRIPT's names, not the captions the game paints - those are localized strings
+this tool does not read". Half of that comment is now wrong and the other half
+is more interesting than it looks: **some** of those captions are strings, and
+the cash-shop tab captions are not strings at all. The comment gets corrected in
+the same commit as this phase.
+
+**Tier 1 — `General.ess`, the game's own localized string table.** Verified
+first-hand against the real game directory, not inferred:
+
+| Fact | Detail |
+|---|---|
+| Where | A **loose file** in the game directory, `General.ess` ([KTDXApp.cpp:162](KTDXLIB/KTDXApp.cpp#L162)), opened with `_wfopen` ([KTDXStringTable.cpp:201](KTDXLIB/KTDXStringTable.cpp#L201)) — **not** through the mass file manager. No `.kom`, no zlib, no Lua, no XOR key. On this install it is `general.ess`, 3,043,944 bytes |
+| Format | UTF-16LE; skip the 2-byte BOM ([:211](KTDXLIB/KTDXStringTable.cpp#L211)), read a line, strip the trailing `\r\n` ([:232-236](KTDXLIB/KTDXStringTable.cpp#L232)), **XOR every `wchar_t` with 16** ([:238-243](KTDXLIB/KTDXStringTable.cpp#L238)), split on the first tab, then `\\n` → CRLF ([:274](KTDXLIB/KTDXStringTable.cpp#L274)) |
+| Index check | The left half of each line is the row index and **must equal the running line count** ([:250-254](KTDXLIB/KTDXStringTable.cpp#L250)). The client `ASSERT`s it; the tool checks it and refuses the file on a mismatch rather than shifting every label by one |
+| Size | 30,056 rows on this install, indices 0..30055 dense |
+| Not a thing | `InitializeStringTable` **ignores its second argument entirely** ([:21-24](KTDXLIB/KTDXStringTable.cpp#L21)) — `Script.ess` is never loaded by anything, and there is none in the game directory. `GET_SCRIPT_STRING` indexes an empty vector. Don't go looking for one |
+
+A ~40-line reader, and the cheapest new code in this tool by a wide margin.
+
+The string *ids* carry no semantic names — `StringID_def1.h` spells them
+`STR_ID_263` with the Korean original in a trailing comment — so an id is only
+meaningful through a mapping, and **the mappings are transcribed out of client
+code in this repo, not guessed**:
+
+| Enum | The client's mapping | Strings, read back out of `general.ess` |
+|---|---|---|
+| `EQIP_POSITION` | the `switch` at [X2ItemSlotManager.cpp:1199-1265](X2Lib/X2ItemSlotManager.cpp#L1199) | `STR_ID_263..277` — `Hair`, `Top Piece`, `Accessory (Top Piece)`, `Bottom Piece`, `Accessory (Bottom Piece)`, `Gloves`, `Shoes`, `Weapon`, `Face Accessory (Top/Middle/Bottom)`, `Accessory (Ring/Necklace/Arm/Weapon)` |
+| `EP_ONEPIECE_FASHION` | the same switch, under `SERV_NEW_ONE_PIECE_AVATAR_SLOT` ([:1260-1265](X2Lib/X2ItemSlotManager.cpp#L1260)) | `STR_ID_28362` = `Suit`. **The flag is defined for US** ([ServerDefine_US.h:300](KncWX2Server/Common/OnlyGlobal/ServerDefine/ServerDefine_US.h#L300)), so this branch is live in this build |
+| `ITEM_GRADE` | the `switch` at [X2ItemSlotManager.cpp:1089-1110](X2Lib/X2ItemSlotManager.cpp#L1089) | `STR_ID_257..261` = `[Unique] [Elite] [Rare] [Normal] [Old]` — **the strings carry square brackets**; strip them for a filter caption and keep them where the game would show them |
+| the costume flag | [X2ItemSlotManager.cpp:1270-1274](X2Lib/X2ItemSlotManager.cpp#L1270) | `STR_ID_251` = **`Costume`**. That is the game's word for `m_bFashion`; the tool currently says "fashion" |
+| the currency | [X2CashShop.cpp:9194](X2Lib/X2CashShop.cpp#L9194) — `wstrstm << m_iSalePrice << GET_STRING( STR_ID_34 )` | `STR_ID_34` = **`K-Ching`**. This is the fix for the `ED` in the price column |
+
+**Tier 2 — the studio's own words, out of a shipped dialog script.** The cash
+shop's tab captions are **pictures, not text**, so tier 1 cannot reach them.
+`DLG_Cash_Shop_Subpage_Fashion.lua` (in `data034.kom`, 8,560 bytes decompressed,
+luac like everything else) builds its sub-tabs as texture radio buttons —
+`SetNormalTex( "DLG_Common_New_Texture54_A.TGA", "wapon_normal" )` — and names
+the controls `Tab_Total`, `Tab_Wapon`, `Tab_Hair`, `Tab_Hood1`, `Tab_Hood2`,
+`Tab_OnePiece`, `Tab_Glove`, `Tab_Shoes`, each tagged with its
+`CASH_SHOP_SUB_CATEGORY.CSSC_*` through `AddDummyInt`. So the caption is a TGA
+region, and the nearest thing to a name is the control name.
+
+Those control names are worth having and are not worth cleaning up: one of them
+is a typo in the original (`Tab_Wapon`), and `Hood1`/`Hood2` are the studio's
+own words for two tabs whose `CSSC_*` names say something else. **Transcribe,
+don't tidy** — the same rule the live-DB section states for a table with an
+unfinished-looking row, and for the same reason: a tool that silently corrects
+studio data disagrees with the game for a reason nobody can later reconstruct.
+
+**Tier 3 — this tool's own wording, in one table, marked as such.** What is
+left after tiers 1 and 2 is real and has to be written by hand:
+
+- **every `ITEM_TYPE` value.** The only `ITEM_TYPE` → `STR_ID` mapping in the
+  client is two cases wide and sits inside `#ifdef SHOW_ITEM_TYPE_AT_TOOLTIP`
+  ([X2ItemSlotManager.cpp:2224-2241](X2Lib/X2ItemSlotManager.cpp#L2224)), which
+  is **defined nowhere in this tree**. Compiled out is not the same as wrong,
+  though: the pairs it names — `IT_WEAPON` → `STR_ID_270` `Weapon`,
+  `IT_DEFENCE` → `STR_ID_17818` `Armor` — are the studio's own, and they cover
+  the two biggest buckets in the catalog. Take those two from there and label
+  their origin honestly; the other seven are this tool's wording.
+- **the four `EQIP_POSITION` values the switch does not cover** (below).
+- **`CASH_SHOP_CATEGORY` and `CASH_SHOP_SUB_CATEGORY`**, beyond what tier 2
+  gives.
+
+**Tier 4 — the number and the script name, always still there.** Never removed,
+only demoted. See the label rule below.
+
+#### Coverage, measured rather than assumed
+
+Counted against the live `ItemIndex.db` (`%LOCALAPPDATA%\X2CashShopTool\`) and
+the decoded `general.ess`, so the phase starts knowing exactly how much of the
+window tier 1 can actually carry:
+
+| Enum | Values occurring | Resolve from `General.ess` | Fall to tier 3 |
+|---|---|---|---|
+| `ITEM_TYPE` | 9 of 13 | **0** live; 2 from the compiled-out block (`IT_WEAPON` 6,929 items, `IT_DEFENCE` 34,083) | 7 — `IT_ACCESSORY` 1,442, `IT_SPECIAL` 4,520, `IT_QUEST` 966, `IT_QICK_SLOT` 438, `IT_MATERIAL` 234, `IT_SKILL_MEMO` 105, `IT_OUTLAY` 37 |
+| `EQIP_POSITION` | 20 of 40 | **16** | 4 — `EP_NONE` (5,862 items), `EP_QUICK_SLOT` (438), `EP_DEFENCE_FACE` (16), `EP_RAVEN_LEFT_ARM` (7) |
+| `ITEM_GRADE` | 6 | **5** (`STR_ID_257..261`) | 1 — `IG_NONE` (5 items) |
+
+Two things fall straight out of that table. `EP_NONE` is the second-largest
+equip-slot bucket in the catalog and **is not a slot at all** — its honest label
+is "not equipped" and that is unambiguously the tool's wording, not the game's.
+And `IT_ACCESSORY` has no client mapping even though `STR_ID_246` is
+`Accessories`; pairing the two would be a guess that looks like a citation,
+which is precisely the failure the live-DB section of this plan was written
+about. It goes in as tier 3 with the tool's wording, and if the pairing is
+wanted it is wanted as an explicit decision, not as an inference nobody recorded.
+
+#### The label rule
+
+**One place, one function, and every label carries where it came from.** A new
+native `Core/Labels.{h,cpp}` — native, so no `/clr` reaches it — holding the
+`.ess` reader, the transcribed switches, and the curated table, and answering
+every request with the text *and* an origin:
+
+| Origin | Means |
+|---|---|
+| `ESS` | the game's own localized string, reached through the client's own mapping |
+| `CODE` | a mapping that exists in this repo but that this build compiles out (the two item types) |
+| `SCRIPT` | the studio's own control name out of a shipped dialog `.lua` |
+| `TOOL` | this tool's wording |
+
+And five rules on top of it:
+
+1. **Never present `TOOL` wording as the game's.** `--labels` dumps the whole
+   set — every value of every enum, its label, and its origin — so the tool's
+   own inventions are auditable in one read rather than scattered through a UI.
+   The details pane shows the origin for the selected row.
+2. **Never replace a number with a label where the number is the contract.**
+   `category`, `product_no`, `item_id`, `quantity` and `price` are what gets
+   written to the save; a label sits *beside* them and never instead of them.
+   The edit dialog's category box stays an **editable** `ComboBox` carrying the
+   number, for exactly the reason phase 4 recorded: a closed list makes 128
+   impossible to type, and typing 128 and watching it be refused is an exit
+   test.
+3. **Degrade visibly.** If `General.ess` is missing, or fails the index check,
+   the tool falls back to the enum names, says which file is missing and what
+   that costs, once, in the status bar and on the console — the same shape as
+   the offline mode's degrade rule. A window that quietly shows `IT_DEFENCE`
+   because a file was absent is indistinguishable from today's window.
+4. **No cache column, and no `ItemExtractorVersion()` bump.** The `.ess` is a
+   3 MB loose file parsed in tens of milliseconds; it is read every run and
+   never cached. That is deliberate — it is also what keeps this phase clear of
+   the `HasColumn` trap phase 4 documented and predicted for the phases after
+   it. That trap belongs to phase 7, which does add columns.
+5. **`product`, `category` and `quantity` keep their names.** They are the
+   billing number space's own words and the save's own column names, and
+   renaming them in the UI would put a third vocabulary between the user and
+   both. The labels this phase adds are for the *values*, not the fields.
+
+#### The layout
+
+| Today | What it becomes |
+|---|---|
+| Two stacked monospace `ListBox`es in a 300 px left panel, headed `tab  (CashShopCategory.lua)` and `sub-category  ->  cash_product.category` | Human tab names with counts; the headings name the thing, not the file it was parsed from |
+| The "All" pseudo-tab mixes the four diagnostic buckets (`orphaned`, `dropped`, `out of range`, `hidden`) into the same list as the real tabs | The buckets move into their own **Problems** group, so repricing a product never navigates through them — and so their count is visible without selecting anything |
+| 96 px header carrying three lines of goldenrod prose citing `X2OfflineCashShop.h:98` | One line — *restart the game to see changes* — with the citation in the details/About pane. The rule is the important part; the file:line is for whoever doubts it |
+| Row line 2: `product 12   item 131641   category 11  CSC_FASHION / CSSC_FASHION_WEAPON` | `Costume · Shoes · Rare`, with the numbers in the details pane and the technical view |
+| Price drawn as `{0}  ED` | `K-Ching`, per `STR_ID_34` |
+| The orange `EVENT` badge is the loudest thing on a row | Demoted to a small mark. `m_bEvent` appears **nowhere in `X2Lib/` or `KTDXLIB/` outside `Offline/`** — the emulator sets it ([X2OfflineCashShop.cpp:172](X2Lib/Offline/X2OfflineCashShop.cpp#L172)) and no client code reads it, so today the catalog's loudest visual marks the one field with no in-game effect. The edit dialog says that in words instead of `is_event` |
+| Button captions carry the key hints: `Edit  (Enter)`, `Delete  (Del)`, `Add product  (Ins)` | Clean captions, hints in tooltips and the status line. The keys keep working — `IsInputKey`, `Selectable` and the `Focus()` on mouse-down are all load-bearing and phase 4 and 5 both had to discover them |
+| Fixed-pixel `Bounds` everywhere plus a hand-rolled `LayoutHeader()` re-running on `Resize` | Containers that survive both the 900×560 minimum and a maximized window without overlap or clipping |
+| `Consolas 8.5` as the primary font for both lists | Segoe UI for prose; Consolas only in the number columns, where digits have to align |
+| Nothing shows the selected row in full | A **details pane** — the single place every demoted technical fact lives: `product_no`, `item_id`, `m_ShopImage`, the billing category and its `CSC_*`/`CSSC_*` names, the label origins, and whichever of the two silent-drop rules applies |
+
+#### The technical view stays, behind a toggle
+
+The dense presentation is not clutter to be deleted — it is the tool's whole
+diagnostic value, and it is what made the 388 invisible rows individually
+reachable for the first time. So a **View → Technical details** toggle brings
+today's presentation back verbatim: enum names in the lists, numbers on the
+rows, the full citation in the header. Default **off**; `--technical` starts
+with it on; the setting persists in a small `X2CashShopTool.ini` beside the
+index cache in `%LOCALAPPDATA%\X2CashShopTool\` — *not* in `ItemIndex.db`,
+which is a cache that gets thrown away and rebuilt.
+
+**The console output and every switch are unchanged.** `--db`, `--db-test`,
+`--picker-test`, `--dump`, `--decode-all`, `--wall`, `--no-window` and
+`--db-path` all behave exactly as before, so the exit tests of phases 0–5 stay
+runnable verbatim from the same exe. The console is also the audit log for
+every write, which matters more than the window's wording for a tool whose only
+job is writing into the only copy of the character.
+
+#### Things this phase must not lose
+
+Checked one by one at the end, with the technical view **off**, because a
+prettier window that has quietly dropped one of these is a worse tool than the
+one it replaced:
+
+- each of the 388 dropped rows individually reachable, and marked on the row;
+- the orphaned-category, out-of-range and package-hidden buckets, with counts;
+- the exact `product_no` / `item_id` / `category` / `quantity` / `price` of the
+  selected row, somewhere, without switching the toggle on;
+- the 1..127 refusal and the reason `CCashDb::Validate` gives for it — refused,
+  never clamped, and refused for the database layer's reason rather than a
+  second opinion written in the Ui;
+- the restart-to-see-changes rule;
+- the picker's filter cost in its footer, and the `already sold` /
+  `package-hidden` marks;
+- the backup-on-first-write status line naming the backup it took.
+
+#### Out of scope, and why
+
+**Painting the game's real tab captions.** Both halves are located, so a later
+phase need not re-explore: `DLG_Common_New_Texture54_A.TGA` (1,048,620 bytes)
+and `DLG_Common_New_Texture54_A.TET` (8,345 bytes), both in `data054.kom`.
+Doing it needs a TGA decoder plus a `.TET` named-region parser — a
+named-region atlas, which is exactly the thing section 4 of this plan
+established the *item icons* do **not** need — to render a decoration. It would
+make the tool's tabs literally the game's tabs, which is appealing and is not
+what makes the window less technical. Note it, don't build it.
+
+**Renaming `product` / `category` / `quantity`**, per rule 5 above.
+
+**Exit test**, in four parts, three measurable and one only a person can answer:
+
+1. **`--labels` resolves what the coverage table above says it should.** Every
+   `ITEM_TYPE`, `EQIP_POSITION` and `ITEM_GRADE` value that occurs in the
+   catalog, plus every `CSSC_*` in the tab table, printed with its label and
+   its origin; 16 of 20 equip slots and 5 of 6 grades come back `ESS`, the two
+   item types come back `CODE`, and every `TOOL` label is listed together so the
+   whole set of this tool's own wording can be read in one place. Then delete
+   or rename `general.ess` and confirm the tool says which file is missing and
+   falls back to enum names instead of showing them silently.
+2. **No enum name and no source citation is visible anywhere in the default
+   view** — tabs, sub-tabs, rows, both filter dropdowns, the edit dialog, the
+   header, the status bar. Prices read `K-Ching`. `m_bFashion` reads `Costume`.
+   Turning the technical view on brings all of it back, and turning it off
+   again leaves every diagnostic in the *must not lose* list still reachable.
+3. **Resize to the 900×560 minimum and to maximized**: nothing overlaps,
+   nothing is clipped, the grid and both lists still scroll to their last row.
+   Phase 5's own scroll-extent probe is the precedent for not trusting this by
+   eye — and for the trap that a probe on an unshown form measures nothing.
+4. **The half no measurement replaces**: a person who has not read this plan
+   opens the tool and reprices one product, and adds one, without asking what a
+   word means. That is the phase's actual exit test. The user runs it.
+
+`--db`'s report must be unchanged by all of it — still 2,360 rows, 1,972 the
+client will show, 388 dropped, 0 orphaned, 0 out of range, 18 duplicated items
+— and the save verified untouched from outside the tool afterwards, the same
+way phases 4 and 5 ended.
+
+### Phase 7 — Bulk editing and CSV
 
 Multi-select within a tab; set price or quantity across the selection; CSV
 export and import of the whole catalog with a diff preview before applying.
@@ -1858,7 +2115,7 @@ export and import of the whole catalog with a diff preview before applying.
 **Exit test**: export, edit prices in a spreadsheet, re-import, and confirm the
 new prices in the game — the thing that makes the flat price of 1 fixable.
 
-### Phase 7 — Deploy and document
+### Phase 8 — Deploy and document
 
 Ship the exe into the game directory next to `X2_offline.exe`, and write
 `CASH_SHOP_TOOL.md` — what it is, how to run it, the billing category number
