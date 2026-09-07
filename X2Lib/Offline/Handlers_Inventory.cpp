@@ -31,6 +31,17 @@
 #include "X2OfflineInventory.h"
 #include "X2OfflineSkill.h"
 
+//{{ Iruha : 2026-09-08 // phase 36 - the level-up scrolls
+// The server's own names and values, CXSLItem::EI_CHAR_LEVEL_UP_ITEM and
+// CXSLItem::EL_CHAR_LEVEL_UP_ITEM2 (XSLItem.h:713, :773). Both flags that gate
+// them - SERV_CHAR_LEVEL_UP_ITEM and SERV_CHAR_LEVEL_UP_ITEM_EVENT_RENA - are
+// on in this build, so both ids reach the live validation switch; only the
+// first has a live effect case. Kept local to this file rather than added to
+// X2Define.h, which is a studio header inside every project's PCH.
+static const int CHAR_LEVEL_UP_ITEM_ID		= 160267;	///< "Philosopher's Scroll"
+static const int CHAR_LEVEL_UP_ITEM_ID_2	= 60004276;	///< the Rena-event scroll; dead on live, see below
+//}}
+
 //////////////////////////////////////////////////////////////////////////
 
 bool CX2OfflineServer::Handler_EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
@@ -202,6 +213,19 @@ bool CX2OfflineServer::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( KOfflineSession& k
 	kAck.m_iED				= 0;
 	kAck.m_iTempCode		= kReq.m_iTempCode;
 
+	//{{ Iruha : 2026-09-08 // phase 36 - the ED, and the Philosopher's Scroll
+	// ISSUES_2.md #6: this field was left at 0 on every reply including the
+	// success path, and CX2UIInventory::Handler_EGS_USE_ITEM_IN_INVENTORY_ACK
+	// ASSIGNS it over the character's ED (X2UIInventory.cpp:8919) rather than
+	// treating it as a delta - so using anything from the bag emptied the
+	// wallet. The real server sources it from GetED() (GSUserInventory.cpp:4544).
+	//
+	// Filled here, on the initial error value, the way the cube handler does
+	// (Handlers_Social.cpp:2637): that is what makes it impossible for one of
+	// the early `return Reply(...)` refusals below to ship a zero.
+	FillAckED( kSes, kAck.m_iED );
+	//}}
+
 	KOfflineItemRow kRow;
 	if( false == pInven->GetItemRow( kReq.m_iItemUID, kRow ) )
 		return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
@@ -301,6 +325,98 @@ bool CX2OfflineServer::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( KOfflineSession& k
 		}
 	}
 
+	//{{ Iruha : 2026-09-08 // phase 36 - the Philosopher's Scroll (160267)
+	// Route A (OFFLINE_MODE_PHASE36_PLAN.md 0.1): 160267 is not in the client's
+	// RandomItem.lua registry and has no case of its own in CX2UIInventory's
+	// switch, so the right-click falls through to `default:`
+	// (X2UIInventory.cpp:6894) and arrives here rather than at the cube handler.
+	//
+	// The live server splits it across two switch arms - validation at
+	// GSUserInventory.cpp:4162 and the effect at :4655. (The second copy of both
+	// at :4940 / :5931 is inside an #else AND commented out; anything above 4938
+	// is dead code.) Everything below the consume transcribes :4655.
+	const bool bIsCharLevelUpItem = ( CHAR_LEVEL_UP_ITEM_ID == kRow.m_iItemID );
+
+	int iLevelUpAddEXP = 0;
+
+	// 60004276 is refused rather than transcribed. EL_CHAR_LEVEL_UP_ITEM2 has a
+	// case in the live *validation* switch (GSUserInventory.cpp:4164) but none
+	// in the live *effect* switch at :4655 - its only effect case is at :6066,
+	// inside the commented-out #else. So on the live US server this item is
+	// validated, consumed, and does nothing. Reproducing that faithfully would
+	// eat a player's item for nothing, and an item consumed for nothing is
+	// unrecoverable; offline diverges deliberately and says so here rather than
+	// leaving the divergence to be rediscovered.
+	if( CHAR_LEVEL_UP_ITEM_ID_2 == kRow.m_iItemID )
+	{
+		kAck.m_iOK = NetError::ERR_UNKNOWN;
+
+		CX2OfflineLog::Server( L"ITEM     refused item %d - the live server consumes it and does"
+			L" nothing (GSUserInventory.cpp:4655 has no case for it; the one at :6066 is inside"
+			L" the commented-out #else), so offline leaves it in the bag instead",
+			kRow.m_iItemID );
+
+		return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+	}
+
+	if( true == bIsCharLevelUpItem )
+	{
+		KOfflineUnitRow kUnit;
+		if( false == CX2OfflineDB::Instance()->LoadUnit( kSes.m_nSelectedUnitUID, kUnit ) )
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+
+		// The live refusal, GSUserInventory.cpp:4166-4178: at the cap the scroll
+		// is refused with the item intact. SERV_LIMIT_LEVEL_NOT_USE_ITEM_MSG is
+		// JP-only, so the US code is ERR_UNKNOWN and not ERR_NOT_USE_01. The
+		// server reads its cap from SiKGameSysVal()->GetLimitsLevel(); offline
+		// stands in g_iMaxLevel, whose own comment beside the #define says it and
+		// GameSysValTable.lua's MAXLevel must be changed together
+		// (Always_US.h:75), and which ApplyDungeonReward already caps against.
+		//
+		// The live test is `==`; `>=` here because a character somehow above the
+		// cap must be refused too rather than fall through to the effect.
+		if( kUnit.m_iLevel >= (int)_CONST_X2GAME_::g_iMaxLevel )
+		{
+			kAck.m_iOK = NetError::ERR_UNKNOWN;
+
+			CX2OfflineLog::Server( L"ITEM     refused item %d - the character is level %d and the"
+				L" cap is %d (the scroll is left in the bag)",
+				kRow.m_iItemID, kUnit.m_iLevel, (int)_CONST_X2GAME_::g_iMaxLevel );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+
+		// The scroll does not grant a flat amount of EXP: :4655 tops the
+		// character up to EXACTLY the total the next level needs, so a character
+		// 40% through level 30 ends at 0% of level 31. Adding a "need" figure
+		// instead would over-pay a mid-level character and could grant two.
+		if( NULL == g_pData || NULL == g_pData->GetEXPTable() )
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+
+		const int iNextLevelTotalEXP =
+			g_pData->GetEXPTable()->GetEXPData( kUnit.m_iLevel + 1 ).m_nTotalExp;
+
+		// CX2EXPTable::GetEXPData returns a zeroed EXPData for a level it has no
+		// row for (X2EXPTable.cpp:43-54), so a missing row reads as a total of 0
+		// and would compute a NEGATIVE top-up - which ApplyDungeonReward would
+		// clamp to zero EXP, wiping the character's progress for a consumed
+		// scroll. Refused instead, with the item intact.
+		if( iNextLevelTotalEXP <= kUnit.m_iEXP )
+		{
+			kAck.m_iOK = NetError::ERR_UNKNOWN;
+
+			CX2OfflineLog::Server( L"ITEM     refused item %d - the EXP table has no usable row for"
+				L" level %d (it reports total EXP %d against the character's %d), so the top-up"
+				L" would be negative (the scroll is left in the bag)",
+				kRow.m_iItemID, kUnit.m_iLevel + 1, iNextLevelTotalEXP, kUnit.m_iEXP );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+
+		iLevelUpAddEXP = iNextLevelTotalEXP - kUnit.m_iEXP;
+	}
+	//}}
+
 	KInventoryItemInfo kSlotInfo;
 	if( false == pInven->ConsumeOne( kReq.m_iItemUID, kSlotInfo ) )
 		return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
@@ -312,6 +428,35 @@ bool CX2OfflineServer::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( KOfflineSession& k
 	CX2OfflineLog::Server( L"ITEM     used item %d from the bag", kRow.m_iItemID );
 
 	Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+
+	//{{ Iruha : 2026-09-08 // phase 36 - the level-up itself
+	// GSUserInventory.cpp:4655-4671, transcribed: add the difference up to the
+	// next level's total, then CheckCharLevelUp(). ApplyDungeonReward is the
+	// offline equivalent of that pair - it is not dungeon-specific, it is the
+	// only exp/level/SP path there is, and it already levels off the client's own
+	// EXP table, grants the skill points the curve owes and persists all of it.
+	// A second level-up path beside it is how the client and the save start
+	// disagreeing about what level the character is.
+	if( true == bIsCharLevelUpItem && 0 < iLevelUpAddEXP )
+	{
+		int iOldLevel = 0;
+		const int iNewLevel =
+			ApplyDungeonReward( kSes.m_nSelectedUnitUID, iLevelUpAddEXP, 0, &iOldLevel );
+
+		// Only if the level actually rose, the same guard the dungeon clear bonus
+		// uses (Handlers_Room.cpp:2880). EGS_CHAR_LEVEL_UP_NOT is what sets
+		// CX2Unit::SetIsLevelUp and plays the effect; QuestOnLevelUp runs the
+		// level-up quest and title steps.
+		if( iNewLevel > iOldLevel )
+		{
+			PushLevelUp( kSes, kSes.m_nSelectedUnitUID );
+			QuestOnLevelUp( kSes );
+		}
+
+		CX2OfflineLog::Server( L"ITEM     item %d topped the character up by %d exp: level %d -> %d",
+			kRow.m_iItemID, iLevelUpAddEXP, iOldLevel, iNewLevel );
+	}
+	//}}
 
 	// Phase 19: the bag path needs the same _NOT the quick-slot path needs, and
 	// for the same reason - CX2UIInventory::Handler_EGS_USE_ITEM_IN_INVENTORY_ACK

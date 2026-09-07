@@ -810,6 +810,14 @@ that always reply an error, so the client never reads it.
    right after `LoadUnit` makes the class structurally impossible. Add it and
    use it in the three; converting the clean handlers is optional and belongs in
    a separate commit if done at all.
+
+   **Done, 2026-09-08 — phase 36 ran first and added it.** The helper exists as
+   `CX2OfflineServer::FillAckED` ([X2OfflineServer.h:833](X2Lib/Offline/X2OfflineServer.h#L833),
+   implemented beside `PushLevelUp` in `X2OfflineServer.cpp`), and
+   `EGS_USE_ITEM_IN_INVENTORY_REQ` already uses it. This phase inherits it: call
+   it in `EGS_RESOLVE_ITEM_REQ` and `EGS_ATTRIB_ENCHANT_ITEM_REQ`, do not add it
+   again. So of step 1's three handlers, **only those two are left** — the
+   item-use one is fixed.
 3. Give `KEGS_ATTRIB_ENCHANT_ITEM_ACK`'s new initialisation a comment noting the
    struct has no constructor, so the next reader does not assume 0. Worth a
    sweep for other constructor-less `DECL_PACKET`s the offline server replies

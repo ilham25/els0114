@@ -533,6 +533,57 @@ Note level, EXP and ED. Then, on a character below 67:
 Then take a character to 67 and confirm the scroll is refused **with the item
 still in the bag** and a log line saying why. Same for 60004276 at any level.
 
+### As built — 2026-09-08
+
+Play-tested: the scroll levels the character, the data persists and the level-up
+effect plays. Four notes for whoever reads this next:
+
+- **`EGS_CHAR_LEVEL_UP_NOT` alone does not update any number in a village**, and
+  this plan assumed it did. `CX2TFieldGame::Handler_EGS_CHAR_LEVEL_UP_NOT`
+  ([X2TFieldGame.cpp:4210](X2Lib/X2TFieldGame.cpp#L4210)) is one line for the
+  local player — `SetIsLevelUp( true )` — so the effect played while the
+  top-left gauge, the level text and the SP count stayed on the old figures
+  until the character was reselected. The copy that *does* update them
+  ([X2StateMenu.cpp:4526](X2Lib/X2StateMenu.cpp#L4526)) works off
+  `g_pX2Game->GetUserUnitByUID` and returns early when `g_pX2Game` is NULL,
+  which it is in a village: `CX2TFieldGame` is not a `CX2Game`.
+
+  Live has the same gap and fills it by sending the whole `KUnitInfo` first —
+  [GSUserFunction.cpp:7640](KncWX2Server/GameServer/GSUserFunction.cpp#L7640),
+  inside `CheckCharLevelUp`, gated on `SERV_CHAR_LEVEL_UP_ITEM`, i.e. the flag
+  added for this very item — then `EGS_CHAR_LEVEL_UP_NOT` at `:7675` / `:7687`.
+  `PushLevelUp` now does the same, so **this fixes the dungeon-clear bonus
+  level-up too**, which had the same staleness anywhere outside a room. In the
+  village the client answers it with `GetSelectUnit()->Reset( m_kUnitInfo )`
+  ([X2State.cpp:10601](X2Lib/X2State.cpp#L10601)) — a full `SetKUnitInfo`,
+  level and EXP and SP together — and `RefreshMenuInfo` repolls the gauge off
+  that unit ten times a second ([X2StateMenu.cpp:513](X2Lib/X2StateMenu.cpp#L513)).
+
+  **It is deliberately not sent inside a room**, diverging from `:7640`:
+  `CX2StateDungeonGame::Handler_EGS_UPDATE_UNIT_INFO_NOT` sets
+  `m_bReceive_KEGS_UNIT_INFO_UPDATE` ([X2StateDungeonGame.cpp:3062](X2Lib/X2StateDungeonGame.cpp#L3062)),
+  the second half of the dungeon Leave gate that offline arms on purpose and
+  only on the leave path ([Handlers_Room.cpp:1219](X2Lib/Offline/Handlers_Room.cpp#L1219)),
+  and calls `ResetDungeonRewardItem`. A run gets its refresh from the end-game
+  push instead ([Handlers_Room.cpp:3000](X2Lib/Offline/Handlers_Room.cpp#L3000)).
+
+- **A fourth refusal was added that this plan did not call for.**
+  `CX2EXPTable::GetEXPData` returns a **zero-filled** `EXPData` for a level it
+  has no row for ([X2EXPTable.cpp:43-54](X2Lib/X2EXPTable.cpp#L43)) rather than
+  failing. So a missing row reads as "total EXP 0", the top-up
+  `iNextLevelTotalEXP - m_iEXP` comes out **negative**, and
+  `ApplyDungeonReward` clamps that to `iEXP = 0` — a consumed scroll that wipes
+  the character's progress. Refused pre-consume when
+  `iNextLevelTotalEXP <= kUnit.m_iEXP`, with the item intact and the two figures
+  in the log.
+- **`FillAckED` was added here**, so phase 34 of `OFFLINE_MODE_PHASE29_PLAN.md`
+  inherits it and is down to two handlers. That document has been corrected.
+- **The scroll is purchasable in the offline shop** — `cash_product` row 2361
+  sells item 160267 for 5 of currency 43 — so the exit test needs no packing and
+  no hand-edited save. 60004276 is **not** in the shop, so its refusal is
+  reachable only if the item is obtained some other way; the branch is there and
+  logged, untested.
+
 ---
 
 # Phase 37 — Route A: the item-use effect switch

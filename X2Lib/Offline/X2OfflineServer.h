@@ -833,6 +833,25 @@ private:
 	int  ApplyDungeonReward( UidType nUnitUID, int iAddEXP, int iAddED,
 							 OUT int* piOldLevel = NULL );
 
+	//{{ Iruha : 2026-09-08 // phase 36 - the shared "money changed" fill
+	/// Put the character's real ED into an ACK field. Returns false when the
+	/// unit could not be loaded, leaving iED alone.
+	///
+	/// Several ACKs carry an m_iED that the client ASSIGNS over the character's
+	/// wallet rather than treating as a delta (X2UIInventory.cpp:8919 for the
+	/// item-use one, :9121 for the cube). A handler that leaves that field at 0
+	/// therefore does not "forget to update the ED", it empties it - which is
+	/// what ISSUES_2.md #6 was. There is no shared fill and every handler
+	/// open-codes LoadUnit -> assign, which is exactly why three of them forgot;
+	/// this exists so the initial error value can be filled in one line, before
+	/// any early `return Reply(...)` can ship a zero.
+	///
+	/// Phase 34 of OFFLINE_MODE_PHASE29_PLAN.md proposed this helper; phase 36
+	/// ran first and added it, so phase 34 inherits it rather than adding it
+	/// twice, and keeps only EGS_RESOLVE_ITEM_REQ and EGS_ATTRIB_ENCHANT_ITEM_REQ.
+	bool FillAckED( KOfflineSession& kSes, OUT int& iED );
+	//}}
+
 	/// Resend the character to the client mid-play, so a level gained during
 	/// a run shows up without waiting for the village.
 	void PushUnitInfoUpdate( KOfflineSession& kSes, UidType nUnitUID );

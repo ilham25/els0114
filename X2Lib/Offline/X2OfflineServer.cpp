@@ -973,11 +973,63 @@ bool CX2OfflineServer::EnsureAccount( KOfflineSession& kSes, const std::wstring&
 	MakeGameStat( kRow, kOut.m_kGameStat );
 }
 
+//{{ Iruha : 2026-09-08 // phase 36 - the shared "money changed" fill
+bool CX2OfflineServer::FillAckED( KOfflineSession& kSes, OUT int& iED )
+{
+	KOfflineUnitRow kRow;
+	if( false == CX2OfflineDB::Instance()->LoadUnit( kSes.m_nSelectedUnitUID, kRow ) )
+		return false;
+
+	iED = kRow.m_iED;
+	return true;
+}
+//}}
+
 void CX2OfflineServer::PushLevelUp( KOfflineSession& kSes, UidType nUnitUID )
 {
 	KOfflineUnitRow kRow;
 	if( false == CX2OfflineDB::Instance()->LoadUnit( nUnitUID, kRow ) )
 		return;
+
+	//{{ Iruha : 2026-09-08 // phase 36 - the numbers, which the effect does not carry
+	// EGS_CHAR_LEVEL_UP_NOT alone plays the animation and changes nothing else.
+	// Outside a room the village handler is CX2TFieldGame::
+	// Handler_EGS_CHAR_LEVEL_UP_NOT (X2TFieldGame.cpp:4210-4219) and its entire
+	// body for the local player is SetIsLevelUp( true ) - it never touches the
+	// level, the EXP or the skill points. (CX2StateMenu's copy at
+	// X2StateMenu.cpp:4526 does update them, but it works off
+	// g_pX2Game->GetUserUnitByUID and returns early when g_pX2Game is NULL,
+	// which it is in a village: CX2TFieldGame is not a CX2Game.) So the
+	// top-left gauge, the level text and the SP count stayed on the old figures
+	// until the character was reselected.
+	//
+	// The live server has the same problem and solves it by sending the whole
+	// KUnitInfo first. The block is at GSUserFunction.cpp:7640, inside
+	// CheckCharLevelUp and gated on SERV_CHAR_LEVEL_UP_ITEM - the flag added for
+	// the Philosopher's Scroll, and on in this build:
+	//
+	//     KEGS_UPDATE_UNIT_INFO_NOT kPacketUnitInfo;
+	//     GetUnitInfo( kPacketUnitInfo.m_kUnitInfo );
+	//     SendPacket( EGS_UPDATE_UNIT_INFO_NOT, kPacketUnitInfo );
+	//
+	// then EGS_CHAR_LEVEL_UP_NOT at :7675 / :7687. Sent in that order here too.
+	// In the village CX2State::Handler_EGS_UPDATE_UNIT_INFO_NOT (X2State.cpp:10601)
+	// answers it with GetSelectUnit()->Reset( m_kUnitInfo ), which is a full
+	// SetKUnitInfo - level, EXP and SP together - and CX2StateMenu::
+	// RefreshMenuInfo repolls the gauge off that unit ten times a second
+	// (X2StateMenu.cpp:513-517), so the HUD catches up on its own.
+	//
+	// NOT sent inside a room, which is a deliberate divergence from :7640.
+	// CX2StateDungeonGame::Handler_EGS_UPDATE_UNIT_INFO_NOT sets
+	// m_bReceive_KEGS_UNIT_INFO_UPDATE (X2StateDungeonGame.cpp:3062) - the
+	// second half of the dungeon's Leave gate, which offline arms on purpose and
+	// only on the leave path (Handlers_Room.cpp:1219) - and calls
+	// ResetDungeonRewardItem, which would drop the run's reward list. A run
+	// already gets its refresh from the end-game push, which carries
+	// m_bGameEnd = true and the obtained-item map (Handlers_Room.cpp:3000).
+	if( S_ROOM != kSes.m_eState )
+		PushUnitInfoUpdate( kSes, nUnitUID );
+	//}}
 
 	KEGS_CHAR_LEVEL_UP_NOT kNot;
 	kNot.m_iUnitUID	= nUnitUID;
