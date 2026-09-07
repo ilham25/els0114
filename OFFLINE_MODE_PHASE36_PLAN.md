@@ -207,12 +207,11 @@ The client side agrees: `m_ucTimesToBeSealed = data.m_kItemInfo.GetSealCount()`
 | `EGS_SYNTHESIS_ITEM_REQ`, `EGS_SYNTHESIS_SOCKET_GROUPID_REQ` | **neither handled nor ignored** → logs `*** UNHANDLED ***` | phase 45 |
 | `EGS_START_REWARD_BOX_SELECT_*` / `EGS_SELECT_REWARD_BOX_*` | stubs ([Handlers_Room.cpp:3228-3249](X2Lib/Offline/Handlers_Room.cpp#L3228)) | phase 43 — **and the live server has no handler either**, see that phase |
 
-**One stale ignore entry to clean.** `EGS_RESOLVE_ITEM_REQ` sits in the ignore
-list ([X2OfflineIgnore.cpp:61](X2Lib/Offline/X2OfflineIgnore.cpp#L61)) *and* is
-dispatched to a real handler (`Handlers_Inventory.cpp:2236`). Dispatch wins, so
-behaviour is right and the list is lying — and an ignore rule is a promise that
-nothing is silently dropped. Whichever phase first opens `X2OfflineIgnore.cpp`
-deletes that line. The four beside it (`EGS_IDENTIFY_ITEM_REQ`,
+**One stale ignore entry to clean — done in phase 37.** `EGS_RESOLVE_ITEM_REQ`
+sat in the ignore list *and* was dispatched to a real handler
+(`Handlers_Inventory.cpp:2236`). Dispatch wins, so behaviour was right and the
+list was lying — and an ignore rule is a promise that nothing is silently
+dropped. The line is gone. The four beside it (`EGS_IDENTIFY_ITEM_REQ`,
 `EGS_ITEM_EVALUATE_REQ`, `EGS_RESTORE_ITEM_REQ`,
 `EGS_RESTORE_ITEM_EVALUATE_REQ`) were checked and are genuinely unhandled —
 leave those alone.
@@ -354,7 +353,7 @@ SELECT name FROM sys.procedures WHERE name LIKE 'gup_%item%' ORDER BY name;
 | Phase | Subject | Size | Confidence | Blocked? |
 |---|---|---|---|---|
 | **36** | **Philosopher's Scroll (160267): instant level-up**, + the ED fix for this handler | small | **CONFIRMED** | no |
-| **37** | Route A: the item-use effect switch, transcribed from `GSUserInventory.cpp:4162`/`:4655` | large | CONFIRMED-empty | no |
+| **37** | Route A: the item-use effect switch, transcribed from `GSUserInventory.cpp:3979`/`:4556` | large | **BUILT 2026-09-08, play-test owed** | no |
 | **38** | Cube coverage: client registry vs. contents table, and the refusal census | investigation | — | no |
 | **39** | `EGS_UNSEAL_ITEM_REQ` / `EGS_SEAL_ITEM_REQ` | medium | CONFIRMED | no |
 | **40** | Cube fidelity: rental period, and the seal phase 39 made safe | medium | CONFIRMED | no |
@@ -671,6 +670,182 @@ For each group implemented: use the item, see the effect, and confirm
 refused: the item is **still in the bag** afterwards and the log names it.
 `grep "used item" offline_server.log` should have no entry that is neither
 implemented nor explicitly refused.
+
+### As built — 2026-09-08
+
+**Built and deployed; not yet play-tested** — the save holds none of the items
+below, so the exit test is owed and is written out at the end of this section.
+
+#### The census, done statically, because the log had nothing in it
+
+Step 1 of this phase asked for a play-session census. `offline_server.log`
+carries exactly one distinct entry — `used item 160267`, twenty times, all of it
+phase 36's own testing — so there was nothing to count. The scope was derived
+instead, and the derivation is stronger than a session would have been because
+it does not depend on what the save happens to hold:
+
+1. **What the US client can send.** `CX2UIInventory::OnRClickedItem`'s dispatch
+   switch ([X2UIInventory.cpp:6119-6894](X2Lib/X2UIInventory.cpp#L6119)) plus
+   the eight message boxes that call `Handler_EGS_USE_ITEM_IN_INVENTORY_REQ`
+   after an OK ([`:1380`](X2Lib/X2UIInventory.cpp#L1380), `:1394`, `:1407`,
+   `:2036`, `:2049`, `:2502`, `:2707`, `:2839`), with every case struck out
+   whose flag is off in `US_SERVICE`.
+2. **What the live server does with what arrives.** The validation arm at
+   [GSUserInventory.cpp:3979](KncWX2Server/GameServer/GSUserInventory.cpp#L3979)
+   and the effect arm at [`:4556`](KncWX2Server/GameServer/GSUserInventory.cpp#L4556)
+   — the `DBE_USE_ITEM_IN_INVENTORY_ACK` handler actually opens at `:4526`, not
+   the `:4535` this document says.
+
+**The flag check killed half the families this phase was scoped for.** Checked
+against `ServerDefine.h` + `ServerDefine_Global.h` + `ServerDefine_US.h`, which
+is the whole active set for US:
+
+| family | flag | US |
+|---|---|---|
+| inventory-expansion event items | `SERV_EXPAND_INVENTORY_BY_EVENT_ITEM` | **on** (US) |
+| pet auto-looting | `PET_DROP_ITEM_PICKUP` / `SERV_PET_AUTO_LOOTING` | **on** |
+| halloween transform potion | `SERV_HALLOWEEN_PUMPKIN_FAIRY_PET` | **on** (Global) |
+| gold tickets | `SERV_GOLD_TICKET` | off — TWHK |
+| character-slot expand cards | `SERV_EVENT_CHARACTER_SLOT_EXPAND_ITEM` | off — TWHK |
+| tour ticket | `SERV_TOUR_TICKET_EVENT` | off — nowhere |
+| recruit ticket | `SERV_RECRUIT_EVENT_BASE` | off — nowhere |
+| wedding / couple items | `ADDED_RELATIONSHIP_SYSTEM` | off — nowhere |
+| VIP warp pass | `SERV_VIP_SYSTEM` | off — CN |
+| unlimited 2nd job change | `SERV_UNLIMITED_SECOND_CHANGE_JOB` | off — CN/EU |
+
+So `INVENTORY_SLOT_ADD_ITEM_*_EVENT`, `GOLD_TICKET_*` and the rest that this
+phase's diagnosis listed are **not one list**: only the first is reachable here.
+Nothing was written for the eight off families — this client cannot produce
+them.
+
+**Three more named families never take route A at all**, which the diagnosis
+warned about and which is worth writing down so the next reader does not chase
+them: the skill-reset medals (`INIT_SKILL_TREE_*`, `RURIEL_RESET_SKILL_ITEM`)
+send `EGS_INIT_SKILL_TREE_REQ` via `UIM_SKILL_INIT_OK`
+([X2UIInventory.cpp:1367](X2Lib/X2UIInventory.cpp#L1367)), the guild-skill
+medal sends `EGS_INIT_GUILD_SKILL_TREE_REQ` ([`:2599`](X2Lib/X2UIInventory.cpp#L2599)),
+and the Nasod scope, the guild-create stone and the pet-name card all open a
+dialog that sends something else entirely.
+
+**And one the diagnosis got backwards.** It says "the warp scrolls open a
+village menu"; the six `WARP_ITEM_*_ITEM_ID` scrolls do not — they pop a yes/no
+box and `UIM_ITEM_USE_WARP` sends route A ([`:2036`](X2Lib/X2UIInventory.cpp#L2036)).
+It is `WARP_ITEM_FREE_ITEM_ID` / `WARP_ITEM_ED_CONSUMPTION_ITEM_ID` that open
+the menu — and those send route A too, one step later, through
+`UIM_WARP_DEST_OK` ([`:2502`](X2Lib/X2UIInventory.cpp#L2502)).
+
+#### What was implemented
+
+Four families, all in `Handler_EGS_USE_ITEM_IN_INVENTORY_REQ`, laid out in the
+server's own order: validate everything before the consume, apply everything
+after the reply.
+
+- **Village-return scrolls** — 109995 Ruben, 109996 Elder, 109997 Besma,
+  109998 Altera, 110832 Peita, 110847 Velder. The whole effect is the ACK's
+  `m_iWarpPointMapID`: the client checks it against `IsValidWarpField` and
+  drives the state change itself ([X2UIInventory.cpp:8935-8960](X2Lib/X2UIInventory.cpp#L8935)).
+  No `CheckEnterTheVillage`, for the reason `Handler_EGS_WARP_BY_BUTTON_REQ`
+  already wrote down: this build trusts the client's own destination list
+  rather than rebuilding a level/dungeon-clear gate it has no data for.
+
+- **The two Cobo Express passes** — 215660 free, 112323 ED. **These are the one
+  route-A family that is not consumed**: the live handler sets `bNotDeleteItem`
+  for both ([GSUserInventory.cpp:4008](KncWX2Server/GameServer/GSUserInventory.cpp#L4008)).
+  They are passes, not tickets. The destination arrives in `m_iTempCode`, the
+  same-map / not-a-Cobo-pair refusal is transcribed from `:4024-4033`, and the
+  fare comes from `CX2OfflineMapData::ComputeCOBOExpressTicketCost` — the
+  machinery phase 13 already stood up for the B button, reused verbatim.
+
+- **The six inventory-expansion event items** — 60002281..60002286. Cap checked
+  before the consume (`ERR_BUY_CASH_ITEM_19`, the live code at `:4397`), then
+  `ExpandCategorySlot` and **`EGS_EXPAND_BANK_SLOT_NOT`**. That last one is the
+  non-obvious half: despite the name it is the general "a category grew" push
+  ([GSUserGameCommon.cpp:6205-6240](KncWX2Server/GameServer/GSUserGameCommon.cpp#L6205)
+  routes `EGS_USE_ITEM_IN_INVENTORY_REQ`'s expansion to it), and the client's
+  handler adds to `GetItemMaxNum` for whichever category it names
+  ([X2UIInventory.cpp:3253-3282](X2Lib/X2UIInventory.cpp#L3253)). Without it
+  the slots exist in `els_db.sql` and the bag draws the old size until relog.
+
+- **The pet auto-looting item** — 500720, and **the only one of the four the
+  offline shop already sells**, so it is the one to test first.
+  `KGSUser::CanIUseTheAutoLootingItem` ([GSUserFunction.cpp:2848](KncWX2Server/GameServer/GSUserFunction.cpp#L2848))
+  transcribed: the pet must exist (`ERR_PET_26`), be past the egg stage
+  (`ERR_PET_27`), and not already have the skill (`ERR_PET_28`). The egg test
+  has an exception for a pet born fully grown — `CXSLPetManager::IsEvolutionExceptionPet`
+  is "exactly one growth stage and it is stage 3"
+  ([XSLPetManager.cpp:1191](KncWX2Server/Common/X2Data/XSLPetManager.cpp#L1191)),
+  and the *client's* `PetTemplet::m_vecPetStatus` carries the same vector, so
+  this is the same test rather than a port of a server-only table. The
+  `unit_pet.auto_looting` column has existed since phase 7; nothing migrated.
+
+#### What is refused, by name, with the item intact
+
+Per this phase's own rule that a refusal naming the missing system is a
+finished outcome and not a deferral. All of them answer
+`ERR_USE_ITEM_IN_INVENTORY_03` ("this item cannot be used from the inventory")
+and log which subsystem is absent:
+
+| item(s) | missing system |
+|---|---|
+| 99380 `SI_BANK_MEMBERSHIP_UPGRADE` | the account bank — `EGS_GET_SHARE_BANK_REQ` already answers size 0 |
+| 160060–160067 `SI_PSHOP_AGENCY_*` | the private-shop agency |
+| 209660 nickname-change card | renaming a character; `Handlers_Unit.cpp` has no rename path and the live effect is `DBE_DELETE_NICK_NAME_REQ` → character select |
+| 110859 guild cash skill | guilds — the live effect is a packet to the **Login** server |
+| 90002300 halloween transform potion | `PetData.lua`'s `AddTransformPetItemInfo` rows, which `CX2OfflinePetData` binds as a no-op stub ([X2OfflinePetData.cpp:281](X2Lib/Offline/X2OfflinePetData.cpp#L281)) |
+| the 15-odd `SKILL_POINT_*` / `SKILL_PLUS_ITEM_ID` ids | cash skill points |
+| `ITEM_FOR_SEAL_*` (Phoru stamps) | the seal packets — **phase 39**, and the log line says so |
+
+**The cash-skill-point refusal is the one judgement call in this phase.** The
+diagnosis listed it as cheap ("`CX2OfflineSkill` already tracks CSP"). It does
+not: `X2OfflineServer.cpp:914-916` reports `m_iCSPoint` and `m_iMaxCSPoint` as
+zero on every character on purpose, and `CX2OfflineSkill` pays for every skill
+in plain SP ([X2OfflineSkill.cpp:435](X2Lib/Offline/X2OfflineSkill.cpp#L435)) —
+which is the branch the real server also takes for an account with no
+cash-skill ticket, not a special case. Granting a pool with no way to spend it,
+and no expiry column to store its end date in, is worse than refusing; a real
+implementation is a phase of its own (it would want `settings`, not a
+migration — §0.5 still holds).
+
+#### Route A is now complete against live, for this client
+
+Worth stating because it is checkable. The live `default:` arm
+([`:4873-4924`](KncWX2Server/GameServer/GSUserInventory.cpp#L4873)) does exactly
+two things for an item with no named case: unseal a skill, and extend an
+already-owned periodic title. Both are already offline — phase 21's unseal and
+phase 6's `CX2OfflineTitle::OnUseItem`, which is also how a *new* title item
+works on live (it completes a `TMCT_USE_ITEM` title mission; the use-item
+switch never grants one directly). So every route-A item is now either
+implemented, refused by name, or lands in a `default:` that does the same
+nothing live's does.
+
+#### Two other changes
+
+- **The success log line is now the census line.** It carries the item's type,
+  special-ability count and buff-factor count as well as its ID, so
+  `grep "ITEM     used item" offline_server.log` answers §0.9's route question
+  for anything a future session uses. This replaces the temporary
+  `SERV_IRUHADEV_*_DEBUG` diagnostic the phase called for — one line per bag
+  use is not per-frame logging, and a permanent census beats a throwaway one.
+- **`EGS_RESOLVE_ITEM_REQ` deleted from the ignore list** (§0.7's cleanup). It
+  was listed *and* dispatched to a real handler; dispatch wins, so behaviour
+  was right and the list was lying.
+
+#### Exit test — owed
+
+The save holds none of these items, so this needs items put in the bag first
+(the cash-shop tool, or a `cash_product` row). In priority order:
+
+1. **500720 pet auto-looting** — already purchasable. Summon a pet past the egg
+   stage, use the item, confirm it picks drops up, and
+   `select pet_uid, auto_looting from unit_pet;`. Then use a second one and
+   confirm it is **refused with the item still in the bag** (`ERR_PET_28`).
+2. **60002281** (or any of the six) — bag grows by 8 slots **without a relog**,
+   and `select category, size from inventory_size;` agrees.
+3. **109995** in a village other than Ruben — the client warps.
+4. **112323 / 215660** — pick a destination, confirm the warp happens, the ED
+   drops by the Cobo fare (0 for 215660), and **the pass is still in the bag**.
+5. Any refused item — still in the bag, and `grep "left in the bag"
+   offline_server.log` names the system.
 
 ---
 

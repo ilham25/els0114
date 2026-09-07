@@ -30,6 +30,7 @@
 
 #include "X2OfflineInventory.h"
 #include "X2OfflineSkill.h"
+#include "X2OfflineMapData.h"		///< phase 37: the two Cobo Express passes
 
 //{{ Iruha : 2026-09-08 // phase 36 - the level-up scrolls
 // The server's own names and values, CXSLItem::EI_CHAR_LEVEL_UP_ITEM and
@@ -40,6 +41,256 @@
 // X2Define.h, which is a studio header inside every project's PCH.
 static const int CHAR_LEVEL_UP_ITEM_ID		= 160267;	///< "Philosopher's Scroll"
 static const int CHAR_LEVEL_UP_ITEM_ID_2	= 60004276;	///< the Rena-event scroll; dead on live, see below
+//}}
+
+//{{ Iruha : 2026-09-08 // phase 37 - route A, the rest of the item-use switch
+// Scope came from crossing two lists, not from item names
+// (OFFLINE_MODE_PHASE36_PLAN.md 0.1 and 0.9):
+//
+//   * what the US client can actually SEND as EGS_USE_ITEM_IN_INVENTORY_REQ:
+//     CX2UIInventory::OnRClickedItem's switch (X2UIInventory.cpp:6119-6894)
+//     plus the message boxes it routes through before sending
+//     (UIM_ITEM_USE_WARP :2036, UIM_WARP_DEST_OK :2502,
+//      UIM_SKILL_PLUS_ITEM_USE :2049, UIM_USE_EXPAND_INVENTORY_OK :2839,
+//      UIM_PET_DROP_ITEM_PICK_UP_OK :2707, UIM_ITEM_USE_TITLE :1394,
+//      UIM_CHANGE_NICK_NAME_OK :1380, UIM_ITEM_USE_SKILL_UNSEAL :1407) -
+//     with every case struck out whose flag is off in US_SERVICE. Gold
+//     tickets, character-slot cards, the tour ticket, the recruit ticket, the
+//     wedding items and the VIP passes are all in that struck-out set, so
+//     nothing below mentions them: this client cannot produce them.
+//     Several other cases never reach route A at all - the skill-reset medals
+//     send EGS_INIT_SKILL_TREE_REQ, the Nasod scope opens the chat box, the
+//     guild-create stone opens the guild dialog.
+//
+//   * what the LIVE server does with what arrives: the validation arm at
+//     GSUserInventory.cpp:3979 and the effect arm at :4556. Nothing above
+//     line 4938 is quoted - the second copy of both is inside an #else AND
+//     commented out (0.2).
+//
+// Four families the client can send and this build used to eat in silence are
+// answered below - the village-return scrolls, the two Cobo Express passes,
+// the six inventory-expansion event items, and the pet auto-looting item. The
+// rest need a subsystem that does not exist offline and are refused BY NAME
+// with the item left in the bag, which is this phase's finished outcome for
+// them rather than a deferral.
+//
+// IDs the client has no constant of its own for, taken from CXSLItem. Local
+// to this file for the same reason the phase-36 pair is: X2Define.h is a
+// studio header inside every project's precompiled header.
+static const int BANK_MEMBERSHIP_UPGRADE_ITEM_ID	= 99380;	///< CXSLItem::SI_BANK_MEMBERSHIP_UPGRADE (XSLItem.h:839)
+static const int PSHOP_AGENCY_ITEM_ID_FIRST			= 160060;	///< CXSLItem::SI_PSHOP_AGENCY_1_DAY   (XSLItem.h:884)
+static const int PSHOP_AGENCY_ITEM_ID_LAST			= 160067;	///< CXSLItem::SI_PSHOP_AGENCY_30_DAYS (XSLItem.h:891)
+
+/// CXSLInventory::SLOT_COUNT_ONE_LINE (XSLInventory.h:54) - how many slots one
+/// expansion card is worth. Handlers_Shop.cpp keeps its own copy of the same
+/// constant for the cash cards, and for the same reason: XSLInventory.h is not
+/// on X2Lib's include path.
+static const int EXPAND_ONE_LINE_SLOTS				= 8;
+
+namespace
+{
+	/// GSUserInventory.cpp:4060-4068, transcribed. A village-return scroll
+	/// carries its destination in its item ID and nothing else; 0 means the
+	/// item is not one.
+	int WarpVillageForScroll( int iItemID )
+	{
+		switch( iItemID )
+		{
+		case WARP_ITEM_RUBEN_ITEM_ID:				return SEnum::VMI_RUBEN;
+		case WARP_ITEM_ELDER_ITEM_ID:				return SEnum::VMI_ELDER;
+		case WARP_ITEM_BESMA_ITEM_ID:				return SEnum::VMI_BESMA;
+		case WARP_ITEM_ALTERA_ITEM_ID:				return SEnum::VMI_ALTERA;
+		case WARP_ITEM_PEITA_DUNGEON_GATE_ITEM_ID:	return SEnum::VMI_PEITA;
+		case WARP_ITEM_VELDER_ITEM_ID:				return SEnum::VMI_VELDER;
+		default:									return 0;
+		}
+	}
+
+	/// The two Cobo Express passes - CXSLItem::SI_USE_FREE_BY_FIELD (215660)
+	/// and SI_USE_COBO_EXPRESS_TICKET (112323). These are the only route-A
+	/// items that are NOT consumed: the live handler sets bNotDeleteItem for
+	/// both (GSUserInventory.cpp:4008) and passes it into
+	/// KInventory::UseItemInInventory. They are passes, not tickets - the ED
+	/// one charges a fare each time and stays in the bag.
+	///
+	/// The client sends the destination map ID in m_iTempCode, out of
+	/// CX2UIInventory::UseWarpItem -> CreateWarpDest -> UIM_WARP_DEST_OK
+	/// (X2UIInventory.cpp:2502).
+	bool IsWarpPassItem( int iItemID, OUT bool& bCostsED )
+	{
+		if( WARP_ITEM_FREE_ITEM_ID == iItemID )
+		{
+			bCostsED = false;
+			return true;
+		}
+
+		if( WARP_ITEM_ED_CONSUMPTION_ITEM_ID == iItemID )
+		{
+			bCostsED = true;
+			return true;
+		}
+
+		bCostsED = false;
+		return false;
+	}
+
+	/// The six SERV_EXPAND_INVENTORY_BY_EVENT_ITEM ids, which is the only one
+	/// of the three expansion families the US client can right-click - the
+	/// cash cards go through the shop claim instead (Handlers_Shop.cpp's own
+	/// ExpandedCategoryOf, which covers both sets). ST_NONE means "not one".
+	int ExpandEventCategoryOf( int iItemID )
+	{
+		switch( iItemID )
+		{
+		case INVENTORY_SLOT_ADD_ITEM_EQUIP_EVENT:		return CX2Inventory::ST_EQUIP;
+		case INVENTORY_SLOT_ADD_ITEM_ACCESSORY_EVENT:	return CX2Inventory::ST_ACCESSORY;
+		case INVENTORY_SLOT_ADD_ITEM_QUICK_SLOT_EVENT:	return CX2Inventory::ST_QUICK_SLOT;
+		case INVENTORY_SLOT_ADD_ITEM_MATERIAL_EVENT:	return CX2Inventory::ST_MATERIAL;
+		case INVENTORY_SLOT_ADD_ITEM_QUEST_EVENT:		return CX2Inventory::ST_QUEST;
+		case INVENTORY_SLOT_ADD_ITEM_SPECIAL_EVENT:		return CX2Inventory::ST_SPECIAL;
+		default:										return CX2Inventory::ST_NONE;
+		}
+	}
+
+	/// The cash-skill-point family ("Gnosis' Blessing" and its dozen reissues).
+	/// The live effect is DBE_INSERT_CASH_SKILL_POINT_REQ with the point count
+	/// and period out of CXSLItemManager::GetItemCSPoint /
+	/// GetItemCSPointPeriod (XSLItemManager.cpp:2216, :2286).
+	///
+	/// The list is the client's own, from the two switches it gates the item
+	/// behind (X2UIInventory.cpp:6049-6107 and :6662-6714) under the same
+	/// #ifdefs, so the two stay in lockstep if a flag ever changes.
+	bool IsCashSkillPointItem( int iItemID )
+	{
+		switch( iItemID )
+		{
+#ifdef SKILL_PLUS_ITEM_USE_POPUP
+		case SKILL_PLUS_ITEM_ID:
+		case SKILL_POINT_60_7DAY_USE_INVEN_2:
+#ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
+		case SKILL_POINT_130_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
+#endif SKILL_PLUS_ITEM_USE_POPUP
+		case SKILL_POINT_5_USE_INVEN_ITEM_ID:
+		case SKILL_POINT_5_USE_INVEN_ITEM_ID_7_DAY:
+		case SKILL_POINT_10_USE_INVEN_ITEM_ID:
+		case SKILL_POINT_5_USE_INVEN_ITEM_ID_15_DAY:
+		case SKILL_POINT_5_USE_INVEN_ITEM_ID_30_DAY:
+		case SKILL_POINT_5_USE_INVEN_ITEM_ID_60_DAY:
+		case SKILL_POINT_10_USE_INVEN_ITEM_ID_30_DAY:
+#ifdef UPGRADE_SKILL_SYSTEM_2013
+		case SKILL_POINT_30_USE_INVEN_ITEM_ID_15_DAY:
+		case SKILL_POINT_60_USE_INVEN_ITEM_ID_15_DAY:
+		case SKILL_POINT_30_USE_INVEN_ITEM_ID_30_DAY:
+		case SKILL_POINT_60_USE_INVEN_ITEM_ID_30_DAY:
+#endif // UPGRADE_SKILL_SYSTEM_2013
+#ifdef SERV_US_GNOSIS
+		case EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_US_GNOSIS
+			return true;
+
+		default:
+			return false;
+		}
+	}
+
+	/// The Phoru stamps. They belong to the seal packets, not to this one -
+	/// EGS_SEAL_ITEM_REQ / EGS_UNSEAL_ITEM_REQ, which are phase 39. The client
+	/// only right-clicks one by accident (its own switch has no case for them,
+	/// so they fall to `default:` at X2UIInventory.cpp:6890), and eating one
+	/// here would destroy a stamp for nothing.
+	bool IsSealStampItem( int iItemID )
+	{
+		switch( iItemID )
+		{
+#ifdef SEAL_ITEM
+		case ITEM_FOR_SEAL_NORMAL:
+		case ITEM_FOR_SEAL_RARE:
+		case ITEM_FOR_SEAL_ELITE:
+		case ITEM_FOR_SEAL_UNIQUE:
+		case ITEM_FOR_SEAL_NORMAL_EVENT:
+		case ITEM_FOR_SEAL_ELITE_EVENT:
+#ifdef CHILDRENS_DAY_EVENT_ITEM
+		case ITEM_FOR_SEAL_UNIQUE_EVENT:
+#endif //CHILDRENS_DAY_EVENT_ITEM
+			return true;
+#endif SEAL_ITEM
+
+		default:
+			return false;
+		}
+	}
+
+	/// Families the US client can send but this build cannot honour. Returns
+	/// the name of the missing system, or NULL when the item is not one of
+	/// them.
+	///
+	/// Refusing by name with the item intact is the finished outcome for these
+	/// (phase 37's "anything needing a system that does not exist offline"),
+	/// not a deferral - and it is what keeps the batch's first rule: never
+	/// consume an item for nothing, because a consumed item is unrecoverable
+	/// player data and a refusal is a bug report.
+	const wchar_t* RouteAUnsupportedSystem( int iItemID )
+	{
+		// The private-shop agency, GSUserInventory.cpp:4627-4642. Eight
+		// consecutive ids, one per rental length.
+		if( PSHOP_AGENCY_ITEM_ID_FIRST <= iItemID && iItemID <= PSHOP_AGENCY_ITEM_ID_LAST )
+			return L"the private-shop agency, which is not modelled offline";
+
+		// Cash skill points. The offline build deliberately reports zero of
+		// them on every character (X2OfflineServer.cpp:914-916) and
+		// CX2OfflineSkill pays for every skill in plain SP
+		// (X2OfflineSkill.cpp:435) - which is the branch the real server also
+		// takes for an account with no cash-skill ticket, not a special case.
+		// Granting a pool with no way to spend it, and no expiry column to
+		// store its end date in, would be worse than refusing.
+		if( true == IsCashSkillPointItem( iItemID ) )
+			return L"cash skill points, which offline does not model (every skill is paid in plain SP)";
+
+		if( true == IsSealStampItem( iItemID ) )
+			return L"the seal packets, which are phase 39 - use the stamp from the seal UI, not by right-click";
+
+		switch( iItemID )
+		{
+		// The account bank. EGS_GET_SHARE_BANK_REQ already answers with a size
+		// of zero because nothing offline stores one (Handlers_Social.cpp's
+		// Handler_EGS_GET_SHARE_BANK_REQ), so expanding it by a line
+		// (GSUserInventory.cpp:4569-4582) would grow a container that is not
+		// there.
+		case BANK_MEMBERSHIP_UPGRADE_ITEM_ID:
+			return L"the account bank, which is not modelled offline";
+
+		// Renaming a character. The live effect is DBE_DELETE_NICK_NAME_REQ
+		// (GSUserInventory.cpp:4558-4566): the name becomes __DELETED__, the
+		// client is thrown back to character select and renames there. Neither
+		// half exists offline - Handlers_Unit.cpp has no rename path - so the
+		// card would be eaten for a name that never changes.
+		case NICKNAME_CHANGE_CARD_ITEM_ID:
+			return L"renaming a character, which has no offline path";
+
+#ifdef GUILD_SKILL
+		// Guild cash skill points, granted by the LOGIN server
+		// (ELG_INSERT_GUILD_CASH_SKILL_POINT_NOT, GSUserInventory.cpp:4586).
+		// There are no guilds offline.
+		case GUILD_CASH_SKILL_ITEM_ID:
+			return L"guild skills, which are not modelled offline";
+#endif GUILD_SKILL
+
+#ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
+		// KGSUser::UseTransformItem picks the replacement pet ID out of
+		// PetData.lua's AddTransformPetItemInfo rows, and CX2OfflinePetData
+		// binds that call as a no-op stub (X2OfflinePetData.cpp:281) - so the
+		// before/after pet IDs the effect needs are stored nowhere in this
+		// build. Not a missing file: a table this build chose not to keep.
+		case HALLOWEEN_TRANSFORM_POSION:
+			return L"pet transformation (PetData.lua's AddTransformPetItemInfo rows are not stored)";
+#endif SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
+
+		default:
+			return NULL;
+		}
+	}
+}
 //}}
 
 //////////////////////////////////////////////////////////////////////////
@@ -417,17 +668,327 @@ bool CX2OfflineServer::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( KOfflineSession& k
 	}
 	//}}
 
+	//{{ Iruha : 2026-09-08 // phase 37 - route A, decided before anything is eaten
+	// The live handler splits every family across two arms and does all of its
+	// deciding in the first one, before the item is touched
+	// (GSUserInventory.cpp:3979). Same shape here: everything in this block
+	// decides and refuses, nothing in it consumes.
+
+	// Families that need a subsystem this build does not have. Refused by name
+	// with the item intact - see RouteAUnsupportedSystem above for why that is
+	// the finished answer for them and not a deferral.
+	{
+		const wchar_t* szMissingSystem = RouteAUnsupportedSystem( kRow.m_iItemID );
+		if( NULL != szMissingSystem )
+		{
+			kAck.m_iOK = NetError::ERR_USE_ITEM_IN_INVENTORY_03;
+
+			CX2OfflineLog::Server( L"ITEM     refused item %d - its effect needs %s"
+				L" (the item is left in the bag)", kRow.m_iItemID, szMissingSystem );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+	}
+
+	// The village-return scrolls. Nothing to validate: the whole live
+	// validation case is CheckEnterTheVillage() (GSUserInventory.cpp:4075),
+	// and Handler_EGS_WARP_BY_BUTTON_REQ already settled that this build
+	// trusts the client's own destination list rather than rebuilding a
+	// level/dungeon-clear gate it has no data for - see the comment there. The
+	// scroll's whole effect is the ACK field, so there is nothing after the
+	// consume either.
+	const int iWarpScrollMapID = WarpVillageForScroll( kRow.m_iItemID );
+
+	// The two Cobo Express passes. These are the one route-A family that is
+	// NOT consumed, and the one that charges ED.
+	bool bWarpPassCostsED	= false;
+	const bool bIsWarpPass	= IsWarpPassItem( kRow.m_iItemID, bWarpPassCostsED );
+
+	int		iWarpPassMapID	= 0;
+	int		iWarpPassCost	= 0;
+	int		iWarpPassEDLeft	= 0;
+	bool	bNotDeleteItem	= false;
+
+	if( true == bIsWarpPass )
+	{
+		bNotDeleteItem	= true;						///< GSUserInventory.cpp:4008
+		iWarpPassMapID	= (int)kReq.m_iTempCode;	///< X2UIInventory.cpp:2502 puts the destination here
+
+		KOfflineUnitRow kUnit;
+		if( 0 == kSes.m_nSelectedUnitUID ||
+			false == CX2OfflineDB::Instance()->LoadUnit( kSes.m_nSelectedUnitUID, kUnit ) )
+		{
+			CX2OfflineLog::Server( L"WARP     pass %d refused - no character selected", kRow.m_iItemID );
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+
+		if( false == CX2OfflineMapData::Instance()->IsLoaded() )
+		{
+			CX2OfflineLog::Server( L"WARP     pass %d refused - MapData.lua not loaded, the"
+				L" destination cannot be checked (the pass is left in the bag)", kRow.m_iItemID );
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+
+		CX2OfflineMapData* pMapData = CX2OfflineMapData::Instance();
+
+		// GSUserInventory.cpp:4024-4033, transcribed: same map, or either end
+		// not a Cobo Express destination, is ERR_UNKNOWN. m_iLastPos is what
+		// Handler_EGS_WARP_BY_BUTTON_REQ uses as the live GetMapID().
+		const int iSrcZone	= pMapData->CheckCOBOExpressTicketMapID( kUnit.m_iLastPos );
+		const int iDestZone	= pMapData->CheckCOBOExpressTicketMapID( iWarpPassMapID );
+
+		if( kUnit.m_iLastPos == iWarpPassMapID || 0 == iSrcZone || 0 == iDestZone )
+		{
+			kAck.m_iOK = NetError::ERR_UNKNOWN;
+
+			CX2OfflineLog::Server( L"WARP     pass %d refused - %d -> %d is not a valid COBO"
+				L" Express pair (the pass is left in the bag)",
+				kRow.m_iItemID, kUnit.m_iLastPos, iWarpPassMapID );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+
+		// Only the ED pass pays a fare; the free pass is the whole point of
+		// being the free pass (GSUserInventory.cpp:4034-4042).
+		if( true == bWarpPassCostsED )
+		{
+			iWarpPassCost = pMapData->ComputeCOBOExpressTicketCost(
+				kUnit.m_iLastPos, iWarpPassMapID, kUnit.m_iLevel );
+
+			if( kUnit.m_iED < iWarpPassCost )
+			{
+				kAck.m_iOK = NetError::ERR_USE_ITEM_IN_INVENTORY_08;
+
+				CX2OfflineLog::Server( L"WARP     pass %d refused - %d ED needed, %d held",
+					kRow.m_iItemID, iWarpPassCost, kUnit.m_iED );
+
+				return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+			}
+		}
+
+		// Charged here rather than after the consume, because there is no
+		// consume for a pass and the ACK has to carry the new balance either
+		// way - the client ASSIGNS m_iED over the wallet.
+		kUnit.m_iED -= iWarpPassCost;
+		CX2OfflineDB::Instance()->SaveProgress( kUnit.m_nUnitUID, kUnit.m_iLevel,
+			kUnit.m_iEXP, kUnit.m_iED );
+
+		iWarpPassEDLeft = kUnit.m_iED;
+	}
+
+	// The six inventory-expansion event items. The live validation is
+	// KInventory::IsAbleToExpandSlot (GSUserInventory.cpp:4397); offline the
+	// same question is "is this category already at INVENTORY_SLOT_MAX_NUM",
+	// which is what CX2OfflineInventory::ExpandCategorySlot caps against and
+	// reports as a grant of zero. Asked here so a card at the cap is refused
+	// rather than eaten for nothing.
+	const int iExpandCategory = ExpandEventCategoryOf( kRow.m_iItemID );
+
+	if( CX2Inventory::ST_NONE != iExpandCategory )
+	{
+		if( pInven->GetSlotSize( iExpandCategory ) >= INVENTORY_SLOT_MAX_NUM )
+		{
+			kAck.m_iOK = NetError::ERR_BUY_CASH_ITEM_19;
+
+			CX2OfflineLog::Server( L"ITEM     refused item %d - category %d is already at the"
+				L" %d-slot cap (the card is left in the bag)",
+				kRow.m_iItemID, iExpandCategory, INVENTORY_SLOT_MAX_NUM );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+	}
+
+	// The pet auto-looting item. KGSUser::CanIUseTheAutoLootingItem
+	// (GSUserFunction.cpp:2848-2876), transcribed: the pet has to exist, be
+	// past the egg stage, and not already have the skill. The pet UID arrives
+	// in m_iTempCode, and the client applies the result off the same field in
+	// its ACK handler (X2UIInventory.cpp:8987).
+	const bool bIsPetAutoLootItem = ( ACTIVATION_DROP_ITEM_PICKUP_SKILL == kRow.m_iItemID );
+
+	KOfflinePetRow	kAutoLootPet;
+	bool			bAutoLootPetFound = false;
+
+	if( true == bIsPetAutoLootItem )
+	{
+		std::vector< KOfflinePetRow > vecPet;
+		CX2OfflineDB::Instance()->LoadPets( kSes.m_nSelectedUnitUID, vecPet );
+
+		for( size_t i = 0; i < vecPet.size(); ++i )
+		{
+			if( vecPet[i].m_nPetUID == (__int64)kReq.m_iTempCode )
+			{
+				kAutoLootPet		= vecPet[i];
+				bAutoLootPetFound	= true;
+				break;
+			}
+		}
+
+		if( false == bAutoLootPetFound )
+		{
+			kAck.m_iOK = NetError::ERR_PET_26;
+
+			CX2OfflineLog::Server( L"PET      auto-looting item %d refused - this character owns no"
+				L" pet with UID %I64d (the item is left in the bag)",
+				kRow.m_iItemID, (__int64)kReq.m_iTempCode );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+
+		// CXSLPetManager::IsEvolutionExceptionPet (XSLPetManager.cpp:1180-1192)
+		// is "this pet has exactly one growth stage and it is stage 3", i.e. a
+		// pet that is born fully grown and so has no egg stage to be stuck in.
+		// The client's own templet carries the same vector, so this is the same
+		// test rather than a port of a server-only table.
+		if( 0 == kAutoLootPet.m_iEvolutionStep )
+		{
+			bool bEvolutionException = false;
+
+			if( NULL != g_pData && NULL != g_pData->GetPetManager() )
+			{
+				CX2PetManager::PetTemplet* pPetTemplet = g_pData->GetPetManager()->GetPetTemplet(
+					static_cast< CX2PetManager::PET_UNIT_ID >( kAutoLootPet.m_iPetID ) );
+
+				if( NULL != pPetTemplet &&
+					1 == pPetTemplet->m_vecPetStatus.size() &&
+					3 == pPetTemplet->m_vecPetStatus.front() )
+				{
+					bEvolutionException = true;
+				}
+			}
+
+			if( false == bEvolutionException )
+			{
+				kAck.m_iOK = NetError::ERR_PET_27;
+
+				CX2OfflineLog::Server( L"PET      auto-looting item %d refused - pet %I64d (id %d) is"
+					L" still an egg (the item is left in the bag)",
+					kRow.m_iItemID, kAutoLootPet.m_nPetUID, kAutoLootPet.m_iPetID );
+
+				return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+			}
+		}
+
+		if( true == kAutoLootPet.m_bAutoLooting )
+		{
+			kAck.m_iOK = NetError::ERR_PET_28;
+
+			CX2OfflineLog::Server( L"PET      auto-looting item %d refused - pet %I64d already picks"
+				L" items up (the item is left in the bag)",
+				kRow.m_iItemID, kAutoLootPet.m_nPetUID );
+
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+		}
+	}
+	//}}
+
+	//{{ Iruha : 2026-09-08 // phase 37 - the consume, which one family skips
+	// Every route-A item is eaten except the two Cobo Express passes: the live
+	// handler hands bNotDeleteItem into KInventory::UseItemInInventory for
+	// those (GSUserInventory.cpp:4008), so they stay in the bag and no slot
+	// info goes back - nothing about the slot changed.
 	KInventoryItemInfo kSlotInfo;
-	if( false == pInven->ConsumeOne( kReq.m_iItemUID, kSlotInfo ) )
-		return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+
+	if( false == bNotDeleteItem )
+	{
+		if( false == pInven->ConsumeOne( kReq.m_iItemUID, kSlotInfo ) )
+			return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+	}
+	//}}
 
 	kAck.m_iOK			= NetError::NET_OK;
 	kAck.m_iUsedItemID	= kRow.m_iItemID;
-	kAck.m_vecKInventorySlotInfo.push_back( kSlotInfo );
 
-	CX2OfflineLog::Server( L"ITEM     used item %d from the bag", kRow.m_iItemID );
+	//{{ Iruha : 2026-09-08 // phase 37 - the ACK fields the warp families are
+	// entirely made of. CX2UIInventory::Handler_EGS_USE_ITEM_IN_INVENTORY_ACK
+	// reads m_iWarpPointMapID, checks it with IsValidWarpField and drives the
+	// state change itself (X2UIInventory.cpp:8935-8960) - there is no _NOT and
+	// nothing to store, because the EGS_STATE_CHANGE_FIELD_REQ the client sends
+	// next already goes through SaveLastPosition (Handlers_Field.cpp). This is
+	// the same conclusion Handler_EGS_WARP_BY_BUTTON_REQ reached for the B
+	// button.
+	if( false == bNotDeleteItem )
+		kAck.m_vecKInventorySlotInfo.push_back( kSlotInfo );
+
+	if( 0 != iWarpScrollMapID )
+	{
+		kAck.m_iWarpPointMapID = iWarpScrollMapID;
+
+		CX2OfflineLog::Server( L"WARP     scroll %d -> village map %d",
+			kRow.m_iItemID, iWarpScrollMapID );
+	}
+	else if( true == bIsWarpPass )
+	{
+		kAck.m_iWarpPointMapID	= iWarpPassMapID;
+		kAck.m_iED				= iWarpPassEDLeft;
+
+		CX2OfflineLog::Server( L"WARP     pass %d -> map %d, cost=%d, ED now %d (the pass is not"
+			L" consumed)", kRow.m_iItemID, iWarpPassMapID, iWarpPassCost, iWarpPassEDLeft );
+	}
+	//}}
+
+	// Phase 37 turned this into the census line the phase asked for: one line
+	// per bag use, carrying the three facts that settle which route an item
+	// takes and whether it has an in-game effect of its own
+	// (OFFLINE_MODE_PHASE36_PLAN.md 0.9). `grep "ITEM     used item"` over
+	// offline_server.log is the scope list for any future work here.
+	CX2OfflineLog::Server( L"ITEM     used item %d from the bag (type %d, %u ability,"
+		L" %u buff factor(s))",
+		kRow.m_iItemID, (int)pTemplet->GetItemType(),
+		pTemplet->GetNumSpecialAbility(), pTemplet->GetNumBuffFactorPtr() );
 
 	Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+
+	//{{ Iruha : 2026-09-08 // phase 37 - inventory expansion, and the pet skill
+	// Both are effects the ACK cannot carry, so both follow it - the same
+	// ordering the three phase-19/21/22 _NOTs below already use.
+
+	// GSUserInventory.cpp:4805-4870 sends DBE_EXPAND_INVENTORY_SLOT_REQ, and
+	// the reply to that goes out as EGS_EXPAND_BANK_SLOT_NOT for exactly this
+	// event ID (GSUserGameCommon.cpp:6205-6240). Despite the name that _NOT is
+	// the general "a category grew" notification: the client's handler walks
+	// m_mapExpandedCategorySlot and adds to GetItemMaxNum for whichever
+	// category it names (X2UIInventory.cpp:3253-3282). Without it the slots
+	// exist in els_db.sql and the bag still draws the old size until relog.
+	if( CX2Inventory::ST_NONE != iExpandCategory )
+	{
+		int iGranted = 0;
+		pInven->ExpandCategorySlot( iExpandCategory, EXPAND_ONE_LINE_SLOTS, iGranted );
+
+		if( iGranted > 0 )
+		{
+			KEGS_EXPAND_BANK_SLOT_NOT kNot;
+			kNot.m_mapExpandedCategorySlot[ iExpandCategory ] = iGranted;
+
+			Reply( kSes, EGS_EXPAND_BANK_SLOT_NOT, kNot );
+
+			CX2OfflineLog::Server( L"ITEM     item %d gave category %d %d more slot(s), now %d",
+				kRow.m_iItemID, iExpandCategory, iGranted, pInven->GetSlotSize( iExpandCategory ) );
+		}
+		else
+		{
+			// Cannot happen - the cap was checked before the consume - but if
+			// it ever did, the card is already gone and saying so is the only
+			// useful thing left.
+			CX2OfflineLog::Server( L"ITEM     item %d was consumed but category %d granted no"
+				L" slots - the cap check above should have refused it first",
+				kRow.m_iItemID, iExpandCategory );
+		}
+	}
+
+	// KGSUser::SetAutoLootingPet (GSUserFunction.cpp:2878-2889) plus the DB
+	// write beside it (GSUserInventory.cpp:4741-4748). The client half needs
+	// nothing more than the ACK's m_iTempCode, which was echoed from the
+	// request at the top of this handler.
+	if( true == bIsPetAutoLootItem && true == bAutoLootPetFound )
+	{
+		kAutoLootPet.m_bAutoLooting = true;
+		CX2OfflineDB::Instance()->SavePet( kSes.m_nSelectedUnitUID, kAutoLootPet );
+
+		CX2OfflineLog::Server( L"PET      item %d gave pet %I64d (id %d, \"%s\") the item-pickup skill",
+			kRow.m_iItemID, kAutoLootPet.m_nPetUID, kAutoLootPet.m_iPetID,
+			kAutoLootPet.m_wstrName.c_str() );
+	}
+	//}}
 
 	//{{ Iruha : 2026-09-08 // phase 36 - the level-up itself
 	// GSUserInventory.cpp:4655-4671, transcribed: add the difference up to the

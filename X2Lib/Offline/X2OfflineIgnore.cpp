@@ -58,7 +58,12 @@ namespace
 		// Listed by id rather than by a substring because the names have no
 		// shared token - ITEM_MANUFACTURE, RESOLVE_ITEM, IDENTIFY_ITEM.
 		{ L"EGS_ITEM_MANUFACTURE_REQ",		L"the item workshop is not implemented offline" },
-		{ L"EGS_RESOLVE_ITEM_REQ",			L"the item workshop is not implemented offline" },
+		// EGS_RESOLVE_ITEM_REQ stood here until phase 37. It is dispatched to a
+		// real handler (Handlers_Inventory.cpp's
+		// Handler_EGS_RESOLVE_ITEM_REQ, phase 12) and dispatch wins over this
+		// list, so the behaviour was right and only the list was lying - but an
+		// ignore rule is a promise that nothing is silently dropped, and one
+		// that names a handled packet makes the census unreadable.
 		{ L"EGS_IDENTIFY_ITEM_REQ",			L"the item workshop is not implemented offline" },
 		{ L"EGS_SEAL_ITEM_REQ",				L"the item workshop is not implemented offline" },
 		{ L"EGS_UNSEAL_ITEM_REQ",			L"the item workshop is not implemented offline" },
