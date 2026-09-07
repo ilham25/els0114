@@ -1,4 +1,4 @@
-1. bump level cap to 80
+1. bump level cap to 80 -- DONE (SERV_IRUHADEV_LEVEL_CAP_80, 2026-09-08)
 2. 300% exp buff and 300% drop rate
 3. bots play the dungeon animation only at the start of the dungeon
 4. bots can roam around freely without having to get close by char proximity

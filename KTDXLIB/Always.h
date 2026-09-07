@@ -2601,3 +2601,44 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 #define SERV_IRUHADEV_OFFLINE_DROP_BOOST
 #endif SERV_IRUHADEV_OFFLINE
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-08
+// Description: Raise the client level cap from the US retail 67 to 80.
+//
+//              The cap is a single compile-time constant: Always_US.h:75
+//              defines USE_MAXLEVEL_LIMIT_VAL as `const int g_iMaxLevel =
+//              67;` and X2Game.h:34 / X2UIPersonalShopBoard.h:12 expand it
+//              inside their own namespaces. Redefining the macro here - after
+//              the OnlyGlobal include at line 2492 and before any X2Lib
+//              header sees it - moves both copies at once, and leaves the
+//              studio's own definition standing above as the #else branch.
+//
+//              The data for 80 is already shipped, which is why this is only
+//              a constant:
+//                - ExpTable.lua (packed in data036) carries rows through
+//                  LEVEL = 80, TOTAL_EXP = 986793900 - inside int range.
+//                - StatTable.lua does ReserveMemory( class, 80 ) and has a
+//                  SetUnitStat row at level 80 for every player class, and
+//                  CX2OfflineStatTable::MAX_LEVEL is already 80 to match.
+//                - SkillData.lua's CalcLevelUpIncreaseSkillPoint is a formula
+//                  ( level / 10 + 4 ), not a table, so SP keeps accruing.
+//
+//              Offline mode reads the cap in exactly two places and both
+//              follow automatically: CX2OfflineServer::ApplyDungeonReward
+//              stops levelling at it, and the level-up scroll handler refuses
+//              at it. X2Define.h's LIMIT_MAX_LEVEL (65) is dead - nothing but
+//              comments reference it - so it is deliberately left alone.
+//
+//              A live server would also need GameSysValTable.lua's MAXLevel
+//              raised (SiKGameSysVal()->GetLimitsLevel()); offline has no
+//              GameSysVal and never sends EGS_UPDATE_MAX_LEVEL_NOT, so
+//              CX2InstanceData::m_iMaxLevel just keeps its g_iMaxLevel seed.
+#define SERV_IRUHADEV_LEVEL_CAP_80
+
+#ifdef SERV_IRUHADEV_LEVEL_CAP_80
+#	undef  USE_MAXLEVEL_LIMIT_VAL
+#	define USE_MAXLEVEL_LIMIT_VAL const int g_iMaxLevel = 80;
+#endif SERV_IRUHADEV_LEVEL_CAP_80
+//////////////////////////////////////////////////////////////////////////

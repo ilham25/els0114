@@ -2708,6 +2708,16 @@ void CX2OfflineServer::PushUnitInfoUpdate( KOfflineSession& kSes, UidType nUnitU
 	Reply( kSes, EGS_UPDATE_UNIT_INFO_NOT, kUpdate );
 }
 
+//{{ Iruha : 2026-09-08 // SERV_IRUHADEV_LEVEL_CAP_80
+#ifdef SERV_IRUHADEV_LEVEL_CAP_80
+// Compile-time proof that the USE_MAXLEVEL_LIMIT_VAL redefinition at the end of
+// Always.h actually reached X2Game.h, rather than being dropped by a stale PCH.
+// A negative array bound is a hard error, so a cap that silently stayed at the
+// retail 67 fails the build here instead of quietly shipping.
+typedef char SERV_IRUHADEV_LEVEL_CAP_80_reached[ ( 80 == _CONST_X2GAME_::g_iMaxLevel ) ? 1 : -1 ];
+#endif SERV_IRUHADEV_LEVEL_CAP_80
+//}}
+
 int CX2OfflineServer::ApplyDungeonReward( UidType nUnitUID, int iAddEXP, int iAddED,
 										 OUT int* piOldLevel /*= NULL*/ )
 {

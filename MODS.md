@@ -26,6 +26,7 @@ column.
 | `SERV_IRUHADEV_JOBCHANGE_PORTRAIT` | 2026-09-04 | `KTDXLIB/Always.h:2513` | `X2Lib/X2UIQuestNew.cpp:8`, `X2Lib/X2UIQuestNew.cpp:1516`, `X2Lib/X2UIQuestNew.cpp:2043` | -- |
 | `SERV_IRUHADEV_MP_REGEN_BOOST` | 2026-09-04 | `KTDXLIB/Always.h:2538` (rate constant in `X2Lib/X2Define.h:1802`) | `X2Lib/X2GUUser.cpp:1829`, `X2Lib/X2GUUser.cpp:3654`, `X2Lib/X2GUUser.cpp:3726`, `X2Lib/X2GageManager.cpp:50` | -- |
 | `SERV_IRUHADEV_AIPARTY_PERSIST` | 2026-09-06 | `KTDXLIB/Always.h:2560` (nested under `SERV_IRUHADEV_OFFLINE`) | `X2Lib/X2Game.h:660-675`, `X2Lib/X2Game.cpp:197-199`, `X2Lib/X2Game.cpp:4958-4999`, `X2Lib/X2Game.cpp:7234` (`GetOfflinePartyBotPos`), `X2Lib/X2Game.cpp:7306` (`IsOfflinePartyBotUID`), `X2Lib/X2Game.cpp:7347` (`RepositionOfflinePartyBots`), `X2Lib/X2DungeonGame.cpp:685-707`, `X2Lib/X2DungeonGame.cpp:878-885` | -- |
+| `SERV_IRUHADEV_LEVEL_CAP_80` | 2026-09-08 | `KTDXLIB/Always.h:2638` (redefines the studio's `USE_MAXLEVEL_LIMIT_VAL` from `KTDXLIB/OnlyGlobal/Always_US.h:75`) | `X2Lib/X2Game.h:34` and `X2Lib/X2UIPersonalShopBoard.h:12` pick it up by macro expansion; compile-time check in `X2Lib/Offline/Handlers_Room.cpp:2711` | -- |
 
 What each one does:
 
@@ -284,6 +285,55 @@ boost apart from a stale PCH.
 Client-only; no server rebuild. Nothing under `KncWX2Server/Common/` is
 touched, so the wire format is unchanged. Reverting is safe at any time: only
 future gains are scaled, nothing migrates, and the character is untouched.
+
+
+### Level cap 80
+
+**Defined in** `KTDXLIB/Always.h` -- `SERV_IRUHADEV_LEVEL_CAP_80`. It does one
+thing: `#undef`/`#define` the studio's own `USE_MAXLEVEL_LIMIT_VAL` macro, which
+`KTDXLIB/OnlyGlobal/Always_US.h:75` sets to `const int g_iMaxLevel = 67;` for
+US. The redefinition sits at the tail of `Always.h`, i.e. after the
+`OnlyGlobal` include at line 2492 and before any `X2Lib` header is parsed, so
+both places that expand the macro pick up 80: `X2Lib/X2Game.h:34`
+(`_CONST_X2GAME_`) and `X2Lib/X2UIPersonalShopBoard.h:12`
+(`_CONST_UIPERSONALSHOPBOARD_INFO_`). Two headers, one edit, and the studio's
+line is left in place as the value the flag replaces.
+
+**This is data the build already shipped**, which is why it is only a constant:
+
+- `ExpTable.lua` (packed in `data036.kom`; decrypts to `luac` with the 12-byte
+  XOR key) carries rows all the way to `LEVEL = 80`, `TOTAL_EXP = 986793900` --
+  comfortably inside `int`.
+- `KncWX2Server/ServerResource/US/StatTable.lua` does
+  `ReserveMemory( class, 80 )` and has a `SetUnitStat` row at level 80 for every
+  player class, and `CX2OfflineStatTable::MAX_LEVEL` was already 80 to match.
+- `SkillData.lua`'s `CalcLevelUpIncreaseSkillPoint` is a formula
+  (`level / 10 + 4`), not a table, so `CX2OfflineSkill::SkillPointForLevelUp`
+  keeps paying out past 67 without any change.
+
+Everything that reads the cap follows automatically -- the full list is
+`Handlers_Room.cpp`'s `ApplyDungeonReward` (stops levelling at it),
+`Handlers_Inventory.cpp`'s level-up scroll (refuses at it), `X2Game.cpp:8313`
+(the EXP bar's max), `X2InstanceData.cpp:80` (the seed for `m_iMaxLevel`) and
+`X2UIPersonalShopBoard.cpp`'s level filter. `X2Define.h`'s `LIMIT_MAX_LEVEL`
+(65) is dead -- nothing but comments references it -- and is deliberately left
+alone.
+
+`Handlers_Room.cpp` carries a compile-time check next to `ApplyDungeonReward`:
+a negative array bound if `_CONST_X2GAME_::g_iMaxLevel != 80` while the flag is
+defined. That is aimed squarely at the stale-PCH failure mode -- `Always.h` is
+inside every project's precompiled header, so a dropped edit would otherwise
+show up as a cap that silently stayed at 67.
+
+A **live** server would need more than this: `SiKGameSysVal()->GetLimitsLevel()`
+reads `GameSysValTable.lua`'s `MAXLevel`, which is what the comment beside the
+studio's `#define` is warning about. Offline has no `GameSysVal` and never sends
+`EGS_UPDATE_MAX_LEVEL_NOT`, so `CX2InstanceData::m_iMaxLevel` just keeps its
+`g_iMaxLevel` seed and there is nothing else to change.
+
+Client-only; no server rebuild. Nothing under `KncWX2Server/Common/` is touched.
+Reverting is safe for a character at or below 67; a character already past it
+keeps its stored level and EXP, but the EXP bar clamps and further gains stop.
 
 
 ## Reverting to stock
