@@ -971,9 +971,25 @@ Two process notes, both of which cost this phase a compile or a wrong line:
   of `EGS_FIELD_LOADING_COMPLETE_ACK`, which is three-way and resolves to a bare
   `KPacketOK` here.
 
-**Not yet play-tested.** The build is deployed as `X2_offline.exe`
-(14,350,848 bytes, 2026-09-08 19:22). The exit test below still has to be run for
-the attribute case; the item-use case is phase 36's and already passed.
+**Play-tested and passed, 2026-09-08.** Two attribute adds on unitUID=19, both
+*random* rolls off stone 130047 (so the packed lottery ran too - `ATTRIB loaded:
+6 single, 24 dual, 42 triple`), and the ED chain is consistent across two
+subsystems:
+
+```
+[21:05:27] ITEM  attribute slot 0 of item 116934 set to 1 (20 shard(s), 4400 ED, 12534 ED left)
+[21:05:54] SHOP  sold ... 1152 + 648 + 6720 + 1152 + 864  ->  23070 ED total
+[21:06:01] ITEM  attribute slot 1 of item 116934 set to 1 (60 shard(s), 13200 ED, 9870 ED left)
+```
+
+23070 - 13200 = 9870, and `select ed from unit where unit_uid=19` is 9870. Zero
+`UNHANDLED`, zero `EXCEPTION` for the run. Before the fix this field was never
+assigned, so it shipped indeterminate stack bytes - a *random* wallet, not an
+empty one, which is why "the number looks right" is the whole test.
+
+The other three steps of the exit test below need no run: the item-use and box
+cases are phase 36's and already passed, and the dismantle case does not exist in
+this build (`m_iED` is JP-only, see above). **Phase 34 is closed.**
 
 ---
 
