@@ -20,6 +20,7 @@
 !/X2ServerProtocol/
 !/KncWX2Server/
 !/luaLib/
+!/luajitLib/
 !/libxml/
 !/X2CashShopTool/
 !/X2Project_2010.sln
@@ -51,9 +52,14 @@ KNCSDK/KncDebug/*
 
 # ---- build output directories, at any depth inside the scope --------------
 # Release_*/ covers Release_US, Release_EU, Release_CN (1016 .obj in Release_US
-# alone); US_SERVICE/ and US_TEST/ cover another 882.
+# alone); US_SERVICE/, US_TEST/ and US_INTERNAL/ cover another 882. X2TOOL*/ is
+# where X2ServerProtocol and luajitLib land under a US_INTERNAL solution build.
 US_SERVICE/
 US_TEST/
+US_INTERNAL/
+X2TOOL/
+X2TOOL_Release/
+X2TOOL_Debug/
 Release/
 Release_*/
 Debug/

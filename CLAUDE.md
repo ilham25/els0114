@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Full source for **Elsword (internal codename "ProjectX2")** by KOG Studios — the DirectX 9 Windows game client, its five backend servers, and the in-house content tooling. This is the `EU_CN_US` trunk, roughly 2014-era. It was originally a Subversion/VSS working copy (`.vssscc` bindings remain, `.svn` metadata does not) and has since been imported into git as the working repo for local changes — see `MODS.md` for what's been changed since the import, and `VS2003_to_VS2010_Port_Guide.md` for the VS2010 server port.
+Full source for **Elsword (internal codename "ProjectX2")** by KOG Studios — the DirectX 9 Windows game client, its five backend servers, and the in-house content tooling. This is the `EU_CN_US` trunk, roughly 2014-era. It was originally a Subversion/VSS working copy (`.vssscc` bindings remain, `.svn` metadata does not) and has since been imported into git as the working repo for local changes — see `MODS.md` for what's been changed since the import. **The client source was replaced with a March 2014 snapshot on 2026-09-09 (`dd63297`), which overwrote every local edit inside a studio-owned file; re-applying them is in progress — read `MARCH_2014_MIGRATION.md` first.** `VS2003_to_VS2010_Port_Guide.md` documents a VS2010 server port that the March sources have since undone; it is history, not instructions.
 
 **This file documents the US live build only.** The tree carries ~50 configurations for other regions and environments (EU, CN, TW/HK, JP, KR, ID, TH, BR, PH × internal/test/open-test/service). Ignore them unless explicitly asked; they change which publisher, billing, auth, and anti-cheat stack compiles in, and cross-referencing them is how you end up debugging the wrong code path.
 
@@ -12,12 +12,12 @@ Full source for **Elsword (internal codename "ProjectX2")** by KOG Studios — t
 
 **All edits to client code — `X2/`, `X2Lib/`, `KTDXLIB/` — must be wrapped in a custom `#define` named with the `SERV_IRUHADEV_` prefix.** No exceptions, including one-line fixes. This follows the studio's own practice (see *Feature flags* below) and keeps every local change revertible by undefining a single macro.
 
-Define the flag in **`KTDXLIB/Always.h`**. That is the only flag file that reaches all three client projects in a `US_SERVICE` build: `KTDX.h` defines `_ALWAYS_` unconditionally ([KTDX.h:37](KTDXLIB/KTDX.h#L37)) and includes `Always.h` at [KTDX.h:151](KTDXLIB/KTDX.h#L151); `X2Lib` reaches it through `stdafx.h` → `X2Main.h` → `KTDX.h`, and `X2.exe` through `X2.cpp` → `X2/Common/dxstdafx.h` → `X2Main.h`.
+Define the flag in **`KTDXLIB/Always.h`**. That is the flag file that reaches all three client projects unconditionally in a `US_INTERNAL` build: `KTDX.h` defines `_ALWAYS_` unconditionally ([KTDX.h:37](KTDXLIB/KTDX.h#L37)) and includes `Always.h` at [KTDX.h:190](KTDXLIB/KTDX.h#L190); `X2Lib` reaches it through `stdafx.h` → `X2Main.h` → `KTDX.h`, and `X2.exe` through `X2.cpp` → `X2/Common/dxstdafx.h` → `X2Main.h`.
 
 Do **not** define client flags in:
 
 - `KncWX2Server/Common/ServerDefine.h` — that is the shared/server file. It *is* visible inside `X2Lib` (via `X2ServerPacket.h` → `CommonPacket.h:16`), but it is **not** visible inside `KTDXLIB`, and defining a client flag there drags it into the server build too.
-- `KTDXLIB/InHouse1.h`–`InHouse6.h`, `InHouseEtc.h` — these are excluded from `US_SERVICE` entirely, so anything defined there is dead code in this build.
+- `KTDXLIB/InHouse1.h`–`InHouse6.h`, `InHouseEtc.h` — as of the March 2014 snapshot these **are** compiled in (`US_INTERNAL` defines `_IN_HOUSE_`; see *Toolchains*), so a flag put there would now take effect — but they are the studio's per-developer files, they carry ~84 apparent defines whose real state needs the preprocessor to settle, and a flag of ours buried among them is unfindable. Keep ours in `Always.h`.
 
 Pattern to follow — append to the end of `Always.h`, using the house comment block:
 
@@ -44,7 +44,7 @@ And at each call site, keeping the original code reachable in the `#else` branch
 
 One flag per logical change, not one per file. Use the house `#endif SERV_IRUHADEV_FOO` trailing-token style.
 
-If an edit touches `KncWX2Server/Common/` (packet structs, event IDs, shared enums), it is **not** a client-only change — the servers must be rebuilt (via `X2Project_Servers_2010.sln`, or `X2Project_2003.sln` if VS2003 is installed) and the flag must be defined for both sides, or the wire format desyncs silently. See *The client/server contract* below.
+If an edit touches `KncWX2Server/Common/` (packet structs, event IDs, shared enums), it is **not** a client-only change — the servers must be rebuilt (via `X2Project_2003.sln`, which needs a machine with VS2003 — it is **not** installed here) and the flag must be defined for both sides, or the wire format desyncs silently. See *The client/server contract* below.
 
 ## Rule: server-side Lua the client needs is the user's to pack — never band-aid around it
 
@@ -88,10 +88,20 @@ Do:
 
 Do not:
 
-- **Do not write a loose copy into the game directory.** `MASS_FILE_FIRST` makes
-  `LoadDataFile` fall back to a loose file, so this *works* — and then masks a
-  failed repack, leaving nobody able to tell whether the archive is actually
-  right. Delete loose copies once the file is packed.
+- **Do not write a loose copy into the game directory.** Under `US_INTERNAL`
+  this *works*, and works harder than it used to — and then masks a failed
+  repack, leaving nobody able to tell whether the archive is actually right.
+  Delete loose copies once the file is packed.
+  The precedence inverted with the March snapshot, so old notes on this are
+  wrong in both directions. `KGCMassFileManager::LoadDataFile`
+  ([KGCMassFileManager.cpp:878-941](KTDXLIB/KGCMassFileManager.cpp#L878), `#else`
+  at `:915`) branches on `MASS_FILE_FIRST`, which `US_INTERNAL` does **not**
+  define: `:916` calls `LoadRealFile` **unconditionally first**, so a loose file
+  beats the archive every time. With the macro (the old January build) the
+  `.kom` came first and the loose fallback was reached only if the file was
+  absent *and* `_SERVICE_` was undefined (`:890`) — which the old `US_SERVICE`
+  build did define, so back then a loose copy did nothing at all. A miss logs
+  `KEM_ERROR136` now, `KEM_ERROR135` then.
 - **Do not hardcode the table, invent a curve, or approximate a function** to
   paper over a file that has not been packed yet. That is the band-aid: it looks
   like progress, it drifts from the real data, and it hides the missing file.
@@ -168,62 +178,73 @@ Notes that matter in practice:
   linked servers and logins out of anything committed or logged — the same
   handling the `.dsn` files get (see *Cautions*).
 
-## Toolchains — client is VS2010; servers build under either
+## Toolchains — the client is VS2010/`US_INTERNAL`; the servers are VS2003 and unbuildable here
 
-Historically the client and the servers were built with **different versions of Visual Studio**, because the servers didn't build under VS2010 at all. **That changed 2026-08-27**: the five servers now also build under VS2010, via a dedicated solution added by a from-scratch port (see `VS2003_to_VS2010_Port_Guide.md` for exactly what the port did and why — the process is written to be reusable on other old-toolchain codebases, not just this one). VS2010 is the toolchain actually installed in this environment and is the maintained path going forward; VS2003 remains usable for the servers only on a machine that still has it installed.
+**This changed on 2026-09-09, when the client source was replaced with a March 2014 snapshot (`dd63297`).** Two things moved at once: the client's only US configuration is now `US_INTERNAL` (`US_SERVICE` is gone from every `.vcxproj` and `.sln`), and the servers reverted to VS2003 — the VS2010 server port's source fixes were overwritten by the March sources, so `X2Project_Servers_2010.sln` can no longer build and `VS2003_to_VS2010_Port_Guide.md` is now history rather than instructions.
 
 | Target | Solution | Config | Toolchain |
 |---|---|---|---|
-| Client, engine, tools | `X2Project_2010.sln` | `US_SERVICE` | VS2010 (`v100`), Win32, Unicode |
-| The five servers (current) | `X2Project_Servers_2010.sln` | `Release_US` | VS2010 (`v100`), Win32 |
-| The five servers (legacy, needs VS2003 installed) | `X2Project_2003.sln` | `Release_US` | VS2003 (`v70`), Win32 |
+| Client, engine, tools | `X2Project_2010.sln` | **`US_INTERNAL`** | VS2010 (`v100`), Win32, Unicode |
+| `luaLib`, `luajitLib` | (same solution) | **`Release`** | VS2010 (`v100`), Win32 |
+| `X2ServerProtocol` | (same solution) | **`X2TOOL`** | VS2010 (`v100`), Win32 |
+| The five servers | `X2Project_2003.sln` | `Release_US` | VS2003 (`v70`), Win32 — **not installed here** |
 
-`X2Project_Servers_2010.sln` is a **separate solution** from `X2Project_2010.sln`, deliberately — the five server projects are *also* registered in `X2Project_2010.sln`, but under a `US_SERVICE` configuration that is still dead (wrong include paths, source list missing ~50–100 files per project; that config predates the port and was never fixed). Don't build servers from `X2Project_2010.sln`; use `X2Project_Servers_2010.sln`. `X2Project_2003.sln` was left byte-for-byte untouched by the port and remains the toolchain of record if you ever need to cross-check against a VS2003 build. (`KncWX2Server/KncWX2Server_2003.sln` is a narrower VS2003 solution holding only GameServer, CenterServer, and GameClient, with plain Debug/Release configs — unrelated to the port, predates it.)
+**The VS2010 C++ compiler is on `D:`, not `C:`** — `D:\Program Files\VS\Microsoft Visual Studio 10.0\` (registry `HKLM\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VC7` → `10.0`). The `C:\Program Files (x86)\Microsoft Visual Studio 10.0\` tree holds only shell pieces and has no `VC` directory. **VS2003 is not installed at all** (no `SxS\VS7` entry for `7.1`), so the servers cannot be built in this environment — plan around that rather than discovering it mid-task.
 
 ```sh
-# Client — VS2010.
-msbuild X2Project_2010.sln /p:Configuration=US_SERVICE /p:Platform=Win32
-msbuild X2/X2_2010.vcxproj /p:Configuration=US_SERVICE /p:Platform=Win32   # client exe only
+TRUNK="F:/elsword stuff/.../source/EU_CN_US/Trunk"   # must end in a slash when passed
 
-# Servers — VS2010 (current; this is what's actually installed here).
-msbuild X2Project_Servers_2010.sln /p:Configuration=Release_US /p:Platform=Win32
-msbuild KncWX2Server/GameServer/GameServer_2010.vcxproj /p:Configuration=Release_US /p:Platform=Win32   # one server only
-
-# Servers — VS2003 (legacy; devenv, msbuild cannot consume .vcproj). Requires VS2003 installed.
-devenv X2Project_2003.sln /build "Release_US|Win32"
-devenv X2Project_2003.sln /build "Release_US|Win32" /project GameServer
+# Dependencies first, in this order. luajitLib and luaLib are Release; X2ServerProtocol is X2TOOL.
+msbuild luajitLib/luajitLib.vcxproj                    -p:Configuration=Release     -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+msbuild luaLib/luaLib_2010.vcxproj                     -p:Configuration=Release     -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+msbuild X2ServerProtocol/X2ServerProtocol_2010.vcxproj -p:Configuration=X2TOOL      -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+msbuild KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+msbuild X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+msbuild X2/X2_2010.vcxproj                             -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
 ```
+
+`SolutionDir` **must** be passed, with a trailing slash: every `IncludePath` entry for Boost, DXSDK, KNCSDK and freetype is written as `$(SolutionDir)Libs...`, so without it the build dies on `fatal error C1083: Cannot open include file: 'boost/shared_ptr.hpp'` or `'d3dx9.h'`. Use **forward slashes**, and put the trailing slash inside the value (`SolutionDir=F:/.../Trunk/`). A backslash path is an active trap: a trailing `\` before a closing quote escapes the quote, msbuild gets a mangled `SolutionDir`, and the build fails with `C1083: Cannot open include file: 'ImportKncSerializer.h'` — which reads like a missing KNCSDK include path in the project and is not.
+
+Three things about that command list are load-bearing:
+
+- **Never build the client from `X2Project_2010.sln`.** Its `US_INTERNAL` build sweeps in ~15 dead tool/server projects and never runs `X2_2010.vcxproj`, so it does not produce an exe.
+- **`X2ServerProtocol` is not a `ProjectReference` of `X2Lib`** (only `KTDXLIB` is), so it is never rebuilt implicitly — build it explicitly or you link a stale `X2Lib/X2ServerProtocol.lib`. It has **no `US_*` configuration at all**; the solution maps `US_INTERNAL` → `X2TOOL|Win32`, whose `OutDir` is already `..\X2Lib\`.
+- **`luajitLib` is required, not optional.** `_USE_LUAJIT_` is defined unconditionally (`KTDX.h:392-397`, via `X2OPTIMIZE_APPLY_UNPACK_HACK_PREVENTION`) and `KTDXApp.cpp:38` auto-links `luajitLib.lib` with a `#pragma comment`. Because `X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE` is *not* defined under `US_INTERNAL`, it must be the **full interpreter** build — `Release`, never `Release_NoInterpreter`. Its `Release` config outputs `..\KTDXLIB\luajitLib.lib`. `luaLib` still exists and still builds alongside it.
 
 Build artifacts:
 
-- `X2/US_SERVICE/X2.exe` — the client
-- `X2/X2Lib.lib`, `X2/KTDXLIB.lib` — static libs; `OutDir` is `..\X2\`, only the `.obj` intermediates land in `X2Lib/US_SERVICE/` and `KTDXLIB/US_SERVICE/`
-- `KncWX2Server/<Server>/Release_US/<Server>.exe` — all five servers, built by **either** toolchain into the **same** output directory (the config is named `Release_US` on both sides by design — see the port guide §0). Building with one toolchain overwrites an exe built by the other; there's no separate output path to keep them apart.
+- `X2/US_INTERNAL/x2.exe` — the client. Note the **lowercase** name: `TargetName` is `x2`.
+- `X2/X2Lib.lib`, `X2/KTDXLIB.lib` — static libs; `OutDir` is `..\X2\`, only the `.obj` intermediates land in `X2Lib/US_INTERNAL/` and `KTDXLIB/US_INTERNAL/`.
+- `KTDXLIB/luajitLib.lib`, `KTDXLIB/luaLib.lib`, `X2Lib/X2ServerProtocol.lib`.
 
-**Running a VS2010-built server**: it needs the VC10 runtime DLLs (`msvcr100.dll`, `msvcp100.dll`, `mfc100u.dll` — source from `<VS10 install>\VC\redist\x86\Microsoft.VC100.{CRT,MFC}\`) copied alongside the exe; the old VC7.1 ones already there (`msvcr71.dll` etc.) don't satisfy it. It also depends on a fix in `KncWX2Server/Common/ui/SubclassWnd.h` (a hand-rolled window-subclassing thunk that writes and executes machine code at runtime, which modern Windows' DEP blocks unless `VirtualProtect`'d executable first) — that fix is already in the tree from the port; if a server built from a *newer* checkout of this file ever regresses that, expect every server to crash instantly with `0xC0000005` on launch. Full detail in the port guide §6–7.
+**The post-build event no longer fails.** `X2/X2_2010.vcxproj:642` sets `PostBuildEventUseInBuild` to `false` for `US_INTERNAL`, so the old copy-to-`E:\Elsword_InHouse` step never runs. The exit code is now meaningful — but still confirm `X2/US_INTERNAL/x2.exe` was produced and is newly dated.
 
 There is **no runnable test suite**. The one CppUnit fixture (`X2Lib/X2GameUnitTestCase.h`) is gated behind `CPPUNIT_BY_TOOL_TEAM`, commented out in `KTDXLIB/AlwaysButConditionally.h`. `Libs/InternalLib/KNCSDK/UnitTest/` is the vendored SDK's own test project, not wired into either solution.
 
-### What `US_SERVICE` actually defines (client)
+### What `US_INTERNAL` actually defines (client)
 
 | Project | Preprocessor definitions |
 |---|---|
-| `X2` | `WIN32;NDEBUG;_WINDOWS;_SERVICE_;_USE_32BIT_TIME_T;CLIENT_COUNTRY_US;SERV_COUNTRY_US;AUTO_LOGIN_IN_HOUSE` |
-| `X2Lib` | `WIN32;NDEBUG;_LIB;_SERVICE_;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;CLIENT_COUNTRY_US;SERV_COUNTRY_US` |
-| `KTDXLIB` | `WIN32;NDEBUG;_LIB;_SERVICE_;_HAS_ITERATOR_DEBUGGING=0;CLIENT_COUNTRY_US;SERV_COUNTRY_US` |
-| `X2ServerProtocol`, `luaLib`, `libxml` | region-neutral (`WIN32;NDEBUG;_LIB;…`) |
+| `X2` | `WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_US;CLIENT_COUNTRY_US;_IN_HOUSE_;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;_CONVERT_VS_2010` |
+| `X2Lib` | `WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_IN_HOUSE_;SERV_COUNTRY_US;CLIENT_COUNTRY_US;_HAS_ITERATOR_DEBUGGING=0;_CONVERT_VS_2010` |
+| `KTDXLIB` | `WIN32;NDEBUG;_LIB;SERV_COUNTRY_US;CLIENT_COUNTRY_US;_IN_HOUSE_;_HAS_ITERATOR_DEBUGGING=0;_USE_32BIT_TIME_T;_CONVERT_VS_2010` |
+| `X2ServerProtocol` (`X2TOOL`) | `X2TOOL;WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0` |
+| `luaLib`, `luajitLib`, `libxml` (`Release`) | region-neutral; `luajitLib` adds `_USE_LUAJIT_` |
 
-Consequences worth knowing before you go looking for code that "should" be there:
+All three client projects are `Unicode`, so `UNICODE`/`_UNICODE` come from `CharacterSet` rather than the definitions list — a hand-rolled `cl` invocation must pass them or `DXUT.h:11` raises an `#error`.
 
-- **`_IN_HOUSE_` is NOT defined.** `KTDXLIB/KTDX.h` only includes the per-developer flag files `InHouseEtc.h` and `InHouse1.h`–`InHouse6.h` under `_IN_HOUSE_`, so in `US_SERVICE` none of them apply. The only active client flag files are `Always.h` and `AlwaysButConditionally.h`. Debug cheats, test UI, and `WORLD_TOOL` overrides are all compiled out.
-- **`_OPEN_TEST_` is NOT defined.** `X2Lib/define.h` therefore resolves the US patch source to `http://gamepatch.elswordonline.com/` with `PatchPath.dat`.
-- **`AUTO_LOGIN_IN_HOUSE` is defined on the `X2` project only**, and every use of it (`X2Lib/X2StateLogin.cpp`, which reads ID/password out of `LoginKey.lua`) sits in `X2Lib`, which is built *without* it. The flag is inert as configured. This is a good illustration of the failure mode below — a flag set on one project and not another silently does nothing.
+**`_IN_HOUSE_` is now defined, and that is the single biggest behavioural change from the old `US_SERVICE` build.** `KTDX.h:493` therefore includes all seven per-developer flag files (`InHouseEtc.h`, `InHouse1.h`–`InHouse6.h`), which had been dead code for this build's entire prior history. **Do not reason about these flags by reading the nested `#ifdef`s** — a naive grep for active `#define`s in those files reports 84, of which at least `MASS_FILE_FIRST` and `WORLD_TOOL` are false positives sitting inside dead conditionals. Resolve them with `cl /EP` on a probe that includes `KTDX.h`; the exact recipe and the full verdict table are in `MARCH_2014_MIGRATION.md`.
+
+The results that matter:
+
+- **`MASS_FILE_FIRST` is NOT defined**, and `WORLD_TOOL` is not either (so `KTDX.h:503-575`'s big `#undef` block does not fire). See the Lua rule above for what the missing `MASS_FILE_FIRST` does to loose-file precedence.
+- **`_SERVICE_` and `_OPEN_TEST_` are NOT defined.** `X2Lib/define.h` still resolves the US patch source to `http://gamepatch.elswordonline.com/` with `PatchPath.dat`. `CX2Data::ResetServerProtocol` passes `bIsSERVICE = false`.
+- **`AUTO_LOGIN_IN_HOUSE` is now live in `X2Lib`.** It used to be set on the `X2` project only, while every use site sits in `X2Lib` — so it was inert. It now arrives through `InHouse2.h:5` → `KTDX.h:493` → *every* client project, and `CX2StateLogin::ReadIDAndPassword` (`X2Lib/X2StateLogin.cpp:817`) really does read `LoginKey.lua` and auto-log-in.
+- **`NOT_USE_UDP_CHECK_INHOUSE` is defined**, making `CX2Game::AbuserUserCheck` (`X2Lib/X2Game.cpp:16136`) return immediately.
+- **`NO_GAMEGUARD` is defined**; `HACK_SHIELD` and `BUG_TRAP` are not.
+- **The in-house cheat and dev-UI surface is compiled in** (`CHEAT_CLASS_CHANGE`, `ITEM_VIEW_CHEAT`, `MONSTER_TEST_DUNGEON`, `ADD_CREATE_CHARACTER_BUTTON`, `SHOW_ONLY_MY_DAMAGE`, `HIDE_SYSTEM_MESSAGE`, and ~15 more). Two that are *not* hazards despite their names: `RATE_MODIFIER_INHOUSE_TEST` has zero use sites in client code, and `DAMAGE_ZERO` is only `SetZeroDamage( NOWSTATE_FLAG( SET_ZERO_DAMAGE ) )` in `X2GUNPC.cpp`, i.e. driven by the NPC state table.
 
 Server-side, `Release_US` defines only `WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_US` for all five executables. Note there is no `_SERVICE_` on the servers — live vs. test is a **runtime** choice, not a compile-time one (see below).
-
-### Post-build event will fail here
-
-The `X2` project's `US_SERVICE` post-build step copies the exe and Lua content to hardcoded original-studio paths (`E:\Elsword_InHouse\Data\…`, `D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\…`). On any machine without those drives it errors out *after* `X2.exe` has already linked successfully. Judge the build by whether `X2/US_SERVICE/X2.exe` was produced, not by the post-build exit code.
 
 ## Architecture
 
@@ -284,15 +305,17 @@ Because the two sides are compiled separately (even now that both can use VS2010
 Nearly every change since ~2009 sits behind a named `#define`, and there is no build-time consistency check.
 
 - **Server plus shared:** `KncWX2Server/Common/ServerDefine.h` (~4300 lines, ~490 `SERV_*` flags). Its tail keys off `SERV_COUNTRY_US` to pull in `Common/OnlyGlobal/ServerDefine/ServerDefine_US.h`, alongside the always-on `ServerDefine_Global.h`.
-- **Client:** `KTDXLIB/KTDX.h` is the hub, but under `US_SERVICE` only `Always.h` and `AlwaysButConditionally.h` are reachable (see above). `X2Lib/X2Define.h` holds client tuning constants and the `XEM_ERROR*` code list. Several blocks in `KTDX.h` are explicitly `#ifndef _SERVICE_`, i.e. deliberately absent from this build.
+- **Client:** `KTDXLIB/KTDX.h` is the hub. `Always.h` and `AlwaysButConditionally.h` are always reachable, and under `US_INTERNAL` the seven `InHouse*.h` files are reachable too (see *Toolchains*). `X2Lib/X2Define.h` holds client tuning constants and the `XEM_ERROR*` code list. Several blocks in `KTDX.h` are explicitly `#ifndef _SERVICE_`, i.e. deliberately absent from this build.
 
 When adding a flag, follow the local pattern: new `#define` at the end of the owning file, commented with author / date / description, and make sure it is defined for *every* project that compiles code guarded by it. For our own client changes the owning file is always `KTDXLIB/Always.h` and the name always starts with `SERV_IRUHADEV_` — see the rule at the top of this file.
 
 ### Offline mode
 
-`SERV_IRUHADEV_OFFLINE` makes the client playable with **no servers running**: an in-process emulator answers the packets the five servers used to, and all player state persists to a local SQLite file, `els_db.sql`, in the game directory. It is client-only — it touches nothing under `KncWX2Server/Common/`, so the servers never need rebuilding for it. Design, phase history, and every correction the phases produced are in `OFFLINE_MODE_PLAN.md`; what has been changed and how to revert is in `MODS.md`.
+`SERV_IRUHADEV_OFFLINE` makes the client playable with **no servers running**: an in-process emulator answers the packets the five servers used to, and all player state persists to a local SQLite file, `els_db.sql`, in the game directory. It is client-only — it touches nothing under `KncWX2Server/Common/`, so the servers never need rebuilding for it.
 
-**The flag is defined in two places and both must be toggled together**: `KTDXLIB/Always.h` (the usual place) *and* `X2ServerProtocol/X2ServerProtocol_2010.vcxproj`'s `US_SERVICE` `PreprocessorDefinitions`. `X2ServerProtocol` does not include `KTDX.h`, so `Always.h` alone does not reach the socket seam, and setting only one side fails silently rather than at compile time.
+**As of 2026-09-09 this mode is mid-migration and does not build.** The March 2014 snapshot (`dd63297`) overwrote every call site and dropped the 54 `Offline\` entries from `X2Lib/X2Lib_2010.vcxproj`, so the 55 files under `X2Lib/Offline/` are on disk but orphaned from the build, and the `g_pX2OfflineHook` definition is gone. `SERV_IRUHADEV` being absent from a studio file is therefore *expected*, not a bug. `MARCH_2014_MIGRATION.md` holds the phase plan, the per-file inventory and the re-application technique; the description below is of the design as it will be once restored. Design, phase history, and every correction the phases produced are in `OFFLINE_MODE_PLAN.md`; what has been changed and how to revert is in `MODS.md`.
+
+**The flag is defined in two places and both must be toggled together**: `KTDXLIB/Always.h` (the usual place) *and* `X2ServerProtocol/X2ServerProtocol_2010.vcxproj`'s **`X2TOOL|Win32`** `PreprocessorDefinitions` — that project has no `US_*` configuration, and the solution maps `US_INTERNAL` onto `X2TOOL`. `X2ServerProtocol` does not include `KTDX.h`, so `Always.h` alone does not reach the socket seam, and setting only one side fails silently rather than at compile time.
 
 The code is all under `X2Lib/Offline/` — `X2OfflineServer.{h,cpp}` (the emulator and its dispatch table, ~200 packets), `Handlers_*.cpp` (the handlers, one file per subsystem), `X2OfflineDB.{h,cpp}` (SQLite; a versioned schema with a migration ladder), and one module per subsystem it had to reimplement (`X2OfflineInventory`, `X2OfflineQuest`, `X2OfflineTitle`, `X2OfflineSkill`, `X2OfflineCashShop`, `X2OfflineStatTable`, `X2OfflineDropTable`, `X2OfflineBattleField`, `X2OfflineRandomItem`, `X2OfflinePetData`).
 
@@ -309,42 +332,43 @@ Three seams, and there are only three:
 Two invariants worth knowing before changing anything in here:
 
 - **One packet is one transaction.** `OnClientSend` opens a SQLite savepoint before dispatch and commits it only if the handler returned without faulting, and it runs the whole dispatch under `m_csDispatch` because there is one `KSession::Run` thread per proxy. Anything inside `X2OfflineDB` that runs during play must use `Begin()`/`Commit()`/`Rollback()`, never a literal `BEGIN` — the literals left in `Migrate()` are safe only because it runs from `Open()`, before the first packet.
-- **`sizeof(KSession)` differs between `X2Lib` and `X2ServerProtocol`**, because `X2ServerProtocol/StdAfx.h` defines `ADD_COLLECT_CLIENT_INFO_PROTOCOL` before including the header and `X2Lib` reaches it earlier, without the macro. Never read a `KActorProxy`/`KUserProxy` member from `X2Lib`; every member reads 4 bytes low. `CX2OfflineServer::KindFromEventID` exists specifically to avoid needing to.
+- **`sizeof(KSession)` differs between `X2Lib` and `X2ServerProtocol`**, because `ADD_COLLECT_CLIENT_INFO_PROTOCOL` is defined in `X2ServerProtocol/X2ServerProtocol.h:8` and `X2ServerProtocolLib.h:9`, which `X2ServerProtocol` sees before the header while `X2Lib` reaches it earlier, without the macro. Never read a `KActorProxy`/`KUserProxy` member from `X2Lib`; every member reads 4 bytes low. `CX2OfflineServer::KindFromEventID` exists specifically to avoid needing to.
 
 ### Deploying the offline client
 
 **This branch (`mods/offline-mod-2`) exists to build and run the offline client.** A change is not finished when it compiles; it is finished when the exe in the game directory has it and the logs show it working. The whole loop:
 
 ```sh
-TRUNK="f:/elsword stuff/.../source/EU_CN_US/Trunk"          # this repo
-DATA="F:/elsword stuff/elsword_2014/els_2014/237311/22191271/data"   # the game directory
+TRUNK="F:/elsword stuff/.../source/EU_CN_US/Trunk"                   # this repo
+DATA="F:/elsword stuff/elsword_2014/els_2014/237311/24965799/data"   # the game directory
 
-# 1. build - X2Lib first, then the exe. NEVER via X2Project_2010.sln: its
-#    US_SERVICE build sweeps in ~15 dead tool/server projects and never runs
-#    X2_2010.vcxproj at all, so it does not produce an exe.
-msbuild X2Lib/X2Lib_2010.vcxproj -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
-msbuild X2/X2_2010.vcxproj       -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+# 1. build - dependencies, then X2Lib, then the exe. See *Toolchains* for the
+#    full ordered list and why each config is what it is. NEVER build via
+#    X2Project_2010.sln: its US_INTERNAL build sweeps in ~15 dead tool/server
+#    projects and never runs X2_2010.vcxproj, so it produces no exe.
+msbuild X2ServerProtocol/X2ServerProtocol_2010.vcxproj -p:Configuration=X2TOOL      -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+msbuild KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+msbuild X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+msbuild X2/X2_2010.vcxproj                             -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
 
-# 2. judge the build by the artifact, not the exit code - the post-build event
-#    copies to original-studio drive letters and always fails here
-ls -la X2/US_SERVICE/X2.exe
+# 2. confirm the artifact. The post-build event is disabled under US_INTERNAL,
+#    so the exit code is meaningful now - but still check the file and its date.
+ls -la X2/US_INTERNAL/x2.exe
 
 # 3. deploy - the game directory names it X2_offline.exe
-cp X2/US_SERVICE/X2.exe "$DATA/X2_offline.exe"
+cp X2/US_INTERNAL/x2.exe "$DATA/X2_offline.exe"
 
 # 4. run, then read the logs it wrote next to itself
 cd "$DATA" && ./start_offline.bat
 ```
 
-`SolutionDir` **must** be passed, with a trailing slash: every `IncludePath` entry for Boost, DXSDK, KNCSDK and freetype is written as `$(SolutionDir)Libs...`, so without it the build dies on `fatal error C1083: Cannot open include file: 'boost/shared_ptr.hpp'` or `'d3dx9.h'`. Forward slashes are fine, and are easier than fighting a trailing \ through a shell.
-
 Five things that go wrong at deploy time, all of them silently:
 
-- **Deploy onto the exact name already in the game directory, and confirm it rather than assuming it.** It is `X2_offline.exe`, which is also the name `start_offline.bat` looks for; the directory holds half a dozen other `X2_*.exe` builds from earlier mods, so a near-miss name silently leaves the old exe in place and the next play-test measures stale code. `ls` in a terminal is not proof — read the name programmatically (`python -c "import os; print(os.listdir(DATA))"`) before claiming anything about it, and check the size and mtime of what you copied. A build that did not land is indistinguishable from a change that did not work.
+- **Deploy onto the exact name already in the game directory, and confirm it rather than assuming it.** It is `X2_offline.exe`, which is also the name `start_offline.bat` looks for. The source artifact is now `x2.exe` **lowercase** out of `X2/US_INTERNAL/`, and the old game directory holds half a dozen other `X2_*.exe` builds from earlier mods, so a near-miss name silently leaves the old exe in place and the next play-test measures stale code. `ls` in a terminal is not proof — read the name programmatically (`python -c "import os; print(os.listdir(DATA))"`) before claiming anything about it, and check the size and mtime of what you copied. A build that did not land is indistinguishable from a change that did not work.
 - **A stale PCH silently discards header edits.** `Always.h` and `X2Define.h` sit inside every project's precompiled header, and msbuild does not always notice. The flag is then simply absent at the call site with no error — the `#else` branch compiles and the change looks like it did nothing. After editing any header, `touch X2Lib/stdafx.cpp` before building, and if a change appears to have no effect, **prove the code compiled in** rather than re-reading the `#ifdef`s: put a `#pragma message` inside the guard, rebuild that one project, and read the compiler output.
 - **Windows Defender quarantines fresh builds.** A newly linked `x2.exe` trips a Bearfoos ML false positive. If the copy or the launch fails with no obvious reason, check Protection History; the fix is folder exclusions for the build output and the game directory, which needs an admin.
 - **The working directory must be the game directory.** `X2Main` mounts the `.kom` archives through a `"./"` prefix, and the offline server writes `els_db.sql` and both logs relative to the cwd. Launching from anywhere else finds no content, or quietly starts a second empty save somewhere surprising. `start_offline.bat` does `cd /d "%~dp0"` for exactly this; a shortcut with a different *Start in* field does not.
-- **The save file is real player data.** `els_db.sql` (plus `-wal`/`-shm`, and the `els_db.sql.bak` written on a clean exit) lives in the game directory and is the only copy of the character. Never delete it to "start clean" without asking, and never assume a schema change is reversible — `X2OfflineDB` migrates forward only.
+- **The save file is real player data.** `els_db.sql` (plus `-wal`/`-shm`, and the `els_db.sql.bak` written on a clean exit) lives in the game directory and is the only copy of the character. Never delete it to "start clean" without asking, and never assume a schema change is reversible — `X2OfflineDB` migrates forward only. The pre-March save still sits in the **old** directory, `...\237311\22191271\data\els_db.sql`; migrating it is Phase 7 of `MARCH_2014_MIGRATION.md`.
 
 **Reading the result** is the actual verification; there is no test suite. Both logs are in the game directory and flushed per line:
 
