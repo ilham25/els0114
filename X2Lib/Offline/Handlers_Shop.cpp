@@ -390,12 +390,22 @@ namespace
 {
 	/// The UNIT_CLASS a "class change" cash item advances to, or 0.
 	///
-	/// These 42 items are the one thing the cash shop sells that must never
+	/// These 82 items are the one thing the cash shop sells that must never
 	/// reach the bag: on live the claim is intercepted before the insert
 	/// (GSUserCashShop.cpp:2887) and turned into a class change, so the item is
 	/// consumed by the act of claiming it and no row is ever written. Offline it
 	/// was landing in the inventory as an ordinary item that did nothing, ever -
 	/// which is exactly what "the class change item isn't working" looks like.
+	///
+	//{{ Iruha : 2026-09-08 // the old CI_CHANGE_JOB_* family was missing
+	/// Two generations of item land here, not one - see the seed header. The
+	/// table was 42 rows and covered only the newer CI_CLASS_CHANGE_* family, so
+	/// a 1st-class ticket from the older CI_CHANGE_JOB_* family (item 214500)
+	/// fell straight through to the ordinary insert below, went into the bag,
+	/// and was then consumed by the item-use handler for no effect. Live treats
+	/// the two families identically: OnPickUpAck's test is IsJobChangeCashItem,
+	/// which is the OLD family's mapper (XSLItem.h:1451).
+	//}}
 	int ClassChangeTargetOf( int iItemID )
 	{
 		for( int i = 0; i < X2OfflineClassChangeSeed::ROW_COUNT; ++i )
@@ -406,6 +416,104 @@ namespace
 
 		return 0;
 	}
+
+	//{{ Iruha : 2026-09-08 // the eligibility gates, one rule per family
+	/// true when this item is a CI_CHANGE_JOB_* ticket, which ADVANCES one step;
+	/// false for a CI_CLASS_CHANGE_* ticket, which RE-PICKS at the tier the
+	/// character is already on. The two are gated completely differently - see
+	/// the seed header. Only meaningful for an ID ClassChangeTargetOf accepts.
+	bool ClassChangeIsJobAdvance( int iItemID )
+	{
+		for( int i = 0; i < X2OfflineClassChangeSeed::ROW_COUNT; ++i )
+		{
+			if( X2OfflineClassChangeSeed::ROWS[i].m_iItemID == iItemID )
+				return X2OfflineClassChangeSeed::ROWS[i].m_bJobAdvance;
+		}
+
+		return false;
+	}
+
+	/// The class a given class advanced FROM, or 0 when this build has no row
+	/// for it. A base class maps to itself, exactly as
+	/// CXSLUnit::GetUnitClassDownGrade does.
+	///
+	/// 0 means "not known", NOT "no parent" - classes 29 and 30 (Elesis) have no
+	/// row because SERV_NEW_CHARACTER_EL is off in this build, yet the newer
+	/// item family still sells tickets for them. Callers must read 0 as "do not
+	/// refuse".
+	int ClassChangeParentOf( int iUnitClass )
+	{
+		for( int i = 0; i < X2OfflineClassChangeSeed::PARENT_ROW_COUNT; ++i )
+		{
+			if( X2OfflineClassChangeSeed::PARENT_ROWS[i].m_iUnitClass == iUnitClass )
+				return X2OfflineClassChangeSeed::PARENT_ROWS[i].m_iParentClass;
+		}
+
+		return 0;
+	}
+
+	/// How many advancements deep a class is: 0 for a base class, 1 for a 1st
+	/// class, 2 for a 2nd class. -1 means this build has no parent row for it,
+	/// and callers must not refuse on that.
+	///
+	/// This plus the chain's root is everything
+	/// KClassChangeTable::CompareUnitClass needs, because the group IDs it
+	/// compares are character x 10 + tier. See the seed header for the check
+	/// against ClassChangeTable.lua.
+	int ClassChangeTierOf( int iUnitClass )
+	{
+		int iTier = 0;
+
+		for( int iGuard = 0; iGuard < X2OfflineClassChangeSeed::PARENT_ROW_COUNT; ++iGuard )
+		{
+			const int iParent = ClassChangeParentOf( iUnitClass );
+
+			if( 0 == iParent )
+				return -1;						///< no row for this class at all
+
+			if( iParent == iUnitClass )
+				return iTier;					///< reached the character's base class
+
+			iUnitClass = iParent;
+			++iTier;
+		}
+
+		return -1;								///< a cycle; treat as unknown
+	}
+
+	/// The base class at the root of the chain - CXSLUnit::GetUnitClassBaseGrade.
+	/// 0 when unknown.
+	int ClassChangeRootOf( int iUnitClass )
+	{
+		for( int iGuard = 0; iGuard < X2OfflineClassChangeSeed::PARENT_ROW_COUNT; ++iGuard )
+		{
+			const int iParent = ClassChangeParentOf( iUnitClass );
+
+			if( 0 == iParent )
+				return 0;
+
+			if( iParent == iUnitClass )
+				return iUnitClass;
+
+			iUnitClass = iParent;
+		}
+
+		return 0;
+	}
+
+	/// One of CompareUnitClass's six cross-group exceptions: the third-branch
+	/// 1st classes, which a 2nd-class character is still allowed to move into.
+	bool ClassChangeIsSideStep( int iUnitClass )
+	{
+		for( int i = 0; i < X2OfflineClassChangeSeed::SIDE_STEP_COUNT; ++i )
+		{
+			if( X2OfflineClassChangeSeed::SIDE_STEP_CLASSES[i] == iUnitClass )
+				return true;
+		}
+
+		return false;
+	}
+	//}}
 }
 
 bool CX2OfflineServer::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSession& kSes,
@@ -494,6 +602,98 @@ bool CX2OfflineServer::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSes
 			kAck.m_iOK = NetError::ERR_BUY_CASH_ITEM_00;
 			return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
 		}
+
+		//{{ Iruha : 2026-09-08 // the other two gates the live path applies
+		// Ported from GSUserCashShop_Global.cpp:1108-1163, which is where the
+		// live global build validates a job-change purchase. The two above are
+		// its gate 2; these are its gates 1 and 3, and without gate 3 a 2nd-class
+		// ticket bought at base class would take the character straight from,
+		// say, Nasod to Code Nemesis, skipping the 1st class entirely and
+		// building a skill tree the character could never have had.
+		//
+		// Level: the live check is GetLevel() < pItemTemplet->m_UseLevel, so the
+		// number comes from the item itself rather than from a hardcoded 15/35.
+		// A missing templet cannot be a refusal - the claim has to stay possible
+		// for an item whose templet this build does not carry.
+		const CX2Item::ItemTemplet* pClassTemplet = CX2OfflineInventory::Templet( iItemID );
+
+		if( NULL != pClassTemplet && kUnit.m_iLevel < pClassTemplet->GetUseLevel() )
+		{
+			CX2OfflineLog::Server( L"CASH     class change refused: item %d needs level %d and"
+				L" unitUID=%I64d is level %d (the deposit line is left in place)",
+				iItemID, pClassTemplet->GetUseLevel(), (__int64)kUnit.m_nUnitUID, kUnit.m_iLevel );
+
+			kAck.m_iOK = ( pClassTemplet->GetUseLevel() <= 15 )
+						 ? NetError::ERR_BUY_CASH_ITEM_40
+						 : NetError::ERR_BUY_CASH_ITEM_41;
+
+			return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+		}
+
+		// Gate 3, and it is a DIFFERENT rule per family. Getting this wrong is
+		// what the first pass did: it applied the job-advance rule to a
+		// class-change ticket and refused every legitimate sibling swap.
+		if( true == ClassChangeIsJobAdvance( iItemID ) )
+		{
+			// CI_CHANGE_JOB_*: advance exactly one step. The ticket's target
+			// class must advance from the class the character is actually in.
+			// A parent of 0 means this build has no downgrade row for that class
+			// (Elesis, whose flag is off) and is not grounds to refuse.
+			const int iParentClass = ClassChangeParentOf( iNewClass );
+
+			if( 0 != iParentClass && iParentClass != kUnit.m_iUnitClass )
+			{
+				CX2OfflineLog::Server( L"CASH     job advance refused: item %d advances to class"
+					L" %d, which comes after class %d, but unitUID=%I64d is class %d (the deposit"
+					L" line is left in place)", iItemID, iNewClass, iParentClass,
+					(__int64)kUnit.m_nUnitUID, kUnit.m_iUnitClass );
+
+				kAck.m_iOK = NetError::ERR_BUY_CASH_ITEM_33;
+				return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+			}
+		}
+		else
+		{
+			// CI_CLASS_CHANGE_*: re-pick a class at the tier already reached.
+			// GSUserCashShop_Global.cpp:1140 - a base class may not use one at
+			// all, because there is no tier yet to re-pick within.
+			const int iNowTier = ClassChangeTierOf( kUnit.m_iUnitClass );
+			const int iNewTier = ClassChangeTierOf( iNewClass );
+
+			if( 0 == iNowTier )
+			{
+				CX2OfflineLog::Server( L"CASH     class change refused: item %d re-picks a class"
+					L" at a tier already reached, and unitUID=%I64d is still base class %d - it"
+					L" needs a job advance ticket first (the deposit line is left in place)",
+					iItemID, (__int64)kUnit.m_nUnitUID, kUnit.m_iUnitClass );
+
+				kAck.m_iOK = NetError::ERR_BUY_CASH_ITEM_33;
+				return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+			}
+
+			// CompareUnitClass: same group, i.e. same character and same tier.
+			// The six side-step classes are its cross-group exceptions, and the
+			// character check they carry is already covered by gate 2 above.
+			// An unknown tier on either side must not refuse.
+			const bool bKnown		= ( iNowTier > 0 && iNewTier > 0 );
+			const bool bSameGroup	= ( iNowTier == iNewTier &&
+										ClassChangeRootOf( kUnit.m_iUnitClass ) ==
+										ClassChangeRootOf( iNewClass ) );
+
+			if( true == bKnown && false == bSameGroup &&
+				false == ClassChangeIsSideStep( iNewClass ) )
+			{
+				CX2OfflineLog::Server( L"CASH     class change refused: item %d re-picks class %d"
+					L" (tier %d), but unitUID=%I64d is class %d (tier %d) - a class change ticket"
+					L" only swaps within one tier (the deposit line is left in place)",
+					iItemID, iNewClass, iNewTier,
+					(__int64)kUnit.m_nUnitUID, kUnit.m_iUnitClass, iNowTier );
+
+				kAck.m_iOK = NetError::ERR_BUY_CASH_ITEM_33;
+				return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
+			}
+		}
+		//}}
 
 		// Take the line out first - same ordering rule the item path below
 		// follows. If it was not there after all, nothing should have happened.
