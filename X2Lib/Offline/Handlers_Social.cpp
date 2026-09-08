@@ -2738,8 +2738,19 @@ bool CX2OfflineServer::Handler_EGS_OPEN_RANDOM_ITEM_REQ( KOfflineSession& kSes, 
 		}
 		else
 		{
-			CX2OfflineLog::Server( L"CUBE     refused - item %d has no row in RandomItemTable.lua"
-				L" (the cube is left in the bag)", kRow.m_iItemID );
+			// Phase 38 measured this set: the client's cube registry
+			// (RandomItem.lua, 4332 ids) is shipped region-neutral, while the
+			// contents table is per-region, and 18 of those ids have no templet
+			// block in the US RandomItemTable.lua. Fifteen are in the EU and/or
+			// CN copies instead; three are in none of the three. Either way the
+			// live US GameServer loads the same US table and refuses them the
+			// same way, so this is not an offline-mode gap and there is nothing
+			// to fabricate - see OFFLINE_MODE_PHASE36_PLAN.md, phase 38.
+			CX2OfflineLog::Server( L"CUBE     refused - item %d is in the client's cube registry but"
+				L" has no row in the US RandomItemTable.lua, so nothing states what is inside it."
+				L" That is a region-dead cube (its contents live in another region's table) and the"
+				L" live US server refuses it identically - the cube is left in the bag",
+				kRow.m_iItemID );
 		}
 
 		return Reply( kSes, EGS_OPEN_RANDOM_ITEM_ACK, kAck );
@@ -2803,10 +2814,37 @@ bool CX2OfflineServer::Handler_EGS_OPEN_RANDOM_ITEM_REQ( KOfflineSession& kSes, 
 	// or whose odds miss must leave the bag exactly as it found it.
 	std::vector< CX2OfflineRandomItem::KResult > vecResult;
 
-	if( false == pCube->GetResult( kUnit.m_iUnitClass, *pData, vecResult ) )
+	int iFailReason = CX2OfflineRandomItem::DF_NONE;
+
+	if( false == pCube->GetResult( kUnit.m_iUnitClass, *pData, vecResult, iFailReason ) )
 	{
-		CX2OfflineLog::Server( L"CUBE     item %d drew nothing for class %d - the cube is left in"
-			L" the bag", kRow.m_iItemID, kUnit.m_iUnitClass );
+		// Three different things, and only the last is a roll of the dice.
+		// Phase 38: 18 cubes name an item group that has no rows in ANY
+		// region's RandomItemTable.lua - 8 of them for every class, and 10 for
+		// exactly one late-added class each (an Elesis cannot open an Advanced
+		// Weapon Cube, a Chung cannot open a costume cube, everyone else can).
+		// So DF_GROUP_EMPTY is a permanent hole in the studio's data rather than
+		// anything offline mode can fix - say so, or it reads as a bug forever.
+		if( CX2OfflineRandomItem::DF_GROUP_EMPTY == iFailReason )
+		{
+			CX2OfflineLog::Server( L"CUBE     refused - item %d names an item group that has no rows"
+				L" in RandomItemTable.lua. The EU and CN copies do not define it either, so the live"
+				L" US server cannot open this cube any more than we can - the cube is left in the bag",
+				kRow.m_iItemID );
+		}
+		else if( CX2OfflineRandomItem::DF_NO_GROUP_FOR_CLASS == iFailReason )
+		{
+			CX2OfflineLog::Server( L"CUBE     refused - item %d lists no item group for class %d"
+				L" (it is a per-class cube and this character is not on its list) - the cube is left"
+				L" in the bag", kRow.m_iItemID, kUnit.m_iUnitClass );
+		}
+		else
+		{
+			CX2OfflineLog::Server( L"CUBE     item %d drew nothing for class %d - its group's odds"
+				L" sum below 100%% and the roll fell past the last case, which is a legal outcome on"
+				L" the live server too. The cube is left in the bag",
+				kRow.m_iItemID, kUnit.m_iUnitClass );
+		}
 
 		kAck.m_iOK = NetError::ERR_RANDOM_ITEM_02;
 		return Reply( kSes, EGS_OPEN_RANDOM_ITEM_ACK, kAck );

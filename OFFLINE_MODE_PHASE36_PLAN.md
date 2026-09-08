@@ -354,7 +354,7 @@ SELECT name FROM sys.procedures WHERE name LIKE 'gup_%item%' ORDER BY name;
 |---|---|---|---|---|
 | **36** | **Philosopher's Scroll (160267): instant level-up**, + the ED fix for this handler | small | **CONFIRMED** | no |
 | **37** | Route A: the item-use effect switch, transcribed from `GSUserInventory.cpp:3979`/`:4556` | large | **DONE 2026-09-08** (cash skill points split out — see its verdict) | no |
-| **38** | Cube coverage: client registry vs. contents table, and the refusal census | investigation | — | no |
+| **38** | Cube coverage: client registry vs. contents table, and the refusal census | investigation | **DONE 2026-09-08, play-tested** — two non-empty differences, 18 cubes each, both live-faithful; log lines clarified, nothing fabricated | no |
 | **39** | `EGS_UNSEAL_ITEM_REQ` / `EGS_SEAL_ITEM_REQ` | medium | CONFIRMED | no |
 | **40** | Cube fidelity: rental period, and the seal phase 39 made safe | medium | CONFIRMED | no |
 | **41** | `EGS_ITEM_EXCHANGE_REQ` | medium | CONFIRMED | no |
@@ -972,6 +972,180 @@ A written answer with numbers: how many cubes the client registry lists, how
 many the contents table covers, and the named list of any difference. Plus a
 play-test opening at least one cube of each shape the save can reach
 (single-draw, give-all, key-required, ED-required).
+
+### What actually happened — 2026-09-08
+
+**The difference is not empty, and there is a second one the phase did not
+anticipate. Neither is fixable and both are live-faithful, so the deliverable is
+the numbers plus two clearer log lines.** Nothing was fabricated.
+
+#### The method, because §0.9's crude scan was not good enough
+
+A constant-pool scan cannot answer this: the pool de-duplicates, and cube IDs,
+key IDs, key counts and ED costs are all just numbers in it. So both files were
+run through a **full Lua 5.1 undumper plus instruction decoder** instead —
+`SELF`/`CALL` gives the exact argument list of every
+`AddRandomItemTemplet` / `AddRandomItemGroup` call, and `SETTABLE` gives each
+table-constructor field by name. Two decoder facts worth keeping:
+
+- **`RK` operands only reach constant index 255.** Above that the compiler
+  `LOADK`s into a register first, so a decoder that reads only the RK bit finds
+  `AddRandomItemTemplet` (interned early) and silently misses all 90,770
+  `AddRandomItemGroup` calls. Resolve the method name through the register map
+  as well.
+- **The implicit `self` is argument 1.** `a:b(x)` puts `x` at `R(A+2)`.
+
+The result was then **corroborated against a genuinely independent source**
+(§0.2's rule about coherent-but-wrong sources): the plaintext
+`KncWX2Server/ServerResource/US/RandomItemTable.lua`, parsed by regex. Both give
+4360 templet blocks and **the same 4314 distinct cube IDs, zero difference in
+either direction**, and the same 9856 group IDs. The packed `data036/` copy is
+the US table, compiled.
+
+#### The numbers
+
+| | count |
+|---|---|
+| `RandomItem.lua` — client registry (route B gate) | **4378 rows, 4332 distinct cube IDs** |
+| `RandomItemTable.lua` — contents | **4360 templet blocks, 4314 distinct cube IDs**; 90,770 group rows in 9856 groups |
+| registry minus contents — client offers it, contents silent | **18** |
+| contents minus registry — contents cover a cube the client never opens | **0** |
+| `(cube, key)` pairs | 4378 vs 4360, both duplicate-free; same 18 / 0 split |
+
+So **the registry is shipped region-neutral while the contents table is
+per-region**, and that is the whole cause of the first difference.
+
+What the offline loader will actually serve, predicted from the two files and the
+client's own `Item.lua` (48,754 item templets):
+
+| | count |
+|---|---|
+| `m_iCubeRows` kept | **1896** (1884 distinct cubes) |
+| `m_iCubeDropped` | **2464** — all of them "no client item templet"; 0 for an empty unit-group list, 0 for a duplicate `(cube, key)` |
+| `m_iGroupCaseRows` kept | **90,770 of 90,770** — the loader's guard rejects none |
+| shapes among the 1896 | 1097 give-all, 799 single-draw, 219 key-required, 11 ED-required, 52 resurrection, 2 stamina; 1369 `UC_ANYONE`, 401 `UC_ONE_UNIT`, 126 `UC_ONE_CLASS` |
+
+Those are the numbers to check the next play-test's `CUBE loaded:` line against.
+
+#### Difference 1 — the 18 registry-only cubes
+
+All 18 have a client item templet, so a player really can hold one and click it.
+15 are in the **EU and/or CN** `RandomItemTable.lua` and not the US one; 3 are in
+none of the three.
+
+| item id | name (`ItemTrans.lua`) | in which region's table |
+|---|---|---|
+| 273060 | Pet Toy (30 days) Cube | none |
+| 60007856 | Orbs Random Cube | EU, CN |
+| 60008000 | Unstoppable Ara Cube | EU, CN |
+| 60008003 | Unstoppable Little Devil Cube | EU, CN |
+| 60008004 | Ara El Search Party Officer (1 Day) Full Set Cube | EU, CN |
+| 60008005 | (KR name only in `ItemTrans.lua`) | EU, CN |
+| 60008008 | 4 Ring of Skills (7 Days) Random Cube | EU, CN |
+| 60008009 | Little Devil's Helping Cube | EU, CN |
+| 60008013 | Victory Trophy Cube | EU, CN |
+| 60008014 | Ara's New Job Celebration Cube | EU, CN |
+| 60008015 | (KR name only in `ItemTrans.lua`) | EU, CN |
+| 60008023 | 2nd Job Promotion Weapon (Poison) (3 Days) Cube | EU, CN |
+| 65001078 | Weak Heretic Essence Cube | none |
+| 67004636 | Resurrection Stone Cube | EU, CN |
+| 85003780 | Ara's Archangel (3 Days) Full Set Cube | EU, CN |
+| 85003800 | 2nd Job Congratulatory Cube | EU, CN |
+| 85003820 | Sealed Ice Sculpture (Ara, Archangel) — key 85003821 x1 | EU |
+| 90003110 | Lunar New Year Dumpling Steamer | none |
+
+None of the 18 appears even as a commented-out block in the US source. **The
+live US GameServer loads the same US table and refuses all 18 identically**, so
+this is region-death, not an offline gap.
+
+#### Difference 2 — 18 cubes that load and name an item group with no rows
+
+Not anticipated by the phase, and only visible once both tables are in hand: **18
+cubes pass the loader and name an item group that has no `AddRandomItemGroup`
+rows at all.** They reach `GetResult`, resolve a non-zero group ID, find nothing
+under it, and return false.
+
+The play-test corrected the split. It is **8 dead outright and 10 dead for
+exactly one class**, not 18 and 0 — a paper count of "cubes with at least one
+missing group" was read as "cubes with every group missing", which the runtime
+census immediately disproved. The 10 are the more interesting half.
+
+**8 that can never pay out** — every group they name is undefined:
+
+- `60001210` Accessory Random 15 Days Cube (its one group, 60001210)
+- `65000104`-`65000110`, the seven El Scout 5-day cubes (all 12 of each cube's
+  groups: 130550-130574, 130646-130649, 130717-130720)
+
+**10 that work for every class but one.** All are `UC_ONE_UNIT`, and in each the
+single missing group is a **late-added character's** row:
+
+| cubes | missing class | groups |
+|---|---|---|
+| `133252`, `133254`, `133256`, `133258` — Advanced/Elegant Weapon Cubes Lv. 36-60 | `UC_ELESIS_KNIGHT` (1 of 8) | 60108, 60118, 60128, 60138 |
+| `160015`-`160020` — the six costume cubes | `UC_CHUNG_IRON_CANNON` (1 of 6) | 500126-500176 |
+
+The fingerprint is visible in the numbering: in `133252` the Elesis entry carries
+group **60108** while the seven others run 60100-60106, i.e. the ID was allocated
+out of sequence when the class was appended and never given rows. **So an Elesis
+cannot open an Advanced Weapon Cube and a Chung cannot open a costume cube, while
+every other class can** — which is exactly the shape of refusal that looks like
+an offline bug and is not one.
+
+Checked by grep with a control, in all three region sources: **every one of those
+group IDs is defined in none of US, EU or CN**, while a control group (14834) is
+present in all three. Same verdict — a hole in the studio's own data, dead on
+live too.
+
+#### What was changed
+
+Only log lines, all inside `X2Lib/Offline/` (all three files ASCII/LF; verified
+unchanged after editing):
+
+1. **`GetResult` now says why it declined** — a `DRAW_FAIL` enum
+   (`DF_NO_GROUP_FOR_CLASS`, `DF_GROUP_EMPTY`, `DF_ODDS_MISSED`) returned through
+   a new `OUT int&`. One call site. Previously all three collapsed into
+   `"drew nothing for class %d"`, which made a permanent data hole read as a
+   dice roll.
+2. **The handler's two refusals now name the cause**: the registry-only case says
+   the cube is region-dead and the live US server refuses it too; the empty-group
+   case says the group is undefined in every region.
+3. **A load-time census** of difference 2, counted off the two maps the loader
+   already builds: `m_iCubeNoGroupAtAll` / `m_iCubeSomeGroupMissing`. It reports
+   **8 and 10**, and it is what corrected the paper split above — worth keeping
+   as the cheapest example in this batch of a diagnostic paying for itself on its
+   first run.
+
+Difference 1's census was deliberately *not* added to the log:
+`CX2ItemManager::m_multimapRandomItem` is `private` and reaching it means editing
+`X2ItemManager.h`, a **CP949** file that `CLAUDE.md` says has already been
+destroyed twice. The numbers are in this document instead.
+
+#### Play-test reachability, measured against the save
+
+The save (`reyaa` lv80 / `Freils` lv27 / `Iivue` lv40) already holds cubes for
+three of the four shapes, and the exit test's fourth is **not reachable**:
+
+| shape | how to reach it |
+|---|---|
+| single-draw + ED-required | `111064` **Old Wooden Box** (ED 12,500) on `Freils`, `111068` **Lavish Gold Box** (ED 200,000) on `reyaa` — both held now |
+| give-all | buy `61206` **Ruined Time and Space Crystal** (`cash_product` row 2, 100 of currency 1) or `65000221` **Ariel's Gift Box** (row 2364, 1 of currency 43); the account holds 62,200 |
+| stamina | `77200` **Stamina Potion** on `reyaa` — expected to *refuse*, since stamina is not modelled offline; that is the intended behaviour |
+| key-required | `160773` **Unidentified Ancient Fossil** is held on all three characters, but its key `67006749` is not held, not in `cash_product`, and not in the US `DropTable.lua` — of all 219 servable key-required cubes, **zero** have their key held or purchasable, so this was written up as unreachable. The user supplied the key anyway and it opened. |
+
+#### Play-test verdict — 2026-09-08, PASSED
+
+All four shapes opened, including the key-required one this document had called
+unreachable. The log's own figures:
+
+```
+CUBE  loaded: 1896 cube(s) in 1884 key set(s), 90770 case(s) across 9856 group(s); 2063 presentation row(s)
+CUBE  NOTE 2464 cube templet(s) dropped - no item templet for the cube itself in this client's .kom.
+CUBE  NOTE 8 cube(s) loaded that can never pay out ... (10 more are missing a group for only some classes)
+CUBE  opened item 160773 (single draw, key 67006749): 2 item kind(s)
+```
+
+Every predicted number matched — 1896 cubes, 1884 key sets, 90,770 cases, 9856
+groups, 2464 dropped — **except** the difference-2 split, corrected above.
 
 ---
 

@@ -128,11 +128,28 @@ public:
 	/// KGSInventory walks to pick the first key the player actually holds.
 	const std::map< int, int >*	GetKeyList( int iItemID );
 
+	/// Why a draw came back empty. GetResult has three quite different ways of
+	/// failing and collapsing them into one log line hides the two that are
+	/// permanent holes in the studio's own table - see phase 38. DF_GROUP_EMPTY
+	/// in particular is not an offline-mode gap: 18 cubes name an item group
+	/// that has no rows in ANY region's RandomItemTable.lua - 8 for every class,
+	/// and 10 for exactly one late-added class each - so the live US server
+	/// refuses them identically.
+	enum DRAW_FAIL
+	{
+		DF_NONE = 0,			///< it drew something
+		DF_NO_GROUP_FOR_CLASS,	///< the cube lists no item group for this character's class
+		DF_GROUP_EMPTY,			///< the group id the cube names has no rows at all
+		DF_ODDS_MISSED,			///< the group exists; the roll fell past its last case
+	};
+
 	/// The draw. Returns false when the cube resolves to no item group for this
 	/// character, or the group is empty, or the odds did not sum high enough to
 	/// hit anything - all of which are the live server's failure cases too, and
-	/// all of which must leave the cube in the bag.
-	bool	GetResult( int iUnitClass, const KCube& kCube, OUT std::vector< KResult >& vecOut );
+	/// all of which must leave the cube in the bag. iFailReason says which, as
+	/// a DRAW_FAIL.
+	bool	GetResult( int iUnitClass, const KCube& kCube, OUT std::vector< KResult >& vecOut,
+					   OUT int& iFailReason );
 
 	/// RandomItemData.lua's presentation lists. A sealed result is handed over
 	/// sealed; an announced one is broadcast. Neither changes what is drawn, and
@@ -224,6 +241,17 @@ private:
 	/// them for naming an item ID with no client templet. Logged as a count
 	/// rather than 4000 lines.
 	int		m_iCubeDropped;
+
+	/// Cubes that loaded and can still never pay out, because every item group
+	/// they name has no rows in the table (m_iCubeNoGroupAtAll) or only some of
+	/// them do (m_iCubeSomeGroupMissing, a class-dependent cube dead for part of
+	/// the roster). Counted once at load so the log states the hole instead of
+	/// reporting it one refusal at a time. Phase 38's play-test measured 8 and
+	/// 10 - the ten are UC_ONE_UNIT cubes missing exactly one late-added
+	/// character's group (Elesis on the weapon cubes, Chung on the costume
+	/// ones), so they open for every other class.
+	int		m_iCubeNoGroupAtAll;
+	int		m_iCubeSomeGroupMissing;
 };
 
 #endif SERV_IRUHADEV_OFFLINE

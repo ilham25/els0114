@@ -35,6 +35,8 @@ CX2OfflineRandomItem::CX2OfflineRandomItem()
 , m_iGroupCaseRows( 0 )
 , m_iPresentationRows( 0 )
 , m_iCubeDropped( 0 )
+, m_iCubeNoGroupAtAll( 0 )
+, m_iCubeSomeGroupMissing( 0 )
 {
 }
 
@@ -178,6 +180,45 @@ void CX2OfflineRandomItem::EnsureLoaded()
 	RunScript( SCRIPT_RANDOM_DATA,	m_iPresentationRows );
 	RunScript( SCRIPT_RANDOM_TABLE,	m_iGroupCaseRows );
 
+	// Both tables are in hand now, so the one hole that cannot be seen from a
+	// single refusal gets counted here: a cube that loaded fine and names an
+	// item group the file never gives any rows to. It can only ever refuse.
+	// Cheap - both maps are already built, and it turns a recurring mystery
+	// refusal into one line at startup.
+	std::map< std::pair< int, int >, KCube >::const_iterator mitCube;
+	for( mitCube = m_mapCube.begin(); mitCube != m_mapCube.end(); ++mitCube )
+	{
+		const KCube& kCube = mitCube->second;
+
+		// The resurrection and stamina cubes carry the whole payload on the
+		// packet and legitimately resolve to no group at all.
+		if( kCube.m_iRessurectionCount > 0 || kCube.m_iRestoreSpirit > 0 )
+			continue;
+
+		int iNamed		= 0;
+		int iMissing	= 0;
+
+		for( size_t i = 0; i < kCube.m_vecUnitGroup.size(); ++i )
+		{
+			const int iGroupID = kCube.m_vecUnitGroup[i].second;
+			if( iGroupID <= 0 )
+				continue;
+
+			++iNamed;
+
+			if( m_mapGroup.end() == m_mapGroup.find( iGroupID ) )
+				++iMissing;
+		}
+
+		if( iNamed <= 0 || iMissing <= 0 )
+			continue;
+
+		if( iMissing >= iNamed )
+			++m_iCubeNoGroupAtAll;
+		else
+			++m_iCubeSomeGroupMissing;
+	}
+
 	CX2OfflineLog::Server( L"CUBE     loaded: %d cube(s) in %u key set(s), %d case(s) across"
 		L" %u group(s); %d presentation row(s)",
 		m_iCubeRows, (unsigned int)m_mapCubeKey.size(), m_iGroupCaseRows,
@@ -188,6 +229,15 @@ void CX2OfflineRandomItem::EnsureLoaded()
 		CX2OfflineLog::Server( L"CUBE     NOTE %d cube templet(s) dropped - no item templet for the"
 			L" cube itself in this client's .kom. Normal: RandomItemTable.lua covers every region.",
 			m_iCubeDropped );
+	}
+
+	if( m_iCubeNoGroupAtAll > 0 || m_iCubeSomeGroupMissing > 0 )
+	{
+		CX2OfflineLog::Server( L"CUBE     NOTE %d cube(s) loaded that can never pay out - every item"
+			L" group they name has no rows in RandomItemTable.lua (%d more are missing a group for"
+			L" only some classes). This is a hole in the studio's own table, present in the EU and"
+			L" CN copies too, so the live US server refuses these identically. Nothing to fix here.",
+			m_iCubeNoGroupAtAll, m_iCubeSomeGroupMissing );
 	}
 
 	if( 0 == m_iCubeRows )
@@ -423,11 +473,13 @@ int CX2OfflineRandomItem::ResolveGroup( int iUnitClass, const KCube& kCube ) con
 }
 
 bool CX2OfflineRandomItem::GetResult( int iUnitClass, const KCube& kCube,
-									  OUT std::vector< KResult >& vecOut )
+									  OUT std::vector< KResult >& vecOut,
+									  OUT int& iFailReason )
 {
 	EnsureLoaded();
 
 	vecOut.clear();
+	iFailReason = DF_NONE;
 
 	const int iGroupID = ResolveGroup( iUnitClass, kCube );
 
@@ -439,16 +491,23 @@ bool CX2OfflineRandomItem::GetResult( int iUnitClass, const KCube& kCube,
 		if( kCube.m_iRessurectionCount > 0 || kCube.m_iRestoreSpirit > 0 )
 			return true;
 
+		iFailReason = DF_NO_GROUP_FOR_CLASS;
 		return false;
 	}
 
 	std::map< int, std::vector< KGroupCase > >::const_iterator mit = m_mapGroup.find( iGroupID );
 	if( m_mapGroup.end() == mit )
+	{
+		iFailReason = DF_GROUP_EMPTY;
 		return false;
+	}
 
 	const std::vector< KGroupCase >& vecCase = mit->second;
 	if( true == vecCase.empty() )
+	{
+		iFailReason = DF_GROUP_EMPTY;
 		return false;
+	}
 
 	if( true == kCube.m_bGiveAll )
 	{
@@ -493,7 +552,10 @@ bool CX2OfflineRandomItem::GetResult( int iUnitClass, const KCube& kCube,
 		}
 
 		if( true == vecOut.empty() )
+		{
+			iFailReason = DF_ODDS_MISSED;
 			return false;
+		}
 	}
 
 	// The charm bonus, if this cube pays one. It rides alongside the draw in
