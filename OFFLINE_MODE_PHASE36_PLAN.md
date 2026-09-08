@@ -353,7 +353,7 @@ SELECT name FROM sys.procedures WHERE name LIKE 'gup_%item%' ORDER BY name;
 | Phase | Subject | Size | Confidence | Blocked? |
 |---|---|---|---|---|
 | **36** | **Philosopher's Scroll (160267): instant level-up**, + the ED fix for this handler | small | **CONFIRMED** | no |
-| **37** | Route A: the item-use effect switch, transcribed from `GSUserInventory.cpp:3979`/`:4556` | large | **BUILT 2026-09-08, play-test owed** | no |
+| **37** | Route A: the item-use effect switch, transcribed from `GSUserInventory.cpp:3979`/`:4556` | large | **DONE 2026-09-08** (cash skill points split out — see its verdict) | no |
 | **38** | Cube coverage: client registry vs. contents table, and the refusal census | investigation | — | no |
 | **39** | `EGS_UNSEAL_ITEM_REQ` / `EGS_SEAL_ITEM_REQ` | medium | CONFIRMED | no |
 | **40** | Cube fidelity: rental period, and the seal phase 39 made safe | medium | CONFIRMED | no |
@@ -673,8 +673,14 @@ implemented nor explicitly refused.
 
 ### As built — 2026-09-08
 
-**Built and deployed; not yet play-tested** — the save holds none of the items
-below, so the exit test is owed and is written out at the end of this section.
+**DONE 2026-09-08.** Built, deployed, and closed by the user after reviewing the
+named list of what works and what is refused — see *The user's verdict* at the
+end of this section. One follow-up is owed out of that review and is scoped
+there: the Gnosis Blessing (cash-skill-point) family, which the user does want
+working.
+
+Not play-tested: the save holds none of these items, so the exit test below was
+never run. It is kept as a checklist rather than as a blocker.
 
 #### The census, done statically, because the log had nothing in it
 
@@ -830,7 +836,7 @@ nothing live's does.
   was listed *and* dispatched to a real handler; dispatch wins, so behaviour
   was right and the list was lying.
 
-#### Exit test — owed
+#### Exit test — kept as a checklist, not run
 
 The save holds none of these items, so this needs items put in the bag first
 (the cash-shop tool, or a `cash_product` row). In priority order:
@@ -846,6 +852,73 @@ The save holds none of these items, so this needs items put in the bag first
    drops by the Cobo fare (0 for 215660), and **the pass is still in the bag**.
 5. Any refused item — still in the bag, and `grep "left in the bag"
    offline_server.log` names the system.
+
+#### The user's verdict on the refusals — 2026-09-08
+
+**Phase 37 is closed.** Shown the full named list of what is implemented and
+what is refused, the user accepted every refusal **except one**:
+
+> "the 'Refused by name' items cannot be use but that's okay beside gnosis
+> blessing items"
+
+So the bank letter, the nickname card, the guild blessing, the Halloween potion,
+the private-shop agency and the Phoru stamps stay refused and nobody is waiting
+on them. **The cash-skill-point family is owed** — the user wants
+Gnosis Blessing to actually work.
+
+#### Owed: cash skill points, and why it is a phase of its own
+
+Sized against the live code, not guessed. "Grant N points" is one of six parts,
+and offline has one of them wired:
+
+| part | live | offline today |
+|---|---|---|
+| per-skill CSP spent | `UserSkillData::m_iSkillCSPoint` | `unit_skill.csp` column exists, always written 0 ([X2OfflineDB.cpp:1868](X2Lib/Offline/X2OfflineDB.cpp#L1868), `:1897`) |
+| remaining CSP | `KUserSkillTree::m_iCSPoint` | `unit.csp` column exists, always written 0 (`SaveSkillPoint` is called with a literal `0`) |
+| granted pool + expiry date | `m_iMaxCSPoint`, `m_tCSPointEndDate` | **no storage at all** |
+| the three unit-info fields | filled from the above | hardcoded `0 / 0 / "2000-01-01 00:00:00"` ([X2OfflineServer.cpp:914](X2Lib/Offline/X2OfflineServer.cpp#L914)) |
+| spend CSP before SP | `GetNecessarySkillPoint` ([UserSkillTree.cpp:1225-1342](KncWX2Server/GameServer/UserSkillTree.cpp#L1225)) — while unexpired the cost goes to `m_iSpendSkillCSPoint`, CSP is drained first, the remainder comes off SP | `LearnSkills` hardcodes the `IsCashSkillPointExpired() == true` arm ([X2OfflineSkill.cpp:435](X2Lib/Offline/X2OfflineSkill.cpp#L435)) |
+| **expiry rollback** | `CalcExpireCashSkillPoint` / `ExpireCashSkillPoint` ([UserSkillTree.cpp:544](KncWX2Server/GameServer/UserSkillTree.cpp#L544), `:646`) walk back every level a skill bought with CSP, refund the SP, then `EGS_EXPIRE_CASH_SKILL_POINT_NOT` carries the surviving tree | **does not exist** |
+
+Three findings that make the phase cheaper than it looks:
+
+- **No schema migration.** The two per-row columns are already there and already
+  round-trip; they just carry zeros. The pool and the expiry date fit in the
+  existing `settings` key/value table (`GetSetting`/`SetSetting`,
+  [X2OfflineDB.cpp:2859](X2Lib/Offline/X2OfflineDB.cpp#L2859)), keyed per unit.
+  §0.5 still holds.
+- **`IsCashSkillPointExpired()` is just `0 == m_iMaxCSPoint`**
+  ([UserSkillTree.cpp:534](KncWX2Server/GameServer/UserSkillTree.cpp#L534)) —
+  not a date comparison. The date only matters to the login-time sweep that
+  zeroes the pool. So all the in-session logic keys off one integer.
+- **The grant is a `_NOT`, not an ACK field**:
+  `EGS_UPDATE_CASH_SKILL_POINT_NOT` after setting pool, remaining and end date
+  ([GSUserCashShop.cpp:6094-6127](KncWX2Server/GameServer/GSUserCashShop.cpp#L6094)).
+  `m_bUpdateEndDateOnly` distinguishes "new pool" from "extend the rental", and
+  the live validation refuses a blessing of a *different* point value while one
+  is still running (`ERR_BUY_CASH_ITEM_32`, GSUserInventory.cpp:4214-4229) —
+  which is also what stops the pool from stacking without limit.
+
+Also needed and easy to miss: **skill reset must refund to the CSP pool, not to
+SP.** `ResetSkill` / `InitSkillTree` returning CSP-bought points as plain SP
+would launder a rental into permanent skill points.
+
+**The approach is not decided.** Three were put to the user and the phase was
+closed before a choice was made:
+
+1. *Faithful minus the sweep* — everything above except the expiry rollback, so
+   the rental never actually runs out. Keeps the live cap, skips the one large
+   piece.
+2. *Fully faithful* — including the rollback, i.e. you lose the CSP-bought
+   levels when the rental ends.
+3. *QoL* — the blessing just adds its point value to real SP, permanently. An
+   hour's work, but unlimited SP by repeat purchase, and it would belong in
+   `MODS.md` as a gameplay change rather than here as emulation.
+
+Whoever picks this up: **ask first**, then write it as its own phase. Do not
+fold it back into `Handler_EGS_USE_ITEM_IN_INVENTORY_REQ` as a special case —
+five of the six parts above are in `CX2OfflineSkill` and `X2OfflineServer`, not
+in the item handler.
 
 ---
 
