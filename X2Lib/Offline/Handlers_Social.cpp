@@ -1166,6 +1166,20 @@ bool CX2OfflineServer::Handler_EGS_GET_ITEM_FROM_LETTER_REQ( KOfflineSession& kS
 	kAck.m_iOK		= NetError::ERR_POST_LETTER_04;
 	kAck.m_iPostNo	= kReq.m_iPostNo;
 	kAck.m_iED		= 0;
+	//{{ Iruha : 2026-09-08 // phase 34 - the last unset scalar in this ACK
+	// This ACK's constructor sets only m_iUnitUID, so m_bSystemLetter would
+	// otherwise serialise an indeterminate stack byte. Harmless in practice -
+	// ERR_POST_LETTER_04 is not an IsValidPacket code, so the client reads
+	// neither this nor m_iED - but a stub is exactly where the next reader
+	// would assume 0.
+	//
+	// Note which declaration is live: there are two DECL_PACKETs for this name
+	// and the reachable one is CommonPacket.h:8772, under
+	// SERV_TRADE_LOGIC_CHANGE_LETTER. ClientPacket.h:4505 is its #else twin and
+	// has m_cLetterType instead - reading that one first cost this phase a
+	// compile.
+	kAck.m_bSystemLetter = false;
+	//}}
 
 	return Reply( kSes, EGS_GET_ITEM_FROM_LETTER_ACK, kAck );
 }

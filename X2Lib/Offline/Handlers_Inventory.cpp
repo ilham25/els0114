@@ -2226,8 +2226,33 @@ bool CX2OfflineServer::Handler_EGS_ATTRIB_ENCHANT_ITEM_REQ( KOfflineSession& kSe
 	CX2OfflineDB*			pDB		= CX2OfflineDB::Instance();
 	CX2OfflineAttribTable*	pTable	= CX2OfflineAttribTable::Instance();
 
+	//{{ Iruha : 2026-09-08 // phase 34 - initialise the whole ACK, the ED included
+	// KEGS_ATTRIB_ENCHANT_ITEM_ACK (ClientPacket.h:4871) is a plain DECL_PACKET
+	// with NO constructor, so every scalar in it starts as indeterminate stack
+	// bytes - NOT zero. Do not assume a field left alone here reads 0.
+	//
+	// That matters because CX2UIShop::Handler_EGS_ATTRIB_ENCHANT_ITEM_ACK
+	// ASSIGNS m_iED over the character's wallet (X2UIShop.cpp:4656) rather than
+	// treating it as a delta, and this handler never assigned the field at all -
+	// so a successful attribute add shipped a random wallet. The real server
+	// fills all five (GSUserInventory.cpp:3807-3813): the ED from GetED(), the
+	// other four straight off the request.
+	//
+	// FillAckED goes on the initial error value, the way the item-use and cube
+	// handlers do (Handlers_Inventory.cpp:477, Handlers_Social.cpp:2637): that is
+	// what makes it impossible for any of the many early `return Reply(...)`
+	// refusals below to ship a zero. The success path re-assigns it after the
+	// charge.
 	KEGS_ATTRIB_ENCHANT_ITEM_ACK kAck;
-	kAck.m_iOK = NetError::ERR_ATTRIB_ENCHANT_00;
+	kAck.m_iOK					= NetError::ERR_ATTRIB_ENCHANT_00;
+	kAck.m_iED					= 0;
+	kAck.m_iEnchantedItemUID	= kReq.m_iItemUID;
+	kAck.m_iEnchantedItemID		= 0;					///< only known once the row is read
+	kAck.m_cAttribEnchantSlotNo	= kReq.m_cAttribEnchantSlotNo;
+	kAck.m_cAttribEnchantID		= kReq.m_cAttribEnchantID;
+
+	FillAckED( kSes, kAck.m_iED );
+	//}}
 
 	if( NULL == g_pData || NULL == g_pData->GetEnchantItem() )
 		return Reply( kSes, EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
@@ -2525,7 +2550,11 @@ bool CX2OfflineServer::Handler_EGS_ATTRIB_ENCHANT_ITEM_REQ( KOfflineSession& kSe
 	kUnit.m_iED -= iCost;
 	pDB->SaveProgress( kUnit.m_nUnitUID, kUnit.m_iLevel, kUnit.m_iEXP, kUnit.m_iED );
 
-	kAck.m_iOK = NetError::NET_OK;
+	kAck.m_iOK				= NetError::NET_OK;
+	//{{ Iruha : 2026-09-08 // phase 34 - the wallet after the charge
+	kAck.m_iED				= kUnit.m_iED;
+	kAck.m_iEnchantedItemID	= kRow.m_iItemID;
+	//}}
 
 	CX2OfflineLog::Server( L"ITEM     attribute slot %d of item %d set to %d"
 		L" (%d shard(s) of %d, %d ED, %d ED left)",
@@ -2951,9 +2980,26 @@ bool CX2OfflineServer::Handler_EGS_RESOLVE_ITEM_REQ( KOfflineSession& kSes, cons
 	KEGS_RESOLVE_ITEM_ACK kAck;
 	kAck.m_iOK		= NetError::ERR_RESOLVE_ITEM_00;	///< no such item - KInventory::ResolveItem's own default
 	kAck.m_bJackpot	= false;
+	//{{ Iruha : 2026-09-08 // phase 34 - dismantle's ED is JP-only in this build
+	// KEGS_RESOLVE_ITEM_ACK carries m_iED only under SERV_MULTI_RESOLVE
+	// (ClientPacket.h:4230-4241), and that flag is defined in
+	// ServerDefine_JP.h:47 and nowhere else - US_SERVICE pulls
+	// ServerDefine_US.h, so the field is not in this build's wire format at
+	// all. Both client readers are dead here for the same reason:
+	// CX2UIInventory's assignment sits inside the same #ifdef
+	// (X2UIInventory.cpp:10196) and the whole of CX2UIResolveItem is behind it
+	// (X2UIResolveItem.cpp:3). So dismantle never emptied the wallet in this
+	// configuration - the phase-34 plan listed it from a JP-config reading of
+	// the struct.
+	//
+	// Filled properly anyway so a JP build reports a real wallet instead of a
+	// zero; it cannot be play-tested from this configuration. Dismantle pays in
+	// materials, not ED, so the current value is the right answer.
 #ifdef SERV_MULTI_RESOLVE
 	kAck.m_iED = 0;
+	FillAckED( kSes, kAck.m_iED );
 #endif SERV_MULTI_RESOLVE
+	//}}
 
 	KOfflineItemRow kRow;
 	if( false == pInven->GetItemRow( kReq.m_iItemUID, kRow ) )

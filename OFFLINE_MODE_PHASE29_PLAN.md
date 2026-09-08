@@ -173,7 +173,7 @@ surface the big ones are debugged against.
 |---|---|---|---|---|---|
 | **31** | 3 | PvP emblem turns into a black box after entering a room | 1 line + an audit | **DONE 2026-09-07** - the audit found a second clobber | no |
 | **29** | 1 | Quest-reward item invisible until character re-select | ~6 lines | **DONE 2026-09-08** - the audit normalised one more caller | no |
-| **34** | 5a | Using any item from the bag zeroes the displayed ED | 3 handlers + helper | CONFIRMED | no |
+| **34** | 5a | Using any item from the bag zeroes the displayed ED | 1 handler + a sweep | **DONE 2026-09-08** - one of the three handlers was real; the sweep found no fourth | no |
 | **35** | 6 | Fetch aura → QoL #7: every hatched pet has it | ~3 lines | CONFIRMED | no |
 | **30** | 2 | "Any difficulty" dungeon quest only advances on Normal | 3 lines + verify | CONFIRMED | no |
 | **32** | 4 | Result screen is F rank for every unit | large | CONFIRMED | needs a file packed |
@@ -867,6 +867,59 @@ Note the ED, then: use a potion from the bag, open a box, dismantle an item, add
 an attribute. The displayed ED matches `select ed from unit` after each one.
 Whether the box *delivers* anything is phase 36/37's exit test, not this one —
 here it only has to leave the wallet alone.
+
+### Outcome, 2026-09-08 — one real handler of the three, and the sweep is closed
+
+**Fixed:** `Handler_EGS_ATTRIB_ENCHANT_ITEM_REQ` only. `FillAckED` on the initial
+error value plus `kAck.m_iED = kUnit.m_iED` after the charge, and the other four
+scalars of the ACK initialised from the request the way the live server does
+(`GSUserInventory.cpp:3807-3813`). This one was worse than the reported defect:
+the field was never assigned at all, so a successful attribute add shipped a
+*random* wallet rather than an empty one.
+
+**`EGS_RESOLVE_ITEM_REQ` was a JP-config misreading and needed no fix.**
+`KEGS_RESOLVE_ITEM_ACK` carries `m_iED` only under `SERV_MULTI_RESOLVE`, which is
+`#define`d in `ServerDefine_JP.h:47` and nowhere else; `US_SERVICE` pulls
+`ServerDefine_US.h`, so **the field is not in this build's wire format**. Both
+client readers are dead for the same reason — `CX2UIInventory`'s assignment sits
+inside that `#ifdef` ([X2UIInventory.cpp:10196](X2Lib/X2UIInventory.cpp#L10196))
+and the whole of `CX2UIResolveItem` is behind it
+([X2UIResolveItem.cpp:3](X2Lib/X2UIResolveItem.cpp#L3)). The JP arm is filled in
+anyway, with a comment; it cannot be play-tested from this configuration. So of
+the plan's three handlers, phase 36 fixed one, one was never broken here, and one
+was real.
+
+**Step 3's sweep is done and found no fourth handler.** All 253 ACKs the offline
+server replies with, resolved through `typedef`s to their `DECL_PACKET`/`DECL_DATA`
+bodies, minus every field a constructor covers or a handler assigns: 20 candidate
+`(ack, field)` pairs. **The compiler then eliminated 19 of them** — a generated
+probe of `sizeof( ((KACK*)0)->m_field )` for all 20 produced 19 `C2039`s, i.e.
+those fields do not exist in `US_SERVICE` at all. The twentieth
+(`KEGS_BILL_PRODUCT_INFO_ACK::m_bFinal`) is set through an `OUT` parameter of
+`CX2OfflineCashShop::GetPage`, which the text search had missed. One cosmetic
+initialisation was added: `KEGS_GET_ITEM_FROM_LETTER_ACK::m_bSystemLetter`, whose
+constructor sets only `m_iUnitUID` — unread in practice, since that stub always
+replies `ERR_POST_LETTER_04`.
+
+Two process notes, both of which cost this phase a compile or a wrong line:
+
+- **`#ifdef` arms are not readable at this scale; the compiler is the oracle.**
+  Every one of the four "wallet-like" siblings the sweep first flagged
+  (`m_iVSPoint` on buy, `m_iVP` on repair, `m_iRestoreSPoint`/`m_iRestoreCSPoint`
+  on skill reset, `m_iEventMoney` on verify/select) is a dead `#else` arm. The
+  probe-and-read-the-errors technique above is cheap and settles the question;
+  use it before believing any field list derived by reading headers.
+- **A packet name can have two `DECL_PACKET` bodies, and the first one in the
+  file may be the dead one.** `KEGS_GET_ITEM_FROM_LETTER_ACK` is declared twice:
+  the reachable body is `CommonPacket.h:8772` under
+  `SERV_TRADE_LOGIC_CHANGE_LETTER` (`m_bSystemLetter`), and
+  `ClientPacket.h:4505` is its `#else` twin (`m_cLetterType`). The same is true
+  of `EGS_FIELD_LOADING_COMPLETE_ACK`, which is three-way and resolves to a bare
+  `KPacketOK` here.
+
+**Not yet play-tested.** The build is deployed as `X2_offline.exe`
+(14,350,848 bytes, 2026-09-08 19:22). The exit test below still has to be run for
+the attribute case; the item-use case is phase 36's and already passed.
 
 ---
 

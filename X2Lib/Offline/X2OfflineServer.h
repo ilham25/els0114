@@ -848,7 +848,15 @@ private:
 	///
 	/// Phase 34 of OFFLINE_MODE_PHASE29_PLAN.md proposed this helper; phase 36
 	/// ran first and added it, so phase 34 inherits it rather than adding it
-	/// twice, and keeps only EGS_RESOLVE_ITEM_REQ and EGS_ATTRIB_ENCHANT_ITEM_REQ.
+	/// twice.
+	///
+	/// Phase 34 then found the plan's third handler, EGS_RESOLVE_ITEM_REQ, was a
+	/// JP-config reading: KEGS_RESOLVE_ITEM_ACK carries m_iED only under
+	/// SERV_MULTI_RESOLVE, defined in ServerDefine_JP.h and nowhere else. Only
+	/// EGS_ATTRIB_ENCHANT_ITEM_REQ was really broken here, and a sweep of every
+	/// ACK the offline server replies with (253 of them) found no fourth: every
+	/// other unset scalar was a dead #ifdef arm, a field a constructor already
+	/// covers, or one filled in another function.
 	bool FillAckED( KOfflineSession& kSes, OUT int& iED );
 	//}}
 
