@@ -474,6 +474,23 @@ public:
 	static CX2OfflineServer*	Instance();
 	static void					Release();
 
+	//{{ Iruha : 2026-09-08 // phase 35 - QUALITY_OF_LIFE.md #7
+	// "Is this pet past its crystal stage?", asked of the client's own pet
+	// templet: PetData.lua's PET_STATUS is 0 for a step the pet is still a
+	// crystal at, and every client site that gates the fetch aura reads exactly
+	// that entry (X2UIPetInfo.cpp:2019, X2UIInventory.cpp:6468). Returns false
+	// when the templet is missing or the step is out of range, which is what
+	// CX2PetManager::GetPetStatus itself does - a pet this build cannot render
+	// is not one to grant a skill to.
+	//
+	// Used by MakePetInfo, which forces the aura on for every pet this returns
+	// true for, and by Handler_EGS_USE_ITEM_IN_INVENTORY_REQ, which refuses
+	// item 500720 for the same set. Both live in Handlers_Social.cpp /
+	// Handlers_Inventory.cpp; the definition is beside MakePetInfo.
+	static bool IsPetPastCrystalStage( int iPetID, int iEvolutionStep );
+	//}}
+
+
 	//////////////////////////////////////////////////////////////////////////
 	// IX2OfflineHook
 	virtual bool OnClientSend( KSession* pSession, const KEvent& kEvent );

@@ -174,7 +174,7 @@ surface the big ones are debugged against.
 | **31** | 3 | PvP emblem turns into a black box after entering a room | 1 line + an audit | **DONE 2026-09-07** - the audit found a second clobber | no |
 | **29** | 1 | Quest-reward item invisible until character re-select | ~6 lines | **DONE 2026-09-08** - the audit normalised one more caller | no |
 | **34** | 5a | Using any item from the bag zeroes the displayed ED | 1 handler + a sweep | **DONE 2026-09-08** - one of the three handlers was real; the sweep found no fourth | no |
-| **35** | 6 | Fetch aura → QoL #7: every hatched pet has it | ~3 lines | CONFIRMED | no |
+| **35** | 6 | Fetch aura → QoL #7: every pet past its crystal has it | ~3 lines | **DONE 2026-09-08** - phase 37 had already landed the persistence half; the "crystal" test is real | no |
 | **30** | 2 | "Any difficulty" dungeon quest only advances on Normal | 3 lines + verify | CONFIRMED | no |
 | **32** | 4 | Result screen is F rank for every unit | large | CONFIRMED | needs a file packed |
 | **33** | — | Monster grade, so the ranks in 32 are accurate | large | CONFIRMED | no |
@@ -925,7 +925,76 @@ the attribute case; the item-use case is phase 36's and already passed.
 
 # Phase 35 — Fetch aura: every hatched pet has it (`ISSUES_2.md` #6 → QoL #7)
 
-**Flag:** `SERV_IRUHADEV_OFFLINE`
+**Flag:** `SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS`, nested under
+`SERV_IRUHADEV_OFFLINE` — not the bare offline flag this section originally
+named. §1's "do not mint a per-phase flag" rule is about sub-flags that can only
+move in lockstep with the flag enclosing them; a QoL toggle is not one, and the
+two boost flags (`_EXP_BOOST`, `_DROP_BOOST`) are the standing precedent. It
+also makes the `#else` the plan asked for reachable: every file under
+`X2Lib/Offline/` is already wrapped in `#ifdef SERV_IRUHADEV_OFFLINE`, so an
+`#else` under *that* flag would have been dead code.
+
+### Status: DONE 2026-09-08
+
+Two corrections to the diagnosis below, both found by reading the tree as it
+stands rather than as it stood when this document was written on 2026-09-07:
+
+1. **The persistence half is already fixed.** This section says "nothing in
+   `X2Lib/Offline/` writes `m_bAutoLooting` true". That was true on 2026-09-07
+   and is not true now: **phase 37 landed the whole purchase path** on
+   2026-09-08 — the pet-owned / past-egg / not-already-on validation
+   ([Handlers_Inventory.cpp:806-899](X2Lib/Offline/Handlers_Inventory.cpp#L806))
+   and the `SavePet` after the ACK (`:981-990`), which is exactly the fix this
+   section's "Not done" paragraph describes. So the choice recorded at the top
+   of this document — QoL #7 *instead of* the persistence fix — turned out not
+   to be a choice: the tree now has both, and the flag switches between them.
+   `unit_pet.auto_looting` is left alone precisely so undefining it restores a
+   path that now works.
+
+2. **"Except the pet still in crystal" is NOT free, and this section's reading
+   of it was wrong.** It says a `unit_pet` row only exists once an egg is
+   hatched, so an unhatched crystal is an inventory item and needs no handling.
+   The row part is true; the conclusion is not. A *hatched* pet is still a
+   crystal at the evolution steps whose `PET_STATUS` entry is `0` — the
+   loader's own comment reads *0: egg, 1: juvenile, 2: other (adult, perfect
+   form)* ([X2PetManager.cpp:1337](X2Lib/X2PetManager.cpp#L1337)) — and the pet
+   window greys the aura button out on exactly that entry
+   ([X2UIPetInfo.cpp:2019-2021](X2Lib/X2UIPetInfo.cpp#L2019)). All five pets in
+   today's save are at evolution step 0, so the two readings disagree about
+   every pet the user owns. `CX2OfflineServer::IsPetPastCrystalStage`
+   (`Handlers_Social.cpp:1574`) asks `CX2PetManager::GetPetStatus`, which is
+   that same lookup with "no templet" and "step out of range" already folded in
+   as `0`; a pet born fully grown carries `PET_STATUS = { 3 }` and so passes,
+   which is the live server's `IsEvolutionExceptionPet` case for free.
+
+Step 2 of "What to do" resolved cleanly: `X2Room.cpp:2439`,
+`X2SquareUnit.cpp:640` and `X2StatePVPRoom.cpp:194` do **not** read a room or
+square struct of their own — all three read `CX2Unit::GetPetInfo()`, a
+`KPetInfo`, as do `X2GUUser.cpp:1565`, `:2070` and the one that matters in a
+dungeon, `:2874` (`SetSummonItemPickupPet`). Offline that `KPetInfo` can only
+have come from `MakePetInfo`: nothing under `X2Lib/Offline/` fills a
+`KRoomUserInfo::m_vecPet` or a `KFieldUserInfo::m_vecPet`, and my own slot in a
+room reuses the already-populated unit (`X2Room.cpp:2129`) rather than
+constructing one. Worth recording anyway: `CX2Unit::SetSimplePetInfo`
+(`X2Unit.cpp:2211`) has an **empty** `#ifdef PET_DROP_ITEM_PICKUP` block,
+because `KFieldPetInfo` carries no auto-looting field at all — a live client
+walking into a village loses the flag for other players' pets. Dead offline;
+noted so it is not rediscovered.
+
+Step 4 decided: **500720 stays in the shop.** `X2OfflineCashSeed.h` is a
+verbatim transcription of `dbo.EB_Product`, the shop charges nothing, and a
+refusal that names its own reason is more readable than a product that silently
+went missing.
+
+Built, deployed to `X2_offline.exe` (14,351,360 bytes, 2026-09-08 19:51) and the
+flag proven present at the call site by finding the new log strings in the exe
+and the now-unreachable old one absent. **Play-tested by the user, 2026-09-08:
+working.** Note for anyone re-testing on this save: every pet in it is at
+evolution step 0, and the only one past its crystal (petUID 5, id 30001, an
+evolution-exception pet) already had `auto_looting = 1` bought, so the save
+alone does not distinguish forced from stored. The `PET      fetch aura:` line
+added to `Handler_EGS_GET_PET_LIST_REQ` (`Handlers_Social.cpp:1620`) prints the
+verdict per pet when the pet window is opened, which is what to read first.
 
 **Run after phase 34** — both edit `Handler_EGS_USE_ITEM_IN_INVENTORY_REQ`.
 

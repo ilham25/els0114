@@ -1519,6 +1519,29 @@ namespace
 
 #ifdef SERV_PET_AUTO_LOOTING
 		kOut.m_bAutoLooting		= kRow.m_bAutoLooting;
+
+		//{{ Iruha : 2026-09-08 // phase 35 - QUALITY_OF_LIFE.md #7
+#ifdef SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS
+		// The fetch aura, on for every pet that is out of its crystal, without
+		// buying item 500720. Forced HERE and nowhere else because MakePetInfo
+		// is the only builder of a KPetInfo the offline server ever sends: the
+		// pet list, the create ACK, the summon ACK and its relayed _NOT, and
+		// the feed ACK all come through it, and each of the eight client sites
+		// that reads m_bAutoLooting reads one of those - either off
+		// CX2UIPetInfo::m_vecPetList (the aura button, X2UIPetInfo.cpp:2028) or
+		// off CX2Unit::GetPetInfo(), which SetFullPetInfo fills from the summon
+		// ACK (X2PetManager.cpp:2266) and which is what CX2GUUser hands to
+		// SetSummonItemPickupPet in a dungeon (X2GUUser.cpp:2874). Nothing
+		// offline fills a KRoomUserInfo's or KFieldUserInfo's pet vector, so
+		// CX2Unit's two other pet paths never run here.
+		//
+		// kRow is deliberately left alone: unit_pet.auto_looting keeps whatever
+		// was really purchased, so undefining the flag restores the bought
+		// toggle with no migration and no lost data.
+		if( true == CX2OfflineServer::IsPetPastCrystalStage( kRow.m_iPetID, kRow.m_iEvolutionStep ) )
+			kOut.m_bAutoLooting	= true;
+#endif SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS
+		//}}
 #endif SERV_PET_AUTO_LOOTING
 	}
 
@@ -1533,6 +1556,32 @@ namespace
 		kOut.m_iLastUnSummonDate	= kRow.m_tLastUnSummonDate;
 	}
 }
+
+//{{ Iruha : 2026-09-08 // phase 35 - QUALITY_OF_LIFE.md #7
+// See the declaration in X2OfflineServer.h. PetData.lua's PET_STATUS vector is
+// one entry per evolution step and its own comment reads "0: egg" - the client
+// loads it at X2PetManager.cpp:1336-1345 and gates the aura button on
+// `1 <= m_vecPetStatus[ step ]` (X2UIPetInfo.cpp:2019-2021), the bag right-click
+// on the same entry being non-zero (X2UIInventory.cpp:6468). CX2PetManager::
+// GetPetStatus is that lookup with the templet-missing and step-out-of-range
+// cases already folded in as 0, so this is the client's own test rather than a
+// second implementation of it.
+//
+// Deliberately NOT the live server's IsEvolutionExceptionPet check
+// (XSLPetManager.cpp:1180, "one step and it is 3"): that one exists to let a
+// pet that is born grown past an `evolution step == 0` gate, and asking the
+// status vector directly answers both cases at once.
+bool CX2OfflineServer::IsPetPastCrystalStage( int iPetID, int iEvolutionStep )
+{
+	if( NULL == g_pData || NULL == g_pData->GetPetManager() )
+		return false;
+
+	if( iEvolutionStep < 0 )
+		return false;
+
+	return ( 0 < g_pData->GetPetManager()->GetPetStatus( iPetID, iEvolutionStep ) );
+}
+//}}
 
 bool CX2OfflineServer::Handler_EGS_GET_PET_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent )
 {
@@ -1557,6 +1606,22 @@ bool CX2OfflineServer::Handler_EGS_GET_PET_LIST_REQ( KOfflineSession& kSes, cons
 		KPetInfo kInfo;
 		MakePetInfo( vecPet[i], kInfo );
 		kAck.m_vecPetList.push_back( kInfo );
+
+		//{{ Iruha : 2026-09-08 // phase 35 - QUALITY_OF_LIFE.md #7
+#ifdef SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS
+		// One line per pet, only when the pet window is opened, so the QoL's
+		// verdict on each pet is readable instead of inferred from the button
+		// art. A pet still in its crystal is EXCLUDED by design - the aura
+		// button is disabled for it client-side anyway (X2UIPetInfo.cpp:2020)
+		// and that is what "except the pet that still in crystal" means.
+		CX2OfflineLog::Server( L"PET      fetch aura: pet %I64d (id %d, \"%s\", step %d) %s",
+			vecPet[i].m_nPetUID, vecPet[i].m_iPetID, vecPet[i].m_wstrName.c_str(),
+			vecPet[i].m_iEvolutionStep,
+			true == CX2OfflineServer::IsPetPastCrystalStage( vecPet[i].m_iPetID, vecPet[i].m_iEvolutionStep )
+				? L"ON (granted by QUALITY_OF_LIFE.md #7)"
+				: L"off - still in its crystal, so the aura is not granted" );
+#endif SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS
+		//}}
 	}
 
 	return Reply( kSes, EGS_GET_PET_LIST_ACK, kAck );

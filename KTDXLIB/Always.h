@@ -2642,3 +2642,33 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 #	define USE_MAXLEVEL_LIMIT_VAL const int g_iMaxLevel = 80;
 #endif SERV_IRUHADEV_LEVEL_CAP_80
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-08
+// Description: Offline quality-of-life, QUALITY_OF_LIFE.md #7. Every pet
+//              that is past its crystal stage reports the fetch aura (the
+//              pet item-pickup skill, PET_DROP_ITEM_PICKUP) as already
+//              unlocked, so item 500720 never has to be bought.
+//
+//              Forced in CX2OfflineServer's MakePetInfo, where the client
+//              reads the flag, and NOT in the save: unit_pet.auto_looting
+//              keeps whatever was actually purchased, so undefining this
+//              define restores the bought-toggle behaviour exactly, with
+//              no migration. Handler_EGS_USE_ITEM_IN_INVENTORY_REQ refuses
+//              500720 while it is defined rather than eating an item that
+//              can no longer change anything.
+//
+//              "Except the pet still in crystal" is the game's own test and
+//              not a guess: PetData.lua's PET_STATUS is 0 for a crystal
+//              step, and both the pet window's aura button
+//              (X2UIPetInfo.cpp:2019-2043) and the live server's own
+//              ERR_PET_27 gate read exactly that. A crystal pet keeps the
+//              stored value, which is false.
+//
+//              Meaningless without SERV_IRUHADEV_OFFLINE, so defined under
+//              it rather than beside it.
+#ifdef SERV_IRUHADEV_OFFLINE
+#define SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS
+#endif SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////

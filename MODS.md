@@ -27,6 +27,7 @@ column.
 | `SERV_IRUHADEV_MP_REGEN_BOOST` | 2026-09-04 | `KTDXLIB/Always.h:2538` (rate constant in `X2Lib/X2Define.h:1802`) | `X2Lib/X2GUUser.cpp:1829`, `X2Lib/X2GUUser.cpp:3654`, `X2Lib/X2GUUser.cpp:3726`, `X2Lib/X2GageManager.cpp:50` | -- |
 | `SERV_IRUHADEV_AIPARTY_PERSIST` | 2026-09-06 | `KTDXLIB/Always.h:2560` (nested under `SERV_IRUHADEV_OFFLINE`) | `X2Lib/X2Game.h:660-675`, `X2Lib/X2Game.cpp:197-199`, `X2Lib/X2Game.cpp:4958-4999`, `X2Lib/X2Game.cpp:7234` (`GetOfflinePartyBotPos`), `X2Lib/X2Game.cpp:7306` (`IsOfflinePartyBotUID`), `X2Lib/X2Game.cpp:7347` (`RepositionOfflinePartyBots`), `X2Lib/X2DungeonGame.cpp:685-707`, `X2Lib/X2DungeonGame.cpp:878-885` | -- |
 | `SERV_IRUHADEV_LEVEL_CAP_80` | 2026-09-08 | `KTDXLIB/Always.h:2638` (redefines the studio's `USE_MAXLEVEL_LIMIT_VAL` from `KTDXLIB/OnlyGlobal/Always_US.h:75`) | `X2Lib/X2Game.h:34` and `X2Lib/X2UIPersonalShopBoard.h:12` pick it up by macro expansion; compile-time check in `X2Lib/Offline/Handlers_Room.cpp:2711` | -- |
+| `SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS` | 2026-09-08 | `KTDXLIB/Always.h:2672` (nested under `SERV_IRUHADEV_OFFLINE`) | `X2Lib/Offline/Handlers_Social.cpp:1541` (the force, in `MakePetInfo`), `:1574` (`IsPetPastCrystalStage`), `:1620` (the per-pet log line), `X2Lib/Offline/Handlers_Inventory.cpp:872` (item 500720 refused), `X2Lib/Offline/X2OfflineServer.h:490` | -- |
 
 What each one does:
 
@@ -216,6 +217,43 @@ What each one does:
   `GetOriginalMPChangeRate()`, which reads the member the clone never touched.
   See the *Deploying the offline client* section of `CLAUDE.md` for the
   diagnostic pattern.
+
+### Offline fetch aura on every pet
+
+**Defined in** `KTDXLIB/Always.h` -- `SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS`,
+nested under `SERV_IRUHADEV_OFFLINE`. `QUALITY_OF_LIFE.md` #7.
+
+Every pet that is past its crystal reports the fetch aura (the pet item-pickup
+skill, `PET_DROP_ITEM_PICKUP`) as already unlocked, so cash item 500720 never
+has to be bought. The force is one line in `CX2OfflineServer`'s `MakePetInfo`,
+which is the only builder of a `KPetInfo` the offline server ever sends -- the
+pet list, the create ACK, the summon ACK and its relayed `_NOT`, and the feed
+ACK all pass through it, and all eight client sites that read `m_bAutoLooting`
+read one of those.
+
+**The save is not touched.** `unit_pet.auto_looting` keeps whatever was actually
+purchased, so undefining the flag restores the bought toggle exactly, with no
+migration. Item 500720 is refused while the flag is on
+(`Handlers_Inventory.cpp:872`, `ERR_PET_28`, item left in the bag) rather than
+consumed to write a column nothing reads any more; it stays listed in the cash
+shop, because `X2OfflineCashSeed.h` is a verbatim transcription of
+`dbo.EB_Product` and a refusal that names its reason is more readable than a
+missing product.
+
+"Except the pet still in crystal" is the game's own test, not a guess:
+`PetTemplet.lua`'s `PET_STATUS` is `0` for a crystal step (the loader's own
+comment at `X2Lib/X2PetManager.cpp:1337` reads *0: egg, 1: juvenile, 2: other
+(adult, perfect form)*), the pet window disables the aura button on the same
+entry (`X2UIPetInfo.cpp:2019-2021`), and the live server's `ERR_PET_27` gate
+means the same thing. `CX2OfflineServer::IsPetPastCrystalStage` asks
+`CX2PetManager::GetPetStatus`, which already folds "no templet" and "step out of
+range" into `0`. A pet born fully grown carries `PET_STATUS = { 3 }` and so is
+covered, which is the live server's `IsEvolutionExceptionPet` case for free.
+
+To include crystal-stage pets as well, drop the `IsPetPastCrystalStage` test in
+`MakePetInfo` -- the pickup itself would work (`X2GUUser.cpp:2874` is not gated
+on pet status), but the pet window's aura button stays greyed out for them, so
+the UI and the behaviour would disagree.
 
 ### Offline 3x EXP and 3x drop rate
 

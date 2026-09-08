@@ -868,6 +868,41 @@ bool CX2OfflineServer::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( KOfflineSession& k
 			}
 		}
 
+		//{{ Iruha : 2026-09-08 // phase 35 - QUALITY_OF_LIFE.md #7
+#ifdef SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS
+		// With the aura forced on for every pet past its crystal (MakePetInfo,
+		// Handlers_Social.cpp) this item has nothing left to grant, and the
+		// generic consume below would still eat it - so it is refused here with
+		// the item intact. Placed AFTER the egg check on purpose: a pet still in
+		// a crystal is not covered by the QoL force, and ERR_PET_27 above is the
+		// accurate reason for it.
+		//
+		// Both client entry points already stop before sending - the pet window
+		// skips a pet whose m_bAutoLooting is true (X2UIPetInfo.cpp:822-826) and
+		// the bag right-click stops at STR_ID_21658 (X2UIInventory.cpp:6477) -
+		// but each of those reads a pet templet first and falls through to the
+		// request when the templet is missing, so the request can still arrive.
+		//
+		// The refusal, not the item's removal from the shop, is the answer to
+		// "should 500720 still be sold": X2OfflineCashSeed.h is a verbatim
+		// transcription of dbo.EB_Product and deleting a row from it would make
+		// the catalog disagree with its source for no gain, since the offline
+		// shop charges nothing and a refusal that names its reason is readable
+		// where a missing product is not.
+		//
+		// Everything below - the consume and the SavePet that follows the ACK -
+		// is left standing, so undefining the flag restores the purchase.
+		kAck.m_iOK = NetError::ERR_PET_28;
+
+		CX2OfflineLog::Server( L"PET      auto-looting item %d refused - pet %I64d (id %d) already"
+			L" has the item-pickup skill, which offline grants to every pet past its crystal"
+			L" (QUALITY_OF_LIFE.md #7); the item is left in the bag",
+			kRow.m_iItemID, kAutoLootPet.m_nPetUID, kAutoLootPet.m_iPetID );
+
+		return Reply( kSes, EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
+#endif SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS
+		//}}
+
 		if( true == kAutoLootPet.m_bAutoLooting )
 		{
 			kAck.m_iOK = NetError::ERR_PET_28;
