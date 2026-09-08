@@ -172,7 +172,7 @@ surface the big ones are debugged against.
 | Phase | `ISSUES_2.md` | Defect | Size | Confidence | Blocked? |
 |---|---|---|---|---|---|
 | **31** | 3 | PvP emblem turns into a black box after entering a room | 1 line + an audit | **DONE 2026-09-07** - the audit found a second clobber | no |
-| **29** | 1 | Quest-reward item invisible until character re-select | ~6 lines | CONFIRMED | no |
+| **29** | 1 | Quest-reward item invisible until character re-select | ~6 lines | **DONE 2026-09-08** - the audit normalised one more caller | no |
 | **34** | 5a | Using any item from the bag zeroes the displayed ED | 3 handlers + helper | CONFIRMED | no |
 | **35** | 6 | Fetch aura → QoL #7: every hatched pet has it | ~3 lines | CONFIRMED | no |
 | **30** | 2 | "Any difficulty" dungeon quest only advances on Normal | 3 lines + verify | CONFIRMED | no |
@@ -264,6 +264,33 @@ to be given. Do not start in `X2Unit.cpp`.
 Hand in a quest that pays an equipment reward **and** takes collected items. The
 reward appears in the inventory immediately, the handed-in items disappear
 immediately, and no re-select is needed. A multi-item reward shows every item.
+
+### What actually happened — DONE 2026-09-08, play-tested
+The diagnosis held exactly, and nothing outside it needed touching. Both
+`Handlers_Quest.cpp` loops now take a fresh local per item and append it to the
+shared accumulator, in the `Handlers_Social.cpp:2838` shape.
+
+- **Step 3 confirmed, not re-implemented.** The batch hand-in builds a fresh
+  `KEGS_QUEST_COMPLETE_ACK kOne` per quest and passes it to `CompleteOneQuest`
+  ([Handlers_Quest.cpp:684](X2Lib/Offline/Handlers_Quest.cpp#L684)), so it is
+  carried by the same change.
+- **The step-4 audit found nothing broken and one thing fragile.** Five of the
+  seven `InsertItem` callers were already correct (`Handlers_Inventory.cpp:1262`
+  and `:3080` take a fresh local per iteration; `Handlers_Room.cpp:2643` and
+  `X2OfflineInventory.cpp:1272` are single calls into a local;
+  `Handlers_Social.cpp:2843` is the reference). `Handlers_Shop.cpp:750` passed
+  `kAck.m_vecInventorySlotInfo` straight in — harmless as the only fill on that
+  path — and was **normalised** rather than left with a comment, since a second
+  fill on that path would have reproduced the bug verbatim.
+- **Step 5 was declined.** With all eight sites now handing in a fresh local,
+  `InsertItem`'s `clear()` is dead rather than dangerous. Removing it would
+  change behaviour at eight call sites to buy nothing this defect needed, so
+  the class stays as it is and the trap is documented at each site instead.
+
+Build clean, deployed to `X2_offline.exe` (14,350,848 bytes);
+`Handlers_Quest.obj` and `Handlers_Shop.obj` recompiled immediately before the
+link, so the change is provably in the binary. Play-tested by the user: the
+reward appears without a re-select.
 
 ---
 

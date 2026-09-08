@@ -412,8 +412,17 @@ int CX2OfflineServer::CompleteOneQuest( KOfflineSession& kSes,
 
 			for( mit = mapTaken.begin(); mit != mapTaken.end(); ++mit )
 			{
+				// Same fresh-vector-per-item shape as the reward loop below, for
+				// the same reason. vecUndo is not sent anywhere today, so this is
+				// latent - but leaving the clobber in is how it comes back the
+				// first time someone attaches this vector to the refusal ACK.
+				std::vector< KInventoryItemInfo > vecBack;
 				int iBack = 0;
-				pInven->InsertItem( mit->first, mit->second, 0, vecUndo, iBack );
+
+				pInven->InsertItem( mit->first, mit->second, 0, vecBack, iBack );
+
+				for( size_t i = 0; i < vecBack.size(); ++i )
+					vecUndo.push_back( vecBack[i] );
 
 				CX2OfflineLog::Server( L"QUEST    complete %d rolled back %d/%d x item %d",
 					kReq.m_iQuestID, iBack, mit->second, mit->first );
@@ -430,8 +439,20 @@ int CX2OfflineServer::CompleteOneQuest( KOfflineSession& kSes,
 		std::map< int, int >::const_iterator mit;
 		for( mit = mapReward.begin(); mit != mapReward.end(); ++mit )
 		{
+			// A fresh vector per reward, appended - InsertItem clear()s the
+			// out-vector it is handed (X2OfflineInventory.cpp:1441). Passing the
+			// shared accumulator straight in threw away everything gathered
+			// before it: the handed-in condition items above, and every reward
+			// but the last. The ACK then carried only the highest item ID in
+			// mapReward, so the rest was in SQLite but not on screen until a
+			// character re-select rebuilt the bag from the DB.
+			std::vector< KInventoryItemInfo > vecChanged;
 			int iInserted = 0;
-			pInven->InsertItem( mit->first, mit->second, 0, vecChangedSlot, iInserted );
+
+			pInven->InsertItem( mit->first, mit->second, 0, vecChanged, iInserted );
+
+			for( size_t i = 0; i < vecChanged.size(); ++i )
+				vecChangedSlot.push_back( vecChanged[i] );
 
 			kAck.m_kUpdateUnitInfo.m_mapItemObtained[ mit->first ] = iInserted;
 

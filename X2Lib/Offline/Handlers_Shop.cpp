@@ -746,9 +746,18 @@ bool CX2OfflineServer::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REQ( KOfflineSes
 		return Reply( kSes, EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK, kAck );
 	}
 
+	// Through a local rather than straight into the ACK vector: InsertItem
+	// clear()s whatever it is handed (X2OfflineInventory.cpp:1441). This is the
+	// only fill of m_vecInventorySlotInfo on this path, so passing it directly
+	// was harmless - and one added line away from the quest-reward bug.
+	std::vector< KInventoryItemInfo > vecChanged;
 	int iInserted = 0;
-	pInven->InsertItem( iItemID, iQuantity, 0, kAck.m_vecInventorySlotInfo, iInserted,
+
+	pInven->InsertItem( iItemID, iQuantity, 0, vecChanged, iInserted,
 						true == vecSocket.empty() ? NULL : &vecSocket );
+
+	for( size_t i = 0; i < vecChanged.size(); ++i )
+		kAck.m_vecInventorySlotInfo.push_back( vecChanged[i] );
 
 	CX2OfflineLog::Server( L"CASH     claimed line %I64d: %d x item %d into the bag%s",
 		pRow->m_nTransNo, iInserted, iItemID,
