@@ -303,6 +303,14 @@ private:
 	static bool	IsExistDungeonInSub( const CX2QuestManager::SubQuestTemplet* pSub,
 									 int iDungeonID );
 
+	/// A sub-quest's dungeon requirement as one printable string, e.g.
+	/// "30070 (upperDiff=1, any difficulty at or above the digit)". Both halves
+	/// matter and neither is readable on its own - the packed key says which
+	/// dungeon and which difficulty, and m_bUpperDifficulty says whether the
+	/// difficulty digit is a floor or an equality. A rejection logged without both is
+	/// indistinguishable from the wrong dungeon.
+	static std::wstring	DungeonReqString( const CX2QuestManager::SubQuestTemplet* pSub );
+
 	/// Is a sub-quest done, by the same rule the client draws it with -
 	/// inventory for the collection types, the stored flag for everything else.
 	static bool	IsSubComplete( const CX2QuestManager::SubQuestTemplet* pSub,

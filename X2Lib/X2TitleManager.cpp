@@ -579,6 +579,14 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
                 LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		    CX2Dungeon::DI_NONE, goto error_proc; );
                 LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
                 kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
+				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty"
+				// flag here (CXSLTitleManager::LoadClearCondition) and the client never
+				// did. Titles have a real -1 "any" sentinel, which still works, so only
+				// "this difficulty or harder" was broken.
+#ifdef SERV_IRUHADEV_OFFLINE
+				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
+#endif SERV_IRUHADEV_OFFLINE
+				//}}
 
                 LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearTime",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearTime,	0,		goto error_proc; );
 				//{{ 2011. 05. 16  ±è¹Î¼º	ÄªÈ£ È¹µæ Á¶°Ç Ãß°¡
@@ -595,6 +603,14 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
                 LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
                 LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
                 kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
+				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty"
+				// flag here (CXSLTitleManager::LoadClearCondition) and the client never
+				// did. Titles have a real -1 "any" sentinel, which still works, so only
+				// "this difficulty or harder" was broken.
+#ifdef SERV_IRUHADEV_OFFLINE
+				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
+#endif SERV_IRUHADEV_OFFLINE
+				//}}
 
                 LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonRank",		kSubMissionTemplet.m_ClearCondition.m_eDungeonRank,	CX2DungeonRoom::RANK_TYPE,		CX2DungeonRoom::RT_NONE, goto error_proc; );
 				//{{ 2011. 05. 16  ±è¹Î¼º	ÄªÈ£ È¹µæ Á¶°Ç Ãß°¡
@@ -610,6 +626,14 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
                 LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
                 LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
                 kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
+				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty"
+				// flag here (CXSLTitleManager::LoadClearCondition) and the client never
+				// did. Titles have a real -1 "any" sentinel, which still works, so only
+				// "this difficulty or harder" was broken.
+#ifdef SERV_IRUHADEV_OFFLINE
+				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
+#endif SERV_IRUHADEV_OFFLINE
+				//}}
 
                 LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonDamage",	kSubMissionTemplet.m_ClearCondition.m_iDungeonDamage,	-1, goto error_proc; );
 				//{{ 2011. 05. 16  ±è¹Î¼º	ÄªÈ£ È¹µæ Á¶°Ç Ãß°¡

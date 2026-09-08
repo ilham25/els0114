@@ -21,7 +21,7 @@ column.
 | `SERV_IRUHADEV_BUFF_DURATION_TEXT` | import-2014 | `KTDXLIB/Always.h:2428` | `X2Lib/X2GageUI.{h,cpp}`, `X2Lib/X2BuffTemplet.{h,cpp}`, `X2Lib/X2BuffFinalizerTemplet.h`, `X2Lib/X2GameUnit.cpp`, `X2Lib/X2PremiumBuffManager.cpp` | -- |
 | `STATIC_AUTO_LOGIN` | import-2014 | `KTDXLIB/OnlyGlobal/Always_US.h:358` | `X2Lib/X2Main.cpp:1255`, `X2Lib/X2Main.cpp:1285` | -- |
 | `SERV_IRUHADEV_QUICK_SLOT_FULL_FREE` | 2026-08-27 | `KTDXLIB/Always.h:2435`, `KncWX2Server/Common/ServerDefine.h:4224` | `X2Lib/X2Unit.h:982-988`, `X2Lib/X2Unit.cpp:104-111`, `X2Lib/X2UIQuickSlot.cpp:1797-1822`, `X2Lib/X2CashShop.cpp:8306-8326` | `KncWX2Server/GameServer/Inventory.cpp:500-534`, `KncWX2Server/GameServer/Inventory.cpp:146-152` |
-| `SERV_IRUHADEV_OFFLINE` | 2026-08-31 | `KTDXLIB/Always.h:2446` **and** `X2ServerProtocol/X2ServerProtocol_2010.vcxproj:1444` (`US_SERVICE` `PreprocessorDefinitions`); AI party tuning constants in `X2Lib/X2Define.h:1822` | `X2Lib/Offline/` (the whole directory: 55 sources plus `start_offline.bat`), plus seams in `X2ServerProtocol/Socket/Session.cpp` (5 blocks), `X2ServerProtocol/OfflineHook.h`, `X2Lib/X2Data.cpp:2135`, `X2Lib/X2StateServerSelect.cpp:6982`, `X2Lib/X2DungeonSubStage.cpp:1452`, `X2Lib/X2QuestManager.{h,cpp}`, `X2Lib/X2TitleManager.h:339`, `X2Lib/X2StateBeginning.cpp:1607`; and, for the AI party, `X2Lib/X2Game.h:611`, `X2Lib/X2Game.cpp:195`, `:6541`, `:6986`, `:8886`, `:8958`, `:13802`, `X2Lib/X2DungeonGame.cpp:182`, `:1304`, `:2104`, `X2Lib/X2Room.h:304`, `:332`, `X2Lib/X2Room.cpp:1087`, `X2Lib/X2GageManager.cpp:3623`, `X2Lib/X2GageUI.h:633`, `X2Lib/X2Data.cpp:2930` | -- |
+| `SERV_IRUHADEV_OFFLINE` | 2026-08-31 | `KTDXLIB/Always.h:2446` **and** `X2ServerProtocol/X2ServerProtocol_2010.vcxproj:1444` (`US_SERVICE` `PreprocessorDefinitions`); AI party tuning constants in `X2Lib/X2Define.h:1822` | `X2Lib/Offline/` (the whole directory: 55 sources plus `start_offline.bat`), plus seams in `X2ServerProtocol/Socket/Session.cpp` (5 blocks), `X2ServerProtocol/OfflineHook.h`, `X2Lib/X2Data.cpp:2135`, `X2Lib/X2StateServerSelect.cpp:6982`, `X2Lib/X2DungeonSubStage.cpp:1452`, `X2Lib/X2QuestManager.{h,cpp}`, `X2Lib/X2TitleManager.{h,cpp}`, `X2Lib/X2StateBeginning.cpp:1607`; and, for the AI party, `X2Lib/X2Game.h:611`, `X2Lib/X2Game.cpp:195`, `:6541`, `:6986`, `:8886`, `:8958`, `:13802`, `X2Lib/X2DungeonGame.cpp:182`, `:1304`, `:2104`, `X2Lib/X2Room.h:304`, `:332`, `X2Lib/X2Room.cpp:1087`, `X2Lib/X2GageManager.cpp:3623`, `X2Lib/X2GageUI.h:633`, `X2Lib/X2Data.cpp:2930` | -- |
 | `SERV_IRUHADEV_NO_PATCHER_TOKEN` | 2026-09-04 | `KTDXLIB/Always.h:2525` | `X2/X2.cpp:805` | -- |
 | `SERV_IRUHADEV_JOBCHANGE_PORTRAIT` | 2026-09-04 | `KTDXLIB/Always.h:2513` | `X2Lib/X2UIQuestNew.cpp:8`, `X2Lib/X2UIQuestNew.cpp:1516`, `X2Lib/X2UIQuestNew.cpp:2043` | -- |
 | `SERV_IRUHADEV_MP_REGEN_BOOST` | 2026-09-04 | `KTDXLIB/Always.h:2538` (rate constant in `X2Lib/X2Define.h:1802`) | `X2Lib/X2GUUser.cpp:1829`, `X2Lib/X2GUUser.cpp:3654`, `X2Lib/X2GUUser.cpp:3726`, `X2Lib/X2GageManager.cpp:50` | -- |
@@ -254,6 +254,71 @@ To include crystal-stage pets as well, drop the `IsPetPastCrystalStage` test in
 `MakePetInfo` -- the pickup itself would work (`X2GUUser.cpp:2874` is not gated
 on pet status), but the pet window's aura button stays greyed out for them, so
 the UI and the behaviour would disagree.
+
+### Offline "any difficulty" quest and title steps
+
+**Gated by** `SERV_IRUHADEV_OFFLINE`; no new flag. `ISSUES_2.md` #2, phase 30.
+
+Six one-line reads added to two client script parsers, so `m_bUpperDifficulty`
+-- the only "any difficulty" mechanism this build has -- is actually loaded:
+
+| file | clear type | what it fixes |
+|---|---|---|
+| `X2Lib/X2QuestManager.cpp:2453` | `SQT_VISIT_DUNGEON` (26) | 88 of 121 sub-quests |
+| `X2Lib/X2QuestManager.cpp:2493` | `SQT_FIND_NPC` (27) | 39 of 47 sub-quests |
+| `X2Lib/X2QuestManager.cpp:2574` | `SQT_ITEM_USE` (22) | neither of its 2 sets the flag; parity only |
+| `X2Lib/X2TitleManager.cpp:587` | `TMCT_DUNGEON_TIME` | 5 of 17 sub-missions |
+| `X2Lib/X2TitleManager.cpp:611` | `TMCT_DUNGEON_RANK` | 9 of 32 sub-missions |
+| `X2Lib/X2TitleManager.cpp:634` | `TMCT_DUNGEON_DAMAGE` | none of its 11 sets it; parity only |
+
+`REFORM_QUEST` is on, so `ClearCondition` has no difficulty field and no "any"
+sentinel: difficulty is the last digit of the dungeon ID, and "any difficulty"
+means `m_bUpperDifficulty == true` plus the Normal ID in `m_setDungeonID`, read
+as "this dungeon at difficulty >= that digit". `CX2OfflineQuest::IsExistDungeonInSub`
+already honoured the flag correctly -- nothing ever set it, because the client
+never needed it. **Offline, the client's parse *is* the server's**, and the
+server's `CXSLQuestManager` / `CXSLTitleManager` read the key at exactly these
+six places. Each addition matches the server's line and its placement, which
+brings the client to the server's own count exactly: 11 reads in the quest
+parser and 6 in the title parser, where it had 8 and 3.
+
+Because sub-quest groups are staged (`CheckBeforeGroup`), one stuck group-0
+`VISIT_DUNGEON` step also blocks the later `DUNGEON_CLEAR_COUNT` step in the
+same quest -- which is why a whole quest read as Normal-only even though its
+clear-count branch parsed the flag correctly.
+
+**`LUA_GET_VALUE_RETURN` hard-fails on a missing key** (`luaLib/KLuaManager.h:143`,
+`goto error_proc`), which would drop the templet and, for the quest parser, take
+every quest with it. The key's presence was therefore proved rather than
+assumed, against the exact script the client loads: `FieldSubQuest.lua` and
+`SubTitleMission.lua` were XOR-decrypted out of `data036/` and their Lua 5.1
+bytecode disassembled and register-simulated back into the 1,672 sub-quest and
+640 sub-mission tables they build. All 121 + 47 + 2 records of the three quest
+types carry `m_bUpperDifficulty` inside `m_ClearCondition`; the types that do
+*not* carry it are exactly the ones whose parser branch does not read it, on
+both sides. The title reads use the non-fatal `LUA_GET_VALUE`, as the server's
+do. The disassembler was scratch, not committed; it is a Lua 5.1 chunk reader
+plus a register simulator over `SETTABLE`/`SETLIST`, which is all it takes to
+turn any of these bind-a-table scripts back into readable rows.
+
+`TMCT_NPC_HUNT` looks like a seventh site -- 4 of its 177 sub-missions set the
+flag -- but the **server does not read it there either**, so ignoring it is
+shipped behaviour and was left alone.
+
+Three diagnostics went in alongside, all inside `X2Lib/Offline/X2OfflineQuest.cpp`:
+
+- `DungeonReqString()` renders a sub-quest's requirement as `30070 (upperDiff=1,
+  ...)`, since neither the packed key nor the flag is readable without the other.
+- The per-sub-quest census line (`QUEST CHAIN sub`) now prints it, and the
+  aggregate line (`QUEST CENSUS clearType=`) now prints how many reachable steps
+  carry `upperDiff=1`. A zero there for 26 or 27 means the read has regressed.
+- The three dungeon-filter rejections that were a bare `continue`
+  (`OnVisitDungeon`, `OnFindNPC`, `OnUseItem`) now log the requirement and the
+  key the clear actually arrived with.
+
+Baseline to compare against, from the run before the change: **1,395 templets,
+1,395 visible**, clearType 26 = 205 steps, 27 = 47, and 22 absent entirely. A
+templet count below 1,395 means a parse is now failing.
 
 ### Offline 3x EXP and 3x drop rate
 

@@ -226,12 +226,13 @@ void CX2OfflineQuest::Release()
 
 				CX2OfflineLog::Server(
 					L"QUEST    CHAIN   sub %d : clearType=%d talkNPC=%d killNum=%d"
-					L" item=%d x%d",
+					L" item=%d x%d dungeon=%s",
 					pSub->m_iID, (int)pSub->m_eClearType,
 					(int)pSub->m_ClearCondition.m_eTalkNPCID,
 					pSub->m_ClearCondition.m_iKillNum,
 					pSub->m_ClearCondition.m_iCollectionItemID,
-					pSub->m_ClearCondition.m_iCollectionItemNum );
+					pSub->m_ClearCondition.m_iCollectionItemNum,
+					DungeonReqString( pSub ).c_str() );
 			}
 		}
 	}
@@ -254,6 +255,14 @@ void CX2OfflineQuest::Release()
 	{
 		std::map< int, int > mapByType;			///< clear type -> steps reachable
 
+		// And how many of those steps say "at this difficulty or harder". The
+		// client's parser used to drop m_bUpperDifficulty for three clear types
+		// (22, 26, 27), which made every such step Normal-only and was
+		// invisible from the outside. A zero here for 26 or 27 means the read
+		// is missing again - the packed script sets the flag on 88 of its 121
+		// VISIT_DUNGEON and 39 of its 47 FIND_NPC sub-quests.
+		std::map< int, int > mapUpperByType;
+
 		for( mit = mapAll.begin(); mit != mapAll.end(); ++mit )
 		{
 			// Only quests that survive the server-group filter, since the ones
@@ -266,7 +275,12 @@ void CX2OfflineQuest::Release()
 			{
 				const CX2QuestManager::SubQuestTemplet* pSub = SubTemplet( pT->m_vecSubQuest[sq] );
 				if( NULL != pSub )
+				{
 					++mapByType[ (int)pSub->m_eClearType ];
+
+					if( true == pSub->m_ClearCondition.m_bUpperDifficulty )
+						++mapUpperByType[ (int)pSub->m_eClearType ];
+				}
 			}
 		}
 
@@ -275,8 +289,9 @@ void CX2OfflineQuest::Release()
 		{
 			const wchar_t* pszWhy = IsClearTypeUndriven( mitT->first );
 
-			CX2OfflineLog::Server( L"QUEST    CENSUS   clearType=%2d : %4d sub-quest(s)%s%s",
-				mitT->first, mitT->second,
+			CX2OfflineLog::Server( L"QUEST    CENSUS   clearType=%2d : %4d sub-quest(s),"
+				L" %4d of them upperDiff=1%s%s",
+				mitT->first, mitT->second, mapUpperByType[ mitT->first ],
 				( NULL != pszWhy ) ? L"  ** NOT DRIVEN OFFLINE: " : L"",
 				( NULL != pszWhy ) ? pszWhy : L"" );
 		}
@@ -589,6 +604,34 @@ int CX2OfflineQuest::GetCompleteCount( int iQuestID ) const
 	}
 
 	return NULL;
+}
+
+/*static*/ std::wstring CX2OfflineQuest::DungeonReqString(
+	const CX2QuestManager::SubQuestTemplet* pSub )
+{
+	if( NULL == pSub )
+		return L"<no templet>";
+
+	if( true == pSub->m_ClearCondition.m_setDungeonID.empty() )
+		return L"<no dungeon named>";
+
+	std::wstring wstrOut;
+
+	std::set< CX2Dungeon::DUNGEON_ID >::const_iterator sit;
+	for( sit = pSub->m_ClearCondition.m_setDungeonID.begin();
+		 sit != pSub->m_ClearCondition.m_setDungeonID.end(); ++sit )
+	{
+		wchar_t szNum[32];
+		_snwprintf( szNum, 32, L"%s%d", wstrOut.empty() ? L"" : L",", (int)(*sit) );
+		szNum[31] = L'\0';
+		wstrOut += szNum;
+	}
+
+	wstrOut += ( true == pSub->m_ClearCondition.m_bUpperDifficulty )
+			 ? L" (upperDiff=1, any difficulty at or above the digit)"
+			 : L" (upperDiff=0, exact match only)";
+
+	return wstrOut;
 }
 
 /*static*/ bool CX2OfflineQuest::IsExistDungeonInSub( const CX2QuestManager::SubQuestTemplet* pSub,
@@ -1644,7 +1687,17 @@ void CX2OfflineQuest::OnVisitDungeon( int iDungeonID, char cDifficulty, const KO
 				continue;
 
 			if( false == IsExistDungeonInSub( pSub, iDungeonID + (int)cDifficulty ) )
+			{
+				// The rejection used to be a bare continue, which made a
+				// step that never ticks indistinguishable from a step that
+				// was never looked at. Both halves of the comparison, so the
+				// next report of this class is one play-test rather than three.
+				CX2OfflineLog::Server(
+					L"QUEST    VISIT quest %d sub %d wants dungeon %s, got %d - no match",
+					mit->first, pSub->m_iID, DungeonReqString( pSub ).c_str(),
+					iDungeonID + (int)cDifficulty );
 				continue;
+			}
 
 			if( 0 != kInst.m_vecSubQuestInstance[i].m_ucClearData )
 				continue;
@@ -1699,6 +1752,10 @@ void CX2OfflineQuest::OnFindNPC( const std::vector< int >& vecNpcID, bool bDunge
 				if( false == pSub->m_ClearCondition.m_setDungeonID.empty() &&
 					false == IsExistDungeonInSub( pSub, iDungeonID + (int)cDifficulty ) )
 				{
+					CX2OfflineLog::Server(
+						L"QUEST    FINDNPC quest %d sub %d wants dungeon %s, got %d - no match",
+						mit->first, pSub->m_iID, DungeonReqString( pSub ).c_str(),
+						iDungeonID + (int)cDifficulty );
 					continue;
 				}
 			}
@@ -2047,7 +2104,13 @@ void CX2OfflineQuest::OnUseItem( int iItemID, int iDungeonID, char cDifficulty,
 			if( false == pSub->m_ClearCondition.m_setDungeonID.empty() )
 			{
 				if( false == IsExistDungeonInSub( pSub, iDungeonID + (int)cDifficulty ) )
+				{
+					CX2OfflineLog::Server(
+						L"QUEST    USEITEM quest %d sub %d wants dungeon %s, got %d - no match",
+						mit->first, pSub->m_iID, DungeonReqString( pSub ).c_str(),
+						iDungeonID + (int)cDifficulty );
 					continue;
+				}
 			}
 			else if( false == pSub->m_ClearCondition.m_setBattleFieldID.empty() )
 			{

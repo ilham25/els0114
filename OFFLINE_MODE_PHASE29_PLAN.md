@@ -175,7 +175,7 @@ surface the big ones are debugged against.
 | **29** | 1 | Quest-reward item invisible until character re-select | ~6 lines | **DONE 2026-09-08** - the audit normalised one more caller | no |
 | **34** | 5a | Using any item from the bag zeroes the displayed ED | 1 handler + a sweep | **DONE 2026-09-08** - one of the three handlers was real; the sweep found no fourth | no |
 | **35** | 6 | Fetch aura → QoL #7: every pet past its crystal has it | ~3 lines | **DONE 2026-09-08** - phase 37 had already landed the persistence half; the "crystal" test is real | no |
-| **30** | 2 | "Any difficulty" dungeon quest only advances on Normal | 3 lines + verify | CONFIRMED | no |
+| **30** | 2 | "Any difficulty" dungeon quest only advances on Normal | 6 lines + 3 diagnostics | **DONE 2026-09-08** — the key was proved present by disassembling the packed script; the title half was fixed too | no |
 | **32** | 4 | Result screen is F rank for every unit | large | CONFIRMED | needs a file packed |
 | **33** | — | Monster grade, so the ranks in 32 are accurate | large | CONFIRMED | no |
 
@@ -404,6 +404,60 @@ The first pet (tainted crystal) quest completes after clearing Shadow Forest on
 Hard or Very Hard that has an "any difficulty" `VISIT_DUNGEON` step in progress
 and the step ticks. The census line shows `upperDiff=1` for that sub-quest, and
 the templet count is still 1,395.
+
+### What actually happened — DONE 2026-09-08, not yet play-tested
+
+All four numbered steps done, plus the "also in scope" title decision, which was
+**fixed rather than deferred**. Six reads added; the table in `MODS.md`
+(*Offline "any difficulty" quest and title steps*) lists the sites and counts.
+
+**Step 2’s proof came out stronger than the plan asked for, and step 2’s premise
+was wrong about where the script lives.** There is no `Quest.lua` or
+`SubQuest.lua` in any `.kom` in this install: the client loads `FieldQuest.lua` /
+`FieldSubQuest.lua` / `AccountQuest.lua`
+([X2StateLoading.cpp:649](X2Lib/X2StateLoading.cpp#L649)), and `FieldSubQuest.lua`
+is the only script in the whole game directory that calls
+`AddSubQuestTemplet_LUA`. A grep would not have answered the question anyway,
+because these scripts do not assign globals — they build a **table argument** per
+record and pass it to the bind, so the key names live in `SETTABLE` operands, not
+in a flat constant run. The script was therefore XOR-decrypted out of `data036/`,
+its Lua 5.1 bytecode disassembled, and the chunk’s registers simulated to rebuild
+all 1,672 sub-quest tables (and, from `SubTitleMission.lua`, all 640 sub-mission
+tables).
+
+Result: **every one** of the 121 `SQT_VISIT_DUNGEON`, 47 `SQT_FIND_NPC` and 2
+`SQT_ITEM_USE` records carries `m_bUpperDifficulty` inside `m_ClearCondition`, so
+`LUA_GET_VALUE_RETURN` cannot hard-fail. Better: the types that *lack* the key are
+exactly the ones whose parser branch does not read it, on both sides — so nothing
+was silently failing to parse before this change either. (The diagnosis table
+above reads `SQT_*_ITEM_COLLECTION (3, 4)` as one row; they are separate cases,
+and only `SQT_QUEST_ITEM_COLLECTION` reads the key. Its 459 records all carry it;
+`SQT_ITEM_COLLECTION`’s 145 all lack it. Consistent.)
+
+Two corrections to this section, both worth carrying forward:
+
+- **`SQT_ITEM_USE` (22) is unreachable in this build.** It is absent from the
+  census entirely — no quest that survives the server-group filter references
+  either of its 2 sub-quests, and neither sets the flag. The read went in for
+  parity with the server, not for effect.
+- **`TMCT_NPC_HUNT` is a false fourth title site.** 4 of its 177 sub-missions set
+  `m_bUpperDifficulty`, but `CXSLTitleManager` does not read it in that case
+  either, so dropping it is shipped behaviour. Left alone. Real title impact is 9
+  `TMCT_DUNGEON_RANK` + 5 `TMCT_DUNGEON_TIME` sub-missions; `TMCT_DUNGEON_DAMAGE`
+  has none of its 11 and went in for parity.
+
+Verified statically, not by play: the packed-script proof above, plus a
+`#pragma message` inside each new `#ifdef SERV_IRUHADEV_OFFLINE`, rebuilt to
+confirm the flag really reaches both `X2QuestManager.cpp` and
+`X2TitleManager.cpp` (it does; the pragmas were then removed). Both CP949 files
+survived the byte-level patch — still `ISO-8859 text`, 49 insertions and no
+deletions. `X2_offline.exe` is deployed. **The runtime half of the exit test is
+still owed.**
+
+Baseline for that play-test, from the 19:54 run before the change:
+`1395 templet(s) loaded, 1395 visible`, clearType 26 = 205 steps, 27 = 47, 22
+absent. Afterwards the same line must still read 1,395, and the new tail on the
+per-type lines must show a non-zero `upperDiff=1` count for 26 and 27.
 
 ---
 

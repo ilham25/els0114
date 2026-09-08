@@ -2445,6 +2445,14 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 					}
 					luaManager.EndTable();
 				}
+				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty" flag
+				// here (CXSLQuestManager::LoadClearCondition) and the client never did,
+				// because the server decided. Offline the client's parse IS the server,
+				// so without this the step only matches the literal Normal dungeon ID.
+#ifdef SERV_IRUHADEV_OFFLINE
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
+#endif SERV_IRUHADEV_OFFLINE
+				//}}
 			}
 			break;
 		case SQT_FIND_NPC:
@@ -2477,6 +2485,14 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 					luaManager.EndTable();
 				}
 				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_iFindNPCID",	pSubQuestTemplet->m_ClearCondition.m_iFindNPCID, CX2UnitManager::NPC_UNIT_ID, CX2UnitManager::NUI_NONE, goto error_proc; );
+				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty" flag
+				// here (CXSLQuestManager::LoadClearCondition) and the client never did,
+				// because the server decided. Offline the client's parse IS the server,
+				// so without this the step only matches the literal Normal dungeon ID.
+#ifdef SERV_IRUHADEV_OFFLINE
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
+#endif SERV_IRUHADEV_OFFLINE
+				//}}
 			}
 			break;
 	#endif //REFORM_QUEST
@@ -2549,6 +2565,15 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 
 					luaManager.EndTable();
 				}
+
+				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty" flag
+				// here (CXSLQuestManager::LoadClearCondition) and the client never did,
+				// because the server decided. Offline the client's parse IS the server,
+				// so without this the step only matches the literal Normal dungeon ID.
+#ifdef SERV_IRUHADEV_OFFLINE
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
+#endif SERV_IRUHADEV_OFFLINE
+				//}}
 
 				if( luaManager.BeginTable( "m_listUseItemID" ) == true )
 				{
