@@ -69,10 +69,21 @@ namespace X2CashShopTool
 		// in this session changes it.
 		bool	AlreadySold;
 
-		// The enum names, resolved once at construction so painting a row
-		// costs no lookup.
-		String^	TypeName;
-		String^	EquipName;
+		// The labels, resolved once at construction so painting a row
+		// costs no lookup - and BOTH spellings, so the technical toggle
+		// costs nothing either. Plain is phase 6's wording, Script is the
+		// Enum.lua name phase 5 painted.
+		String^	TypePlain;
+		String^	EquipPlain;
+		String^	GradePlain;
+		String^	TypeScript;
+		String^	EquipScript;
+
+		// The second line of the row, both ways, built once. The plain one
+		// says what the item IS; the technical one is phase 5's line
+		// verbatim.
+		String^	PlainLine;
+		String^	TechLine;
 
 		// Lower-cased once. Filtering 48,754 names on every keystroke is
 		// the one thing in this window that could stutter, and comparing
@@ -93,8 +104,10 @@ namespace X2CashShopTool
 	ref class ItemCatalogView
 	{
 	public:
-		ItemCatalogView( const SExtractResult* pCatalog )
+		ItemCatalogView( const SExtractResult* pCatalog, LabelBridge^ kLabels )
 		{
+			m_kLabels = kLabels;
+
 			System::Diagnostics::Stopwatch^ kWatch = System::Diagnostics::Stopwatch::StartNew();
 
 			const long long iBefore = GC::GetTotalMemory( false );
@@ -120,12 +133,19 @@ namespace X2CashShopTool
 
 				kItem->AlreadySold	= false;
 
-				kItem->TypeName		= NativeBridge::Utf8( LookupEnumRowName(
-					pCatalog->vecEnumNames, EnumTableItemType(), kSrc.iItemType ) );
-				kItem->EquipName	= NativeBridge::Utf8( LookupEnumRowName(
-					pCatalog->vecEnumNames, EnumTableEquipPosition(), kSrc.iEquipPosition ) );
+				LabelInfo^ kType	= kLabels->ItemType( kSrc.iItemType );
+				LabelInfo^ kEquip	= kLabels->EquipPosition( kSrc.iEquipPosition );
+				LabelInfo^ kGrade	= kLabels->ItemGrade( kSrc.iItemGrade );
+
+				kItem->TypePlain	= kType->Text;
+				kItem->EquipPlain	= kEquip->Text;
+				kItem->GradePlain	= kGrade->Text;
+				kItem->TypeScript	= kType->Script;
+				kItem->EquipScript	= kEquip->Script;
 
 				kItem->NameLower	= kItem->Name->ToLowerInvariant();
+
+				BuildLines( kItem, kLabels );
 
 				m_kAll[(int) u] = kItem;
 			}
@@ -140,6 +160,13 @@ namespace X2CashShopTool
 			m_iBuildMs		= (int) kWatch->ElapsedMilliseconds;
 			m_iManagedBytes	= (int)( GC::GetTotalMemory( false ) - iBefore );
 		}
+
+		// Both spellings of the two filter lists, for the same reason
+		// every row carries both: the toggle re-spells, it never reloads.
+		property System::Collections::Generic::List<String^>^	TypeChoicesTech
+			{ System::Collections::Generic::List<String^>^ get() { return m_kTypeChoicesTech; } }
+		property System::Collections::Generic::List<String^>^	EquipChoicesTech
+			{ System::Collections::Generic::List<String^>^ get() { return m_kEquipChoicesTech; } }
 
 		property array<PickerItem^>^	All			{ array<PickerItem^>^ get() { return m_kAll; } }
 		property int					BuildMs		{ int get() { return m_iBuildMs; } }
@@ -169,16 +196,57 @@ namespace X2CashShopTool
 		}
 
 	private:
+		// The second line of a picker row. The plain one drops the
+		// enumerators phase 5 painted and adds the grade, which is more
+		// use in a list of 48,754 items than the equip slot repeated from
+		// the filter above it. The item ID STAYS in both: it is what the
+		// search box matches on and what the save records.
+		void BuildLines( PickerItem^ kItem, LabelBridge^ kLabels )
+		{
+			kItem->TechLine = String::Format( "{0}   {1}   {2}{3}",
+				kItem->ItemID,
+				String::IsNullOrEmpty( kItem->TypeScript ) ? String::Format( "type {0}", kItem->ItemType ) : kItem->TypeScript,
+				String::IsNullOrEmpty( kItem->EquipScript ) ? String::Format( "slot {0}", kItem->EquipPosition ) : kItem->EquipScript,
+				kItem->IsFashion ? "   fashion" : "" );
+
+			System::Collections::Generic::List<String^>^ kParts =
+				gcnew System::Collections::Generic::List<String^>();
+
+			kParts->Add( String::Format( "item {0}", kItem->ItemID ) );
+
+			// The game's own word for m_bFashion, STR_ID_251.
+			if( kItem->IsFashion )
+				kParts->Add( kLabels->Costume );
+
+			// An unequippable item's slot reads "not equipped", which is
+			// true and is noise on 5,862 of the 48,754 - so the item TYPE
+			// carries the line for those and the slot carries it for the
+			// rest.
+			if( 0 != kItem->EquipPosition && false == String::IsNullOrEmpty( kItem->EquipPlain ) )
+				kParts->Add( kItem->EquipPlain );
+			else if( false == String::IsNullOrEmpty( kItem->TypePlain ) )
+				kParts->Add( kItem->TypePlain );
+
+			if( false == String::IsNullOrEmpty( kItem->GradePlain ) )
+				kParts->Add( kItem->GradePlain );
+
+			kItem->PlainLine = String::Join( "   -   ", kParts->ToArray() );
+		}
+
 		void BuildChoices( const SExtractResult* pCatalog )
 		{
-			m_kTypeChoices	= gcnew System::Collections::Generic::List<String^>();
-			m_kTypeValues	= gcnew System::Collections::Generic::List<int>();
-			m_kEquipChoices	= gcnew System::Collections::Generic::List<String^>();
-			m_kEquipValues	= gcnew System::Collections::Generic::List<int>();
+			m_kTypeChoices		= gcnew System::Collections::Generic::List<String^>();
+			m_kTypeChoicesTech	= gcnew System::Collections::Generic::List<String^>();
+			m_kTypeValues		= gcnew System::Collections::Generic::List<int>();
+			m_kEquipChoices		= gcnew System::Collections::Generic::List<String^>();
+			m_kEquipChoicesTech	= gcnew System::Collections::Generic::List<String^>();
+			m_kEquipValues		= gcnew System::Collections::Generic::List<int>();
 
-			m_kTypeChoices->Add( "(any item type)" );
+			m_kTypeChoices->Add( "any kind of item" );
+			m_kTypeChoicesTech->Add( "(any item type)" );
 			m_kTypeValues->Add( -1 );
-			m_kEquipChoices->Add( "(any equip slot)" );
+			m_kEquipChoices->Add( "worn anywhere" );
+			m_kEquipChoicesTech->Add( "(any equip slot)" );
 			m_kEquipValues->Add( -1 );
 
 			if( NULL == pCatalog )
@@ -197,19 +265,19 @@ namespace X2CashShopTool
 
 			for each( System::Collections::Generic::KeyValuePair<int, int> kPair in kTypeCount )
 			{
-				String^ sName = NativeBridge::Utf8( LookupEnumRowName(
-					pCatalog->vecEnumNames, EnumTableItemType(), kPair.Key ) );
+				LabelInfo^ kLabel = m_kLabels->ItemType( kPair.Key );
 
-				m_kTypeChoices->Add( Describe( sName, kPair.Key, kPair.Value ) );
+				m_kTypeChoices->Add( DescribePlain( kLabel, kPair.Value ) );
+				m_kTypeChoicesTech->Add( Describe( kLabel->Script, kPair.Key, kPair.Value ) );
 				m_kTypeValues->Add( kPair.Key );
 			}
 
 			for each( System::Collections::Generic::KeyValuePair<int, int> kPair in kEquipCount )
 			{
-				String^ sName = NativeBridge::Utf8( LookupEnumRowName(
-					pCatalog->vecEnumNames, EnumTableEquipPosition(), kPair.Key ) );
+				LabelInfo^ kLabel = m_kLabels->EquipPosition( kPair.Key );
 
-				m_kEquipChoices->Add( Describe( sName, kPair.Key, kPair.Value ) );
+				m_kEquipChoices->Add( DescribePlain( kLabel, kPair.Value ) );
+				m_kEquipChoicesTech->Add( Describe( kLabel->Script, kPair.Key, kPair.Value ) );
 				m_kEquipValues->Add( kPair.Key );
 			}
 		}
@@ -232,15 +300,28 @@ namespace X2CashShopTool
 			return String::Format( "{0,-24} {1,4}   {2}", sName, iValue, iCount );
 		}
 
+		// The same thing in words, for the default view: the label and how
+		// many items have it. The COUNT is the load-bearing half - phase 5
+		// added it because a filter that offers a value no item has is a
+		// filter that returns an empty list and teaches nothing.
+		static String^ DescribePlain( LabelInfo^ kLabel, int iCount )
+		{
+			return String::Format( "{0}   ({1:N0})", kLabel->Text, iCount );
+		}
+
 		array<PickerItem^>^	m_kAll;
 		int					m_iBuildMs;
 		int					m_iManagedBytes;
 		int					m_iHiddenPackage;
 		bool				m_bPackageDataKnown;
 
+		LabelBridge^	m_kLabels;
+
 		System::Collections::Generic::List<String^>^	m_kTypeChoices;
+		System::Collections::Generic::List<String^>^	m_kTypeChoicesTech;
 		System::Collections::Generic::List<int>^		m_kTypeValues;
 		System::Collections::Generic::List<String^>^	m_kEquipChoices;
+		System::Collections::Generic::List<String^>^	m_kEquipChoicesTech;
 		System::Collections::Generic::List<int>^		m_kEquipValues;
 	};
 
@@ -258,6 +339,7 @@ namespace X2CashShopTool
 			m_kRows			= gcnew System::Collections::Generic::List<PickerItem^>();
 			m_iSelected		= -1;
 			m_iRowHeight	= 44;
+			m_bTechnical	= false;
 
 			SetStyle( ControlStyles::OptimizedDoubleBuffer
 				| ControlStyles::AllPaintingInWmPaint
@@ -269,8 +351,13 @@ namespace X2CashShopTool
 			BackColor	= System::Drawing::Color::FromArgb( 32, 32, 36 );
 
 			m_kNameFont		= gcnew System::Drawing::Font( "Segoe UI", 9.0f, System::Drawing::FontStyle::Bold );
+
+			// Consolas for the technical line, where the enum names and
+			// the numbers want to sit in columns; Segoe UI for the plain
+			// one, which is prose.
 			m_kMetaFont		= gcnew System::Drawing::Font( "Consolas", 8.0f );
-			m_kBadgeFont	= gcnew System::Drawing::Font( "Segoe UI", 7.0f, System::Drawing::FontStyle::Bold );
+			m_kPlainFont	= gcnew System::Drawing::Font( "Segoe UI", 8.25f );
+			m_kBadgeFont	= gcnew System::Drawing::Font( "Segoe UI", 7.0f );
 
 			m_kLinePen		= gcnew System::Drawing::Pen( System::Drawing::Color::FromArgb( 48, 48, 54 ), 1.0f );
 			m_kSelectBrush	= gcnew System::Drawing::SolidBrush( System::Drawing::Color::FromArgb( 48, 66, 96 ) );
@@ -283,6 +370,12 @@ namespace X2CashShopTool
 
 		event EventHandler^	SelectionChanged;
 		event EventHandler^	ItemActivated;
+
+		void SetTechnical( bool bTechnical )
+		{
+			m_bTechnical = bTechnical;
+			Invalidate();
+		}
 
 		void SetRows( System::Collections::Generic::List<PickerItem^>^ kRows, int iKeepItemID )
 		{
@@ -483,12 +576,9 @@ namespace X2CashShopTool
 				(float) iTextLeft, (float)( iY + 3 ) );
 
 			g->DrawString(
-				String::Format( "{0}   {1}   {2}{3}",
-					kRow->ItemID,
-					String::IsNullOrEmpty( kRow->TypeName ) ? String::Format( "type {0}", kRow->ItemType ) : kRow->TypeName,
-					String::IsNullOrEmpty( kRow->EquipName ) ? String::Format( "slot {0}", kRow->EquipPosition ) : kRow->EquipName,
-					kRow->IsFashion ? "   fashion" : "" ),
-				m_kMetaFont, System::Drawing::Brushes::Gray, (float) iTextLeft, (float)( iY + 23 ) );
+				m_bTechnical ? kRow->TechLine : kRow->PlainLine,
+				m_bTechnical ? m_kMetaFont : m_kPlainFont,
+				System::Drawing::Brushes::Silver, (float) iTextLeft, (float)( iY + 23 ) );
 
 			//////////////////////////////////////////////////////////////
 			// The two things about an item that decide whether inserting
@@ -500,14 +590,14 @@ namespace X2CashShopTool
 			if( kRow->HiddenPackage )
 			{
 				System::Drawing::RectangleF kNote( (float)( iRight - 300 ), (float)( iY + 4 ), 300.0f, 18.0f );
-				g->DrawString( "the shop hides this: package component", m_kBadgeFont,
+				g->DrawString( "the shop hides this: it comes inside a package", m_kBadgeFont,
 					System::Drawing::Brushes::Goldenrod, kNote, m_kRight );
 			}
 
 			if( kRow->AlreadySold )
 			{
 				System::Drawing::RectangleF kNote( (float)( iRight - 300 ), (float)( iY + 22 ), 300.0f, 18.0f );
-				g->DrawString( "already sold in the shop", m_kBadgeFont,
+				g->DrawString( "already on sale", m_kBadgeFont,
 					System::Drawing::Brushes::DarkSeaGreen, kNote, m_kRight );
 			}
 		}
@@ -519,12 +609,14 @@ namespace X2CashShopTool
 
 		System::Drawing::Font^			m_kNameFont;
 		System::Drawing::Font^			m_kMetaFont;
+		System::Drawing::Font^			m_kPlainFont;
 		System::Drawing::Font^			m_kBadgeFont;
 		System::Drawing::Pen^			m_kLinePen;
 		System::Drawing::SolidBrush^	m_kSelectBrush;
 		System::Drawing::SolidBrush^	m_kSoldBrush;
 		System::Drawing::SolidBrush^	m_kHiddenBrush;
 		System::Drawing::StringFormat^	m_kRight;
+		bool							m_bTechnical;
 	};
 
 	//////////////////////////////////////////////////////////////////////
@@ -532,16 +624,19 @@ namespace X2CashShopTool
 	ref class ItemPickerForm : public Form
 	{
 	public:
-		ItemPickerForm( ItemCatalogView^ kView, IconProvider^ kIcons )
+		ItemPickerForm( ItemCatalogView^ kView, IconProvider^ kIcons,
+						LabelBridge^ kLabels, bool bTechnical )
 		{
-			m_kView = kView;
+			m_kView			= kView;
+			m_kLabels		= kLabels;
+			m_bTechnical	= bTechnical;
 
 			ItemID			= 0;
 			ItemName		= String::Empty;
 			ItemShopImage	= String::Empty;
 			HiddenPackage	= false;
 
-			Text			= "Pick an item to sell";
+			Text			= "Choose something to sell";
 			ClientSize		= System::Drawing::Size( 940, 660 );
 			MinimumSize		= System::Drawing::Size( 700, 460 );
 			StartPosition	= FormStartPosition::CenterParent;
@@ -643,6 +738,7 @@ namespace X2CashShopTool
 		{
 			m_kList = gcnew ItemListPanel( kIcons );
 			m_kList->Dock				= DockStyle::Fill;
+			m_kList->SetTechnical( m_bTechnical );
 			m_kList->SelectionChanged	+= gcnew EventHandler( this, &ItemPickerForm::OnSelectionChanged );
 			m_kList->ItemActivated		+= gcnew EventHandler( this, &ItemPickerForm::OnActivated );
 
@@ -657,7 +753,7 @@ namespace X2CashShopTool
 			Label^ kSearchLabel = gcnew Label();
 			kSearchLabel->Bounds	= System::Drawing::Rectangle( 12, 12, 90, 20 );
 			kSearchLabel->Font		= m_kFont;
-			kSearchLabel->Text		= "name or id";
+			kSearchLabel->Text		= "search";
 			kTop->Controls->Add( kSearchLabel );
 
 			m_kSearch = gcnew TextBox();
@@ -673,17 +769,19 @@ namespace X2CashShopTool
 			kHint->Bounds	= System::Drawing::Rectangle( 415, 12, 500, 20 );
 			kHint->Font		= gcnew System::Drawing::Font( "Segoe UI", 8.0f );
 			kHint->ForeColor= System::Drawing::Color::FromArgb( 150, 150, 158 );
-			kHint->Text		= "space-separated words must all appear in the name; digits also match an item id";
+			kHint->Text		= "every word you type has to appear in the name; a number also matches an item id";
 			kTop->Controls->Add( kHint );
 
-			m_kType = MakeCombo( m_kView->TypeChoices, 105, 41, 240, kTop );
-			m_kEquip= MakeCombo( m_kView->EquipChoices, 355, 41, 240, kTop );
+			m_kType = MakeCombo( m_bTechnical ? m_kView->TypeChoicesTech : m_kView->TypeChoices,
+				105, 41, 240, kTop );
+			m_kEquip= MakeCombo( m_bTechnical ? m_kView->EquipChoicesTech : m_kView->EquipChoices,
+				355, 41, 240, kTop );
 
 			m_kHideSold = gcnew CheckBox();
 			m_kHideSold->Bounds		= System::Drawing::Rectangle( 605, 41, 150, 24 );
 			m_kHideSold->Font		= m_kFont;
 			m_kHideSold->ForeColor	= System::Drawing::Color::Gainsboro;
-			m_kHideSold->Text		= "hide already sold";
+			m_kHideSold->Text		= "hide what is already on sale";
 			m_kHideSold->CheckedChanged += gcnew EventHandler( this, &ItemPickerForm::OnFilterChanged );
 			kTop->Controls->Add( m_kHideSold );
 
@@ -691,7 +789,7 @@ namespace X2CashShopTool
 			m_kHideHidden->Bounds		= System::Drawing::Rectangle( 760, 41, 170, 24 );
 			m_kHideHidden->Font			= m_kFont;
 			m_kHideHidden->ForeColor	= System::Drawing::Color::Gainsboro;
-			m_kHideHidden->Text			= "hide package-hidden";
+			m_kHideHidden->Text			= "hide what the shop hides";
 			m_kHideHidden->Enabled		= m_kView->PackageDataKnown;
 			m_kHideHidden->CheckedChanged += gcnew EventHandler( this, &ItemPickerForm::OnFilterChanged );
 			kTop->Controls->Add( m_kHideHidden );
@@ -699,7 +797,7 @@ namespace X2CashShopTool
 			Label^ kFilterLabel = gcnew Label();
 			kFilterLabel->Bounds	= System::Drawing::Rectangle( 12, 44, 90, 20 );
 			kFilterLabel->Font		= m_kFont;
-			kFilterLabel->Text		= "filters";
+			kFilterLabel->Text		= "narrow it";
 			kTop->Controls->Add( kFilterLabel );
 
 			//////////////////////////////////////////////////////////////
@@ -727,7 +825,7 @@ namespace X2CashShopTool
 			m_kOk = gcnew Button();
 			m_kOk->Bounds		= System::Drawing::Rectangle( 0, 30, 100, 28 );
 			m_kOk->Anchor		= (AnchorStyles)( AnchorStyles::Top | AnchorStyles::Right );
-			m_kOk->Text			= "Use this item";
+			m_kOk->Text			= "Sell this one";
 			m_kOk->Font			= m_kFont;
 			m_kOk->FlatStyle	= ::FlatStyle::Flat;
 			m_kOk->ForeColor	= System::Drawing::Color::Gainsboro;
@@ -861,15 +959,18 @@ namespace X2CashShopTool
 
 			m_kList->SetRows( kKept, iKeepItemID );
 
+			// The filter's own cost stays on screen in both views. Phase 5
+			// put it there so that if a 4 ms pass ever stops being cheap
+			// the window says so instead of just feeling sluggish, and
+			// that is as true of a window with plainer words on it.
 			m_kCount->Text = String::Format(
-				"showing {0:N0} of {1:N0} item(s)   -   filtered in {2} ms"
-				"   -   catalog marshalled once in {3} ms, {4:N0} KB{5}",
+				"showing {0:N0} of {1:N0}   -   searched in {2} ms   -   list built once in {3} ms, {4:N0} KB{5}",
 				kKept->Count, akAll->Length, kWatch->ElapsedMilliseconds,
 				m_kView->BuildMs, m_kView->ManagedBytes / 1024,
 				m_kView->PackageDataKnown
-					? String::Format( "   -   {0:N0} item(s) the shop hides as package components",
+					? String::Format( "   -   {0:N0} item(s) the shop only sells inside a package",
 						m_kView->HiddenPackageCount )
-					: "   -   PackageItemData.lua did not run: the hidden-package rule is unknown" );
+					: "   -   the package rule is unknown: PackageItemData.lua did not run" );
 		}
 
 		static int ValueAt( System::Collections::Generic::List<int>^ kValues, int iIndex )
@@ -952,17 +1053,21 @@ namespace X2CashShopTool
 
 			if( nullptr == kItem )
 			{
-				m_kChosen->Text = "nothing selected";
+				m_kChosen->Text = "nothing chosen yet";
 				return;
 			}
 
 			m_kChosen->Text = String::Format(
-				"item {0}   {1}\r\nm_ShopImage: {2}\r\n{3}{4}",
-				kItem->ItemID, kItem->Name,
-				String::IsNullOrEmpty( kItem->ShopImage ) ? "(none - the shop will draw the Noimage icon)" : kItem->ShopImage,
-				kItem->AlreadySold ? "already sold in the shop; a second product for the same item is legal and deliberate.  " : "",
+				"{0}\r\nitem {1}   {2}{3}\r\n{4}{5}",
+				kItem->Name, kItem->ItemID,
+				m_bTechnical ? kItem->TechLine : kItem->PlainLine,
+				m_bTechnical
+					? String::Format( "   m_ShopImage: {0}",
+						String::IsNullOrEmpty( kItem->ShopImage ) ? "(none)" : kItem->ShopImage )
+					: String::Empty,
+				kItem->AlreadySold ? "Already on sale. A second product for the same item is legal and deliberate.  " : "",
 				kItem->HiddenPackage
-					? "THE SHOP WILL NOT SHOW THIS ITEM: PackageItemData.lua declares it a package component with bShowItem false."
+					? "THE SHOP WILL NOT SHOW THIS ITEM: it is declared a package component that is not sold on its own."
 					: "" );
 		}
 
@@ -982,6 +1087,8 @@ namespace X2CashShopTool
 		}
 
 		ItemCatalogView^	m_kView;
+		LabelBridge^		m_kLabels;
+		bool				m_bTechnical;
 
 		ItemListPanel^	m_kList;
 		TextBox^		m_kSearch;

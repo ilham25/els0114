@@ -118,6 +118,51 @@ std::wstring DefaultCachePath()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Phase 6 - X2CashShopTool.ini, in whichever directory the cache ended up
+// in, so the two pieces of tool state are never in two different places.
+// Derived from DefaultCachePath by swapping the leaf rather than by
+// repeating the LOCALAPPDATA dance, which would be a second place for the
+// fallback logic to drift.
+
+std::wstring DefaultSettingsPath()
+{
+	std::wstring wstrPath = DefaultCachePath();
+
+	const size_t uSlash = wstrPath.find_last_of( L"\\/" );
+	if( std::wstring::npos == uSlash )
+		return std::wstring( L"X2CashShopTool.ini" );
+
+	wstrPath.erase( uSlash + 1 );
+	wstrPath += L"X2CashShopTool.ini";
+	return wstrPath;
+}
+
+namespace
+{
+	const wchar_t* const	INI_SECTION = L"window";
+}
+
+bool ReadSettingBool( const std::wstring& wstrIniPath, const wchar_t* pszKey, bool bDefault )
+{
+	wchar_t wszValue[16];
+	wszValue[0] = L'\0';
+
+	// A missing file and a missing key are the same answer here: the
+	// default. Nothing about this tool should fail because a preference
+	// has never been written.
+	::GetPrivateProfileStringW( INI_SECTION, pszKey, bDefault ? L"1" : L"0",
+		wszValue, 16, wstrIniPath.c_str() );
+
+	return ( L'1' == wszValue[0] );
+}
+
+bool WriteSettingBool( const std::wstring& wstrIniPath, const wchar_t* pszKey, bool bValue )
+{
+	return ( FALSE != ::WritePrivateProfileStringW( INI_SECTION, pszKey,
+		bValue ? L"1" : L"0", wstrIniPath.c_str() ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 CIndexCache::CIndexCache()
 : m_pDb( NULL )

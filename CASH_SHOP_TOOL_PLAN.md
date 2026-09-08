@@ -2107,6 +2107,295 @@ client will show, 388 dropped, 0 orphaned, 0 out of range, 18 duplicated items
 — and the save verified untouched from outside the tool afterwards, the same
 way phases 4 and 5 ended.
 
+#### Exit test — the three measurable parts PASSED; the two only a person can answer are the user's (2026-09-08)
+
+Both configs on a full rebuild, **0 Warning(s), 0 Error(s)**. The `/clr` split
+still holds in both: exactly one `/clr:nostdlib` on one of the four `CL.exe`
+command lines, on `Main.cpp`, read out of the `-v:normal` log — and the new
+`Core/Labels.cpp` compiled on a native one, which its own
+`#ifdef _MANAGED / #error` guard makes a fact rather than a reading. Deployed to
+`F:/.../237311/22191271/data/X2CashShopTool.exe`, confirmed by reading the
+directory programmatically and by SHA-256 against the build output: 1,479,680
+bytes, identical, and still the only `X2CashShop*` name there.
+
+**Part 1 — `--labels` resolves exactly what the coverage table said it would.**
+Every figure in *Coverage, measured rather than assumed* came back unchanged
+when the tool computed it for itself:
+
+```
+strings  : 30,056 row(s) from ...\General.ess in 20 ms
+
+--- the two standalone strings ---
+  the currency the shop prints after every price : K-Ching   [ESS]   STR_ID_34
+  what the client itself calls m_bFashion         : Costume   [ESS]   STR_ID_251
+
+ITEM_TYPE       0 of 9 value(s) occurring in the catalog are the game's own text; 2 from a mapping this build compiles out; 7 this tool's
+EQIP_POSITION  16 of 20 ...                                                    ; 0                                        ; 4
+ITEM_GRADE      5 of 6  ...                                                    ; 0                                        ; 1
+
+56 of the 79 entries in the label table are this tool's own wording.
+```
+
+The grades print their citation *and* the untouched row —
+`STR_ID_259   the file holds "[Rare]"` — so the bracket-stripping is visible
+rather than silent. All 31 sub-tabs are listed with their billing category, and
+the eight the shipped dialog script names carry a second line saying so
+(`the studio calls this control Tab_Wapon, out of DLG_Cash_Shop_Subpage_Fashion.lua`).
+
+Then `general.ess` was renamed and the tool re-run. It names the file, says what
+its absence costs, and **every origin flips to TOOL**:
+
+```
+strings  : *** NOT READ *** ...\General.ess
+           General.ess could not be read from the game directory, so every label below is
+           this tool's own wording rather than the game's - item types, equip slots, grades,
+           the Costume flag and the K-Ching currency all fall back. The catalog itself is
+           unaffected. Reason: the file is not there, or could not be opened for reading
+
+*** General.ess WAS NOT READ, so EVERY LABEL BELOW IS THIS TOOL'S OWN WORDING. ***
+  1     IT_WEAPON     Weapon      TOOL      6,929
+  2     IT_DEFENCE    Defence     TOOL     34,083
+```
+
+`IT_DEFENCE` degrading from `Armor` to `Defence` is the fallback working: the
+label is derived from the script's own name, marked TOOL, and no longer claims
+`STR_ID_17818`. The file was restored and the run repeated to confirm the ESS
+column came back.
+
+**Part 3 — the layout, measured rather than eyeballed.** A new `--layout-test`
+builds the real window over a *copy* of the save, shows it off-screen, and walks
+the whole control tree at both sizes and in both views, complaining about any
+two visible siblings whose bounds intersect, any child outside its parent's
+client area, and any control squeezed to zero:
+
+```
+  900x560, technical off:    no overlapping, clipped or collapsed control anywhere in the tree
+                             grid: 2,374 row(s), 170,928-pixel canvas, scrolled to the end
+                             reaches 170,928   -> the last row is reachable
+  1920x1080, technical off:  (same)
+  900x560, technical on:     (same)
+  1920x1080, technical on:   (same)
+
+settings : ...\X2CashShopTool.ini
+           wrote on -> read on; wrote off -> read off   -> the toggle survives a restart
+
+0 complaint(s) in total across both sizes and both views.
+The live save was not opened: this ran against the copy above.
+```
+
+**That probe earned its keep on its first run** — see the corrections below.
+
+**`--db`'s report is unchanged by all of it**: 388 dropped, 0 categories reaching
+no tab, 0 rows outside 1..127, 18 items sold as more than one product, prices
+1..1. Phase 3's round-trip was re-run because `Core` changed under it and still
+**PASSED**: all six refusals refused with the reason `CCashDb::Validate` gives,
+`product_no` allocated as max+1, the edit read back, the wallet restored, the row
+deleted, the catalog identical row for row. `--picker-test` still measures 4–5 ms
+a keystroke over all 48,754 rows, 82 KB left behind by fetching every icon in the
+catalog, and the last row reachable on a 2,145,176-pixel canvas.
+
+The editor was launched, watched for 9 s, closed through `CloseMainWindow`
+(exit 0, nothing on stderr, the clean-exit `peak working set : 54.1 MB` line
+printed). **The save was verified untouched from outside the tool afterwards** —
+`user_version` 11, 2,374 rows, `product_no` 1..2374, `min(price) = max(price) = 1`,
+`cash_start` 999999, `integrity_check` ok, the WAL truncated to 0 bytes, and no
+new `cashtool-20260908-2226*` files in `db_backup/`: the backup is still taken by
+the first *write*, so opening the editor to look at something leaves it alone.
+
+**What is left is the two halves no measurement replaces**, and the second is the
+phase's actual exit test:
+
+1. **Part 2 by eye** — open it and confirm no enum name and no source citation is
+   visible anywhere in the default view: tabs, sub-tabs, rows, both picker
+   filters, the edit dialog, the header, the status bar. Prices should read
+   `K-Ching` and a costume piece should read `Costume`. Then `View → Technical
+   details` (or Ctrl+T) and confirm all of it comes back, and that turning it off
+   again leaves every item on the *must not lose* list reachable. The tool's own
+   `--labels` and `--layout-test` cover the machinery; whether a *word* is the
+   right word is not a thing a probe can answer.
+2. **Part 4** — a person who has not read this plan opens the tool and reprices
+   one product, and adds one, without asking what a word means.
+
+#### Corrections to this plan, found by doing it
+
+- **The layout could not be claimed by eye, and the probe caught a real clip on
+  its first run.** The plan says so in advance — "Phase 5's own scroll-extent
+  probe is the precedent for not trusting this by eye" — and it was right. The
+  first draft of the button row was a `TableLayoutPanel` with four absolute
+  columns (90 + 90 + 120 + 90 plus margins = 402 px) sitting in a grid column
+  that is **360 px wide at the 900×560 minimum**. `--layout-test` reported it
+  exactly:
+
+  ```
+  CLIPPED  ... / Button(Reload)  {X=310,Y=8,Width=82,Height=28}  outside  {X=0,Y=0,Width=360,Height=44}
+  CLIPPED  ... / Label(showing 2,374 of 2,374)  {X=403,Y=8,Width=1,Height=28}  outside  ...
+  ```
+
+  Absolute columns in a container narrower than their sum **clip in silence** —
+  the last button and the row count were simply gone, at exactly the size the
+  exit test names. The fix is a wrapping, auto-sizing `FlowLayoutPanel`, which
+  cannot clip because it takes a second line instead, plus moving the row count
+  out of the button row into the status bar where it reads better anyway. The
+  moral is the plan's own: replacing hand-rolled `Bounds` with containers removed
+  *one* class of layout bug and introduced a second, and only a measurement
+  distinguished "it looks fine on my 1920×1080" from "it is broken at the
+  documented minimum".
+
+- **A fallback label must drop its citation, and the first version did not.**
+  Deleting `general.ess` produced this:
+
+  ```
+  the currency ... : K-Ching   [TOOL]   STR_ID_34
+  1  IT_WEAPON  Weapon  TOOL  6,929
+       STR_ID_270   the file holds ""
+  ```
+
+  A label marked TOOL that still cites `STR_ID_270`, and a line claiming the
+  file holds an empty string it never opened. That is *precisely* the "looks
+  sourced and is not" failure this phase's rule 1 exists to prevent, produced by
+  the phase's own degrade path. All three fallback paths now clear `iStringID`
+  and `strEssRaw`, and the printer omits the citation when there is none. **The
+  degrade test is not optional and it is not only about the missing file** — it
+  is the only run in which the origin machinery is exercised in its unhappy
+  state, and the unhappy state was the one that lied.
+
+- **The plan's tier-2 transcription had one wrong name.** It lists the first
+  sub-tab control as `Tab_Total`; the constant pool of
+  `DLG_Cash_Shop_Subpage_Fashion.lua` shows the variable is
+  `g_pRadioSub_Tab_Total` but the name the script actually *sets* is
+  **`Totalitem`**. The other seven are as the plan has them, `Tab_Wapon` typo
+  included. Read out of the bytecode's string constants in layout order, which
+  also yielded the tag each control carries — so the eight `(control, CSSC_*)`
+  pairs are transcribed rather than paired by position:
+  `Totalitem/CSSC_ALL`, `Tab_Wapon/CSSC_FASHION_WEAPON`,
+  `Tab_Hood1/CSSC_FASHION_BODY`, `Tab_Hood2/CSSC_FASHION_LEG`,
+  `Tab_Hair/CSSC_FASHION_HAIR`, `Tab_Glove/CSSC_FASHION_HAND`,
+  `Tab_Shoes/CSSC_FASHION_FOOT`, `Tab_OnePiece/CSSC_FASHION_ONE_PIECE`.
+
+- **`CASH_FIELD_MIN` / `CASH_FIELD_MAX` are an UNNAMED NATIVE enum, and those do
+  not box for `String::Format`.** `String::Format( "...{0}..{1}...",
+  CASH_FIELD_MIN, CASH_FIELD_MAX )` fails with C2665 and an argument list
+  printed as `'(const char [162], , )'` — two blanks where the values should be.
+  Phase 5 never hit it because it only ever *compared* against them. An `(int)`
+  cast at the use site fixes it. This belongs beside phase 4's
+  `String^ == String^` note as a C++/CLI trap the native side of this tool keeps
+  handing to the managed side.
+
+- **`Path::GetTempPath` is unusable in this TU**, because `windows.h` has
+  already `#define`d `GetTempPath` to `GetTempPathW` — so the call becomes a
+  member lookup for `GetTempPathW` on `System::IO::Path` and fails with C2039
+  plus a baffling "function does not take 0 arguments". The layout probe's copy
+  goes beside the index cache instead, which is where phase 3's round-trip
+  already puts its own.
+
+- **`--db`'s report is no longer "still 2,360 rows".** The live save now holds
+  **2,374** products and 1,986 the client will show: the user has added fourteen
+  since phase 5, which is the tool doing its job. The numbers the check is
+  actually about are the structural ones — 388 dropped, 0 orphaned, 0 out of
+  range, 18 duplicated items, prices 1..1 — and those are unchanged. A phase that
+  checks a row *count* against a plan written weeks earlier is checking the wrong
+  thing.
+
+- **A public method dropped into a private section reads as C3767, not as an
+  access error.** `SetTechnical` was inserted next to `DrawRow`, which is
+  private, and the compiler said
+  `'ItemListPanel::SetTechnical': candidate function(s) not accessible` from the
+  caller — which sounds like an assembly-visibility problem and is not. Worth
+  knowing before spending time on `public ref class`.
+
+- **The heredoc backslash hazard fired a third time**, in the now-familiar way:
+  a `bash` heredoc collapsed `\\r\\n` in a Python patch script to `\r\n`, which
+  Python then read as a real CR LF, so the pattern did not match the C++ source's
+  literal `\r\n`. It failed loudly this time (an assertion on the pattern) rather
+  than silently. The fix that finally sticks: **write the patch script to a file
+  with the Write tool and run it by path**, never through a heredoc. Every file
+  touched by a scripted edit was re-read afterwards and checked for stray CR
+  bytes and NULs.
+
+#### Decisions made while implementing phase 6
+
+- **The shop's sub-tab labels are this tool's wording, NOT the equip-slot
+  strings — even though the pairing would have worked.** `CSSC_FASHION_BODY`
+  does line up with `EP_DEFENCE_BODY`, whose shipped string is "Top Piece", and
+  using it would have made seven sub-tabs read as ESS instead of TOOL. It is not
+  done, because the only thing in this repo that asserts that correspondence is
+  **our own offline emulator** (`X2Lib/Offline/X2OfflineCashShop.cpp:320-332`),
+  so citing it as the game's word would be the tool quoting itself and calling
+  the result a citation. This is the same judgement the plan already made for
+  `IT_ACCESSORY` and `STR_ID_246`, applied to a case where the temptation was
+  much stronger. The label text is the same either way; what differs is whether
+  the origin column tells the truth.
+- **The studio's control names ride in the details pane and in `--labels`, never
+  as the label.** `Tab_Hood1` is no more a human name for a thing than
+  `CSSC_FASHION_BODY` is, so promoting tier 2 to the primary label would have
+  satisfied the letter of the phase and none of its point. The consequence is
+  that **origin `SCRIPT` never appears in the origin column** — it appears as a
+  line underneath a TOOL label — and `--labels` says so where it explains the
+  four tags.
+- **The note attached to a label is per-row, not per-enum.** The first version
+  gave all 32 sub-tabs the note "with the studio's own control name beside it",
+  which is true of eight of them. Two constants now, and the twenty-four without
+  a control name say so. A note that overclaims in a file whose whole job is not
+  overclaiming.
+- **Numbers stayed everywhere they are the contract, in both views.** The
+  category number is beside every sub-tab label (`Costume weapon  ->  11   (392)`),
+  the item id stays on every picker row, and the details pane always shows
+  `product_no / item_id / category / quantity / price / is_event` in Consolas
+  whether the toggle is on or off. The category box in the edit dialog is still
+  an **editable** `ComboBox` with the number as the leading token, for the reason
+  phase 4 recorded: a closed list makes 128 impossible to type, and typing 128
+  and watching it be refused is an exit test.
+- **The plain second line uses the equip SLOT for equippable items and the item
+  TYPE for the rest.** `EP_NONE` is the second-largest bucket in the catalog at
+  5,862 items and its honest label is "not equipped", which is true and is noise
+  on a row; those rows show what the item *is* instead. Same rule in the picker.
+- **Grades are stripped of their brackets for a caption and the raw form is
+  kept.** `SLabel::strEssRaw` holds `[Rare]` and `strText` holds `Rare`, and
+  `--labels` prints both, so the one place this tool edits a shipped string says
+  so out loud.
+- **The details pane is two read-only multiline `TextBox`es, not `Label`s.** A
+  `TextBox` scrolls where a `Label` clips — which is what exit test 3 asks about
+  — and a `product_no` you can select is a `product_no` you can paste into a
+  `sqlite3` query.
+- **The event mark is demoted and the checkbox now says why.** `m_bEvent`
+  appears nowhere in `X2Lib/` or `KTDXLIB/` outside `Offline/`: the emulator sets
+  it (`X2OfflineCashShop.cpp:172`) and no client code reads it. Phase 5's orange
+  badge gave the one field with no in-game effect top billing on every row. It is
+  now small grey text, and the dialog's caption reads "mark this as an event
+  product  (nothing in the game reads it)".
+- **`X2CashShopTool.ini` lives in `IndexCache.cpp`, next to `DefaultCachePath()`.**
+  That file already answers "where does this tool keep its state", and the ini is
+  one more answer to the same question; putting it in `Labels.cpp` would have
+  muddled a file whose subject is where *words* come from. It is `%LOCALAPPDATA%\
+  X2CashShopTool\X2CashShopTool.ini` and deliberately **not** `ItemIndex.db`,
+  which is a cache that gets thrown away whenever an archive changes.
+- **No `ItemExtractorVersion()` bump and no new cache column**, per the phase's
+  own rule 4 — so phase 4's `HasColumn` trap is still waiting for phase 7, which
+  is the phase that actually adds columns. `General.ess` is re-read every run
+  (20 ms for 30,056 rows) and never cached.
+- **Every switch from phases 0–5 is untouched**, so their exit tests are still
+  runnable verbatim from this exe. Three are new: `--labels`, `--technical` and
+  `--layout-test`.
+- **The picker's one-off cost went up and is accepted, with the number.**
+  Marshalling 48,754 items went from 81 ms / 17.7 MB to **162 ms / 23.9 MB**,
+  because every row now carries both spellings of its second line so the
+  technical toggle is a repaint rather than a rebuild. Building those two strings
+  lazily would recover most of the 6 MB, and it is not done: the cost is paid
+  once, only on the first Add, and it is reported in the picker's own footer. The
+  numbers the exit test is about are unchanged — 4–5 ms a keystroke, 82 KB left
+  behind by a full icon sweep. Editor peak working set went from 47.8 MB to
+  **54.1 MB**, most of it the 30,056-row string table.
+- **`--layout-test` opens the editor over a COPY of the save**, the same
+  discipline phase 3's round-trip took, because the probe has to build a real
+  `MainForm` to measure one and a real `MainForm` opens its save read-write. It
+  also drives `WriteSettingBool`/`ReadSettingBool` against the real ini and puts
+  back whatever value it found, because "the setting persists" is a claim and the
+  menu handler is one line of code away from it.
+- **`ItemIndex.h`'s comment about the tab names was corrected in the same
+  commit**, as the phase asked. Both halves of it were wrong: there *is* a
+  localized string table and this tool reads it now, and the cash-shop tab
+  captions are the one thing in the window that is not in it.
+
 ### Phase 7 — Bulk editing and CSV
 
 Multi-select within a tab; set price or quantity across the selection; CSV

@@ -24,6 +24,8 @@
 
 #include "../Core/DdsDecode.h"
 #include "../Core/IconStore.h"
+#include "../Core/ItemIndex.h"
+#include "../Core/Labels.h"
 
 using namespace System;
 using namespace System::Windows::Forms;
@@ -198,5 +200,190 @@ namespace X2CashShopTool
 
 		System::Collections::Generic::Dictionary<String^, System::Drawing::Bitmap^>^	m_kMap;
 		System::Collections::Generic::Queue<String^>^								m_kOrder;
+	};
+
+	//////////////////////////////////////////////////////////////////////
+	// Phase 6 - one resolved label, and the managed face of CLabelStore.
+	//
+	// Every window in this tool paints enum values, and phase 5's answer
+	// was to paint the enumerator: IT_DEFENCE, EP_DEFENCE_FOOT,
+	// CSSC_FASHION_WEAPON. This is where a value stops being spelled the
+	// way a header spells it.
+	//
+	// A LabelInfo carries the text AND its origin, together, because the
+	// one rule the label table exists to enforce is that this tool's own
+	// wording is never presented as the game's. The details pane shows
+	// Origin for the selected row and --labels prints the whole set.
+	//
+	// Script is the SCRIPT's own name for the value - IT_DEFENCE - kept so
+	// the technical view can put it back and so the details pane can show
+	// both at once. It is never the primary label.
+
+	ref class LabelInfo
+	{
+	public:
+		String^	Text;			// what to paint
+		String^	Script;			// the Enum.lua name, or empty when it has none
+		String^	OriginTag;		// ESS / CODE / SCRIPT / TOOL
+		String^	OriginText;		// "the game's own text", ...
+		String^	Note;			// the switch it came from, or why it is the tool's
+		String^	EssRaw;			// the .ess row untouched; differs from Text only for grades
+		String^	ScriptControl;	// the studio's control name for a sub-tab, or empty
+		int		StringID;		// the STR_ID_* row, or -1
+
+		LabelInfo()
+		: Text( String::Empty ), Script( String::Empty )
+		, OriginTag( "-" ), OriginText( "nothing" ), Note( String::Empty )
+		, EssRaw( String::Empty ), ScriptControl( String::Empty ), StringID( -1 )
+		{}
+
+		// "Rare" by default; "Rare  (IG_RARE)" in the technical view, so
+		// the toggle adds the enumerator back rather than swapping one
+		// vocabulary for the other.
+		String^ Show( bool bTechnical )
+		{
+			if( false == bTechnical || String::IsNullOrEmpty( Script ) )
+				return Text;
+
+			return String::Format( "{0}  ({1})", Text, Script );
+		}
+	};
+
+	//////////////////////////////////////////////////////////////////////
+	// Value -> LabelInfo, cached.
+	//
+	// CLabelStore is keyed on the SCRIPT's own enum name rather than on an
+	// ordinal - deliberately, so nothing transcribes a number that could
+	// drift from Enum.lua - which means every lookup is a name resolution
+	// followed by a table scan. Painting one grid row would do six of
+	// them, so each answer is built once and kept. There are at most a few
+	// dozen distinct values per enum.
+
+	ref class LabelBridge
+	{
+	public:
+		LabelBridge( const SExtractResult* pCatalog, const CLabelStore* pLabels )
+		{
+			m_pCatalog	= pCatalog;
+			m_pLabels	= pLabels;
+
+			m_kCache = gcnew System::Collections::Generic::Dictionary<String^, LabelInfo^>();
+
+			HasStrings	= ( NULL != pLabels ) && pLabels->HasStrings();
+			Degraded	= ( NULL != pLabels ) ? NativeBridge::Utf8( pLabels->Degraded() ) : String::Empty;
+			StringCount	= ( NULL != pLabels ) ? (int) pLabels->StringCount() : 0;
+
+			SLabel kCurrency	= ( NULL != pLabels ) ? pLabels->Currency() : SLabel();
+			SLabel kCostume		= ( NULL != pLabels ) ? pLabels->Costume()  : SLabel();
+
+			Currency		= NativeBridge::Utf8( kCurrency.strText );
+			CurrencyOrigin	= gcnew String( LabelOriginTag( kCurrency.eOrigin ) );
+			Costume			= NativeBridge::Utf8( kCostume.strText );
+			CostumeOrigin	= gcnew String( LabelOriginTag( kCostume.eOrigin ) );
+
+			// Never empty even on a broken install: CLabelStore falls back
+			// to the constant it read out of the repo and says so in the
+			// origin, which is the honest version of a fallback.
+			if( String::IsNullOrEmpty( Currency ) )	Currency = "K-Ching";
+			if( String::IsNullOrEmpty( Costume ) )	Costume  = "Costume";
+		}
+
+		property bool		HasStrings;
+		property String^	Degraded;
+		property int		StringCount;
+
+		// STR_ID_34, what the shop appends to every price
+		// (X2Lib/X2CashShop.cpp:9194). The tool said ED until phase 6.
+		property String^	Currency;
+		property String^	CurrencyOrigin;
+
+		// STR_ID_251, the game's word for m_bFashion
+		// (X2Lib/X2ItemSlotManager.cpp:1270-1274).
+		property String^	Costume;
+		property String^	CostumeOrigin;
+
+		LabelInfo^ ItemType( int iValue )
+			{ return ByValue( LabelEnum_ItemType, EnumTableItemType(), iValue ); }
+
+		LabelInfo^ EquipPosition( int iValue )
+			{ return ByValue( LabelEnum_EquipPosition, EnumTableEquipPosition(), iValue ); }
+
+		LabelInfo^ ItemGrade( int iValue )
+			{ return ByValue( LabelEnum_ItemGrade, EnumTableItemGrade(), iValue ); }
+
+		// The two cash-shop enums arrive already named: phase 4 reversed
+		// the CSC_* and CSSC_* names out of Enum.lua into SCashCategoryRow,
+		// so there is nothing to look up by value here.
+		LabelInfo^ CashCategory( const std::string& strEnumName )
+			{ return ByName( LabelEnum_CashCategory, strEnumName, -1 ); }
+
+		LabelInfo^ CashSubCategory( const std::string& strEnumName )
+			{ return ByName( LabelEnum_CashSubCategory, strEnumName, -1 ); }
+
+	private:
+		LabelInfo^ ByValue( ELabelEnum eEnum, const char* pszTable, int iValue )
+		{
+			String^ sKey = String::Format( "{0}/{1}", (int) eEnum, iValue );
+
+			LabelInfo^ kFound = nullptr;
+			if( m_kCache->TryGetValue( sKey, kFound ) )
+				return kFound;
+
+			// Empty when the value is in the item data and not in
+			// Enum.lua, which CLabelStore turns into "value <n>" rather
+			// than into a blank.
+			const std::string strName = ( NULL != m_pCatalog )
+				? LookupEnumRowName( m_pCatalog->vecEnumNames, pszTable, iValue )
+				: std::string();
+
+			LabelInfo^ kInfo = Build( eEnum, strName, iValue );
+
+			m_kCache->Add( sKey, kInfo );
+			return kInfo;
+		}
+
+		LabelInfo^ ByName( ELabelEnum eEnum, const std::string& strEnumName, int iValue )
+		{
+			String^ sKey = String::Format( "{0}/n/{1}", (int) eEnum, NativeBridge::Utf8( strEnumName ) );
+
+			LabelInfo^ kFound = nullptr;
+			if( m_kCache->TryGetValue( sKey, kFound ) )
+				return kFound;
+
+			LabelInfo^ kInfo = Build( eEnum, strEnumName, iValue );
+
+			m_kCache->Add( sKey, kInfo );
+			return kInfo;
+		}
+
+		LabelInfo^ Build( ELabelEnum eEnum, const std::string& strEnumName, int iValue )
+		{
+			LabelInfo^ kInfo = gcnew LabelInfo();
+
+			if( NULL == m_pLabels )
+			{
+				kInfo->Text		= String::Format( "value {0}", iValue );
+				kInfo->Script	= NativeBridge::Utf8( strEnumName );
+				return kInfo;
+			}
+
+			const SLabel kLabel = m_pLabels->Label( eEnum, strEnumName.c_str(), iValue );
+
+			kInfo->Text			= NativeBridge::Utf8( kLabel.strText );
+			kInfo->Script		= NativeBridge::Utf8( strEnumName );
+			kInfo->OriginTag	= gcnew String( LabelOriginTag( kLabel.eOrigin ) );
+			kInfo->OriginText	= gcnew String( LabelOriginName( kLabel.eOrigin ) );
+			kInfo->Note			= NativeBridge::Utf8( kLabel.strNote );
+			kInfo->EssRaw		= NativeBridge::Utf8( kLabel.strEssRaw );
+			kInfo->ScriptControl= NativeBridge::Utf8( kLabel.strScriptName );
+			kInfo->StringID		= kLabel.iStringID;
+
+			return kInfo;
+		}
+
+		const SExtractResult*	m_pCatalog;
+		const CLabelStore*		m_pLabels;
+
+		System::Collections::Generic::Dictionary<String^, LabelInfo^>^	m_kCache;
 	};
 }

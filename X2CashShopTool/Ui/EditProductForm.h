@@ -20,6 +20,13 @@
 // the reason for those limits are identical, and a second copy of them
 // would be a second place for the 1..127 rule to drift.
 //
+// PHASE 6 gave it two more arguments, sCurrency and bTechnical, and no new
+// behaviour. Every caption in here was a column name or a wire fact -
+// "is_event", "X2OfflineCashShop.cpp:181 and :185" - and the price hint
+// said nothing about what a price is denominated in. The numbers and their
+// 1..127 limits are untouched, deliberately: they are the contract, and a
+// label never replaces one.
+//
 // EVERY NUMERIC FIELD IS A PLAIN TEXTBOX, and that is the point of this
 // file rather than an accident of laziness. NumericUpDown silently clamps
 // a value to its Minimum/Maximum, which would turn "quantity 128" into
@@ -49,7 +56,8 @@ namespace X2CashShopTool
 						 System::Drawing::Bitmap^ kIcon,
 						 int iCategory, int iQuantity, int iPrice, bool bIsEvent,
 						 System::Collections::Generic::List<String^>^ kCategoryChoices,
-						 const CCashDb* pDb, bool bIsInsert, String^ sExtraNote )
+						 const CCashDb* pDb, bool bIsInsert, String^ sExtraNote,
+						 String^ sCurrency, bool bTechnical )
 		{
 			m_pDb			= pDb;
 			m_iProductNo	= iProductNo;
@@ -62,8 +70,8 @@ namespace X2CashShopTool
 			IsEvent		= bIsEvent;
 
 			Text = bIsInsert
-				? String::Format( "Add product - item {0}", iItemID )
-				: String::Format( "Edit product {0}", iProductNo );
+				? String::Format( "Put {0} on sale", sItemName )
+				: String::Format( "Edit {0}", sItemName );
 			ClientSize		= System::Drawing::Size( 560, 300 );
 			FormBorderStyle	= ::FormBorderStyle::FixedDialog;
 			StartPosition	= FormStartPosition::CenterParent;
@@ -87,15 +95,22 @@ namespace X2CashShopTool
 
 			Label^ kItem = gcnew Label();
 			kItem->Bounds		= System::Drawing::Rectangle( 90, 14, 456, 66 );
-			kItem->Font			= kFixedFont;
+
+			// Segoe UI, not Consolas: the item's NAME is the biggest thing
+			// on this dialog and there is no column here to align.
+			kItem->Font			= kFont;
 			kItem->ForeColor	= System::Drawing::Color::Gainsboro;
 			kItem->Text			= String::Format(
-				"item {0}   {1}\r\nm_ShopImage: {2}\r\n{3}",
-				iItemID, sItemName, ( String::IsNullOrEmpty( sShopImage ) ? "(none)" : sShopImage ),
+				"{0}\r\nitem {1}{2}\r\n{3}",
+				sItemName, iItemID,
+				bTechnical
+					? String::Format( "   m_ShopImage: {0}",
+						String::IsNullOrEmpty( sShopImage ) ? "(none)" : sShopImage )
+					: String::Empty,
 				String::IsNullOrEmpty( sExtraNote )
 					? ( bIsInsert
-						? "product_no is allocated as max+1 when this is saved"
-						: String::Format( "product_no {0}", iProductNo ) )
+						? "this product gets the next free product number when it is saved"
+						: String::Format( "product number {0}", iProductNo ) )
 					: sExtraNote );
 
 			// Amber when the caller had something to warn about - today
@@ -111,7 +126,7 @@ namespace X2CashShopTool
 
 			int iY = 94;
 
-			Controls->Add( MakeLabel( "category", 14, iY + 3, kFont ) );
+			Controls->Add( MakeLabel( "shop tab", 14, iY + 3, kFont ) );
 
 			// Editable, NOT DropDownList. A list would make the legal
 			// values easy and 128 impossible to type - and 128 is exactly
@@ -130,26 +145,33 @@ namespace X2CashShopTool
 			m_kCategory->Text = ChoiceFor( kCategoryChoices, iCategory );
 			Controls->Add( m_kCategory );
 
-			Controls->Add( MakeHint( "1..127", 430, iY + 3, kFixedFont ) );
+			Controls->Add( MakeHint( "1 to 127", 430, iY + 3, kFont ) );
 
 			iY += 34;
-			Controls->Add( MakeLabel( "quantity", 14, iY + 3, kFont ) );
+			Controls->Add( MakeLabel( "how many", 14, iY + 3, kFont ) );
 			m_kQuantity = MakeBox( iQuantity.ToString(), 100, iY, 120, kFixedFont );
 			Controls->Add( m_kQuantity );
-			Controls->Add( MakeHint( "1..127", 430, iY + 3, kFixedFont ) );
+			Controls->Add( MakeHint( "1 to 127", 430, iY + 3, kFont ) );
 
 			iY += 34;
 			Controls->Add( MakeLabel( "price", 14, iY + 3, kFont ) );
 			m_kPrice = MakeBox( iPrice.ToString(), 100, iY, 120, kFixedFont );
 			Controls->Add( m_kPrice );
-			Controls->Add( MakeHint( "0 or more; not narrowed on the wire", 430, iY + 3, kFixedFont ) );
+			Controls->Add( MakeHint( String::Format( "{0}, any amount", sCurrency ),
+				430, iY + 3, kFont ) );
 
 			iY += 34;
 			m_kEvent = gcnew CheckBox();
-			m_kEvent->Bounds	= System::Drawing::Rectangle( 100, iY, 200, 22 );
+			m_kEvent->Bounds	= System::Drawing::Rectangle( 100, iY, 430, 22 );
 			m_kEvent->Font		= kFont;
 			m_kEvent->ForeColor	= System::Drawing::Color::Gainsboro;
-			m_kEvent->Text		= "is_event";
+			// Phase 5 captioned this "is_event", which is the column's name
+			// and says nothing about what setting it does - and what it
+			// does is nothing: m_bEvent appears nowhere in X2Lib or
+			// KTDXLIB outside Offline/. The emulator sets it
+			// (X2OfflineCashShop.cpp:172) and no client code reads it, so
+			// the caption says that in words instead of naming the column.
+			m_kEvent->Text		= "mark this as an event product  (nothing in the game reads it)";
 			m_kEvent->Checked	= bIsEvent;
 			Controls->Add( m_kEvent );
 
@@ -159,14 +181,18 @@ namespace X2CashShopTool
 			kWhy->Bounds	= System::Drawing::Rectangle( 14, iY + 32, 532, 32 );
 			kWhy->Font		= gcnew System::Drawing::Font( "Segoe UI", 8.0f );
 			kWhy->ForeColor	= System::Drawing::Color::FromArgb( 170, 170, 178 );
-			kWhy->Text		= "category and quantity are narrowed to a signed char on the wire "
-				"(X2OfflineCashShop.cpp:181 and :185), so 128 arrives as -128 and 0 is rewritten to 1. "
-				"Out-of-range values are refused here, never clamped.";
+			kWhy->Text		= bTechnical
+				? "category and quantity are narrowed to a signed char on the wire "
+				  "(X2OfflineCashShop.cpp:181 and :185), so 128 arrives as -128 and 0 is rewritten to 1. "
+				  "Out-of-range values are refused here, never clamped."
+				: "The shop tab and the quantity both have to be between 1 and 127: the game sends "
+				  "each of them as one signed byte, so 128 arrives as -128 and 0 turns into 1. "
+				  "Anything outside that is refused here rather than quietly changed.";
 			Controls->Add( kWhy );
 
 			Button^ kOk = gcnew Button();
-			kOk->Bounds		= System::Drawing::Rectangle( 350, 258, 90, 28 );
-			kOk->Text		= bIsInsert ? "Add" : "Save";
+			kOk->Bounds		= System::Drawing::Rectangle( 330, 258, 110, 28 );
+			kOk->Text		= bIsInsert ? "Put on sale" : "Save";
 			kOk->Font		= kFont;
 			kOk->FlatStyle	= ::FlatStyle::Flat;
 			kOk->ForeColor	= System::Drawing::Color::Gainsboro;
@@ -225,9 +251,10 @@ namespace X2CashShopTool
 			return kBox;
 		}
 
-		// The combo shows "11  CSC_FASHION / CSSC_FASHION_WEAPON", so the
-		// number is the leading token whether it was picked from the list
-		// or typed by hand. Anything that is not a number at the front is
+		// The combo shows "11  Costumes / Costume weapon" - or, with the
+		// technical view on, "11  CSC_FASHION / CSSC_FASHION_WEAPON" - so
+		// the NUMBER IS THE LEADING TOKEN in either spelling, whether it
+		// was picked from the list or typed by hand. Anything that is not a number at the front is
 		// an error the caller reports, never a silent 0.
 		static bool ParseLeading( String^ sText, int% iOut )
 		{
@@ -279,19 +306,20 @@ namespace X2CashShopTool
 
 			if( false == ParseLeading( m_kCategory->Text, iCategory ) )
 			{
-				Complain( "category must be a number.", m_kCategory );
+				Complain( "The shop tab has to start with its number - pick one from the list, "
+					"or type the number.", m_kCategory );
 				return;
 			}
 
 			if( false == Int32::TryParse( m_kQuantity->Text->Trim(), iQuantity ) )
 			{
-				Complain( "quantity must be a number.", m_kQuantity );
+				Complain( "How many has to be a number.", m_kQuantity );
 				return;
 			}
 
 			if( false == Int32::TryParse( m_kPrice->Text->Trim(), iPrice ) )
 			{
-				Complain( "price must be a number.", m_kPrice );
+				Complain( "The price has to be a number.", m_kPrice );
 				return;
 			}
 

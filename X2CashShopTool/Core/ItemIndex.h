@@ -56,11 +56,20 @@ struct SCashCategoryRow
 	// drifts from the data and nothing says so.
 	//
 	// These are the SCRIPT's names, not the captions the game paints on
-	// its tabs - those are localized strings this tool does not read. They
-	// are here so a tab in the tool can be matched against a tab in the
-	// game by something better than an ordinal. Empty when a value appears
-	// in CashShopCategory.lua and not in Enum.lua, which is information
-	// rather than an error.
+	// its tabs. They are here so a tab in the tool can be matched against
+	// a tab in the game by something better than an ordinal. Empty when a
+	// value appears in CashShopCategory.lua and not in Enum.lua, which is
+	// information rather than an error.
+	//
+	// CORRECTED BY PHASE 6. This comment used to add "those are localized
+	// strings this tool does not read", and both halves of that were
+	// wrong. There IS a localized string table and the tool reads it now -
+	// General.ess, a loose file in the game directory, 30,056 rows (see
+	// Labels.h) - and the cash-shop tab captions are the one thing in this
+	// window that is NOT in it: the shop paints them as regions of
+	// DLG_Common_New_Texture54_A.TGA, so no string exists to read. The
+	// plain-language names beside these are therefore the TOOL's own
+	// wording, and Labels.cpp says so in as many words.
 	std::string	strTabName;
 	std::string	strSubName;
 

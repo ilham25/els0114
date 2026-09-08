@@ -37,6 +37,23 @@
 //                  pass over all of them for a handful of queries, and the
 //                  managed delta across a full sweep of every row's icon.
 //                  Opens no window and touches els_db.sql not at all
+//   --labels       print every human label the window can show, every value
+//                  of every enum it covers, and WHERE EACH ONE CAME FROM -
+//                  the game's own string table, a mapping this build
+//                  compiles out, a shipped dialog script, or this tool's
+//                  own wording. Opens no window and reads no save. It
+//                  exists so this tool's own inventions are auditable in
+//                  one read instead of being hunted through a UI
+//   --layout-test  build the editor over a COPY of the save, show it
+//                  off-screen at the 900x560 minimum and at 1920x1080, and
+//                  report every pair of overlapping controls, every clipped
+//                  or collapsed one, and whether the product grid can still
+//                  be scrolled to its last row at each size. Opens no
+//                  visible window and never touches the live save
+//   --technical    start the editor with View -> Technical details already
+//                  on: the script's own enum names and every row's numbers
+//                  back on screen, which is phase 5's presentation. The
+//                  setting persists either way in X2CashShopTool.ini
 //   --db-path <file>
 //                  open that save instead of ./els_db.sql. The archives are
 //                  still read from the working directory. Exists so the two
@@ -47,6 +64,7 @@
 #include <msclr/marshal.h>
 #include <msclr/marshal_cppstd.h>  // needed for marshal_as<std::string, String^> specifically
 #include <algorithm>
+#include <map>
 #include <string>
 #include <string.h>
 #include <vector>
@@ -60,6 +78,7 @@ using namespace System;
 #include "../Core/IconStore.h"
 #include "../Core/IndexCache.h"
 #include "../Core/CashDb.h"
+#include "../Core/Labels.h"
 
 #include "IconWallForm.h"
 #include "MainForm.h"
@@ -193,6 +212,219 @@ namespace
 				Pad( sTab, 5 ), Pad( sReal, 9 ), Pad( kRow.iSubOrdinal.ToString(), 7 ),
 				Pad( kRow.iCsscEnum.ToString(), 6 ), kRow.iBillingCategoryNo );
 		}
+	}
+
+	//////////////////////////////////////////////////////////////////////
+	// Phase 6 - --labels.
+	//
+	// The whole point of this switch is RULE 1: this tool's own wording is
+	// never presented as the game's. That is only a real guarantee if the
+	// full set of it can be read in one place, so every label the window
+	// can show is printed here with its origin, and the TOOL ones are
+	// gathered again at the end so the inventions are countable rather
+	// than scattered through a UI.
+	//
+	// The three item enums are walked over the values that ACTUALLY OCCUR
+	// in the catalog, with counts, because a coverage claim about values
+	// nobody has is worthless. The two cash-shop enums are walked over
+	// CashShopCategory.lua's own table for the same reason.
+
+	void CountField( const SExtractResult& kResult, int iWhich, std::map<int, int>& mapOut )
+	{
+		mapOut.clear();
+
+		for( size_t u = 0; u != kResult.vecItems.size(); ++u )
+		{
+			const SItemRow& kRow = kResult.vecItems[u];
+
+			const int iValue = ( 0 == iWhich ) ? kRow.iItemType
+							 : ( 1 == iWhich ) ? kRow.iEquipPosition
+											   : kRow.iItemGrade;
+
+			++mapOut[iValue];
+		}
+	}
+
+	// The citation, or nothing. A fallback label has no STR_ID because it
+	// is no longer that string - see the three fallback paths in
+	// Labels.cpp - so printing "STR_ID_-1" would be the tool citing a row
+	// it did not read.
+	String^ Cite( const SLabel& kLabel )
+	{
+		if( kLabel.iStringID < 0 )
+			return String::Empty;
+
+		return String::Format( "   STR_ID_{0}", kLabel.iStringID );
+	}
+
+	// One line per value, in the same shape for all five enums so the
+	// origin column reads as a column.
+	void PrintLabelRow( int iValue, const std::string& strEnumName, const SLabel& kLabel, int iCount )
+	{
+		String^ sCount = ( iCount >= 0 ) ? String::Format( "{0,7:N0}", iCount ) : Pad( String::Empty, 7 );
+
+		Console::WriteLine( "  {0} {1} {2} {3} {4}",
+			Pad( iValue.ToString(), 5 ),
+			Pad( strEnumName.empty() ? gcnew String( "(no Enum.lua name)" ) : Utf8( strEnumName ), 26 ),
+			Pad( Utf8( kLabel.strText ), 28 ),
+			Pad( gcnew String( LabelOriginTag( kLabel.eOrigin ) ), 7 ),
+			sCount );
+
+		// The citation, and the untouched .ess row when it differs from
+		// the label - which is only the grades, whose shipped strings
+		// carry square brackets.
+		if( kLabel.iStringID >= 0 )
+		{
+			Console::WriteLine( "        STR_ID_{0}{1}", kLabel.iStringID,
+				( false == kLabel.strEssRaw.empty() && kLabel.strEssRaw != kLabel.strText )
+					? String::Format( "   the file holds \"{0}\"", Utf8( kLabel.strEssRaw ) )
+					: String::Empty );
+		}
+
+		if( false == kLabel.strScriptName.empty() )
+		{
+			Console::WriteLine( "        the studio calls this control {0}, out of DLG_Cash_Shop_Subpage_Fashion.lua",
+				Utf8( kLabel.strScriptName ) );
+		}
+	}
+
+	void PrintLabelHeading( const char* pszTitle )
+	{
+		Console::WriteLine();
+		Console::WriteLine( "--- {0} ---", Utf8( pszTitle ) );
+		Console::WriteLine( "  {0} {1} {2} {3} {4}",
+			Pad( "value", 5 ), Pad( "Enum.lua", 26 ), Pad( "label", 28 ),
+			Pad( "origin", 7 ), Pad( "items", 7 ) );
+	}
+
+	void PrintOneItemEnum( const CLabelStore& kStore, const SExtractResult& kResult,
+							ELabelEnum eEnum, const char* pszTable, int iWhich )
+	{
+		PrintLabelHeading( LabelEnumName( eEnum ) );
+
+		std::map<int, int> mapCount;
+		CountField( kResult, iWhich, mapCount );
+
+		int iEss = 0;
+		int iCode = 0;
+		int iTool = 0;
+
+		for( std::map<int, int>::const_iterator it = mapCount.begin(); it != mapCount.end(); ++it )
+		{
+			const std::string	strName	= LookupEnumRowName( kResult.vecEnumNames, pszTable, it->first );
+			const SLabel		kLabel	= kStore.Label( eEnum, strName.c_str(), it->first );
+
+			PrintLabelRow( it->first, strName, kLabel, it->second );
+
+			if( LabelOrigin_Ess == kLabel.eOrigin )			++iEss;
+			else if( LabelOrigin_Code == kLabel.eOrigin )	++iCode;
+			else											++iTool;
+		}
+
+		Console::WriteLine( "  {0} of {1} value(s) occurring in the catalog are the game's own text; {2} from a mapping this build compiles out; {3} this tool's",
+			iEss, (int) mapCount.size(), iCode, iTool );
+	}
+
+	void PrintLabels( const CLabelStore& kStore, const SExtractResult& kResult )
+	{
+		Console::WriteLine();
+		Console::WriteLine( "=== every label this tool can show, and where each one comes from ===" );
+		Console::WriteLine();
+		Console::WriteLine( "  ESS      the game's own localized string, reached through the client's own" );
+		Console::WriteLine( "           enum -> STR_ID switch" );
+		Console::WriteLine( "  CODE     a mapping that exists in this repo and that THIS BUILD compiles out" );
+		Console::WriteLine( "  SCRIPT   the studio's own control name out of a shipped dialog .lua -" );
+		Console::WriteLine( "           printed under the label it belongs to, never AS the label, because a" );
+		Console::WriteLine( "           control name is no more a human name for a thing than an enum is" );
+		Console::WriteLine( "  TOOL     this tool's wording - listed together at the end as well, so the" );
+		Console::WriteLine( "           whole set of it can be read in one place" );
+		Console::WriteLine();
+
+		// The "strings :" line is already printed by the loader above, so
+		// only the DEGRADE case is repeated here - and it is repeated on
+		// purpose, because it changes what every line below means.
+		if( false == kStore.HasStrings() )
+		{
+			Console::WriteLine();
+			Console::WriteLine( "*** General.ess WAS NOT READ, so EVERY LABEL BELOW IS THIS TOOL'S OWN WORDING. ***" );
+		}
+
+		//////////////////////////////////////////////////////////////////
+		// The two labels that are not per-value.
+
+		const SLabel kCurrency	= kStore.Currency();
+		const SLabel kCostume	= kStore.Costume();
+
+		Console::WriteLine();
+		Console::WriteLine( "--- the two standalone strings ---" );
+		Console::WriteLine( "  the currency the shop prints after every price : {0}   [{1}]{2}",
+			Utf8( kCurrency.strText ), Utf8( LabelOriginTag( kCurrency.eOrigin ) ), Cite( kCurrency ) );
+		Console::WriteLine( "  what the client itself calls m_bFashion         : {0}   [{1}]{2}",
+			Utf8( kCostume.strText ), Utf8( LabelOriginTag( kCostume.eOrigin ) ), Cite( kCostume ) );
+
+		//////////////////////////////////////////////////////////////////
+		// The three item enums, over the values that occur.
+
+		PrintOneItemEnum( kStore, kResult, LabelEnum_ItemType,		EnumTableItemType(),		0 );
+		PrintOneItemEnum( kStore, kResult, LabelEnum_EquipPosition,	EnumTableEquipPosition(),	1 );
+		PrintOneItemEnum( kStore, kResult, LabelEnum_ItemGrade,		EnumTableItemGrade(),		2 );
+
+		//////////////////////////////////////////////////////////////////
+		// The shop's own tabs, over CashShopCategory.lua's table.
+
+		PrintLabelHeading( "the shop's tabs and sub-tabs, from CashShopCategory.lua" );
+
+		int iLastTab = -1;
+		for( size_t u = 0; u != kResult.vecCategories.size(); ++u )
+		{
+			const SCashCategoryRow& kRow = kResult.vecCategories[u];
+
+			if( kRow.iTabIdx != iLastTab )
+			{
+				iLastTab = kRow.iTabIdx;
+
+				const SLabel kTab = kStore.Label( LabelEnum_CashCategory, kRow.strTabName.c_str(), kRow.iRealID );
+				PrintLabelRow( kRow.iRealID, kRow.strTabName, kTab, -1 );
+			}
+
+			const SLabel kSub = kStore.Label( LabelEnum_CashSubCategory, kRow.strSubName.c_str(), kRow.iCsscEnum );
+			PrintLabelRow( kRow.iBillingCategoryNo, kRow.strSubName, kSub, -1 );
+		}
+
+		Console::WriteLine( "  the value column is REAL_ID for a tab and cash_product.category for a sub-tab -" );
+		Console::WriteLine( "  the number the save actually holds, which no label ever replaces" );
+
+		//////////////////////////////////////////////////////////////////
+		// And every TOOL label again, together. This is the audit: it is
+		// the complete list of words in this tool that are not the game's.
+
+		std::vector<SLabelDumpRow> vecAll;
+		kStore.DumpAll( vecAll );
+
+		Console::WriteLine();
+		Console::WriteLine( "--- every label this tool worded itself ---" );
+
+		int iToolTotal = 0;
+		for( size_t u = 0; u != vecAll.size(); ++u )
+		{
+			if( LabelOrigin_Tool != vecAll[u].kLabel.eOrigin )
+				continue;
+
+			++iToolTotal;
+
+			Console::WriteLine( "  {0} {1} {2}",
+				Pad( Utf8( LabelEnumName( vecAll[u].eEnum ) ), 24 ),
+				Pad( Utf8( vecAll[u].strEnumName ), 26 ),
+				Utf8( vecAll[u].kLabel.strText ) );
+
+			Console::WriteLine( "        {0}", Utf8( vecAll[u].kLabel.strNote ) );
+		}
+
+		Console::WriteLine();
+		Console::WriteLine( "{0} of the {1} entries in the label table are this tool's own wording.",
+			iToolTotal, (int) vecAll.size() );
+		Console::WriteLine();
+		Console::WriteLine( "Nothing was opened and nothing was changed: --labels reads no save." );
 	}
 
 	void PrintExtractionStats( const SExtractResult& kResult )
@@ -719,6 +951,9 @@ int main( array<String^>^ args )
 	bool bDbTest		= false;
 	bool bLive			= false;
 	bool bPickerTest	= false;
+	bool bLabels		= false;
+	bool bTechnical		= false;
+	bool bLayoutTest	= false;
 
 	String^ sDbPath		= nullptr;
 
@@ -736,6 +971,9 @@ int main( array<String^>^ args )
 		if( args[i]->Equals( "--db-test",	StringComparison::OrdinalIgnoreCase ) )	bDbTest			= true;
 		if( args[i]->Equals( "--live",		StringComparison::OrdinalIgnoreCase ) )	bLive			= true;
 		if( args[i]->Equals( "--picker-test", StringComparison::OrdinalIgnoreCase ) ) bPickerTest	= true;
+		if( args[i]->Equals( "--labels",	StringComparison::OrdinalIgnoreCase ) )	bLabels			= true;
+		if( args[i]->Equals( "--layout-test", StringComparison::OrdinalIgnoreCase ) ) bLayoutTest	= true;
+		if( args[i]->Equals( "--technical",	StringComparison::OrdinalIgnoreCase ) )	bTechnical		= true;
 
 		if( args[i]->Equals( "--db-path", StringComparison::OrdinalIgnoreCase ) && i + 1 < args->Length )
 		{
@@ -877,6 +1115,47 @@ int main( array<String^>^ args )
 	Console::WriteLine( "catalog  : {0} item(s), {1} category row(s), {2} enum name(s) loaded from the cache in {3} ms",
 		(int) kCatalog.vecItems.size(), (int) kCatalog.vecCategories.size(),
 		(int) kCatalog.vecEnumNames.size(), kLoadWatch->ElapsedMilliseconds );
+
+	//////////////////////////////////////////////////////////////////////
+	// Phase 6 - the string table.
+	//
+	// A LOOSE file in the game directory, not a .kom member, and read
+	// EVERY RUN rather than cached: 3 MB of UTF-16 parsed in tens of
+	// milliseconds is not worth a cache, and keeping it out of ItemIndex.db
+	// is what keeps this phase clear of the HasColumn trap phase 4
+	// documented for anything that adds a column.
+	//
+	// Failing is not fatal. Every label falls back to this tool's own
+	// wording, and the reason is printed here and shown once in the
+	// window's status bar - because a window quietly showing IT_DEFENCE
+	// because a file was absent is indistinguishable from phase 5's.
+
+	CLabelStore	kLabelStore;
+	std::string	strLabelError;
+
+	System::Diagnostics::Stopwatch^ kLabelWatch = System::Diagnostics::Stopwatch::StartNew();
+	const bool bLabelsLoaded = kLabelStore.Load( wstrDataDir, strLabelError );
+	kLabelWatch->Stop();
+
+	if( bLabelsLoaded )
+	{
+		Console::WriteLine( "strings  : {0:N0} row(s) from {1} in {2} ms",
+			(int) kLabelStore.StringCount(),
+			msclr::interop::marshal_as<String^>( kLabelStore.Path() ),
+			kLabelWatch->ElapsedMilliseconds );
+	}
+	else
+	{
+		Console::WriteLine( "strings  : *** NOT READ *** {0}",
+			msclr::interop::marshal_as<String^>( kLabelStore.Path() ) );
+		Console::WriteLine( "           {0}", Utf8( kLabelStore.Degraded() ) );
+	}
+
+	if( bLabels )
+	{
+		PrintLabels( kLabelStore, kCatalog );
+		return 0;
+	}
 
 	Console::WriteLine( "packages : {0}",
 		kCatalog.bPackageDataRan
@@ -1070,7 +1349,8 @@ int main( array<String^>^ args )
 		Console::WriteLine();
 		Console::WriteLine( "--- the picker, headless ---" );
 
-		ItemCatalogView^ kViewTest = gcnew ItemCatalogView( &kCatalog );
+		ItemCatalogView^ kViewTest = gcnew ItemCatalogView( &kCatalog,
+			gcnew LabelBridge( &kCatalog, &kLabelStore ) );
 
 		Console::WriteLine( "build    : {0:N0} item(s) marshalled in {1} ms, {2:N0} KB managed",
 			kViewTest->All->Length, kViewTest->BuildMs, kViewTest->ManagedBytes / 1024 );
@@ -1084,7 +1364,8 @@ int main( array<String^>^ args )
 
 		// Exercised through the same public surface the window uses, so a
 		// number here is a number about the shipped path.
-		ItemPickerForm^ kPicker = gcnew ItemPickerForm( kViewTest, gcnew IconProvider( &kIcons, 1500 ) );
+		ItemPickerForm^ kPicker = gcnew ItemPickerForm( kViewTest, gcnew IconProvider( &kIcons, 1500 ),
+			gcnew LabelBridge( &kCatalog, &kLabelStore ), bTechnical );
 
 		Console::WriteLine();
 		Console::WriteLine( "  a filter pass is over ALL {0:N0} rows; no index, no debounce:", kViewTest->All->Length );
@@ -1213,6 +1494,133 @@ int main( array<String^>^ args )
 	}
 
 	//////////////////////////////////////////////////////////////////////
+	// Phase 6 - the layout probe.
+	//
+	// Against a COPY of the save, the same discipline phase 3's round-trip
+	// took: the probe has to build a real MainForm to measure one, and a
+	// real MainForm opens its save read-write.
+
+	if( bLayoutTest )
+	{
+		Console::WriteLine();
+		Console::WriteLine( "--- the layout, measured ---" );
+
+		// Beside the index cache, the same place phase 3's round-trip puts
+		// its copy. NOT Path::GetTempPath - windows.h has already
+		// #defined GetTempPath to GetTempPathW, which turns that call into
+		// a member lookup for GetTempPathW on System::IO::Path.
+		String^ sScratch = System::IO::Path::Combine(
+			System::IO::Path::GetDirectoryName(
+				msclr::interop::marshal_as<String^>( wstrCachePath ) ), "layouttest" );
+
+		System::IO::Directory::CreateDirectory( sScratch );
+
+		const std::wstring wstrLive = JoinPath( wstrDataDir, SaveFileName() );
+		const std::wstring wstrCopy = msclr::interop::marshal_as<std::wstring>(
+			System::IO::Path::Combine( sScratch, gcnew String( SaveFileName() ) ) );
+
+		if( false == CopySaveSet( wstrLive, wstrCopy, strError ) )
+		{
+			Console::WriteLine( "ERROR: the save could not be copied: {0}", Utf8( strError ) );
+			return 20;
+		}
+
+		CCashDb kDb;
+		const ECashDbResult eOpen = kDb.Open( wstrCopy, false, strError );
+
+		Console::WriteLine( "copy     : {0}", msclr::interop::marshal_as<String^>( wstrCopy ) );
+		Console::WriteLine( "open     : {0}", DbOpenLine( eOpen, kDb, strError ) );
+
+		if( CashDb_OK != eOpen )
+			return 21;
+
+		kDb.SetKnownItems( kCatalog.vecItems );
+
+		Application::EnableVisualStyles();
+		Application::SetCompatibleTextRenderingDefault( false );
+
+		int iTotal = 0;
+
+		// Both views, because the toggle rebuilds both lists and the
+		// technical strings are the LONGER ones - if anything is going to
+		// be clipped it is those.
+		for( int iPass = 0; iPass < 2; ++iPass )
+		{
+			const bool bPassTechnical = ( 1 == iPass );
+
+			MainForm^ kForm = gcnew MainForm( &kDb, &kIcons, &kCatalog, &kLabelStore, bPassTechnical );
+
+			static const int s_aiSizes[][2] = { { 900, 560 }, { 1920, 1080 } };
+
+			for( size_t u = 0; u != sizeof( s_aiSizes ) / sizeof( s_aiSizes[0] ); ++u )
+			{
+				int iRows		= 0;
+				int iCanvas		= 0;
+				int iReached	= 0;
+
+				Console::WriteLine();
+				Console::WriteLine( "  {0}x{1}, technical {2}:",
+					s_aiSizes[u][0], s_aiSizes[u][1], bPassTechnical ? "on" : "off" );
+
+				const int iComplaints = kForm->MeasureLayout(
+					s_aiSizes[u][0], s_aiSizes[u][1], iRows, iCanvas, iReached );
+
+				iTotal += iComplaints;
+
+				Console::WriteLine( "    {0}", ( 0 == iComplaints )
+					? "no overlapping, clipped or collapsed control anywhere in the tree"
+					: String::Format( "{0} complaint(s) above", iComplaints ) );
+
+				Console::WriteLine( "    grid: {0:N0} row(s), {1:N0}-pixel canvas, scrolled to the end reaches {2:N0}   {3}",
+					iRows, iCanvas, iReached,
+					( iReached >= iCanvas ) ? "-> the last row is reachable"
+											: "*** THE LAST ROW CANNOT BE REACHED ***" );
+			}
+
+			kForm->Close();
+		}
+
+		kDb.Close();
+
+		//////////////////////////////////////////////////////////////////
+		// And the one claim the layout passes cannot make: that the
+		// toggle SURVIVES A RESTART. The menu item's handler is one call
+		// to WriteSettingBool and the editor's startup is one call to
+		// ReadSettingBool, so this exercises both against the real ini and
+		// puts back whatever was there.
+
+		const std::wstring wstrIni = DefaultSettingsPath();
+
+		const bool bWas = ReadSettingBool( wstrIni, L"technical", false );
+
+		WriteSettingBool( wstrIni, L"technical", true );
+		const bool bReadTrue = ReadSettingBool( wstrIni, L"technical", false );
+
+		WriteSettingBool( wstrIni, L"technical", false );
+		const bool bReadFalse = ReadSettingBool( wstrIni, L"technical", true );
+
+		WriteSettingBool( wstrIni, L"technical", bWas );
+
+		Console::WriteLine();
+		Console::WriteLine( "settings : {0}", msclr::interop::marshal_as<String^>( wstrIni ) );
+		Console::WriteLine( "           wrote on -> read {0}; wrote off -> read {1}   {2}",
+			bReadTrue ? "on" : "off", bReadFalse ? "on" : "off",
+			( bReadTrue && false == bReadFalse )
+				? "-> the toggle survives a restart"
+				: "*** THE TOGGLE DOES NOT PERSIST ***" );
+		Console::WriteLine( "           restored to {0}, the value this run found", bWas ? "on" : "off" );
+
+		if( false == bReadTrue || bReadFalse )
+			++iTotal;
+
+		Console::WriteLine();
+		Console::WriteLine( "{0} complaint(s) in total across both sizes and both views.", iTotal );
+		Console::WriteLine( "The live save was not opened: this ran against the copy above." );
+
+		return ( 0 == iTotal ) ? 0 : 22;
+	}
+
+	//////////////////////////////////////////////////////////////////////
 	// Phase 4 - the catalog editor, and the DEFAULT action of the tool.
 	//
 	// Everything below this block is phase 2's icon wall and its census,
@@ -1271,7 +1679,14 @@ int main( array<String^>^ args )
 
 		Application::EnableVisualStyles();
 		Application::SetCompatibleTextRenderingDefault( false );
-		Application::Run( gcnew MainForm( &kDb, &kIcons, &kCatalog ) );
+		// bTechnical: --technical wins for this run; otherwise whatever
+		// the last session left in X2CashShopTool.ini. The setting is
+		// deliberately NOT in ItemIndex.db, which is a cache that gets
+		// thrown away whenever an archive changes.
+		const bool bStartTechnical = bTechnical
+			|| ReadSettingBool( DefaultSettingsPath(), L"technical", false );
+
+		Application::Run( gcnew MainForm( &kDb, &kIcons, &kCatalog, &kLabelStore, bStartTechnical ) );
 
 		// Checkpoints the WAL into the main file, so the save is left the
 		// way the client leaves it.
@@ -1583,6 +1998,7 @@ int main( array<String^>^ args )
 		(double) System::Diagnostics::Process::GetCurrentProcess()->PeakWorkingSet64 / ( 1024.0 * 1024.0 ) );
 	Console::WriteLine( "switches : --rebuild  --items  --wall  --decode-all  --no-window  --dump <name> [outfile]" );
 	Console::WriteLine( "           --db  --db-test [--live]  --db-path <file>  --picker-test" );
+	Console::WriteLine( "           --labels  --technical  --layout-test" );
 
 	if( bNoWindow )
 		return 0;

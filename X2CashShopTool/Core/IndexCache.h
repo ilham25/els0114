@@ -83,3 +83,22 @@ private:
 // a stray .db beside els_db.sql - which is the very thing the plan's stated
 // reason was guarding against. See the comment on the definition.
 std::wstring	DefaultCachePath();
+
+//////////////////////////////////////////////////////////////////////////
+// Phase 6 - the window's own settings, and NOT in ItemIndex.db.
+//
+// The technical-details toggle has to survive a restart, and the cache is
+// the wrong place for it: the cache is thrown away and rebuilt whenever
+// the archives or the extractor version change, and losing a preference
+// because an archive was repacked would be silly. So it lives in a small
+// X2CashShopTool.ini beside the cache, in the same %LOCALAPPDATA% folder.
+//
+// These live here rather than in Labels.cpp because this is already the
+// file that decides where the tool keeps its state; the ini is one more
+// answer to the same question. GetPrivateProfileString is the whole
+// implementation - a two-key ini needs no more than that.
+
+std::wstring	DefaultSettingsPath();
+
+bool	ReadSettingBool( const std::wstring& wstrIniPath, const wchar_t* pszKey, bool bDefault );
+bool	WriteSettingBool( const std::wstring& wstrIniPath, const wchar_t* pszKey, bool bValue );
